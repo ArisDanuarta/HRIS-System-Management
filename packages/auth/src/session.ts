@@ -1,5 +1,13 @@
 import { prisma } from "@pspk/db";
 import { AuthContext } from "@pspk/rbac";
+import { auth } from "./index";
+
+/**
+ * Retrieves the active Better Auth session using standard Web Headers.
+ */
+export async function getSession(headers: Headers) {
+  return await auth.api.getSession({ headers });
+}
 
 /**
  * Loads the user's role keys, permissions set, and linked employeeId from database.
@@ -49,3 +57,45 @@ export async function getAuthContext(userId: string): Promise<AuthContext | null
     permissions: permissionsSet,
   };
 }
+
+/**
+ * Loads full user profile with roles and linked employee details for UI shell.
+ */
+export async function getUserProfile(userId: string) {
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      isActive: true,
+      roles: {
+        select: {
+          role: {
+            select: {
+              key: true,
+              name: true,
+            },
+          },
+        },
+      },
+      employee: {
+        select: {
+          id: true,
+          employeeNo: true,
+          fullName: true,
+          nickname: true,
+          workEmail: true,
+          currentPosition: {
+            select: { title: true },
+          },
+          currentDepartment: {
+            select: { name: true },
+          },
+        },
+      },
+    },
+  });
+}
+
