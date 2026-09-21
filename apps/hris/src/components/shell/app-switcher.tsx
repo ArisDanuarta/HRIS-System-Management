@@ -75,15 +75,15 @@ export function AppSwitcher({
             <Check className="w-4 h-4 text-[#102e50]" />
           </div>
 
-          {/* Companion App (System Management) */}
+          {/* Companion App (System Management or HRIS) */}
           <a
-            href={sysmgmtUrl}
+            href={isHris ? sysmgmtUrl : hrisUrl}
             className="flex items-center justify-between px-3 py-2 rounded-lg text-[#43474e] hover:bg-[#f8f9ff] hover:text-[#102e50] transition-colors text-xs font-medium"
             onClick={() => setIsOpen(false)}
           >
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#60a5fa]" />
-              <span>System Management</span>
+              <span className={`w-2 h-2 rounded-full ${isHris ? "bg-[#60a5fa]" : "bg-[#f2af3e]"}`} />
+              <span>{isHris ? "System Management" : "Portal HRIS"}</span>
             </div>
             <ExternalLink className="w-3.5 h-3.5 text-[#74777f]" />
           </a>
