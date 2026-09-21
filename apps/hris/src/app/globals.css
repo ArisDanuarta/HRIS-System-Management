@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "@pspk/ui/brand.css";
 
+@source "../../../../packages/ui";
+
 body {
   background-color: var(--bg-page, #f5f7fa);
   color: var(--text-primary, #1b2430);

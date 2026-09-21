@@ -17,7 +17,7 @@ export interface LoginPageProps {
 
 export function LoginPage({
   appName = "PSPK Platform",
-  defaultEmail = "admin@pspk.example",
+  defaultEmail = "",
   onSubmit,
   onSuccess,
   forgotPasswordHref = "#lupa-password",
@@ -28,11 +28,9 @@ export function LoginPage({
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
-  // States: "idle" | "loading" | "error"
+  // Form states: "idle" | "loading" | "error"
   const [formState, setFormState] = useState<"idle" | "loading" | "error">("idle");
-  const [errorMessage, setErrorMessage] = useState<string>(
-    "Email atau password salah. Pastikan alamat surel instansi @pspk.or.id dan kata sandi diketik dengan benar.",
-  );
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,28 +53,19 @@ export function LoginPage({
         setErrorMessage(msg);
         setFormState("error");
       }
-    } else {
-      // Default simulated cycle if no external handler
-      setTimeout(() => {
-        setFormState("idle");
-      }, 1500);
     }
   };
 
-  const triggerSimulatedCycle = () => {
-    setFormState("loading");
-    setTimeout(() => {
-      setErrorMessage(
-        "Email atau password salah. Pastikan alamat surel instansi @pspk.or.id dan kata sandi diketik dengan benar.",
-      );
-      setFormState("error");
-    }, 2400);
-  };
-
   return (
-    <div className="w-full min-h-screen flex flex-col lg:flex-row bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#feba48]/30">
+    <div
+      className="w-full min-h-screen flex flex-col lg:flex-row bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#feba48]/30"
+      style={{ minHeight: "100vh" }}
+    >
       {/* LEFT PANEL: Institutional Navy Brand Identity */}
-      <div className="relative w-full lg:w-[46%] min-h-[520px] lg:min-h-screen bg-[#102e50] text-white flex flex-col justify-between p-8 sm:p-12 lg:p-16 overflow-hidden">
+      <div
+        className="relative w-full lg:w-[46%] min-h-[520px] lg:min-h-screen bg-[#102e50] text-white flex flex-col justify-between p-8 sm:p-12 lg:p-16 overflow-hidden"
+        style={{ backgroundColor: "#102e50", color: "#ffffff" }}
+      >
         {/* Ambient Mathematical Geometry (Vector Lines & Deep Navy Contours) */}
         <div className="absolute inset-0 pointer-events-none select-none opacity-40">
           <svg className="w-full h-full" fill="none" viewBox="0 0 680 960" xmlns="http://www.w3.org/2000/svg">
@@ -165,7 +154,10 @@ export function LoginPage({
       </div>
 
       {/* RIGHT PANEL: Authentication Workspace */}
-      <div className="w-full lg:w-[54%] flex flex-col justify-between p-6 sm:p-10 lg:p-16 bg-[#f8f9ff]">
+      <div
+        className="w-full lg:w-[54%] flex flex-col justify-between p-6 sm:p-10 lg:p-16 bg-[#f8f9ff]"
+        style={{ backgroundColor: "#f8f9ff" }}
+      >
         {/* Top Secondary Bar / Context Header */}
         <div className="w-full flex items-center justify-between pb-6">
           <div className="flex items-center gap-2 text-[#43474e]">
@@ -188,56 +180,7 @@ export function LoginPage({
         </div>
 
         {/* Main Central Card Area */}
-        <div className="w-full max-w-xl mx-auto my-auto py-4">
-          {/* Interactive State Showcase Toggle Bar (Stitch Design Feature) */}
-          <div className="mb-6 p-2 rounded-lg bg-[#e6eeff] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 pl-2">
-              <svg className="w-4 h-4 text-[#43474e]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
-              <span className="text-[11px] uppercase tracking-wider text-[#43474e] font-bold">
-                Pratinjau Status Form:
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setFormState("idle")}
-                className={`px-3 py-1.5 rounded text-[11px] font-semibold transition-all ${
-                  formState === "idle"
-                    ? "bg-white text-[#121c2a] shadow-sm"
-                    : "text-[#43474e] hover:text-[#121c2a]"
-                }`}
-              >
-                Formulir Aktif
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormState("error")}
-                className={`px-3 py-1.5 rounded text-[11px] font-semibold transition-all ${
-                  formState === "error"
-                    ? "bg-white text-[#121c2a] shadow-sm"
-                    : "text-[#43474e] hover:text-[#121c2a]"
-                }`}
-              >
-                Status Kesalahan
-              </button>
-              <button
-                type="button"
-                onClick={() => setFormState("loading")}
-                className={`px-3 py-1.5 rounded text-[11px] font-semibold transition-all ${
-                  formState === "loading"
-                    ? "bg-white text-[#121c2a] shadow-sm"
-                    : "text-[#43474e] hover:text-[#121c2a]"
-                }`}
-              >
-                Status Memuat
-              </button>
-            </div>
-          </div>
-
+        <div className="w-full max-w-xl mx-auto my-auto py-6">
           {/* Authentication Card */}
           <div className="bg-white rounded-xl p-8 sm:p-10 shadow-sm border border-[#e6eeff]/70 transition-all duration-200">
             {/* Card Header */}
@@ -268,7 +211,9 @@ export function LoginPage({
                 </svg>
                 <div className="flex-1">
                   <p className="text-sm font-bold text-[#ba1a1a] leading-tight">Autentikasi Gagal</p>
-                  <p className="text-sm text-[#93000a] mt-0.5">{errorMessage}</p>
+                  <p className="text-sm text-[#93000a] mt-0.5">
+                    {errorMessage || "Email atau kata sandi yang Anda masukkan tidak sesuai."}
+                  </p>
                 </div>
                 <button
                   type="button"
@@ -436,34 +381,6 @@ export function LoginPage({
               </span>
               <span className="font-mono text-xs">ID Sesi: 9942-AUTH-IDN</span>
             </div>
-          </div>
-
-          {/* Dedicated Visual Preview Frame: System Feedback / Loading State Inspector (Stitch Design Feature) */}
-          <div className="mt-6 p-5 rounded-lg bg-[#eff4ff] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-[#e6eeff]">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded bg-[#dee9fc] text-[#102e50]">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.038 8.038 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#102e50]">Pratinjau Status Asinkron</p>
-                <p className="text-xs sm:text-sm text-[#43474e]">
-                  Umpan balik real-time saat modul enkripsi memvalidasi token sesi pengguna.
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={triggerSimulatedCycle}
-              className="shrink-0 px-4 py-2 rounded bg-[#d9e3f6] hover:bg-[#dee9fc] text-[#102e50] text-[13px] font-semibold transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" />
-                <polygon points="10 8 16 12 10 16 10 8" fill="currentColor" />
-              </svg>
-              <span>Uji Siklus 3 Detik</span>
-            </button>
           </div>
         </div>
 

@@ -188,6 +188,9 @@ importers:
       '@types/node':
         specifier: ^20.17.19
         version: 20.19.43
+      better-auth:
+        specifier: ^1.2.9
+        version: 1.7.5(@prisma/client@5.22.0(prisma@5.22.0))(next@16.3.5(@babel/core@8.0.1)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(prisma@5.22.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(vitest@5.0.1(@types/node@20.19.43)(vite@8.3.0(@types/node@20.19.43)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)))
       dotenv-cli:
         specifier: ^8.0.0
         version: 8.0.0
@@ -3609,7 +3612,7 @@ snapshots:
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.5.5
+      '@jridgewell/sourcemap-codec': 1.6.0
       '@jridgewell/trace-mapping': 0.3.31
 
   '@jridgewell/remapping@2.3.5':

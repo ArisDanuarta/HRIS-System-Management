@@ -26,6 +26,7 @@ export default function HrisLoginPage() {
         }
 
         router.push("/");
+        router.refresh();
       }}
     />
   );

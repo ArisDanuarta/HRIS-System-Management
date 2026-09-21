@@ -9,7 +9,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
   baseURL: process.env.HRIS_URL || "http://localhost:3001",
   trustedOrigins: [
     process.env.HRIS_URL || "http://localhost:3001",

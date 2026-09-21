@@ -33,6 +33,25 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Layar P-C1 — Halaman Login Bersama (PSPK Platform)
+- **Status:** Selesai (Completed)
+- **Sumber Desain:** Stitch AI Screen P-C1 (Project ID: `9384324621089398179`, Screen ID: `d1ac364d517f42948a50aa4aab3f89d8`)
+- **Implementasi:**
+  - Ditulis ulang 100% murni dalam React & Tailwind CSS (`packages/ui/src/login-page.tsx`).
+  - Panel Kiri: Ornamen geometris vektor matematika SVG (`#feba48`, `#ffffff`), kartu monogram logo PSPK lokal (`/images/pspk-logo.png`), pill badge pulsasi *Portal Internal Lembaga*, headline Lora, metrik institusional (2014–Kini, 256-Bit TLS), dan lencana keamanan.
+  - Panel Kanan: Header institusi & link bantuan, kartu autentikasi dengan badge lingkungan `ENV: ID-JKT-01`, tab penguji status form (*Formulir Aktif*, *Status Kesalahan*, *Status Memuat*), banner kesalahan maroon interaktif, input email domain `@pspk.or.id`, input kata sandi dengan toggle intip (show/hide), checkbox ingat saya (sesi 30 hari), tombol login dengan animasi spinner saat verifikasi, dan frame penguji siklus 3 detik.
+  - Integrasi Better Auth:
+    - Route handlers di `apps/hris/src/app/api/auth/[...all]/route.ts` dan `apps/sysmgmt/src/app/api/auth/[...all]/route.ts`.
+    - Client Better Auth di `packages/auth/src/client.ts`.
+    - Migrasi Prisma `20260921084144_add_account_id_token` menambahkan kolom `idToken` pada tabel `core.accounts`.
+    - Helper hashing Better Auth `hashPassword` diterapkan pada seed super admin.
+  - Rute aktif di kedua aplikasi:
+    - `http://localhost:3001/login` (HRIS)
+    - `http://localhost:3002/login` (System Management)
+  - Hasil Uji: Autentikasi kredensial `admin@pspk.example` / `AdminPSPK2026!#` berhasil memverifikasi, mengembalikan token sesi, dan menyimpan sesi ke tabel `core.sessions` di database.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

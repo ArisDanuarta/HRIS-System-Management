@@ -26,6 +26,7 @@ export default function SysmgmtLoginPage() {
         }
 
         router.push("/");
+        router.refresh();
       }}
     />
   );
