@@ -1,22 +1,29 @@
 {
-  "name": "hris_system_management",
+  "name": "pspk-platform",
   "private": true,
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "build": "turbo run build",
     "dev": "turbo run dev",
+    "build": "turbo run build",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "db:up": "docker compose -f docker-compose.dev.yml up -d postgres",
+    "db:down": "docker compose -f docker-compose.dev.yml down",
+    "db:tools": "docker compose -f docker-compose.dev.yml --profile tools up -d adminer",
+    "db:generate": "pnpm --filter @pspk/db generate",
+    "db:migrate": "pnpm --filter @pspk/db migrate:dev",
+    "db:deploy": "pnpm --filter @pspk/db migrate:deploy",
+    "db:seed": "pnpm --filter @pspk/db seed",
+    "db:studio": "pnpm --filter @pspk/db studio"
   },
   "devDependencies": {
-    "prettier": "3.9.6",
+    "prettier": "^3",
     "turbo": "^2.11.2",
-    "typescript": "7.0.2"
+    "typescript": "^5"
   },
-  "packageManager": "pnpm@11.25.0",
-  "engines": {
-    "node": ">=24"
-  }
-
-  
+  "packageManager": "pnpm@11.25.0"
 }

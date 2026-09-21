@@ -1,0 +1,129 @@
+name: pspk-platform
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${APP_DB_USER}:${APP_DB_PASSWORD}@postgres:5432/${POSTGRES_DB}
+  AUTH_SECRET: ${AUTH_SECRET}
+  AUTH_COOKIE_DOMAIN: ${AUTH_COOKIE_DOMAIN}
+  DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY}
+  HRIS_URL: https://${HRIS_DOMAIN}
+  SYSMGMT_URL: https://${SYSMGMT_DOMAIN}
+  STORAGE_DRIVER: local
+  STORAGE_LOCAL_DIR: /app/uploads
+  MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-25}
+  APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Jakarta}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_DB_USER: ${APP_DB_USER}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [internal]
+    logging: *default-logging
+
+  migrate:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.migrate
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  hris:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.next
+      args:
+        APP: hris
+        PORT: "3001"
+    restart: unless-stopped
+    environment: *app-env
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [internal, web]
+    logging: *default-logging
+
+  sysmgmt:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.next
+      args:
+        APP: sysmgmt
+        PORT: "3002"
+    restart: unless-stopped
+    environment: *app-env
+    volumes:
+      - uploads:/app/uploads
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3002/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks: [internal, web]
+    logging: *default-logging
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      HRIS_DOMAIN: ${HRIS_DOMAIN}
+      SYSMGMT_DOMAIN: ${SYSMGMT_DOMAIN}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - hris
+      - sysmgmt
+    networks: [web]
+    logging: *default-logging
+
+networks:
+  internal:
+    internal: true
+  web: {}
+
+volumes:
+  pgdata:
+  uploads:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,137 @@
+// System Management Schema: Assets, Software Licenses, Documents & SOPs
+
+enum AssetCategory {
+  IT
+  NON_IT
+
+  @@schema("sysmgmt")
+}
+
+enum AssetStatus {
+  IN_STOCK
+  ASSIGNED
+  MAINTENANCE
+  RETIRED
+  LOST
+
+  @@schema("sysmgmt")
+}
+
+enum DocumentVisibility {
+  ALL_STAFF
+  HR_ONLY
+  IT_ONLY
+  MANAGERS
+
+  @@schema("sysmgmt")
+}
+
+enum DocumentStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+
+  @@schema("sysmgmt")
+}
+
+model Asset {
+  id            String        @id @default(uuid())
+  assetTag      String        @unique @map("asset_tag")
+  category      AssetCategory @default(IT)
+  type          String        // Laptop, Monitor, Meja, Kendaraan, etc.
+  name          String
+  brand         String?
+  model         String?
+  serialNumber  String?       @map("serial_number")
+  purchaseDate  DateTime?     @map("purchase_date") @db.Date
+  purchasePrice Decimal?      @map("purchase_price") @db.Decimal(15, 2)
+  status        AssetStatus   @default(IN_STOCK)
+  location      String?
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  assignments AssetAssignment[]
+
+  @@index([status])
+  @@index([category])
+  @@map("assets")
+  @@schema("sysmgmt")
+}
+
+model AssetAssignment {
+  id           String    @id @default(uuid())
+  assetId      String    @map("asset_id")
+  employeeId   String    @map("employee_id")
+  assignedAt   DateTime  @default(now()) @map("assigned_at") @db.Timestamptz(6)
+  returnedAt   DateTime? @map("returned_at") @db.Timestamptz(6)
+  conditionOut String?   @map("condition_out")
+  conditionIn  String?   @map("condition_in")
+  notes        String?
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  asset    Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([assetId, returnedAt])
+  @@index([employeeId])
+  @@map("asset_assignments")
+  @@schema("sysmgmt")
+}
+
+model SoftwareLicense {
+  id            String    @id @default(uuid())
+  name          String
+  vendor        String?
+  licenseKeyEnc String?   @map("license_key_enc")
+  seatsTotal    Int       @default(1) @map("seats_total")
+  seatsUsed     Int       @default(0) @map("seats_used")
+  purchaseDate  DateTime? @map("purchase_date") @db.Date
+  expiresAt     DateTime? @map("expires_at") @db.Date
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("software_licenses")
+  @@schema("sysmgmt")
+}
+
+model Document {
+  id               String             @id @default(uuid())
+  code             String             @unique // e.g. SOP-001, KBJ-002
+  title            String
+  category         String             // Kebijakan, SOP HR, SOP IT, Keuangan, Umum
+  visibility       DocumentVisibility @default(ALL_STAFF)
+  status           DocumentStatus     @default(ACTIVE)
+  ownerId          String?            @map("owner_id")
+  currentVersionId String?            @map("current_version_id")
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  versions DocumentVersion[]
+
+  @@map("documents")
+  @@schema("sysmgmt")
+}
+
+model DocumentVersion {
+  id            String    @id @default(uuid())
+  documentId    String    @map("document_id")
+  versionNo     Int       @map("version_no")
+  fileKey       String    @map("file_key")
+  fileName      String    @map("file_name")
+  mimeType      String    @map("mime_type")
+  sizeBytes     Int       @map("size_bytes")
+  sha256        String
+  changeNote    String?   @map("change_note")
+  effectiveDate DateTime? @map("effective_date") @db.Date
+  createdById   String    @map("created_by_id")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  document Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, versionNo])
+  @@map("document_versions")
+  @@schema("sysmgmt")
+}

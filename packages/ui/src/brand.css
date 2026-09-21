@@ -1,0 +1,32 @@
+@theme {
+  --color-navy: #102e50;
+  --color-navy-hover: #0c233d;
+  --color-navy-light: #f0f4f8;
+  --color-gold: #f2af3e;
+  --color-gold-hover: #e09d2c;
+  --color-maroon: #a8281c;
+  --color-maroon-hover: #8f2217;
+  --color-page: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-text-primary: #1b2430;
+  --color-text-muted: #5b6675;
+  --color-border: #e1e6ed;
+
+  --font-heading: "Lora", ui-serif, Georgia, serif;
+  --font-body: "Rubik", ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  --navy: #102e50;
+  --navy-hover: #0c233d;
+  --navy-light: #f0f4f8;
+  --gold: #f2af3e;
+  --gold-hover: #e09d2c;
+  --maroon: #a8281c;
+  --maroon-hover: #8f2217;
+  --bg-page: #f5f7fa;
+  --surface: #ffffff;
+  --text-primary: #1b2430;
+  --text-muted: #5b6675;
+  --border: #e1e6ed;
+}
