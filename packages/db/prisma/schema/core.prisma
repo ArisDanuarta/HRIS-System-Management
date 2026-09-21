@@ -42,6 +42,7 @@ model Account {
   providerId            String    @map("provider_id")
   accessToken           String?   @map("access_token")
   refreshToken          String?   @map("refresh_token")
+  idToken               String?   @map("id_token")
   accessTokenExpiresAt  DateTime? @map("access_token_expires_at") @db.Timestamptz(6)
   refreshTokenExpiresAt DateTime? @map("refresh_token_expires_at") @db.Timestamptz(6)
   scope                 String?

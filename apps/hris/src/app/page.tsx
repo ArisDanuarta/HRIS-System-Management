@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppSwitcher, Button } from "@pspk/ui";
 
 export default function HomePage() {
@@ -38,7 +39,9 @@ export default function HomePage() {
           </p>
 
           <div className="flex items-center justify-center gap-3">
-            <Button variant="primary">Masuk ke Sistem</Button>
+            <Link href="/login">
+              <Button variant="primary">Masuk ke Sistem</Button>
+            </Link>
             <Button variant="secondary">Pelajari Alur</Button>
           </div>
         </div>

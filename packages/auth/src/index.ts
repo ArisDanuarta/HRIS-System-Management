@@ -11,6 +11,14 @@ export const auth = betterAuth({
   },
   secret: process.env.AUTH_SECRET,
   baseURL: process.env.HRIS_URL || "http://localhost:3001",
+  trustedOrigins: [
+    process.env.HRIS_URL || "http://localhost:3001",
+    process.env.SYSMGMT_URL || "http://localhost:3002",
+  ],
 });
+
+import { toNextJsHandler } from "better-auth/next-js";
+
+export const authHandlers = toNextJsHandler(auth);
 
 export * from "./session";

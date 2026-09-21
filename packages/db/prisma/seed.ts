@@ -1,15 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { PERMISSIONS, SYSTEM_ROLES } from "@pspk/rbac";
-import crypto from "node:crypto";
+import { hashPassword } from "better-auth/crypto";
 
 const prisma = new PrismaClient();
-
-// Helper to hash password using PBKDF2 (compatible with standard credential stores)
-function hashPassword(password: string): string {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
-  return `${salt}:${hash}`;
-}
 
 async function main() {
   console.log("🌱 Memulai proses seeding database PSPK Platform...");
@@ -90,7 +83,8 @@ async function main() {
     },
   });
 
-  // Create password credential account if not exists
+  // Create or update password credential account
+  const hashedPassword = await hashPassword(adminPassword);
   const existingAccount = await prisma.account.findFirst({
     where: {
       userId: adminUser.id,
@@ -104,8 +98,13 @@ async function main() {
         userId: adminUser.id,
         accountId: adminUser.id,
         providerId: "credential",
-        password: hashPassword(adminPassword),
+        password: hashedPassword,
       },
+    });
+  } else {
+    await prisma.account.update({
+      where: { id: existingAccount.id },
+      data: { password: hashedPassword },
     });
   }
 

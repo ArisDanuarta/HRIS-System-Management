@@ -1,4 +1,4 @@
 {
-  "extends": "@pspk/config/tsconfig/base.json",
+  "extends": "@pspk/config/tsconfig/library.json",
   "include": ["src/**/*"]
 }
