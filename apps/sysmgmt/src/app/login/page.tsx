@@ -9,7 +9,9 @@ export default function SysmgmtLoginPage() {
 
   return (
     <LoginPage
-      appName="System Management"
+      currentApp="sysmgmt"
+      hrisUrl="http://localhost:3001"
+      sysmgmtUrl="http://localhost:3002"
       onSubmit={async ({ email, password, remember }) => {
         const res = await signIn.email({
           email,

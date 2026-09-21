@@ -38,8 +38,11 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 - **Sumber Desain:** Stitch AI Screen P-C1 (Project ID: `9384324621089398179`, Screen ID: `d1ac364d517f42948a50aa4aab3f89d8`)
 - **Implementasi:**
   - Ditulis ulang 100% murni dalam React & Tailwind CSS (`packages/ui/src/login-page.tsx`).
-  - Panel Kiri: Ornamen geometris vektor matematika SVG (`#feba48`, `#ffffff`), kartu monogram logo PSPK lokal (`/images/pspk-logo.png`), pill badge pulsasi *Portal Internal Lembaga*, headline Lora, metrik institusional (2014–Kini, 256-Bit TLS), dan lencana keamanan.
-  - Panel Kanan: Header institusi & link bantuan, kartu autentikasi dengan badge lingkungan `ENV: ID-JKT-01`, tab penguji status form (*Formulir Aktif*, *Status Kesalahan*, *Status Memuat*), banner kesalahan maroon interaktif, input email domain `@pspk.or.id`, input kata sandi dengan toggle intip (show/hide), checkbox ingat saya (sesi 30 hari), tombol login dengan animasi spinner saat verifikasi, dan frame penguji siklus 3 detik.
+  - Fitur Pengalih Portal (Slide Switcher): Ditambahkan segmented pill control interaktif di bagian atas untuk berpindah mulus antar *Portal HRIS* (`:3001/login`) dan *System Management* (`:3002/login`).
+  - Identitas Khas Tiap Portal:
+    - **HRIS**: Nuansa aksen emas `#feba48`, label *Akses Masuk Pegawai HRIS*, headline fokus ke manajemen absensi, cuti, dan kepegawaian tim riset PSPK.
+    - **System Management**: Nuansa aksen teknologi biru `#60a5fa`, label *Akses Administrator Sistem*, headline fokus ke kontrol hak akses RBAC, inventarisasi aset, dan audit trail.
+  - Desain 1 Layar Penuh: Layout terkunci rapi pada 100vh tanpa scrollbar, responsif di resolusi laptop/desktop.
   - Integrasi Better Auth:
     - Route handlers di `apps/hris/src/app/api/auth/[...all]/route.ts` dan `apps/sysmgmt/src/app/api/auth/[...all]/route.ts`.
     - Client Better Auth di `packages/auth/src/client.ts`.

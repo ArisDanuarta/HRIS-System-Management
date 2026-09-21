@@ -9,7 +9,9 @@ export default function HrisLoginPage() {
 
   return (
     <LoginPage
-      appName="HRIS"
+      currentApp="hris"
+      hrisUrl="http://localhost:3001"
+      sysmgmtUrl="http://localhost:3002"
       onSubmit={async ({ email, password, remember }) => {
         const res = await signIn.email({
           email,
