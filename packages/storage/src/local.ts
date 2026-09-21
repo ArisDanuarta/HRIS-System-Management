@@ -19,15 +19,14 @@ export class LocalDiskStorage implements StorageProvider {
    * Sanitizes key to strictly prevent path traversal vulnerabilities.
    */
   private resolveSafePath(key: string): string {
-    // 1. Normalize and reject dangerous sequences
-    const normalizedKey = path.normalize(key).replace(/^(\.\.(\/|\\|$))+/, "");
-    if (normalizedKey.includes("..") || path.isAbsolute(normalizedKey)) {
+    if (!key || key.includes("..") || path.isAbsolute(key)) {
       throw new Error(`Potensi path traversal terdeteksi pada key: ${key}`);
     }
 
+    const normalizedKey = path.normalize(key);
     const fullPath = path.resolve(this.baseDir, normalizedKey);
 
-    // 2. Ensure resolved path is strictly within baseDir
+    // Ensure resolved path is strictly within baseDir
     if (!fullPath.startsWith(this.baseDir + path.sep) && fullPath !== this.baseDir) {
       throw new Error(`Akses di luar root direktori penyimpanan dilarang: ${key}`);
     }
