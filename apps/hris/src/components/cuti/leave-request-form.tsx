@@ -4,11 +4,8 @@ import React, { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Calendar,
-  Clock,
   AlertCircle,
   CheckCircle2,
-  Paperclip,
   ArrowLeft,
   Send,
   Info,

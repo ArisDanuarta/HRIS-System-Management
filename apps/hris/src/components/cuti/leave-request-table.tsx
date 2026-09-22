@@ -8,7 +8,7 @@ interface LeaveRequestItem {
   id: string;
   startDate: Date;
   endDate: Date;
-  days: any;
+  days: number | string | { toString(): string };
   reason?: string | null;
   status: string;
   decisionNote?: string | null;

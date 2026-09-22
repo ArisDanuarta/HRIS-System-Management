@@ -153,7 +153,11 @@ export function AttendanceCorrectionModal({
             <label className="font-semibold text-slate-700">Status Kehadiran *</label>
             <select
               value={status}
-              onChange={(e) => setStatus(e.target.value as any)}
+              onChange={(e) =>
+                setStatus(
+                  e.target.value as "PRESENT" | "LATE" | "ABSENT" | "LEAVE" | "WFH",
+                )
+              }
               className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
             >
               <option value="PRESENT">Hadir Tepat Waktu (PRESENT)</option>

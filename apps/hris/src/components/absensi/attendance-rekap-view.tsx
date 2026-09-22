@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Search, Filter, Edit3, Users, Building, Calendar, CheckCircle2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Filter, Edit3, Users, Building, Calendar } from "lucide-react";
 import { AttendanceCorrectionModal } from "./attendance-correction-modal";
 
 interface EmployeeRekapItem {

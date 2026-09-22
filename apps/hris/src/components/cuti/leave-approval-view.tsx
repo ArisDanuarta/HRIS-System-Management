@@ -8,9 +8,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
-  Calendar,
-  User,
-  ShieldCheck,
 } from "lucide-react";
 import {
   approveLeaveRequestAction,
@@ -21,7 +18,7 @@ interface LeaveApprovalItem {
   id: string;
   startDate: Date;
   endDate: Date;
-  days: any;
+  days: number | string | { toString(): string };
   reason?: string | null;
   status: string;
   decisionNote?: string | null;
@@ -50,7 +47,6 @@ interface LeaveApprovalViewProps {
 export function LeaveApprovalView({
   pendingRequests,
   allRequests,
-  isSuperOrHr,
 }: LeaveApprovalViewProps) {
   const [activeTab, setActiveTab] = useState<"PENDING" | "APPROVED" | "REJECTED" | "ALL">("PENDING");
   const [selectedAction, setSelectedAction] = useState<{

@@ -1,4 +1,4 @@
-import { prisma, logAuditEvent } from "@pspk/db";
+import { prisma, writeAudit } from "@pspk/db";
 import { toDateString } from "@pspk/shared";
 import { CorrectAttendanceInput } from "../schemas/attendance.schema";
 
@@ -77,18 +77,23 @@ export async function recordCheckIn(
     });
 
     if (userId) {
-      await logAuditEvent({
-        userId,
-        action: "ATTENDANCE_CHECKIN",
-        entity: "Attendance",
-        entityId: record.id,
-        newData: {
-          employeeId,
-          date: todayDateStr,
-          checkInAt: now.toISOString(),
-          status,
+      await writeAudit(
+        {
+          actorUserId: userId,
+          actorEmail: "employee@pspk.example",
+          app: "hris",
+          action: "ATTENDANCE_CHECKIN",
+          entityType: "Attendance",
+          entityId: record.id,
+          after: {
+            employeeId,
+            date: todayDateStr,
+            checkInAt: now.toISOString(),
+            status,
+          },
         },
-      });
+        tx,
+      );
     }
 
     return record;
@@ -141,17 +146,22 @@ export async function recordCheckOut(
     });
 
     if (userId) {
-      await logAuditEvent({
-        userId,
-        action: "ATTENDANCE_CHECKOUT",
-        entity: "Attendance",
-        entityId: record.id,
-        newData: {
-          employeeId,
-          date: todayDateStr,
-          checkOutAt: now.toISOString(),
+      await writeAudit(
+        {
+          actorUserId: userId,
+          actorEmail: "employee@pspk.example",
+          app: "hris",
+          action: "ATTENDANCE_CHECKOUT",
+          entityType: "Attendance",
+          entityId: record.id,
+          after: {
+            employeeId,
+            date: todayDateStr,
+            checkOutAt: now.toISOString(),
+          },
         },
-      });
+        tx,
+      );
     }
 
     return record;
@@ -208,27 +218,32 @@ export async function correctAttendance(
       },
     });
 
-    await logAuditEvent({
-      userId: adminUserId,
-      action: "ATTENDANCE_CORRECT",
-      entity: "Attendance",
-      entityId: updated.id,
-      oldData: existing
-        ? {
-            status: existing.status,
-            checkInAt: existing.checkInAt?.toISOString(),
-            checkOutAt: existing.checkOutAt?.toISOString(),
-          }
-        : null,
-      newData: {
-        employeeId: input.employeeId,
-        date: input.date,
-        status: input.status,
-        checkInAt: checkInDate?.toISOString(),
-        checkOutAt: checkOutDate?.toISOString(),
-        correctionReason: input.correctionReason,
+    await writeAudit(
+      {
+        actorUserId: adminUserId,
+        actorEmail: "admin@pspk.example",
+        app: "hris",
+        action: "ATTENDANCE_CORRECT",
+        entityType: "Attendance",
+        entityId: updated.id,
+        before: existing
+          ? {
+              status: existing.status,
+              checkInAt: existing.checkInAt?.toISOString(),
+              checkOutAt: existing.checkOutAt?.toISOString(),
+            }
+          : undefined,
+        after: {
+          employeeId: input.employeeId,
+          date: input.date,
+          status: input.status,
+          checkInAt: checkInDate?.toISOString(),
+          checkOutAt: checkOutDate?.toISOString(),
+          correctionReason: input.correctionReason,
+        },
       },
-    });
+      tx,
+    );
 
     return updated;
   });

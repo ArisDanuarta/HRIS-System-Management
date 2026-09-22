@@ -1,4 +1,4 @@
-import { prisma, logAuditEvent } from "@pspk/db";
+import { prisma, writeAudit } from "@pspk/db";
 import {
   calculateWorkingDays,
   isDateOverlapping,
@@ -120,20 +120,25 @@ export async function submitLeaveRequest(
       },
     });
 
-    await logAuditEvent({
-      userId,
-      action: "LEAVE_REQUEST_CREATE",
-      entity: "LeaveRequest",
-      entityId: request.id,
-      newData: {
-        employeeId,
-        leaveTypeId: input.leaveTypeId,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        days: workingDays,
-        reason: input.reason,
+    await writeAudit(
+      {
+        actorUserId: userId,
+        actorEmail: "employee@pspk.example",
+        app: "hris",
+        action: "LEAVE_REQUEST_CREATE",
+        entityType: "LeaveRequest",
+        entityId: request.id,
+        after: {
+          employeeId,
+          leaveTypeId: input.leaveTypeId,
+          startDate: input.startDate,
+          endDate: input.endDate,
+          days: workingDays,
+          reason: input.reason,
+        },
       },
-    });
+      tx,
+    );
 
     return request;
   });
@@ -252,19 +257,24 @@ export async function approveLeaveRequest(
     }
 
     // 4. Log Audit Event
-    await logAuditEvent({
-      userId: approverUserId,
-      action: "LEAVE_REQUEST_APPROVE",
-      entity: "LeaveRequest",
-      entityId: request.id,
-      oldData: { status: "PENDING" },
-      newData: {
-        status: "APPROVED",
-        approverId: approverEmployeeId || approverUserId,
-        decisionNote,
-        deductedDays: Number(request.days),
+    await writeAudit(
+      {
+        actorUserId: approverUserId,
+        actorEmail: "approver@pspk.example",
+        app: "hris",
+        action: "LEAVE_REQUEST_APPROVE",
+        entityType: "LeaveRequest",
+        entityId: request.id,
+        before: { status: "PENDING" },
+        after: {
+          status: "APPROVED",
+          approverId: approverEmployeeId || approverUserId,
+          decisionNote,
+          deductedDays: Number(request.days),
+        },
       },
-    });
+      tx,
+    );
 
     return updatedRequest;
   });
@@ -304,17 +314,22 @@ export async function rejectLeaveRequest(
       },
     });
 
-    await logAuditEvent({
-      userId: approverUserId,
-      action: "LEAVE_REQUEST_REJECT",
-      entity: "LeaveRequest",
-      entityId: request.id,
-      oldData: { status: "PENDING" },
-      newData: {
-        status: "REJECTED",
-        decisionNote,
+    await writeAudit(
+      {
+        actorUserId: approverUserId,
+        actorEmail: "approver@pspk.example",
+        app: "hris",
+        action: "LEAVE_REQUEST_REJECT",
+        entityType: "LeaveRequest",
+        entityId: request.id,
+        before: { status: "PENDING" },
+        after: {
+          status: "REJECTED",
+          decisionNote,
+        },
       },
-    });
+      tx,
+    );
 
     return updated;
   });
@@ -385,19 +400,24 @@ export async function cancelLeaveRequest(
       });
     }
 
-    await logAuditEvent({
-      userId,
-      action: "LEAVE_REQUEST_CANCEL",
-      entity: "LeaveRequest",
-      entityId: request.id,
-      oldData: { status: request.status },
-      newData: {
-        status: "CANCELLED",
-        wasApproved,
-        refundedDays: wasApproved ? Number(request.days) : 0,
-        cancellationReason,
+    await writeAudit(
+      {
+        actorUserId: userId,
+        actorEmail: "employee@pspk.example",
+        app: "hris",
+        action: "LEAVE_REQUEST_CANCEL",
+        entityType: "LeaveRequest",
+        entityId: request.id,
+        before: { status: request.status },
+        after: {
+          status: "CANCELLED",
+          wasApproved,
+          refundedDays: wasApproved ? Number(request.days) : 0,
+          cancellationReason,
+        },
       },
-    });
+      tx,
+    );
 
     return updated;
   });

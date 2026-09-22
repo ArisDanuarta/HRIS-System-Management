@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from "react";
-import { Clock, LogIn, LogOut, CheckCircle2, AlertCircle, Calendar } from "lucide-react";
+import { LogIn, LogOut, CheckCircle2, AlertCircle, Calendar } from "lucide-react";
 import { checkInAction, checkOutAction } from "@/server/actions/attendance.actions";
 
 interface TodayAttendanceCardProps {

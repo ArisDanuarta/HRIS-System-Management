@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Plus, Edit2, Calendar, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, AlertCircle } from "lucide-react";
 import { createHolidayAction, updateLeaveTypeAction } from "@/server/actions/leave.actions";
 
 interface LeaveTypeItem {

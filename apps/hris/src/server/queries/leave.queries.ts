@@ -1,5 +1,4 @@
-import { prisma } from "@pspk/db";
-import { LeaveStatus } from "@prisma/client";
+import { prisma, LeaveStatus } from "@pspk/db";
 
 /**
  * Retrieves leave balances for an employee in a given year.

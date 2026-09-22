@@ -13,8 +13,6 @@ import {
   CheckSquare,
   CalendarDays,
   Settings,
-  Clock,
-  ChevronRight,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
