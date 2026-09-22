@@ -20,9 +20,10 @@ export default async function AppProtectedLayout({
     redirect("/login");
   }
 
-  const [userProfile, activeEmployeeCount] = await Promise.all([
+  const [userProfile, activeEmployeeCount, pendingLeavesCount] = await Promise.all([
     getUserProfile(session.user.id),
     prisma.employee.count({ where: { status: "ACTIVE", deletedAt: null } }),
+    prisma.leaveRequest.count({ where: { status: "PENDING" } }),
   ]);
 
   // Map roles to determine primary view mode
@@ -47,7 +48,12 @@ export default async function AppProtectedLayout({
   };
 
   return (
-    <ShellContainer user={userData} initialRole={initialRole} employeeCount={activeEmployeeCount}>
+    <ShellContainer
+      user={userData}
+      initialRole={initialRole}
+      employeeCount={activeEmployeeCount}
+      pendingLeavesCount={pendingLeavesCount}
+    >
       {children}
     </ShellContainer>
   );
