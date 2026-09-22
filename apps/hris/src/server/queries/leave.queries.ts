@@ -23,6 +23,7 @@ export async function getEmployeeLeaveBalances(employeeId: string, year: number 
     const remaining = Math.max(0, quota - used);
     return {
       ...b,
+      usedDays: used,
       usedDaysNumber: used,
       remainingDays: remaining,
       usagePercentage: quota > 0 ? Math.round((used / quota) * 100) : 0,
@@ -45,7 +46,10 @@ export async function getPersonalLeaveRequests(employeeId: string, status?: Leav
     orderBy: { createdAt: "desc" },
   });
 
-  return requests;
+  return requests.map((r) => ({
+    ...r,
+    days: Number(r.days),
+  }));
 }
 
 /**
@@ -84,7 +88,10 @@ export async function getPendingLeaveApprovals(options?: {
     orderBy: { createdAt: "asc" },
   });
 
-  return pendingRequests;
+  return pendingRequests.map((r) => ({
+    ...r,
+    days: Number(r.days),
+  }));
 }
 
 /**
@@ -133,7 +140,10 @@ export async function getAllLeaveRequests(options?: {
   ]);
 
   return {
-    requests,
+    requests: requests.map((r) => ({
+      ...r,
+      days: Number(r.days),
+    })),
     pagination: {
       totalCount,
       page,
@@ -183,7 +193,10 @@ export async function getLeaveCalendarEvents(year: number, month: number) {
   ]);
 
   return {
-    approvedLeaves,
+    approvedLeaves: approvedLeaves.map((l) => ({
+      ...l,
+      days: Number(l.days),
+    })),
     holidays,
     period: { year, month, startDate, endDate },
   };

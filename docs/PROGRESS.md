@@ -150,6 +150,71 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 2 — Manajemen Waktu & Kehadiran (Presensi & Cuti)
+
+- **Tanggal Selesai**: 22 September 2026
+- **Status**: Selesai ✅ (Semua fungsi CRUD dan transaksi atomik teruji langsung ke PostgreSQL)
+- **Fokus Prioritas**: Admin HR, Manajer & Staf (Pencatatan Presensi Real-time, Koreksi Manual HR, Perhitungan Hari Kerja Murni, Kuota & Saldo Cuti, Persetujuan Atomik, Kalender Bersama, Audit Log Mutasi)
+- **Rincian Implementasi & Layar**:
+  - **Kalkulasi Hari Kerja Murni & Pengujian Unit (`packages/shared/src/leave.ts`)**:
+    - `calculateWorkingDays(startDate, endDate, holidayDates)`: Menghitung hari kerja efektif dengan mengecualikan hari Sabtu (6), Minggu (0), dan hari libur nasional resmi.
+    - `isDateOverlapping(startA, endA, startB, endB)`: Proteksi pencegahan permohonan cuti bertabrakan/tumpang tindih.
+    - `hasSufficientLeaveBalance(quota, used, requested)`: Validasi sisa kuota cuti pegawai.
+    - `packages/shared/src/leave.test.ts`: **15 unit test baru** menguji rentang hari kerja, libur berurutan, akhir pekan, overlap, dan saldo. Total unit test monorepo: **29/29 tests passed (100% hijau)**.
+  - **Seed Database (`packages/db/prisma/seed.ts`)**:
+    - 19 Hari Libur Nasional & Cuti Bersama 2026 disimpan di tabel `Holiday`.
+    - Saldo cuti tahun 2026 (`LeaveBalance`) untuk seluruh pegawai benih (Tahunan: 12, Sakit: 14, Penting: 5, Melahirkan: 90).
+    - Data presensi contoh bulan September 2026 dan 1 pengajuan cuti berstatus `PENDING` untuk verifikasi approval.
+  - **H9 Absensi & Kehadiran Saya (`/absensi`)**:
+    - `today-attendance-card.tsx`: Jam digital interaktif real-time WIB, status kehadiran hari ini, tombol *Catat Kehadiran Masuk* / *Catat Kehadiran Pulang*, dan input catatan aktivitas kerja. Stempel waktu diambil dari server (`TIMESTAMPTZ`), toleransi keterlambatan otomatis (lewat 09:00 WIB berstatus `LATE`).
+    - Widget ringkasan bulanan: Tepat Waktu, Terlambat, Izin/Cuti, dan Akumulasi Jam Kerja.
+    - `attendance-table.tsx`: Tabel log kehadiran harian sebulan penuh dengan badge status berlabel warna dan catatan koreksi jika ada.
+  - **H10 Rekap Absensi Staf & Koreksi HR (`/absensi/rekap`)**:
+    - Akses terproteksi untuk Admin HR dan Manajer.
+    - `attendance-rekap-view.tsx`: Filter berdasarkan bulan, tahun, divisi/departemen, dan pencarian nama/NIP pegawai.
+    - Ringkasan metrik agregat tim: Total Hadir, Terlambat, Izin/Cuti, Alpa, dan Rata-rata Kehadiran.
+    - `attendance-correction-modal.tsx`: Modal koreksi manual presensi oleh Admin HR dengan input stempel waktu masuk/keluar, status, dan **alasan koreksi wajib** yang terekam ke `core.AuditLog`.
+  - **H11 Cuti & Izin Karyawan (`/cuti`)**:
+    - Subnavigasi terpadu: Cuti Saya, Persetujuan Cuti (dengan badge merah permohonan pending), Kalender Cuti, dan Pengaturan Kuota & Libur.
+    - `leave-balance-cards.tsx`: Visualisasi saldo kuota tahun 2026 (Tahunan, Sakit, Melahirkan, Penting) dengan progress bar persentase pemakaian dan sisa hari.
+    - `leave-request-table.tsx`: Riwayat pengajuan cuti pribadi, status badge (`PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), catatan keputusan approver, dan tombol pembatalan cuti.
+  - **H12 Formulir Pengajuan Cuti (`/cuti/ajukan`)**:
+    - `leave-request-form.tsx`: Pemilihan tipe cuti, pemilih tanggal mulai dan selesai, kalkulasi otomatis hari kerja aktif secara reaktif di sisi client.
+    - Deteksi otomatis sisa saldo dan validasi ketercukupan kuota sebelum submit.
+    - Validasi dokumen lampiran untuk tipe cuti yang mewajibkan berkas (misal: Surat Dokter untuk Cuti Sakit).
+  - **H13 Persetujuan Cuti (`/cuti/persetujuan`)**:
+    - `leave-approval-view.tsx`: Tab navigasi *Menunggu Persetujuan*, *Disetujui*, *Ditolak*, dan *Semua*.
+    - Menampilkan kartu/tabel permohonan dengan identitas pegawai, divisi, durasi hari kerja, dan alasan.
+    - Modal persetujuan dan penolakan dengan catatan keputusan wajib.
+    - **Transaksi Atomik (`approveLeaveRequest`)**:
+      1. Status permohonan diubah ke `APPROVED`.
+      2. Saldo cuti `LeaveBalance.usedDays` dipotong secara atomik via `increment`.
+      3. Catatan presensi `Attendance` harian berstatus `LEAVE` dibuat otomatis untuk seluruh hari kerja dalam rentang cuti.
+      4. Log mutasi dicatat ke `core.AuditLog`.
+  - **H14 Kalender Cuti & Hari Libur Bersama (`/cuti/kalender`)**:
+    - `leave-calendar-view.tsx`: Kalender grid bulanan dinamis yang menampilkan jadwal cuti staf yang telah disetujui, cuti bersama, dan hari libur nasional resmi.
+    - Kontrol navigasi bulan dan tahun interaktif.
+  - **H15 Pengaturan Kuota & Hari Libur (`/cuti/pengaturan`)**:
+    - `leave-settings-view.tsx`: Tab manajemen master jenis cuti (ubah kuota default tahunan, status aktif, kewajiban lampiran) dan tab kalender libur nasional (tambah hari libur baru dengan penanda cuti bersama).
+- **Backend & Keamanan**:
+  - `apps/hris/src/server/services/attendance.service.ts`: `recordCheckIn`, `recordCheckOut`, `correctAttendance` (semua mutasi menggunakan Prisma `$transaction` dan menulis `AuditLog`).
+  - `apps/hris/src/server/services/leave.service.ts`: `submitLeaveRequest`, `approveLeaveRequest`, `rejectLeaveRequest`, `cancelLeaveRequest` (restore saldo dan reset kehadiran LEAVE jika permohonan yang disetujui dibatalkan).
+  - `apps/hris/src/server/actions/attendance.actions.ts` & `leave.actions.ts`: Server Actions terproteksi sesi autentikasi dan validasi Zod.
+- **Pengujian & Validasi Kualitas**:
+  - `pnpm typecheck`: ✅ 9/9 packages pass.
+  - `pnpm --filter @pspk/hris lint`: ✅ 0 errors (3 warnings standard non-blocking).
+  - `pnpm test`: ✅ **29 unit test lolos (100% passing)**.
+  - `pnpm --filter @pspk/hris build`: ✅ Next.js standalone build berhasil tanpa error, 17 rute dinamis terkompilasi.
+  - **Pengujian Nyata Integrasi Database PostgreSQL (`verify_tahap2.ts`)**:
+    - **Check-In & Check-Out**: Pencatatan jam masuk & pulang server-side sukses ✅
+    - **Koreksi HR**: Penyesuaian manual catatan presensi dengan alasan koreksi sukses ✅
+    - **Pengajuan Cuti**: Pengecekan saldo, overlap, dan kalkulasi 3 hari kerja sukses ✅
+    - **Persetujuan Atomik**: Status `APPROVED`, saldo terpotong 3 hari, 3 record kehadiran `LEAVE` terisi otomatis ✅
+    - **Pembatalan Cuti**: Status `CANCELLED`, saldo kembali utuh (refund), dan 3 record kehadiran `LEAVE` terhapus kembali ✅
+    - **Audit Log**: 6 entri mutasi terverifikasi masuk ke tabel `core.AuditLog` ✅
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
@@ -162,7 +227,7 @@ pnpm dev
 # System Management: http://localhost:3002
 
 # 3. Jalankan pengujian
-pnpm test          # Menjalankan 14 unit test (Vitest)
+pnpm test          # Menjalankan 29 unit test (Vitest)
 pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
