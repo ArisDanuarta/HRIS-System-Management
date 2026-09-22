@@ -142,6 +142,293 @@ async function main() {
     }
   }
 
+  // 5. Seed PSPK Departments & Positions
+  console.log("🏛️ Seeding PSPK departments and positions...");
+  const orgStructure = [
+    {
+      name: "Divisi Kebijakan Kurikulum & Pembelajaran",
+      positions: [
+        "Kepala Divisi Kebijakan Kurikulum",
+        "Peneliti Kebijakan Kurikulum Utama",
+        "Peneliti Kebijakan Kurikulum Muda",
+      ],
+    },
+    {
+      name: "Divisi Tata Kelola & Advokasi Pendidikan",
+      positions: [
+        "Kepala Divisi Tata Kelola Pendidikan",
+        "Analis Kebijakan Tata Kelola",
+        "Asisten Riset Kebijakan",
+      ],
+    },
+    {
+      name: "Divisi Asesmen & Standar Pendidikan",
+      positions: [
+        "Kepala Divisi Asesmen Pendidikan",
+        "Spesialis Asesmen & Evaluasi",
+      ],
+    },
+    {
+      name: "Divisi Kemitraan & Komunikasi Publik",
+      positions: [
+        "Kepala Divisi Kemitraan",
+        "Spesialis Komunikasi & Advokasi",
+      ],
+    },
+    {
+      name: "Divisi Operasional & Sumber Daya Manusia",
+      positions: [
+        "Kepala Divisi Operasional & SDM",
+        "Staf Administrasi & HR",
+        "Staf Keuangan & Akuntansi",
+      ],
+    },
+  ];
+
+  const departmentMap = new Map<string, string>();
+  const positionMap = new Map<string, string>();
+
+  for (const dept of orgStructure) {
+    let department = await prisma.department.findFirst({ where: { name: dept.name } });
+    if (!department) {
+      department = await prisma.department.create({
+        data: { name: dept.name },
+      });
+    }
+    departmentMap.set(dept.name, department.id);
+
+    for (const posTitle of dept.positions) {
+      let position = await prisma.position.findFirst({
+        where: { title: posTitle, departmentId: department.id },
+      });
+      if (!position) {
+        position = await prisma.position.create({
+          data: {
+            title: posTitle,
+            departmentId: department.id,
+          },
+        });
+      }
+      positionMap.set(posTitle, position.id);
+    }
+  }
+
+  // 6. Seed Sample Employees with Encrypted Sensitive Fields & Contracts
+  console.log("👥 Seeding sample employees with contracts and encrypted sensitive fields...");
+  const { encryptField } = await import("@pspk/shared");
+
+  const deptKurikulumId = departmentMap.get("Divisi Kebijakan Kurikulum & Pembelajaran")!;
+  const posKepalaKurikulumId = positionMap.get("Kepala Divisi Kebijakan Kurikulum")!;
+  const posPenelitiMudaId = positionMap.get("Peneliti Kebijakan Kurikulum Muda")!;
+
+  const deptTataKelolaId = departmentMap.get("Divisi Tata Kelola & Advokasi Pendidikan")!;
+  const posAsistenRisetId = positionMap.get("Asisten Riset Kebijakan")!;
+
+  const deptOpsId = departmentMap.get("Divisi Operasional & Sumber Daya Manusia")!;
+  const posStafKeuanganId = positionMap.get("Staf Keuangan & Akuntansi")!;
+  const posStafHRId = positionMap.get("Staf Administrasi & HR")!;
+
+  // Employee 1: Director / Manager
+  let emp1 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202401-001" } });
+  if (!emp1) {
+    emp1 = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202401-001",
+        fullName: "Dr. Budi Rahardjo, M.Ed.",
+        nickname: "Budi",
+        workEmail: "budi.rahardjo@pspk.example",
+        personalEmail: "budi.rahardjo.personal@example.com",
+        phone: "+6281234567890",
+        birthDate: new Date("1978-04-12"),
+        birthPlace: "Jakarta",
+        gender: "MALE",
+        maritalStatus: "MARRIED",
+        address: "Jl. Wijaya Timur No. 14, Kebayoran Baru, Jakarta Selatan",
+        emergencyContactName: "Ratna Sari",
+        emergencyContactPhone: "+6281234567899",
+        nikEnc: encryptField("3171012304780001"),
+        npwpEnc: encryptField("09.123.456.7-012.000"),
+        bankName: "Bank Mandiri",
+        bankAccountEnc: encryptField("1270009876543"),
+        bankAccountName: "Budi Rahardjo",
+        joinDate: new Date("2024-01-01"),
+        status: "ACTIVE",
+        currentDepartmentId: deptKurikulumId,
+        currentPositionId: posKepalaKurikulumId,
+        contracts: {
+          create: {
+            type: "PERMANENT",
+            startDate: new Date("2024-01-01"),
+            baseSalary: 25000000,
+            status: "ACTIVE",
+            notes: "Kontrak Pegawai Tetap Peneliti Utama",
+          },
+        },
+      },
+    });
+  }
+
+  // Employee 2: Researcher with PKWT Contract EXPIRING SOON (within 23 days from 2026-09-22)
+  let emp2 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202510-015" } });
+  if (!emp2) {
+    emp2 = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202510-015",
+        fullName: "Siti Aminah, S.Sos., M.Si.",
+        nickname: "Siti",
+        workEmail: "siti.aminah@pspk.example",
+        personalEmail: "siti.aminah@example.com",
+        phone: "+6281398765432",
+        birthDate: new Date("1992-08-25"),
+        birthPlace: "Bandung",
+        gender: "FEMALE",
+        maritalStatus: "SINGLE",
+        address: "Jl. Tebet Barat Dalam VII No. 8, Jakarta Selatan",
+        emergencyContactName: "Ahmad Sobari",
+        emergencyContactPhone: "+6281398765400",
+        nikEnc: encryptField("3201026508920003"),
+        npwpEnc: encryptField("15.789.012.3-045.000"),
+        bankName: "Bank BCA",
+        bankAccountEnc: encryptField("8690123456"),
+        bankAccountName: "Siti Aminah",
+        joinDate: new Date("2025-10-15"),
+        endDate: new Date("2026-10-15"),
+        status: "ACTIVE",
+        managerId: emp1.id,
+        currentDepartmentId: deptKurikulumId,
+        currentPositionId: posPenelitiMudaId,
+        contracts: {
+          create: {
+            type: "FIXED_TERM",
+            startDate: new Date("2025-10-15"),
+            endDate: new Date("2026-10-15"),
+            baseSalary: 12500000,
+            status: "ACTIVE",
+            notes: "PKWT Riset Kebijakan Asesmen Daerah - Perlu Peninjauan Perpanjangan",
+          },
+        },
+      },
+    });
+  }
+
+  // Employee 3: Active Junior Researcher
+  let emp3 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202503-008" } });
+  if (!emp3) {
+    emp3 = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202503-008",
+        fullName: "I Made Wirawan, M.Pd.",
+        nickname: "Made",
+        workEmail: "made.wirawan@pspk.example",
+        personalEmail: "made.wirawan@example.com",
+        phone: "+6281122334455",
+        birthDate: new Date("1990-05-14"),
+        birthPlace: "Denpasar",
+        gender: "MALE",
+        maritalStatus: "MARRIED",
+        address: "Jl. Fatmawati Raya No. 45, Cilandak, Jakarta Selatan",
+        emergencyContactName: "Ni Putu Ayu",
+        emergencyContactPhone: "+6281122334466",
+        nikEnc: encryptField("5171031405900002"),
+        npwpEnc: encryptField("22.345.678.9-901.000"),
+        bankName: "Bank BNI",
+        bankAccountEnc: encryptField("0456789012"),
+        bankAccountName: "I Made Wirawan",
+        joinDate: new Date("2025-03-01"),
+        endDate: new Date("2027-02-28"),
+        status: "ACTIVE",
+        managerId: emp1.id,
+        currentDepartmentId: deptTataKelolaId,
+        currentPositionId: posAsistenRisetId,
+        contracts: {
+          create: {
+            type: "FIXED_TERM",
+            startDate: new Date("2025-03-01"),
+            endDate: new Date("2027-02-28"),
+            baseSalary: 10000000,
+            status: "ACTIVE",
+            notes: "PKWT Riset Tata Kelola Guru 2 Tahun",
+          },
+        },
+      },
+    });
+  }
+
+  // Employee 4: Probation Staff
+  let emp4 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202607-021" } });
+  if (!emp4) {
+    emp4 = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202607-021",
+        fullName: "Anisa Larasati, S.E.",
+        nickname: "Anisa",
+        workEmail: "anisa.larasati@pspk.example",
+        phone: "+6281987654321",
+        birthDate: new Date("1996-12-15"),
+        birthPlace: "Surabaya",
+        gender: "FEMALE",
+        maritalStatus: "SINGLE",
+        address: "Jl. Panglima Polim IV No. 20, Kebayoran Baru, Jakarta Selatan",
+        nikEnc: encryptField("3174095512960004"),
+        npwpEnc: encryptField("33.456.789.0-123.000"),
+        bankName: "Bank Mandiri",
+        bankAccountEnc: encryptField("1330012345678"),
+        bankAccountName: "Anisa Larasati",
+        joinDate: new Date("2026-07-01"),
+        status: "PROBATION",
+        currentDepartmentId: deptOpsId,
+        currentPositionId: posStafKeuanganId,
+        contracts: {
+          create: {
+            type: "FIXED_TERM",
+            startDate: new Date("2026-07-01"),
+            endDate: new Date("2026-12-31"),
+            baseSalary: 8500000,
+            status: "ACTIVE",
+            notes: "Masa Percobaan 6 Bulan Staf Keuangan",
+          },
+        },
+      },
+    });
+  }
+
+  // Employee 5: HR Admin Officer
+  let emp5 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202405-004" } });
+  if (!emp5) {
+    emp5 = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202405-004",
+        fullName: "Dewi Permata, S.Psi.",
+        nickname: "Dewi",
+        workEmail: "dewi.permata@pspk.example",
+        phone: "+6285211223344",
+        birthDate: new Date("1989-09-24"),
+        birthPlace: "Yogyakarta",
+        gender: "FEMALE",
+        maritalStatus: "MARRIED",
+        address: "Jl. Ampera Raya No. 12, Pasar Minggu, Jakarta Selatan",
+        nikEnc: encryptField("3175024409890005"),
+        npwpEnc: encryptField("44.567.890.1-234.000"),
+        bankName: "Bank BCA",
+        bankAccountEnc: encryptField("7120987654"),
+        bankAccountName: "Dewi Permata",
+        joinDate: new Date("2024-05-01"),
+        status: "ACTIVE",
+        currentDepartmentId: deptOpsId,
+        currentPositionId: posStafHRId,
+        contracts: {
+          create: {
+            type: "PERMANENT",
+            startDate: new Date("2024-05-01"),
+            baseSalary: 11000000,
+            status: "ACTIVE",
+            notes: "Staf HR Lembaga",
+          },
+        },
+      },
+    });
+  }
+
   console.log("✅ Seeding selesai dengan sukses!");
 }
 
