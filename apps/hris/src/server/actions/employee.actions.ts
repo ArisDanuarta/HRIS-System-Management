@@ -141,3 +141,146 @@ export async function unmaskSensitiveFieldAction(input: UnmaskFieldInput) {
     return { ok: false as const, error: err.message || "Gagal membuka data sensitif." };
   }
 }
+
+export type ImportEmployeeRow = {
+  fullName: string;
+  employeeNo: string;
+  workEmail: string;
+  phone?: string;
+  departmentName: string;
+  positionTitle: string;
+  employmentType: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+  baseSalary?: number;
+  joinDate: string;
+};
+
+export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
+  try {
+    const { actor, authCtx } = await getAuthenticatedActor();
+    assertCan(authCtx, "hris.employee.import:all");
+
+    if (!rows || rows.length === 0) {
+      return { ok: false as const, error: "Tidak ada baris data yang diunggah." };
+    }
+
+    const { prisma, writeAudit } = await import("@pspk/db");
+
+    // Pre-fetch departments and positions
+    const departments = await prisma.department.findMany({
+      include: { positions: true },
+    });
+
+    const results = await prisma.$transaction(async (tx) => {
+      let importedCount = 0;
+      const failedRows: { row: number; reason: string }[] = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r) continue;
+
+        // Check if NIP or email already exists
+        const existing = await tx.employee.findFirst({
+          where: {
+            OR: [
+              { employeeNo: r.employeeNo.trim() },
+              { workEmail: r.workEmail.toLowerCase().trim() },
+            ],
+          },
+        });
+
+        if (existing) {
+          failedRows.push({
+            row: i + 1,
+            reason: `NIP ${r.employeeNo} atau Email ${r.workEmail} sudah ada di database`,
+          });
+          continue;
+        }
+
+        // Find or create department
+        let dept = departments.find(
+          (d) => d.name.toLowerCase() === r.departmentName.trim().toLowerCase(),
+        );
+        let deptId = dept?.id;
+        if (!deptId) {
+          const newDept = await tx.department.create({
+            data: { name: r.departmentName.trim() },
+          });
+          deptId = newDept.id;
+        }
+
+        // Find or create position
+        let pos = dept?.positions.find(
+          (p) => p.title.toLowerCase() === r.positionTitle.trim().toLowerCase(),
+        );
+        let posId = pos?.id;
+        if (!posId) {
+          const newPos = await tx.position.create({
+            data: { title: r.positionTitle.trim(), departmentId: deptId },
+          });
+          posId = newPos.id;
+        }
+
+        // Create employee
+        const newEmp = await tx.employee.create({
+          data: {
+            employeeNo: r.employeeNo.trim(),
+            fullName: r.fullName.trim(),
+            workEmail: r.workEmail.toLowerCase().trim(),
+            phone: r.phone?.trim() || null,
+            joinDate: new Date(r.joinDate),
+            status: "ACTIVE",
+            currentDepartmentId: deptId,
+            currentPositionId: posId,
+            contracts: {
+              create: {
+                type: r.employmentType || "PERMANENT",
+                startDate: new Date(r.joinDate),
+                baseSalary: r.baseSalary ? Number(r.baseSalary) : null,
+                status: "ACTIVE",
+                notes: "Diimpor massal dari spreadsheet",
+              },
+            },
+            histories: {
+              create: {
+                departmentId: deptId,
+                positionId: posId,
+                startDate: new Date(r.joinDate),
+                notes: "Penempatan awal via impor massal",
+              },
+            },
+          },
+        });
+
+        importedCount++;
+      }
+
+      await writeAudit(
+        {
+          actorUserId: actor.id,
+          actorEmail: actor.email,
+          app: "hris",
+          action: "IMPORT",
+          entityType: "Employee",
+          before: { totalSubmittedRows: rows.length },
+          after: { importedCount, failedCount: failedRows.length },
+          ip: actor.ip,
+          userAgent: actor.userAgent,
+        },
+        tx,
+      );
+
+      return { importedCount, failedRows };
+    });
+
+    revalidatePath("/karyawan");
+
+    return {
+      ok: true as const,
+      data: results,
+      message: `Berhasil mengimpor ${results.importedCount} pegawai.`,
+    };
+  } catch (err: any) {
+    console.error("importEmployeesBatchAction error:", err);
+    return { ok: false as const, error: err.message || "Gagal mengimpor data pegawai." };
+  }
+}
