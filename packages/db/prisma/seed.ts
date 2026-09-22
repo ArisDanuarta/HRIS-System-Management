@@ -429,6 +429,135 @@ async function main() {
     });
   }
 
+  // 8. Seed Holidays for 2026 (Hari Libur Nasional & Cuti Bersama)
+  console.log("📅 Seeding kalender hari libur 2026...");
+  const holidays2026 = [
+    { date: new Date("2026-01-01"), name: "Tahun Baru 2026 Masehi", isCollectiveLeave: false },
+    { date: new Date("2026-01-16"), name: "Isra Mikraj Nabi Muhammad SAW", isCollectiveLeave: false },
+    { date: new Date("2026-02-17"), name: "Tahun Baru Imlek 2577 Kongzili", isCollectiveLeave: false },
+    { date: new Date("2026-03-19"), name: "Hari Suci Nyepi Tahun Baru Saka 1948", isCollectiveLeave: false },
+    { date: new Date("2026-03-20"), name: "Hari Raya Idul Fitri 1447 Hijriah (Hari Pertama)", isCollectiveLeave: false },
+    { date: new Date("2026-03-21"), name: "Hari Raya Idul Fitri 1447 Hijriah (Hari Kedua)", isCollectiveLeave: false },
+    { date: new Date("2026-03-23"), name: "Cuti Bersama Hari Raya Idul Fitri 1447 H", isCollectiveLeave: true },
+    { date: new Date("2026-03-24"), name: "Cuti Bersama Hari Raya Idul Fitri 1447 H", isCollectiveLeave: true },
+    { date: new Date("2026-04-03"), name: "Wafat Yesus Kristus (Jumat Agung)", isCollectiveLeave: false },
+    { date: new Date("2026-05-01"), name: "Hari Buruh Internasional", isCollectiveLeave: false },
+    { date: new Date("2026-05-14"), name: "Kenaikan Yesus Kristus", isCollectiveLeave: false },
+    { date: new Date("2026-05-27"), name: "Hari Raya Idul Adha 1447 Hijriah", isCollectiveLeave: false },
+    { date: new Date("2026-05-31"), name: "Hari Raya Waisak 2570 BE", isCollectiveLeave: false },
+    { date: new Date("2026-06-01"), name: "Hari Lahir Pancasila", isCollectiveLeave: false },
+    { date: new Date("2026-06-16"), name: "Tahun Baru Islam 1448 Hijriah", isCollectiveLeave: false },
+    { date: new Date("2026-08-17"), name: "Hari Kemerdekaan Republik Indonesia ke-81", isCollectiveLeave: false },
+    { date: new Date("2026-08-25"), name: "Maulid Nabi Muhammad SAW", isCollectiveLeave: false },
+    { date: new Date("2026-12-25"), name: "Hari Raya Natal", isCollectiveLeave: false },
+    { date: new Date("2026-12-26"), name: "Cuti Bersama Hari Raya Natal", isCollectiveLeave: true },
+  ];
+
+  for (const h of holidays2026) {
+    await prisma.holiday.upsert({
+      where: { date: h.date },
+      update: { name: h.name, isCollectiveLeave: h.isCollectiveLeave },
+      create: h,
+    });
+  }
+
+  // 9. Seed Leave Balances for 2026
+  console.log("🏖️ Seeding saldo cuti karyawan tahun 2026...");
+  const allEmployees = await prisma.employee.findMany({ where: { deletedAt: null } });
+  const allLeaveTypes = await prisma.leaveType.findMany({ where: { isActive: true } });
+
+  for (const emp of allEmployees) {
+    for (const lt of allLeaveTypes) {
+      await prisma.leaveBalance.upsert({
+        where: {
+          employeeId_leaveTypeId_year: {
+            employeeId: emp.id,
+            leaveTypeId: lt.id,
+            year: 2026,
+          },
+        },
+        update: {
+          quotaDays: lt.defaultQuotaDays,
+        },
+        create: {
+          employeeId: emp.id,
+          leaveTypeId: lt.id,
+          year: 2026,
+          quotaDays: lt.defaultQuotaDays,
+          usedDays: 0,
+        },
+      });
+    }
+  }
+
+  // 10. Seed Sample Attendance Records (September 2026)
+  console.log("⏰ Seeding catatan presensi September 2026...");
+  const septDates = [
+    { date: new Date("2026-09-18"), inHour: 8, inMin: 45, outHour: 17, outMin: 15, status: "PRESENT" as const },
+    { date: new Date("2026-09-21"), inHour: 8, inMin: 50, outHour: 17, outMin: 30, status: "PRESENT" as const },
+    { date: new Date("2026-09-22"), inHour: 9, inMin: 12, outHour: 18, outMin: 0, status: "LATE" as const },
+  ];
+
+  for (const emp of allEmployees) {
+    for (const d of septDates) {
+      const checkIn = new Date(d.date);
+      checkIn.setHours(d.inHour, d.inMin, 0);
+
+      const checkOut = new Date(d.date);
+      checkOut.setHours(d.outHour, d.outMin, 0);
+
+      await prisma.attendance.upsert({
+        where: {
+          employeeId_date: {
+            employeeId: emp.id,
+            date: d.date,
+          },
+        },
+        update: {
+          checkInAt: checkIn,
+          checkOutAt: checkOut,
+          status: d.status,
+        },
+        create: {
+          employeeId: emp.id,
+          date: d.date,
+          checkInAt: checkIn,
+          checkOutAt: checkOut,
+          status: d.status,
+          source: "WEB",
+        },
+      });
+    }
+  }
+
+  // 11. Seed Sample Leave Request (1 PENDING for testing approval flow)
+  console.log("📝 Seeding permohonan cuti contoh...");
+  const anita = allEmployees.find((e) => e.employeeNo === "PSPK-202501-015");
+  const cutiTahunan = allLeaveTypes.find((lt) => lt.name === "Cuti Tahunan");
+
+  if (anita && cutiTahunan) {
+    const existingPending = await prisma.leaveRequest.findFirst({
+      where: {
+        employeeId: anita.id,
+        status: "PENDING",
+      },
+    });
+
+    if (!existingPending) {
+      await prisma.leaveRequest.create({
+        data: {
+          employeeId: anita.id,
+          leaveTypeId: cutiTahunan.id,
+          startDate: new Date("2026-09-24"),
+          endDate: new Date("2026-09-25"),
+          days: 2,
+          reason: "Urusan keluarga dan pendampingan riset lapang mandiri di Jawa Barat",
+          status: "PENDING",
+        },
+      });
+    }
+  }
+
   console.log("✅ Seeding selesai dengan sukses!");
 }
 
