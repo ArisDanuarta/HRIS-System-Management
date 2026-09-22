@@ -1,0 +1,18 @@
+{
+  "extends": "./packages/config/tsconfig/base.json",
+  "compilerOptions": {
+    "moduleResolution": "Bundler",
+    "paths": {
+      "@pspk/db": ["./packages/db/src/index.ts"],
+      "@pspk/auth": ["./packages/auth/src/index.ts"],
+      "@pspk/rbac": ["./packages/rbac/src/index.ts"],
+      "@pspk/shared": ["./packages/shared/src/index.ts"],
+      "@pspk/storage": ["./packages/storage/src/index.ts"],
+      "@pspk/ui": ["./packages/ui/src/index.ts"]
+    }
+  },
+  "include": [
+    "scripts/**/*",
+    "scratch/**/*"
+  ]
+}

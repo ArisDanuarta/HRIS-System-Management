@@ -1,7 +1,7 @@
 import React from "react";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { getSession, getUserProfile } from "@pspk/auth";
+import { getSession, getUserProfile, getAuthContext } from "@pspk/auth";
 import { AuthContext } from "@pspk/rbac";
 import { getStaffDashboard } from "@/server/queries/dashboard/staff-dashboard";
 import { getManagerDashboard } from "@/server/queries/dashboard/manager-dashboard";
@@ -22,22 +22,16 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Fetch full user profile and associated database roles
-  const userProfile = await getUserProfile(session.user.id);
-  const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
+  const [ctx, userProfile] = await Promise.all([
+    getAuthContext(session.user.id),
+    getUserProfile(session.user.id),
+  ]);
 
-  const permissionKeys = new Set<string>(
-    userProfile?.roles.flatMap((r) => r.role.permissions.map((p) => p.permission.key)) || [],
-  );
+  if (!ctx) {
+    redirect("/login");
+  }
 
-  // Construct secure AuthContext
-  const ctx: AuthContext = {
-    userId: session.user.id,
-    employeeId: userProfile?.employee?.id || null,
-    roles: roleKeys,
-    permissions: permissionKeys,
-  };
-
+  const roleKeys = ctx.roles;
   const isSuperAdmin = roleKeys.includes("super_admin");
   const isAdminHr = roleKeys.includes("admin_hr");
   const isManager = roleKeys.includes("manager");
