@@ -12,6 +12,7 @@ const config: NextConfig = {
     "@pspk/rbac",
     "@pspk/storage",
   ],
+  serverExternalPackages: ["@prisma/client"],
 };
 
 export default config;

@@ -43,6 +43,8 @@ export function ShellContainer({
     setCurrentRole(newRole);
     if (typeof window !== "undefined") {
       sessionStorage.setItem("pspk_superadmin_role_view", newRole);
+      document.cookie = `pspk_role_view=${newRole}; path=/; max-age=86400; SameSite=Lax`;
+      window.location.reload();
     }
   };
 

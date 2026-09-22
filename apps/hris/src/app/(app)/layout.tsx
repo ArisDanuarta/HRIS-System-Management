@@ -1,5 +1,5 @@
 import React from "react";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
@@ -28,10 +28,27 @@ export default async function AppProtectedLayout({
 
   // Map roles to determine primary view mode
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
+  const isSuperAdmin = roleKeys.includes("super_admin");
+
+  const cookieStore = await cookies();
+  const previewCookie = cookieStore.get("pspk_role_view")?.value;
+  const activePreviewRole =
+    isSuperAdmin && (previewCookie === "admin_hr" || previewCookie === "manager" || previewCookie === "staff")
+      ? (previewCookie as RoleViewType)
+      : null;
+
   let initialRole: RoleViewType = "staff";
   let roleDisplayName = "Staff";
 
-  if (roleKeys.includes("super_admin") || roleKeys.includes("admin_hr")) {
+  if (activePreviewRole) {
+    initialRole = activePreviewRole;
+    roleDisplayName =
+      activePreviewRole === "admin_hr"
+        ? "Admin HR (Pratinjau)"
+        : activePreviewRole === "manager"
+        ? "Manajer (Pratinjau)"
+        : "Staf (Pratinjau)";
+  } else if (roleKeys.includes("super_admin") || roleKeys.includes("admin_hr")) {
     initialRole = "admin_hr";
     roleDisplayName = roleKeys.includes("super_admin") ? "Super Admin" : "Admin HR";
   } else if (roleKeys.includes("manager")) {
