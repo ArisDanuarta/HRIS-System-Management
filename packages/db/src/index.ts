@@ -10,5 +10,17 @@ export const prisma =
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-export * from "@prisma/client";
+export {
+  PrismaClient,
+  Prisma,
+  EmployeeStatus,
+  EmploymentType,
+  Gender,
+  MaritalStatus,
+  AttendanceStatus,
+  AttendanceSource,
+  LeaveStatus,
+  ContractStatus,
+} from "@prisma/client";
+export type * from "@prisma/client";
 export * from "./audit";

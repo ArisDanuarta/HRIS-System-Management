@@ -63,67 +63,98 @@ async function main() {
     }
   }
 
-  // 3. Seed Super Admin User
-  const adminEmail = process.env.SEED_ADMIN_EMAIL || "admin@pspk.example";
-  const adminPassword = process.env.SEED_ADMIN_PASSWORD || "AdminPSPK2026!#";
-
-  console.log(`👤 Seeding super admin: ${adminEmail}...`);
-  const adminUser = await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: {
+  // 3. Seed Core User Accounts (@pspk.id)
+  console.log("👤 Seeding core user accounts with @pspk.id domain...");
+  const accountsToSeed = [
+    {
+      email: "superadmin@pspk.id",
       name: "Super Administrator PSPK",
-      isActive: true,
-      emailVerified: true,
+      password: "Superadmin321!",
+      roleKey: "super_admin",
     },
-    create: {
-      email: adminEmail,
-      name: "Super Administrator PSPK",
-      isActive: true,
-      emailVerified: true,
+    {
+      email: "hr@pspk.id",
+      name: "Admin HR PSPK",
+      password: "Humanresource321!",
+      roleKey: "admin_hr",
     },
-  });
+    {
+      email: "manajer@pspk.id",
+      name: "Dr. Budi Rahardjo, M.Ed.",
+      password: "Manajerpspk321!",
+      roleKey: "manager",
+    },
+    {
+      email: "aris@pspk.id",
+      name: "I Made Aris Danuarta",
+      password: "arisdanuarta321!",
+      roleKey: "staff",
+    },
+  ];
 
-  // Create or update password credential account
-  const hashedPassword = await hashPassword(adminPassword);
-  const existingAccount = await prisma.account.findFirst({
-    where: {
-      userId: adminUser.id,
-      providerId: "credential",
-    },
-  });
+  const userMap = new Map<string, string>(); // email -> userId
 
-  if (!existingAccount) {
-    await prisma.account.create({
-      data: {
-        userId: adminUser.id,
-        accountId: adminUser.id,
-        providerId: "credential",
-        password: hashedPassword,
+  for (const acc of accountsToSeed) {
+    const user = await prisma.user.upsert({
+      where: { email: acc.email },
+      update: {
+        name: acc.name,
+        isActive: true,
+        emailVerified: true,
       },
-    });
-  } else {
-    await prisma.account.update({
-      where: { id: existingAccount.id },
-      data: { password: hashedPassword },
-    });
-  }
-
-  // Assign super_admin role
-  const superAdminRole = await prisma.role.findUnique({ where: { key: "super_admin" } });
-  if (superAdminRole) {
-    await prisma.userRole.upsert({
-      where: {
-        userId_roleId: {
-          userId: adminUser.id,
-          roleId: superAdminRole.id,
-        },
-      },
-      update: {},
       create: {
-        userId: adminUser.id,
-        roleId: superAdminRole.id,
+        email: acc.email,
+        name: acc.name,
+        isActive: true,
+        emailVerified: true,
       },
     });
+
+    userMap.set(acc.email, user.id);
+
+    // Create or update credential account
+    const hashedPassword = await hashPassword(acc.password);
+    const existingAccount = await prisma.account.findFirst({
+      where: {
+        userId: user.id,
+        providerId: "credential",
+      },
+    });
+
+    if (!existingAccount) {
+      await prisma.account.create({
+        data: {
+          userId: user.id,
+          accountId: user.id,
+          providerId: "credential",
+          password: hashedPassword,
+        },
+      });
+    } else {
+      await prisma.account.update({
+        where: { id: existingAccount.id },
+        data: { password: hashedPassword },
+      });
+    }
+
+    // Assign role
+    const role = await prisma.role.findUnique({ where: { key: acc.roleKey } });
+    if (role) {
+      await prisma.userRole.upsert({
+        where: {
+          userId_roleId: {
+            userId: user.id,
+            roleId: role.id,
+          },
+        },
+        update: {},
+        create: {
+          userId: user.id,
+          roleId: role.id,
+        },
+      });
+    }
+    console.log(`   ✓ Akun siap: ${acc.email} (${acc.roleKey})`);
   }
 
   // 4. Seed Default Leave Types
@@ -228,7 +259,7 @@ async function main() {
   const posStafKeuanganId = positionMap.get("Staf Keuangan & Akuntansi")!;
   const posStafHRId = positionMap.get("Staf Administrasi & HR")!;
 
-  // Employee 1: Director / Manager
+  // Employee 1: Director / Manager (manajer@pspk.id)
   let emp1 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202401-001" } });
   if (!emp1) {
     emp1 = await prisma.employee.create({
@@ -236,7 +267,8 @@ async function main() {
         employeeNo: "PSPK-202401-001",
         fullName: "Dr. Budi Rahardjo, M.Ed.",
         nickname: "Budi",
-        workEmail: "budi.rahardjo@pspk.example",
+        workEmail: "manajer@pspk.id",
+        userId: userMap.get("manajer@pspk.id"),
         personalEmail: "budi.rahardjo.personal@example.com",
         phone: "+6281234567890",
         birthDate: new Date("1978-04-12"),
@@ -261,14 +293,22 @@ async function main() {
             startDate: new Date("2024-01-01"),
             baseSalary: 25000000,
             status: "ACTIVE",
-            notes: "Kontrak Pegawai Tetap Peneliti Utama",
+            notes: "Kontrak Pegawai Tetap Peneliti Utama & Manajer",
           },
         },
       },
     });
+  } else {
+    await prisma.employee.update({
+      where: { id: emp1.id },
+      data: {
+        workEmail: "manajer@pspk.id",
+        userId: userMap.get("manajer@pspk.id"),
+      },
+    });
   }
 
-  // Employee 2: Researcher with PKWT Contract EXPIRING SOON (within 23 days from 2026-09-22)
+  // Employee 2: Researcher (siti.aminah@pspk.id)
   let emp2 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202510-015" } });
   if (!emp2) {
     emp2 = await prisma.employee.create({
@@ -276,7 +316,7 @@ async function main() {
         employeeNo: "PSPK-202510-015",
         fullName: "Siti Aminah, S.Sos., M.Si.",
         nickname: "Siti",
-        workEmail: "siti.aminah@pspk.example",
+        workEmail: "siti.aminah@pspk.id",
         personalEmail: "siti.aminah@example.com",
         phone: "+6281398765432",
         birthDate: new Date("1992-08-25"),
@@ -304,14 +344,19 @@ async function main() {
             endDate: new Date("2026-10-15"),
             baseSalary: 12500000,
             status: "ACTIVE",
-            notes: "PKWT Riset Kebijakan Asesmen Daerah - Perlu Peninjauan Perpanjangan",
+            notes: "PKWT Riset Kebijakan Asesmen Daerah",
           },
         },
       },
     });
+  } else {
+    await prisma.employee.update({
+      where: { id: emp2.id },
+      data: { workEmail: "siti.aminah@pspk.id" },
+    });
   }
 
-  // Employee 3: Active Junior Researcher
+  // Employee 3: Junior Researcher (made.wirawan@pspk.id)
   let emp3 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202503-008" } });
   if (!emp3) {
     emp3 = await prisma.employee.create({
@@ -319,7 +364,7 @@ async function main() {
         employeeNo: "PSPK-202503-008",
         fullName: "I Made Wirawan, M.Pd.",
         nickname: "Made",
-        workEmail: "made.wirawan@pspk.example",
+        workEmail: "made.wirawan@pspk.id",
         personalEmail: "made.wirawan@example.com",
         phone: "+6281122334455",
         birthDate: new Date("1990-05-14"),
@@ -352,9 +397,14 @@ async function main() {
         },
       },
     });
+  } else {
+    await prisma.employee.update({
+      where: { id: emp3.id },
+      data: { workEmail: "made.wirawan@pspk.id" },
+    });
   }
 
-  // Employee 4: Probation Staff
+  // Employee 4: Probation Staff (anisa.larasati@pspk.id)
   let emp4 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202607-021" } });
   if (!emp4) {
     emp4 = await prisma.employee.create({
@@ -362,7 +412,7 @@ async function main() {
         employeeNo: "PSPK-202607-021",
         fullName: "Anisa Larasati, S.E.",
         nickname: "Anisa",
-        workEmail: "anisa.larasati@pspk.example",
+        workEmail: "anisa.larasati@pspk.id",
         phone: "+6281987654321",
         birthDate: new Date("1996-12-15"),
         birthPlace: "Surabaya",
@@ -390,9 +440,14 @@ async function main() {
         },
       },
     });
+  } else {
+    await prisma.employee.update({
+      where: { id: emp4.id },
+      data: { workEmail: "anisa.larasati@pspk.id" },
+    });
   }
 
-  // Employee 5: HR Admin Officer
+  // Employee 5: Admin HR (hr@pspk.id)
   let emp5 = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202405-004" } });
   if (!emp5) {
     emp5 = await prisma.employee.create({
@@ -400,7 +455,8 @@ async function main() {
         employeeNo: "PSPK-202405-004",
         fullName: "Dewi Permata, S.Psi.",
         nickname: "Dewi",
-        workEmail: "dewi.permata@pspk.example",
+        workEmail: "hr@pspk.id",
+        userId: userMap.get("hr@pspk.id"),
         phone: "+6285211223344",
         birthDate: new Date("1989-09-24"),
         birthPlace: "Yogyakarta",
@@ -425,6 +481,110 @@ async function main() {
             notes: "Staf HR Lembaga",
           },
         },
+      },
+    });
+  } else {
+    await prisma.employee.update({
+      where: { id: emp5.id },
+      data: {
+        workEmail: "hr@pspk.id",
+        userId: userMap.get("hr@pspk.id"),
+      },
+    });
+  }
+
+  // Employee 6: Super Administrator (superadmin@pspk.id)
+  let empSuperAdmin = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202401-000" } });
+  if (!empSuperAdmin) {
+    empSuperAdmin = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202401-000",
+        fullName: "Super Administrator PSPK",
+        nickname: "Superadmin",
+        workEmail: "superadmin@pspk.id",
+        userId: userMap.get("superadmin@pspk.id"),
+        phone: "+6281100001111",
+        birthDate: new Date("1985-01-01"),
+        birthPlace: "Jakarta",
+        gender: "MALE",
+        maritalStatus: "MARRIED",
+        address: "Gedung PSPK Lt. 3, Jakarta Selatan",
+        nikEnc: encryptField("3171010101850001"),
+        npwpEnc: encryptField("01.000.000.0-001.000"),
+        bankName: "Bank Mandiri",
+        bankAccountEnc: encryptField("1270001112223"),
+        bankAccountName: "Super Administrator PSPK",
+        joinDate: new Date("2024-01-01"),
+        status: "ACTIVE",
+        currentDepartmentId: deptOpsId,
+        currentPositionId: posStafHRId,
+        contracts: {
+          create: {
+            type: "PERMANENT",
+            startDate: new Date("2024-01-01"),
+            baseSalary: 35000000,
+            status: "ACTIVE",
+            notes: "Super Administrator & IT Lead",
+          },
+        },
+      },
+    });
+  } else {
+    await prisma.employee.update({
+      where: { id: empSuperAdmin.id },
+      data: {
+        workEmail: "superadmin@pspk.id",
+        userId: userMap.get("superadmin@pspk.id"),
+      },
+    });
+  }
+
+  // Employee 7: Karyawan Staff (aris@pspk.id)
+  let empAris = await prisma.employee.findUnique({ where: { employeeNo: "PSPK-202401-006" } });
+  if (!empAris) {
+    empAris = await prisma.employee.create({
+      data: {
+        employeeNo: "PSPK-202401-006",
+        fullName: "I Made Aris Danuarta",
+        nickname: "Aris",
+        workEmail: "aris@pspk.id",
+        userId: userMap.get("aris@pspk.id"),
+        personalEmail: "arisdanuarta@example.com",
+        phone: "+6281234567891",
+        birthDate: new Date("1995-08-17"),
+        birthPlace: "Denpasar",
+        gender: "MALE",
+        maritalStatus: "SINGLE",
+        address: "Jl. Sudirman No. 88, Jakarta Pusat",
+        emergencyContactName: "I Wayan Danu",
+        emergencyContactPhone: "+6281234567898",
+        nikEnc: encryptField("5171021708950001"),
+        npwpEnc: encryptField("21.987.654.3-210.000"),
+        bankName: "Bank BCA",
+        bankAccountEnc: encryptField("8690987654"),
+        bankAccountName: "I Made Aris Danuarta",
+        joinDate: new Date("2024-01-01"),
+        status: "ACTIVE",
+        managerId: emp1.id,
+        currentDepartmentId: deptOpsId,
+        currentPositionId: posStafHRId,
+        contracts: {
+          create: {
+            type: "PERMANENT",
+            startDate: new Date("2024-01-01"),
+            baseSalary: 18000000,
+            status: "ACTIVE",
+            notes: "Pegawai Tetap IT Administrator PSPK",
+          },
+        },
+      },
+    });
+  } else {
+    await prisma.employee.update({
+      where: { id: empAris.id },
+      data: {
+        workEmail: "aris@pspk.id",
+        userId: userMap.get("aris@pspk.id"),
       },
     });
   }

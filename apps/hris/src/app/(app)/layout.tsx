@@ -47,12 +47,15 @@ export default async function AppProtectedLayout({
     roleName: roleDisplayName,
   };
 
+  const isSuperAdmin = roleKeys.includes("super_admin");
+
   return (
     <ShellContainer
       user={userData}
       initialRole={initialRole}
       employeeCount={activeEmployeeCount}
       pendingLeavesCount={pendingLeavesCount}
+      isSuperAdmin={isSuperAdmin}
     >
       {children}
     </ShellContainer>

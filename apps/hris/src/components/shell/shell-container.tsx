@@ -15,6 +15,7 @@ export interface ShellContainerProps {
   initialRole?: RoleViewType;
   employeeCount?: number;
   pendingLeavesCount?: number;
+  isSuperAdmin?: boolean;
   children: React.ReactNode;
 }
 
@@ -23,10 +24,27 @@ export function ShellContainer({
   initialRole = "admin_hr",
   employeeCount,
   pendingLeavesCount,
+  isSuperAdmin = false,
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const currentRole = initialRole;
+  const [currentRole, setCurrentRole] = useState<RoleViewType>(() => {
+    if (typeof window !== "undefined" && isSuperAdmin) {
+      const saved = sessionStorage.getItem("pspk_superadmin_role_view");
+      if (saved === "admin_hr" || saved === "manager" || saved === "staff") {
+        return saved;
+      }
+    }
+    return initialRole;
+  });
+
+  const handleRoleChange = (newRole: RoleViewType) => {
+    if (!isSuperAdmin) return;
+    setCurrentRole(newRole);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("pspk_superadmin_role_view", newRole);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#121c2a] flex flex-col antialiased">
@@ -39,11 +57,13 @@ export function ShellContainer({
         pendingLeavesCount={pendingLeavesCount}
       />
 
-      {/* Top Header */}
+      {/* Top Header with Superadmin Switcher */}
       <AppTopbar
         user={user}
         currentRole={currentRole}
         isCollapsed={isCollapsed}
+        isSuperAdmin={isSuperAdmin}
+        onRoleChange={isSuperAdmin ? handleRoleChange : undefined}
       />
 
       {/* Main Content Area */}
