@@ -2,6 +2,7 @@ import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
+import { prisma } from "@pspk/db";
 import { ShellContainer } from "@/components/shell/shell-container";
 import { RoleViewType } from "@/components/shell/app-sidebar";
 
@@ -19,7 +20,10 @@ export default async function AppProtectedLayout({
     redirect("/login");
   }
 
-  const userProfile = await getUserProfile(session.user.id);
+  const [userProfile, activeEmployeeCount] = await Promise.all([
+    getUserProfile(session.user.id),
+    prisma.employee.count({ where: { status: "ACTIVE", deletedAt: null } }),
+  ]);
 
   // Map roles to determine primary view mode
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
@@ -43,7 +47,7 @@ export default async function AppProtectedLayout({
   };
 
   return (
-    <ShellContainer user={userData} initialRole={initialRole}>
+    <ShellContainer user={userData} initialRole={initialRole} employeeCount={activeEmployeeCount}>
       {children}
     </ShellContainer>
   );

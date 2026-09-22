@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
-import { assertCan } from "@pspk/rbac";
+import { assertCan, AuthContext } from "@pspk/rbac";
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
@@ -20,7 +20,7 @@ import {
   ActorContext,
 } from "../services/employee.service";
 
-async function getAuthenticatedActor(): Promise<{ actor: ActorContext; authCtx: any }> {
+async function getAuthenticatedActor(): Promise<{ actor: ActorContext; authCtx: AuthContext }> {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
 
@@ -69,9 +69,10 @@ export async function createEmployeeAction(input: CreateEmployeeInput) {
       },
       message: `Pegawai ${newEmp.fullName} (${newEmp.employeeNo}) berhasil ditambahkan.`,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("createEmployeeAction error:", err);
-    return { ok: false as const, error: err.message || "Gagal menambahkan pegawai." };
+    const errorMsg = err instanceof Error ? err.message : "Gagal menambahkan pegawai.";
+    return { ok: false as const, error: errorMsg };
   }
 }
 
@@ -95,9 +96,10 @@ export async function updateEmployeeAction(input: UpdateEmployeeInput) {
       data: { id: updated.id },
       message: `Data pegawai ${updated.fullName} berhasil diperbarui.`,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("updateEmployeeAction error:", err);
-    return { ok: false as const, error: err.message || "Gagal memperbarui data pegawai." };
+    const errorMsg = err instanceof Error ? err.message : "Gagal memperbarui data pegawai.";
+    return { ok: false as const, error: errorMsg };
   }
 }
 
@@ -114,9 +116,10 @@ export async function deleteEmployeeAction(id: string) {
       data: { id: deleted.id },
       message: `Pegawai ${deleted.fullName} berhasil dinonaktifkan.`,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("deleteEmployeeAction error:", err);
-    return { ok: false as const, error: err.message || "Gagal menonaktifkan pegawai." };
+    const errorMsg = err instanceof Error ? err.message : "Gagal menonaktifkan pegawai.";
+    return { ok: false as const, error: errorMsg };
   }
 }
 
@@ -136,9 +139,10 @@ export async function unmaskSensitiveFieldAction(input: UnmaskFieldInput) {
       ok: true as const,
       data: result,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("unmaskSensitiveFieldAction error:", err);
-    return { ok: false as const, error: err.message || "Gagal membuka data sensitif." };
+    const errorMsg = err instanceof Error ? err.message : "Gagal membuka data sensitif.";
+    return { ok: false as const, error: errorMsg };
   }
 }
 
@@ -197,7 +201,7 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
         }
 
         // Find or create department
-        let dept = departments.find(
+        const dept = departments.find(
           (d) => d.name.toLowerCase() === r.departmentName.trim().toLowerCase(),
         );
         let deptId = dept?.id;
@@ -209,7 +213,7 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
         }
 
         // Find or create position
-        let pos = dept?.positions.find(
+        const pos = dept?.positions.find(
           (p) => p.title.toLowerCase() === r.positionTitle.trim().toLowerCase(),
         );
         let posId = pos?.id;
@@ -221,7 +225,7 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
         }
 
         // Create employee
-        const newEmp = await tx.employee.create({
+        await tx.employee.create({
           data: {
             employeeNo: r.employeeNo.trim(),
             fullName: r.fullName.trim(),
@@ -279,8 +283,9 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
       data: results,
       message: `Berhasil mengimpor ${results.importedCount} pegawai.`,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("importEmployeesBatchAction error:", err);
-    return { ok: false as const, error: err.message || "Gagal mengimpor data pegawai." };
+    const errorMsg = err instanceof Error ? err.message : "Gagal mengimpor data pegawai.";
+    return { ok: false as const, error: errorMsg };
   }
 }

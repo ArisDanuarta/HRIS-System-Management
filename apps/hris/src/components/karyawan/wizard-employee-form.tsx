@@ -16,6 +16,8 @@ import {
 import { createEmployeeAction, updateEmployeeAction } from "@/server/actions/employee.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
+import { EmployeeStatus, EmploymentType, Gender, MaritalStatus } from "@pspk/db";
+
 interface DepartmentOption {
   id: string;
   name: string;
@@ -29,11 +31,45 @@ interface ManagerOption {
   currentPosition?: { title: string } | null;
 }
 
+export interface InitialEmployeeData {
+  id: string;
+  fullName: string;
+  nickname?: string | null;
+  workEmail: string;
+  personalEmail?: string | null;
+  phone?: string | null;
+  birthDate?: Date | string | null;
+  birthPlace?: string | null;
+  gender?: Gender | null;
+  maritalStatus?: MaritalStatus | null;
+  address?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactPhone?: string | null;
+  employeeNo: string;
+  currentDepartmentId?: string | null;
+  currentPositionId?: string | null;
+  managerId?: string | null;
+  joinDate?: Date | string | null;
+  status: EmployeeStatus;
+  bankName?: string | null;
+  bankAccountName?: string | null;
+  hasNik?: boolean;
+  hasNpwp?: boolean;
+  hasBankAccount?: boolean;
+  contracts?: {
+    type: EmploymentType;
+    startDate: Date | string;
+    endDate?: Date | string | null;
+    baseSalary?: number | null;
+    notes?: string | null;
+  }[];
+}
+
 interface WizardEmployeeFormProps {
   mode: "create" | "edit";
   departments: DepartmentOption[];
   managers: ManagerOption[];
-  initialData?: any;
+  initialData?: InitialEmployeeData | null;
 }
 
 export function WizardEmployeeForm({
@@ -66,7 +102,7 @@ export function WizardEmployeeForm({
     emergencyContactPhone: initialData?.emergencyContactPhone || "",
 
     // Step 2: Placement
-    employeeNo: initialData?.employeeNo || `PSPK-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-0${Math.floor(10 + Math.random() * 90)}`,
+    employeeNo: initialData?.employeeNo || "",
     currentDepartmentId: initialData?.currentDepartmentId || (departments[0]?.id ?? ""),
     currentPositionId: initialData?.currentPositionId || "",
     managerId: initialData?.managerId || "",
@@ -179,25 +215,40 @@ export function WizardEmployeeForm({
     setIsSubmitting(true);
     setServerError(null);
 
+    const baseJoinDate = formData.joinDate || new Date().toISOString().slice(0, 10);
+    const baseContractStart = formData.contractStartDate || baseJoinDate;
+
     if (mode === "create") {
       const payload: CreateEmployeeInput = {
-        ...formData,
-        baseSalary: Number(formData.baseSalary),
-        managerId: formData.managerId || null,
-        contractEndDate: formData.contractEndDate || undefined,
-        personalEmail: formData.personalEmail || undefined,
-        phone: formData.phone || undefined,
+        fullName: formData.fullName.trim(),
+        nickname: formData.nickname.trim() || undefined,
+        workEmail: formData.workEmail.trim(),
+        personalEmail: formData.personalEmail.trim() || undefined,
+        phone: formData.phone.trim() || undefined,
         birthDate: formData.birthDate || undefined,
-        birthPlace: formData.birthPlace || undefined,
-        address: formData.address || undefined,
-        emergencyContactName: formData.emergencyContactName || undefined,
-        emergencyContactPhone: formData.emergencyContactPhone || undefined,
-        contractNotes: formData.contractNotes || undefined,
-        nik: formData.nik || undefined,
-        npwp: formData.npwp || undefined,
-        bankName: formData.bankName || undefined,
-        bankAccount: formData.bankAccount || undefined,
-        bankAccountName: formData.bankAccountName || undefined,
+        birthPlace: formData.birthPlace.trim() || undefined,
+        gender: formData.gender as Gender,
+        maritalStatus: formData.maritalStatus as MaritalStatus,
+        address: formData.address.trim() || undefined,
+        emergencyContactName: formData.emergencyContactName.trim() || undefined,
+        emergencyContactPhone: formData.emergencyContactPhone.trim() || undefined,
+        employeeNo: formData.employeeNo.trim(),
+        currentDepartmentId: formData.currentDepartmentId,
+        currentPositionId: formData.currentPositionId,
+        managerId: formData.managerId || null,
+        joinDate: baseJoinDate,
+        status: formData.status as EmployeeStatus,
+        employmentType: formData.employmentType as EmploymentType,
+        contractStartDate: baseContractStart,
+        contractEndDate: formData.contractEndDate || undefined,
+        baseSalary: Number(formData.baseSalary) || 0,
+        contractNotes: formData.contractNotes.trim() || undefined,
+        nik: formData.nik.trim() || undefined,
+        npwp: formData.npwp.trim() || undefined,
+        bankName: formData.bankName.trim() || undefined,
+        bankAccount: formData.bankAccount.trim() || undefined,
+        bankAccountName: formData.bankAccountName.trim() || undefined,
+        createUserAccount: formData.createUserAccount,
       };
 
       const res = await createEmployeeAction(payload);
@@ -210,25 +261,38 @@ export function WizardEmployeeForm({
         setServerError(res.error);
       }
     } else {
+      if (!initialData) return;
       const payload: UpdateEmployeeInput = {
         id: initialData.id,
-        ...formData,
-        baseSalary: Number(formData.baseSalary),
-        managerId: formData.managerId || null,
-        contractEndDate: formData.contractEndDate || undefined,
-        personalEmail: formData.personalEmail || undefined,
-        phone: formData.phone || undefined,
+        fullName: formData.fullName.trim(),
+        nickname: formData.nickname?.trim() || undefined,
+        workEmail: formData.workEmail.trim(),
+        personalEmail: formData.personalEmail?.trim() || undefined,
+        phone: formData.phone?.trim() || undefined,
         birthDate: formData.birthDate || undefined,
-        birthPlace: formData.birthPlace || undefined,
-        address: formData.address || undefined,
-        emergencyContactName: formData.emergencyContactName || undefined,
-        emergencyContactPhone: formData.emergencyContactPhone || undefined,
-        contractNotes: formData.contractNotes || undefined,
-        nik: formData.nik || undefined,
-        npwp: formData.npwp || undefined,
-        bankName: formData.bankName || undefined,
-        bankAccount: formData.bankAccount || undefined,
-        bankAccountName: formData.bankAccountName || undefined,
+        birthPlace: formData.birthPlace?.trim() || undefined,
+        gender: formData.gender as Gender,
+        maritalStatus: formData.maritalStatus as MaritalStatus,
+        address: formData.address?.trim() || undefined,
+        emergencyContactName: formData.emergencyContactName?.trim() || undefined,
+        emergencyContactPhone: formData.emergencyContactPhone?.trim() || undefined,
+        employeeNo: formData.employeeNo.trim(),
+        currentDepartmentId: formData.currentDepartmentId,
+        currentPositionId: formData.currentPositionId,
+        managerId: formData.managerId || null,
+        joinDate: baseJoinDate,
+        status: formData.status as EmployeeStatus,
+        employmentType: formData.employmentType as EmploymentType,
+        contractStartDate: baseContractStart,
+        contractEndDate: formData.contractEndDate || undefined,
+        baseSalary: Number(formData.baseSalary) || 0,
+        contractNotes: formData.contractNotes?.trim() || undefined,
+        nik: formData.nik.trim() || undefined,
+        npwp: formData.npwp.trim() || undefined,
+        bankName: formData.bankName.trim() || undefined,
+        bankAccount: formData.bankAccount.trim() || undefined,
+        bankAccountName: formData.bankAccountName.trim() || undefined,
+        createUserAccount: formData.createUserAccount,
       };
 
       const res = await updateEmployeeAction(payload);
@@ -290,11 +354,12 @@ export function WizardEmployeeForm({
                     Langkah {s.num}
                   </span>
                   <span
-                    className={`text-xs font-semibold truncate ${
+                    className={`text-xs font-semibold truncate flex items-center gap-1.5 ${
                       isCurrent ? "text-[#102E50]" : "text-slate-700"
                     }`}
                   >
-                    {s.title}
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
+                    <span>{s.title}</span>
                   </span>
                 </div>
               </div>

@@ -13,12 +13,14 @@ export interface ShellContainerProps {
     roleName?: string;
   };
   initialRole?: RoleViewType;
+  employeeCount?: number;
   children: React.ReactNode;
 }
 
 export function ShellContainer({
   user,
   initialRole = "admin_hr",
+  employeeCount,
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -31,6 +33,7 @@ export function ShellContainer({
         currentRole={currentRole}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        employeeCount={employeeCount}
       />
 
       {/* Top Header */}

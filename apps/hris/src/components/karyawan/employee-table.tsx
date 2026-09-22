@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@pspk/shared";
 import {
-  MoreHorizontal,
   Eye,
   Edit,
   UserX,
@@ -14,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  Briefcase,
 } from "lucide-react";
 import { StatusBadge, ContractTypeBadge } from "./status-badge";
 import { deleteEmployeeAction } from "@/server/actions/employee.actions";

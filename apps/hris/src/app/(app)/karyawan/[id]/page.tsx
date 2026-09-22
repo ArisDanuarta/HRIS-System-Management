@@ -11,12 +11,7 @@ import {
   Briefcase,
   Phone,
   Mail,
-  MapPin,
-  Calendar,
-  Building,
-  CreditCard,
   UserCheck,
-  Clock,
 } from "lucide-react";
 import { getEmployeeById } from "@/server/queries/employee.queries";
 import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-badge";

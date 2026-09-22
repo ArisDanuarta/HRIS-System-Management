@@ -1,4 +1,4 @@
-import { prisma, EmployeeStatus, EmploymentType } from "@pspk/db";
+import { prisma, EmployeeStatus, EmploymentType, Prisma } from "@pspk/db";
 import { decryptField, maskSensitiveValue } from "@pspk/shared";
 
 export type GetEmployeesParams = {
@@ -30,7 +30,7 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
   // Build where clause
-  const where: any = {
+  const where: Prisma.EmployeeWhereInput = {
     deletedAt: null,
   };
 

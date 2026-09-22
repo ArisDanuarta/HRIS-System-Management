@@ -7,7 +7,6 @@ import {
   Download,
   FileSpreadsheet,
   CheckCircle,
-  AlertTriangle,
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
@@ -100,7 +99,7 @@ export function ExcelImporter() {
               positionTitle,
               employmentType,
               baseSalary,
-              joinDate: joinDate || new Date().toISOString().split("T")[0],
+              joinDate: joinDate || new Date().toISOString().slice(0, 10),
             });
           }
         }
@@ -110,8 +109,9 @@ export function ExcelImporter() {
         } else {
           setParsedRows(rows);
         }
-      } catch (err: any) {
-        setParseError(`Gagal membaca file: ${err.message}`);
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : "Kesalahan format file";
+        setParseError(`Gagal membaca file: ${errorMsg}`);
       }
     };
 

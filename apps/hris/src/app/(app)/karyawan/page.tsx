@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Plus, Upload, Users, UserCheck, Clock, FileSpreadsheet } from "lucide-react";
+import { Plus, Upload, Users, UserCheck, Clock } from "lucide-react";
 import { getEmployeesDirectory, getOrgStructureData } from "@/server/queries/employee.queries";
 import { EmployeeTable } from "@/components/karyawan/employee-table";
 import { EmployeeFilterBar } from "@/components/karyawan/employee-filter-bar";
