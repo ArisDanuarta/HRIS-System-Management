@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronRight, Eye } from "lucide-react";
-import { AppSwitcher } from "./app-switcher";
+import { Bell, ChevronRight } from "lucide-react";
 import { UserNav } from "./user-nav";
 import { RoleViewType } from "./app-sidebar";
 
@@ -15,20 +14,14 @@ export interface AppTopbarProps {
     image?: string | null;
     roleName?: string;
   };
-  currentRole: RoleViewType;
-  onRoleChange: (role: RoleViewType) => void;
+  currentRole?: RoleViewType;
   isCollapsed: boolean;
-  hrisUrl?: string;
-  sysmgmtUrl?: string;
 }
 
 export function AppTopbar({
   user,
-  currentRole,
-  onRoleChange,
+  currentRole = "admin_hr",
   isCollapsed,
-  hrisUrl = "http://localhost:3001",
-  sysmgmtUrl = "http://localhost:3002",
 }: AppTopbarProps) {
   const pathname = usePathname();
   const [showNotificationList, setShowNotificationList] = useState(false);
@@ -57,7 +50,7 @@ export function AppTopbar({
         isCollapsed ? "left-20" : "left-[264px]"
       }`}
     >
-      {/* Left: Breadcrumbs & Role Perspective Switcher */}
+      {/* Left: Breadcrumbs */}
       <div className="flex items-center gap-3">
         {/* Breadcrumb Path */}
         <div className="flex items-center gap-1.5 text-xs text-[#5b6675]">
@@ -69,53 +62,10 @@ export function AppTopbar({
             {getPageTitle()}
           </span>
         </div>
-
-        {/* Live Role View Previewer Toggle (Quick switcher for testing perspectives) */}
-        <div className="hidden xl:flex items-center gap-1.5 pl-3 border-l border-[#dee9fc]">
-          <div className="flex items-center gap-1 text-[11px] text-[#74777f] font-medium mr-1">
-            <Eye className="w-3 h-3 text-[#f2af3e]" />
-            <span>Tampilan:</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onRoleChange("admin_hr")}
-            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
-              currentRole === "admin_hr"
-                ? "bg-[#102e50] text-white shadow-xs"
-                : "bg-[#eff4ff] text-[#43474e] hover:bg-[#dee9fc]"
-            }`}
-          >
-            Admin HR
-          </button>
-          <button
-            type="button"
-            onClick={() => onRoleChange("manager")}
-            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
-              currentRole === "manager"
-                ? "bg-[#102e50] text-white shadow-xs"
-                : "bg-[#eff4ff] text-[#43474e] hover:bg-[#dee9fc]"
-            }`}
-          >
-            Manajer
-          </button>
-          <button
-            type="button"
-            onClick={() => onRoleChange("staff")}
-            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
-              currentRole === "staff"
-                ? "bg-[#102e50] text-white shadow-xs"
-                : "bg-[#eff4ff] text-[#43474e] hover:bg-[#dee9fc]"
-            }`}
-          >
-            Staff
-          </button>
-        </div>
       </div>
 
-      {/* Right: Actions, AppSwitcher, Notifications & UserNav */}
+      {/* Right: Notifications & UserNav */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* App Switcher (HRIS <-> SysMgmt) */}
-        <AppSwitcher currentApp="hris" hrisUrl={hrisUrl} sysmgmtUrl={sysmgmtUrl} />
 
         {/* Notification Bell */}
         <div className="relative">

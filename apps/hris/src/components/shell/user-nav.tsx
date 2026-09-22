@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, LogOut, ShieldCheck, KeyRound, ChevronDown } from "lucide-react";
+import { User, LogOut, ShieldCheck, KeyRound, ChevronDown, ArrowLeftRight, ExternalLink } from "lucide-react";
 import { authClient } from "@pspk/auth/client";
 
 export interface UserNavProps {
@@ -117,6 +117,18 @@ export function UserNav({ user }: UserNavProps) {
             >
               <KeyRound className="w-4 h-4 text-[#74777f]" />
               <span>Ganti Kata Sandi</span>
+            </a>
+
+            <a
+              href="http://localhost:3002"
+              className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
+              onClick={() => setIsOpen(false)}
+            >
+              <div className="flex items-center gap-2.5">
+                <ArrowLeftRight className="w-4 h-4 text-[#74777f]" />
+                <span>System Management</span>
+              </div>
+              <ExternalLink className="w-3.5 h-3.5 text-[#74777f]" />
             </a>
           </div>
 

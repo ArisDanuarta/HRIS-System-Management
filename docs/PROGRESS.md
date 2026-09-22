@@ -84,6 +84,71 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 1 — HRIS Admin HR: Manajemen Data Karyawan & Organisasi
+
+- **Tanggal Selesai**: 22 September 2026
+- **Status**: Selesai ✅ (Semua fungsi CRUD teruji langsung ke PostgreSQL)
+- **Fokus Prioritas**: Admin HR (Kelola Direktori Pegawai, Kontrak, Enkripsi Data Sensitif, Impor Excel, Audit Log)
+- **Rincian Implementasi & Layar**:
+  - **Aturan Frontend (`.agents/rules/`)**:
+    - `.agents/rules/frontend-brand.md`: Konsistensi warna PSPK (Navy `#102E50`, Gold `#F2AF3E`/`#FEBA48`, Maroon `#A8281C`), tipografi (Lora untuk heading, Rubik untuk body), dan token radius.
+    - `.agents/rules/frontend-design-taste.md`: Panduan anti-slop, kontras warna, micro-interactions, layout berbasis ritme visual 4px/8px.
+    - `.agents/rules/frontend-components-ux.md`: Standar interaksi tabel, modal konfirmasi, badge status, form wizard, dan feedback toast.
+    - `.agents/rules/frontend-a11y-perf.md`: Aksesibilitas (ARIA, keyboard nav, screen reader) dan optimasi performa Next.js.
+  - **H4 Direktori Karyawan (`/karyawan`)**:
+    - Tabel direktori pegawai interaktif (`employee-table.tsx`): avatar, NIP, nama lengkap, posisi/jabatan, divisi, tipe kontrak berlabel warna, status kepegawaian (`status-badge.tsx`), dan countdown masa berlaku kontrak aktif.
+    - Filter bar komprehensif (`employee-filter-bar.tsx`): pencarian instan (nama/NIP/email), dropdown divisi dinamis dari database, filter status (`ACTIVE`, `PROBATION`, `RESIGNED`), dan filter tipe kontrak (`PKWT`, `PKWTT`, `INTERNSHIP`, `CONSULTANT`).
+    - Alert banner kontrak segera berakhir (`expiring-contract-alert.tsx`): otomatis mendeteksi pegawai dengan sisa kontrak <= 30 hari (tervalidasi dengan data seed Anita Wijaya PKWT sisa 23 hari).
+    - Tombol aksi cepat: Impor Excel, Tambah Karyawan Baru, Export.
+  - **H6 Tambah Karyawan Baru / Multi-step Wizard (`/karyawan/baru`)**:
+    - 4 Langkah form terstruktur (`wizard-employee-form.tsx`):
+      1. Data Pribadi (Nama, Panggilan, Email, NIK, No HP, Tempat/Tgl Lahir, Jenis Kelamin, Agama, Alamat).
+      2. Pekerjaan & Organisasi (NIP, Divisi, Jabatan, Manajer Langsung, Tgl Masuk).
+      3. Kontrak & Penggajian (Tipe Kontrak, Nomor Kontrak, Tgl Mulai, Tgl Berakhir, Status Kontrak, NPWP, Nama Bank, No Rekening, Atas Nama).
+      4. Review & Konfirmasi lengkap sebelum simpan.
+    - Validasi Zod di client & server (`employee.schema.ts`).
+    - Penyimpanan atomik `$transaction` membuat `Employee` dan `EmploymentContract` sekaligus.
+  - **H5 Detail Karyawan (`/karyawan/[id]`)**:
+    - Header profil lengkap dengan avatar, NIP, status kepegawaian, tombol ubah data & aksi.
+    - Tab navigasi: Ringkasan, Data Pribadi, Riwayat Kontrak & Jabatan, Dokumen.
+    - Proteksi & Unmasking Data Sensitif (`sensitive-field-view.tsx`):
+      - NIK, NPWP, dan No Rekening terenkripsi AES-256-GCM di database PostgreSQL.
+      - Ditampilkan ter-masking (`•••• •••• •••• 1234`).
+      - Tombol buka masking (unmask) dengan modal konfirmasi alasan audit log dan pencatatan audit log otomatis (`unmaskSensitiveFieldAction`).
+    - Riwayat kontrak kerja terdaftar dari database.
+  - **H7 Ubah Data Karyawan (`/karyawan/[id]/ubah`)**:
+    - Form edit data lengkap pre-populated dengan data riil dari database.
+    - Update data pegawai dan kontrak aktif dengan validasi ketat.
+  - **H23 Impor Massal Excel/CSV (`/karyawan/impor`)**:
+    - Fitur upload file spreadsheet (`.xlsx`, `.xls`, `.csv`).
+    - Penguraian client-side dengan validasi format kolom PSPK.
+    - Preview tabel data sebelum diimpor dengan validasi baris & deteksi error.
+    - Batch action server (`importEmployeesBatchAction`) memproses dan menyimpan pegawai ke PostgreSQL dalam batch.
+    - Unduh template Excel standar PSPK.
+  - **Navigasi & Shell Terintegrasi**:
+    - Badge counter jumlah karyawan aktif di menu sidebar terhubung dinamis ke total pegawai di database via `ShellContainer`.
+- **Backend & Keamanan**:
+  - `packages/shared/src/crypto.ts`: Enkripsi & dekripsi AES-256-GCM dengan authentication tag.
+  - `packages/db/src/audit.ts`: Helper pencatatan audit log mutasi dan pembacaan data sensitif.
+  - `apps/hris/src/server/services/employee.service.ts`: Semua operasi Create, Update, Delete (Soft-Delete dengan pembatalan kontrak aktif), dan Unmask dilakukan dalam Prisma `$transaction` dan menulis `AuditLog`.
+  - `apps/hris/src/server/actions/employee.actions.ts`: Server Actions terproteksi dengan validasi sesi dan izin `EMPLOYEE_CREATE`, `EMPLOYEE_UPDATE`, `EMPLOYEE_DELETE`.
+- **Pengujian & Validasi Kualitas**:
+  - `pnpm typecheck`: ✅ 9/9 packages pass.
+  - `pnpm --filter @pspk/hris lint`: ✅ 0 errors.
+  - `pnpm test`: ✅ 14 unit test lolos.
+  - `pnpm --filter @pspk/hris build`: ✅ Next.js standalone build berhasil tanpa error, 10 rute terkompilasi.
+  - **Pengujian Nyata CRUD Database PostgreSQL (Semua Lulus)**:
+    - **READ**: Query direktori dengan relasi departemen, jabatan, dan kontrak aktif ✅
+    - **CREATE**: Penambahan pegawai baru beserta kontrak aktif via `$transaction` ✅
+    - **UPDATE**: Pembaharuan data pegawai tersimpan di DB ✅
+    - **DELETE**: Soft-delete (status RESIGNED, deletedAt terisi, status kontrak TERMINATED) ✅
+    - **VERIFY**: Pegawai soft-deleted tidak muncul di query direktori aktif ✅
+- **Pembersihan Antarmuka Siap Produksi (Header & Dashboard)**:
+  - Header (`app-topbar.tsx`): Menghapus seluruh tombol prototipe `Tampilan: Admin HR | Manajer | Staff` dan elemen trigger `HRIS PSPK [Aktif]`. Header kini bersih dan profesional hanya memuat breadcrumbs, notifikasi sistem, dan UserNav.
+  - Aksesibilitas Lintas Portal: Tautan menuju portal *System Management* ditempatkan rapi di dalam dropdown akun pengguna (`UserNav`).
+  - Dashboard Eksekutif Admin HR (`dashboard/page.tsx`): Menghapus selector prototipe `Mode Tampilan Dashboard: Admin HR (P-1A) | ...`. Halaman diubah menjadi Server Component terhubung penuh ke database PostgreSQL dengan metrik pegawai aktif, masa percobaan, alert kontrak kerja $\le$ 30 hari, distribusi divisi, dan tabel pegawai terdaftar terkini.
+
+---
 
 ## Cara Menjalankan Lingkungan Lokal
 

@@ -24,7 +24,7 @@ export function ShellContainer({
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [currentRole, setCurrentRole] = useState<RoleViewType>(initialRole);
+  const currentRole = initialRole;
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#121c2a] flex flex-col antialiased">
@@ -40,7 +40,6 @@ export function ShellContainer({
       <AppTopbar
         user={user}
         currentRole={currentRole}
-        onRoleChange={(r) => setCurrentRole(r)}
         isCollapsed={isCollapsed}
       />
 
