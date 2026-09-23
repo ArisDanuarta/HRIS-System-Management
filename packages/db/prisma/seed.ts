@@ -718,6 +718,108 @@ async function main() {
     }
   }
 
+  // 12. Seed Master Komponen Gaji (Salary Components)
+  console.log("💰 Seeding master komponen gaji (tunjangan & potongan)...");
+  const salaryComponentsData = [
+    {
+      code: "TUNJ_TRANSPORT",
+      name: "Tunjangan Transportasi",
+      type: "EARNING" as const,
+      calcType: "FIXED" as const,
+      defaultValue: 1000000,
+      isActive: true,
+    },
+    {
+      code: "TUNJ_KOMUNIKASI",
+      name: "Tunjangan Komunikasi & Pulsa",
+      type: "EARNING" as const,
+      calcType: "FIXED" as const,
+      defaultValue: 500000,
+      isActive: true,
+    },
+    {
+      code: "TUNJ_JABATAN",
+      name: "Tunjangan Jabatan & Formasi Riset",
+      type: "EARNING" as const,
+      calcType: "FIXED" as const,
+      defaultValue: 2500000,
+      isActive: true,
+    },
+    {
+      code: "BPJS_KES",
+      name: "Iuran BPJS Kesehatan (Pekerja 1%)",
+      type: "DEDUCTION" as const,
+      calcType: "PERCENT_OF_BASE" as const,
+      defaultValue: 1.0,
+      isActive: true,
+    },
+    {
+      code: "BPJS_TK_JHT",
+      name: "Iuran BPJS Ketenagakerjaan JHT (Pekerja 2%)",
+      type: "DEDUCTION" as const,
+      calcType: "PERCENT_OF_BASE" as const,
+      defaultValue: 2.0,
+      isActive: true,
+    },
+    {
+      code: "BPJS_TK_JP",
+      name: "Iuran BPJS Ketenagakerjaan Jaminan Pensiun (Pekerja 1%)",
+      type: "DEDUCTION" as const,
+      calcType: "PERCENT_OF_BASE" as const,
+      defaultValue: 1.0,
+      isActive: true,
+    },
+    {
+      code: "PPH21_EST",
+      name: "Estimasi Pemotongan Pajak PPh 21",
+      type: "DEDUCTION" as const,
+      calcType: "MANUAL" as const,
+      defaultValue: 0,
+      isActive: true,
+    },
+  ];
+
+  for (const comp of salaryComponentsData) {
+    await prisma.salaryComponent.upsert({
+      where: { code: comp.code },
+      update: {
+        name: comp.name,
+        type: comp.type,
+        calcType: comp.calcType,
+        defaultValue: comp.defaultValue,
+        isActive: comp.isActive,
+      },
+      create: {
+        code: comp.code,
+        name: comp.name,
+        type: comp.type,
+        calcType: comp.calcType,
+        defaultValue: comp.defaultValue,
+        isActive: comp.isActive,
+      },
+    });
+  }
+
+  // 13. Seed Periode Payroll Contoh (Bulan Berjalan: September 2026)
+  console.log("📅 Seeding periode payroll contoh (September 2026)...");
+  await prisma.payrollPeriod.upsert({
+    where: {
+      year_month_kind: {
+        year: 2026,
+        month: 9,
+        kind: "REGULAR",
+      },
+    },
+    update: {},
+    create: {
+      year: 2026,
+      month: 9,
+      kind: "REGULAR",
+      status: "DRAFT",
+      cutoffDate: new Date("2026-09-25"),
+    },
+  });
+
   console.log("✅ Seeding selesai dengan sukses!");
 }
 
