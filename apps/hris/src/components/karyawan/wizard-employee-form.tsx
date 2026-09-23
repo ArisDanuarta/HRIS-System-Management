@@ -17,8 +17,17 @@ import {
   Copy,
   Check,
   Mail,
+  Sparkles,
+  Loader2,
+  XCircle,
+  CheckCircle2,
 } from "lucide-react";
-import { createEmployeeAction, updateEmployeeAction } from "@/server/actions/employee.actions";
+import {
+  createEmployeeAction,
+  updateEmployeeAction,
+  generateNextEmployeeNoAction,
+  checkEmployeeNoAvailabilityAction,
+} from "@/server/actions/employee.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
 import { EmployeeStatus, EmploymentType, Gender, MaritalStatus } from "@pspk/db";
@@ -96,6 +105,14 @@ export function WizardEmployeeForm({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isGeneratingNip, setIsGeneratingNip] = useState(false);
+  const [isCheckingNip, setIsCheckingNip] = useState(false);
+  const [nipStatus, setNipStatus] = useState<{
+    available: boolean;
+    message: string;
+  } | null>(null);
+  const checkNipDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
+
   const [stepCooldown, setStepCooldown] = useState(false);
   const [copied, setCopied] = useState(false);
   const [createdCredentials, setCreatedCredentials] = useState<{
@@ -188,6 +205,64 @@ export function WizardEmployeeForm({
     }
   };
 
+  // Handler Generate NIP Otomatis
+  const handleGenerateNip = async () => {
+    setIsGeneratingNip(true);
+    setServerError(null);
+    try {
+      const res = await generateNextEmployeeNoAction(formData.joinDate);
+      if (res.ok && res.data.employeeNo) {
+        setFormData((prev) => ({ ...prev, employeeNo: res.data.employeeNo }));
+        setNipStatus({
+          available: true,
+          message: `✓ NIP '${res.data.employeeNo}' berhasil dibuat otomatis dan siap digunakan.`,
+        });
+      } else {
+        setServerError(res.error || "Gagal membuat NIP otomatis.");
+      }
+    } catch {
+      setServerError("Terjadi kendala saat membuat NIP otomatis.");
+    } finally {
+      setIsGeneratingNip(false);
+    }
+  };
+
+  // Handler input NIP dengan debounce pengecekan duplikat
+  const handleNipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setFormData((prev) => ({ ...prev, employeeNo: value }));
+
+    if (checkNipDebounceRef.current) {
+      clearTimeout(checkNipDebounceRef.current);
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.length < 3) {
+      setNipStatus(null);
+      setIsCheckingNip(false);
+      return;
+    }
+
+    setIsCheckingNip(true);
+    checkNipDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await checkEmployeeNoAvailabilityAction(trimmed, initialData?.id);
+        if (res.ok) {
+          setNipStatus({
+            available: res.available,
+            message: res.message,
+          });
+        } else {
+          setNipStatus(null);
+        }
+      } catch {
+        setNipStatus(null);
+      } finally {
+        setIsCheckingNip(false);
+      }
+    }, 350);
+  };
+
   // Step Validation before progressing
   const validateStep = (step: number): boolean => {
     setServerError(null);
@@ -215,6 +290,10 @@ export function WizardEmployeeForm({
     } else if (step === 2) {
       if (!formData.employeeNo.trim()) {
         setServerError("Nomor Induk Pegawai (NIP) wajib diisi.");
+        return false;
+      }
+      if (nipStatus && !nipStatus.available) {
+        setServerError("Nomor Induk Pegawai (NIP) sudah terdaftar di sistem. Harap gunakan NIP yang berbeda.");
         return false;
       }
       if (!formData.currentDepartmentId) {
@@ -367,8 +446,9 @@ export function WizardEmployeeForm({
         npwp: formData.npwp.trim() || undefined,
         bankName: formData.bankName.trim() || undefined,
         bankAccount: formData.bankAccount.trim() || undefined,
-        bankAccountName: formData.bankAccountName.trim() || undefined,
+        bankAccountName: formData.bankAccountName?.trim() || undefined,
         createUserAccount: formData.createUserAccount,
+        accountRole: (formData.accountRole || "staff") as "staff" | "manager" | "admin_hr" | "admin_it",
       };
 
       const res = await updateEmployeeAction(payload);
@@ -679,20 +759,63 @@ export function WizardEmployeeForm({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Induk Pegawai (NIP) <span className="text-[#A8281C]">*</span>
-              </label>
-              <input
-                type="text"
-                name="employeeNo"
-                value={formData.employeeNo}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Format standar: PSPK-YYYYMM-XXX
-              </span>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Nomor Induk Pegawai (NIP) <span className="text-[#A8281C]">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={handleGenerateNip}
+                  disabled={isGeneratingNip}
+                  className="text-[11px] font-semibold text-[#102E50] hover:text-[#0c233d] bg-blue-50/80 hover:bg-blue-100 px-2.5 py-1 rounded-md border border-blue-200/80 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
+                  title="Generate nomor induk pegawai otomatis berdasarkan tahun & bulan bergabung"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#F2AF3E]" />
+                  <span>{isGeneratingNip ? "Menghasilkan NIP..." : "Buat NIP Otomatis"}</span>
+                </button>
+              </div>
+
+              <div className="relative">
+                <input
+                  type="text"
+                  name="employeeNo"
+                  value={formData.employeeNo}
+                  onChange={handleNipChange}
+                  placeholder="PSPK-YYYYMM-XXX"
+                  required
+                  className={`w-full px-3 py-2 pr-9 text-sm font-mono rounded-lg text-slate-900 focus:outline-none focus:ring-2 transition-all ${
+                    nipStatus?.available === false
+                      ? "border-red-400 focus:ring-red-400 bg-red-50/30 text-red-900"
+                      : nipStatus?.available === true
+                        ? "border-emerald-400 focus:ring-emerald-400 bg-emerald-50/20 text-slate-900"
+                        : "border-slate-200 bg-slate-50/70 focus:ring-[#102E50]"
+                  }`}
+                />
+                <div className="absolute right-3 top-2.5 flex items-center pointer-events-none">
+                  {isCheckingNip && <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />}
+                  {!isCheckingNip && nipStatus?.available === true && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  )}
+                  {!isCheckingNip && nipStatus?.available === false && (
+                    <XCircle className="w-4 h-4 text-red-600" />
+                  )}
+                </div>
+              </div>
+
+              {/* Status Validasi NIP */}
+              {nipStatus ? (
+                <span
+                  className={`text-[11px] mt-1.5 block font-medium flex items-center gap-1 ${
+                    nipStatus.available ? "text-emerald-700" : "text-[#A8281C]"
+                  }`}
+                >
+                  {nipStatus.message}
+                </span>
+              ) : (
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Format standar: PSPK-YYYYMM-XXX (klik tombol di atas untuk membuat NIP urut otomatis)
+                </span>
+              )}
             </div>
 
             <div>

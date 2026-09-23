@@ -12,6 +12,7 @@ import {
   UpdateEmployeeInput,
   UnmaskFieldInput,
 } from "../schemas/employee.schema";
+import { prisma } from "@pspk/db";
 import {
   createEmployee,
   updateEmployee,
@@ -19,6 +20,105 @@ import {
   unmaskSensitiveField,
   ActorContext,
 } from "../services/employee.service";
+
+export async function generateNextEmployeeNoAction(joinDate?: string) {
+  try {
+    const { authCtx } = await getAuthenticatedActor();
+    assertCan(authCtx, "hris.employee.write:all");
+
+    // Format target: PSPK-YYYYMM-XXX
+    let year = new Date().getFullYear();
+    let month = String(new Date().getMonth() + 1).padStart(2, "0");
+
+    if (joinDate && joinDate.trim() !== "") {
+      const parts = joinDate.split("-");
+      if (parts[0] && parts[1]) {
+        year = parseInt(parts[0], 10) || year;
+        month = String(parseInt(parts[1], 10) || month).padStart(2, "0");
+      }
+    }
+
+    const prefix = `PSPK-${year}${month}-`;
+
+    const existing = await prisma.employee.findMany({
+      where: {
+        employeeNo: { startsWith: prefix },
+      },
+      select: { employeeNo: true },
+    });
+
+    let maxSeq = 0;
+    for (const emp of existing) {
+      const parts = emp.employeeNo.split("-");
+      const seqPart = parts[2];
+      if (seqPart) {
+        const num = parseInt(seqPart, 10);
+        if (!isNaN(num) && num > maxSeq) {
+          maxSeq = num;
+        }
+      }
+    }
+
+    let nextSeq = maxSeq + 1;
+    let candidate = `${prefix}${String(nextSeq).padStart(3, "0")}`;
+
+    // Verifikasi agar tidak ada bentrok
+    let exists = await prisma.employee.findUnique({
+      where: { employeeNo: candidate },
+    });
+    while (exists) {
+      nextSeq++;
+      candidate = `${prefix}${String(nextSeq).padStart(3, "0")}`;
+      exists = await prisma.employee.findUnique({
+        where: { employeeNo: candidate },
+      });
+    }
+
+    return {
+      ok: true as const,
+      data: { employeeNo: candidate },
+    };
+  } catch (err: unknown) {
+    console.error("generateNextEmployeeNoAction error:", err);
+    const msg = err instanceof Error ? err.message : "Gagal membuat NIP otomatis.";
+    return { ok: false as const, error: msg };
+  }
+}
+
+export async function checkEmployeeNoAvailabilityAction(
+  employeeNo: string,
+  currentEmployeeId?: string,
+) {
+  try {
+    const trimmed = employeeNo.trim();
+    if (!trimmed || trimmed.length < 3) {
+      return { ok: false as const, error: "NIP terlalu pendek (minimal 3 karakter)." };
+    }
+
+    const existing = await prisma.employee.findUnique({
+      where: { employeeNo: trimmed },
+      select: { id: true, fullName: true, employeeNo: true },
+    });
+
+    if (existing && existing.id !== currentEmployeeId) {
+      return {
+        ok: true as const,
+        available: false,
+        message: `NIP '${trimmed}' sudah digunakan oleh ${existing.fullName}.`,
+        existingName: existing.fullName,
+      };
+    }
+
+    return {
+      ok: true as const,
+      available: true,
+      message: `NIP '${trimmed}' tersedia dan dapat digunakan.`,
+    };
+  } catch (err: unknown) {
+    console.error("checkEmployeeNoAvailabilityAction error:", err);
+    return { ok: false as const, error: "Gagal memeriksa ketersediaan NIP." };
+  }
+}
 
 async function getAuthenticatedActor(): Promise<{ actor: ActorContext; authCtx: AuthContext }> {
   const reqHeaders = await headers();
