@@ -204,6 +204,10 @@ export async function getEmployeeById(id: string) {
       },
       histories: {
         orderBy: { startDate: "desc" },
+        include: {
+          department: { select: { id: true, name: true } },
+          position: { select: { id: true, title: true } },
+        },
       },
       user: {
         select: {
@@ -267,6 +271,49 @@ export async function getOrgStructureData() {
   });
 
   return departments;
+}
+
+export async function getOrgStructureDetail() {
+  const [departments, totalDepartments, totalPositions, mappedEmployeesCount] = await Promise.all([
+    prisma.department.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        _count: {
+          select: {
+            employees: { where: { deletedAt: null } },
+            positions: true,
+          },
+        },
+        positions: {
+          orderBy: { title: "asc" },
+          include: {
+            _count: {
+              select: {
+                employees: { where: { deletedAt: null } },
+              },
+            },
+          },
+        },
+      },
+    }),
+    prisma.department.count(),
+    prisma.position.count(),
+    prisma.employee.count({
+      where: {
+        deletedAt: null,
+        currentPositionId: { not: null },
+      },
+    }),
+  ]);
+
+  return {
+    departments,
+    stats: {
+      totalDepartments,
+      totalPositions,
+      mappedEmployeesCount,
+    },
+  };
 }
 
 export async function getManagersList() {

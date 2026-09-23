@@ -13,9 +13,14 @@ import {
   Mail,
   UserCheck,
 } from "lucide-react";
-import { getEmployeeById } from "@/server/queries/employee.queries";
+import {
+  getEmployeeById,
+  getOrgStructureData,
+  getManagersList,
+} from "@/server/queries/employee.queries";
 import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-badge";
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
+import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +36,11 @@ export default async function EmployeeDetailPage({
   const { id } = await params;
   const { tab = "biodata" } = await searchParams;
 
-  const employee = await getEmployeeById(id);
+  const [employee, departments, managers] = await Promise.all([
+    getEmployeeById(id),
+    getOrgStructureData(),
+    getManagersList(),
+  ]);
 
   if (!employee) {
     notFound();
@@ -467,40 +476,23 @@ export default async function EmployeeDetailPage({
             </div>
           </div>
 
-          {/* Card Riwayat Jabatan */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
-            <h3 className="font-bold text-sm text-[#102E50] font-heading pb-2 border-b border-slate-100">
-              Riwayat Mutasi & Jabatan
-            </h3>
-
-            <div className="flex flex-col divide-y divide-slate-100 text-xs">
-              {employee.histories.length === 0 ? (
-                <span className="text-slate-400 italic py-4 text-center">
-                  Belum ada catatan mutasi jabatan
-                </span>
-              ) : (
-                employee.histories.map((hist) => (
-                  <div key={hist.id} className="py-3 flex flex-col gap-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800">
-                        {formatDate(hist.startDate)}
-                      </span>
-                      {hist.endDate ? (
-                        <span className="text-slate-400 font-mono">
-                          s/d {formatDate(hist.endDate)}
-                        </span>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          Posisi Saat Ini
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-slate-600">{hist.notes || "Penyesuaian penempatan"}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          {/* Card Riwayat Mutasi & Jabatan dengan Fitur Mutasi Cepat */}
+          <CareerHistoryCard
+            employee={{
+              id: employee.id,
+              fullName: employee.fullName,
+              employeeNo: employee.employeeNo,
+              currentDepartmentId: employee.currentDepartmentId,
+              currentDepartmentName: employee.currentDepartment?.name,
+              currentPositionId: employee.currentPositionId,
+              currentPositionTitle: employee.currentPosition?.title,
+              managerId: employee.managerId,
+              managerName: employee.manager?.fullName,
+            }}
+            histories={employee.histories}
+            departments={departments}
+            managers={managers}
+          />
         </div>
       )}
     </div>

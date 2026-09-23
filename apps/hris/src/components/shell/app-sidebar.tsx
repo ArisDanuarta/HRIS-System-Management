@@ -17,6 +17,7 @@ import {
   Calendar,
   PanelLeftClose,
   PanelLeftOpen,
+  Building2,
 } from "lucide-react";
 
 export type RoleViewType = "admin_hr" | "manager" | "staff";
@@ -43,6 +44,12 @@ export function AppSidebar({
   const isNavActive = (href: string) => {
     if (href === "/dashboard") {
       return pathname === "/" || pathname === "/dashboard";
+    }
+    if (href === "/karyawan") {
+      return (
+        pathname === "/karyawan" ||
+        (pathname.startsWith("/karyawan/") && !pathname.startsWith("/karyawan/organisasi"))
+      );
     }
     return pathname.startsWith(href);
   };
@@ -113,6 +120,13 @@ export function AppSidebar({
                     {employeeCount}
                   </span>
                 }
+              />
+              <NavItem
+                href="/karyawan/organisasi"
+                label="Struktur Organisasi"
+                icon={<Building2 className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/karyawan/organisasi")}
+                isCollapsed={isCollapsed}
               />
               <NavItem
                 href="/cuti"

@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Plus, Upload, Users, UserCheck, Clock } from "lucide-react";
+import { Plus, Upload, Users, UserCheck, Clock, Building2 } from "lucide-react";
 import { getEmployeesDirectory, getOrgStructureData } from "@/server/queries/employee.queries";
 import { EmployeeTable } from "@/components/karyawan/employee-table";
 import { EmployeeFilterBar } from "@/components/karyawan/employee-filter-bar";
@@ -61,7 +61,15 @@ export default async function KaryawanPage({ searchParams }: KaryawanPageProps) 
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            href="/karyawan/organisasi"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-all cursor-pointer active:scale-[0.98] shadow-xs"
+          >
+            <Building2 className="w-4 h-4 text-slate-500" />
+            <span>Struktur Organisasi</span>
+          </Link>
+
           <Link
             href="/karyawan/impor"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-all cursor-pointer active:scale-[0.98] shadow-xs"
