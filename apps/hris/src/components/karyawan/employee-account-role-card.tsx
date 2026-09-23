@@ -8,12 +8,10 @@ import {
   KeyRound,
   UserCheck,
   UserX,
-  Mail,
   CheckCircle2,
   AlertCircle,
   Copy,
   Check,
-  Lock,
   Plus,
 } from "lucide-react";
 import {

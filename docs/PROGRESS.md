@@ -277,6 +277,37 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Tata Kelola Akun & Hak Akses (RBAC Hibrida: HRIS & System Management)
+- **Status:** Selesai (Completed)
+- **Capaian:**
+  - **Arsitektur Wewenang & Separation of Duties**:
+    - **Super Admin**: Akses penuh ke seluruh peran (`staff`, `manager`, `admin_hr`, `admin_it`, `super_admin`).
+    - **Admin IT**: Mengelola peran dan aktivasi operasional pengguna di System Management. Dilarang menugaskan atau mencabut peran Super Admin.
+    - **Admin HR**: Saat mendaftarkan karyawan baru di `/karyawan/baru`, dibatasi hanya memilih peran `staff` atau `manager` (mencegah *privilege escalation*).
+    - **Proteksi Anti-Lockout**: Sistem menolak pencabutan atau penonaktifan Super Admin terakhir, dan mencegah pengguna menonaktifkan akunnya sendiri.
+  - **HRIS (`apps/hris`)**:
+    - Tab baru **"Akun & Hak Akses"** pada detail pegawai (`/karyawan/[id]?tab=akun`).
+    - **Kartu Identitas Akun Login**: Surel login kantor (`@pspk.id`), status aktif (dot hijau/merah), dan daftar badges peran.
+    - **Modal "Kelola Peran (RBAC)"**: Multi-role assignment dengan audit log.
+    - **Modal "Buatkan Akun Login"**: Pembuatan akun instan untuk pegawai lama yang belum memiliki akun, dilengkapi generate sandi sementara acak dan pengiriman kredensial ke email pribadi.
+  - **System Management (`apps/sysmgmt`)**:
+    - **Master Manajemen Pengguna (`/pengguna`)**:
+      - 6 kartu statistik metrik pengguna (Total Akun, Aktif, Super Admin, Admin IT, Admin HR, Manajer, Staf).
+      - Filter pencarian (nama, surel, NIP) dan dropdown filter peran serta status akun.
+      - Aksi cepat: Toggle status aktif/nonaktif akun secara langsung.
+      - Modal **"Kelola Peran (RBAC)"** multi-role terhubung ke `core.user_roles`.
+      - Modal **"Reset Kata Sandi"** dengan hashing Better Auth dan tampilan kredensial sementara satu-klik salin.
+      - Tautan pembuka profil pegawai terhubung di HRIS (`/karyawan/[id]?tab=akun`).
+    - **Shell Navigasi Sysmgmt**: Topbar profesional dengan logo PSPK horizontal terbaru, AppSwitcher (beralih antara HRIS :3001 dan SysMgmt :3002), dan profil pengguna dengan fungsi keluar sistem (`signOut`).
+  - **Audit Log Terpadu**:
+    - Semua mutasi peran (`UserRole`), perubahan status aktivasi (`UserStatus`), dan reset kata sandi (`UserPasswordReset`) dicatat ke `core.audit_logs` dengan IP dan User-Agent. Sandi plaintext tidak pernah disimpan di audit log.
+  - **Kualitas & Uji**:
+    - `pnpm typecheck` (9/9 packages lolos).
+    - `pnpm lint` (0 error).
+    - `pnpm build` (Kompilasi standalone sukses untuk `@pspk/hris` dan `@pspk/sysmgmt`).
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

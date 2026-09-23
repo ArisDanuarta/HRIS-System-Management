@@ -240,7 +240,7 @@ export async function createEmployeeLoginAccountAction(input: {
       return { ok: false as const, error: "Peran yang dipilih tidak ditemukan dalam sistem." };
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       // Periksa apakah user dengan email ini sudah ada di skema core
       let user = await tx.user.findUnique({
         where: { email: workEmail },
