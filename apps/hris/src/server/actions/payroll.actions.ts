@@ -4,12 +4,14 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma, writeAudit } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
+import { getStorageProvider } from "@pspk/storage";
 import {
   calculatePeriodPayroll,
   approvePeriodPayroll,
   publishPeriodPayroll,
   lockPeriodPayroll,
   generatePayrollBankExport,
+  updatePayslipTimesheet,
 } from "../services/payroll.service";
 
 async function getActorInfo() {
@@ -465,3 +467,98 @@ export async function exportPayrollBankCsvAction(input: { periodId: string }) {
     };
   }
 }
+
+/**
+ * Update Timesheet Jam Kerja Pegawai & Unggah Bukti Timesheet (PDF/XLSX)
+ */
+export async function updatePayslipTimesheetAction(formData: FormData) {
+  try {
+    const actor = await getActorInfo();
+
+    if (!actor.isSuperAdmin && !actor.isAdminHr) {
+      return {
+        ok: false as const,
+        error: "Hanya Admin HR atau Super Admin yang berwenang memperbarui timesheet pegawai.",
+      };
+    }
+
+    const payslipId = formData.get("payslipId") as string;
+    const totalHoursRaw = formData.get("totalHours") as string;
+    const hourlyRateRaw = formData.get("hourlyRate") as string | null;
+
+    if (!payslipId || !totalHoursRaw) {
+      return { ok: false as const, error: "ID slip dan total jam kerja wajib diisi." };
+    }
+
+    const totalHours = Number(totalHoursRaw);
+    if (isNaN(totalHours) || totalHours < 0) {
+      return { ok: false as const, error: "Total jam kerja harus berupa angka valid (>= 0)." };
+    }
+
+    const hourlyRate =
+      hourlyRateRaw && !isNaN(Number(hourlyRateRaw)) ? Number(hourlyRateRaw) : undefined;
+
+    let timesheetKey: string | null | undefined = undefined;
+    const file = formData.get("timesheetFile") as File | null;
+
+    if (file && file.size > 0) {
+      const allowedExtensions = [".pdf", ".xlsx", ".xls", ".csv"];
+      const fileNameLower = file.name.toLowerCase();
+      const isAllowed = allowedExtensions.some((ext) => fileNameLower.endsWith(ext));
+
+      if (!isAllowed) {
+        return {
+          ok: false as const,
+          error: "Berkas lampiran timesheet harus berformat PDF, Excel (.xlsx/.xls), atau CSV.",
+        };
+      }
+
+      if (file.size > 15 * 1024 * 1024) {
+        return { ok: false as const, error: "Ukuran berkas lampiran timesheet maksimal 15 MB." };
+      }
+
+      let contentType = file.type || "application/octet-stream";
+      if (fileNameLower.endsWith(".pdf")) contentType = "application/pdf";
+      else if (fileNameLower.endsWith(".xlsx"))
+        contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      else if (fileNameLower.endsWith(".xls")) contentType = "application/vnd.ms-excel";
+      else if (fileNameLower.endsWith(".csv")) contentType = "text/csv";
+
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const storageKey = `timesheets/${payslipId}_${Date.now()}_${safeFileName}`;
+      const buffer = Buffer.from(await file.arrayBuffer());
+
+      const storage = getStorageProvider();
+      await storage.put(storageKey, buffer, { contentType });
+      timesheetKey = storageKey;
+    }
+
+    const updated = await updatePayslipTimesheet({
+      payslipId,
+      totalHours,
+      hourlyRate,
+      timesheetKey,
+      actor: {
+        userId: actor.userId,
+        email: actor.email,
+        ip: actor.ip,
+        userAgent: actor.userAgent,
+      },
+    });
+
+    revalidatePath(`/payroll/${updated.periodId}`);
+    revalidatePath("/payroll");
+
+    return {
+      ok: true as const,
+      message: `Timesheet berhasil diperbarui. Total upah jam kerja terhitung: Rp ${Number(updated.grossAmount).toLocaleString("id-ID")}`,
+    };
+  } catch (err: unknown) {
+    console.error("updatePayslipTimesheetAction error:", err);
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal memperbarui data timesheet pegawai.",
+    };
+  }
+}
+

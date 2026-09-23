@@ -34,6 +34,13 @@ enum EmploymentType {
   @@schema("hris")
 }
 
+enum WageType {
+  MONTHLY
+  HOURLY
+
+  @@schema("hris")
+}
+
 enum ContractStatus {
   ACTIVE
   EXPIRED
@@ -243,6 +250,8 @@ model EmploymentContract {
   startDate   DateTime       @map("start_date") @db.Date
   endDate     DateTime?      @map("end_date") @db.Date
   baseSalary  Decimal?       @map("base_salary") @db.Decimal(15, 2)
+  wageType    WageType       @default(MONTHLY) @map("wage_type")
+  hourlyRate  Decimal?       @map("hourly_rate") @db.Decimal(15, 2)
   documentKey String?        @map("document_key")
   status      ContractStatus @default(ACTIVE)
   notes       String?
@@ -409,6 +418,10 @@ model Payslip {
   grossAmount    Decimal       @map("gross_amount") @db.Decimal(15, 2)
   totalDeduction Decimal       @map("total_deduction") @db.Decimal(15, 2)
   netAmount      Decimal       @map("net_amount") @db.Decimal(15, 2)
+  wageType       WageType      @default(MONTHLY) @map("wage_type")
+  totalHours     Decimal?      @map("total_hours") @db.Decimal(8, 2)
+  hourlyRate     Decimal?      @map("hourly_rate") @db.Decimal(15, 2)
+  timesheetKey   String?       @map("timesheet_key")
   status         PayrollStatus @default(DRAFT)
   publishedAt    DateTime?     @map("published_at") @db.Timestamptz(6)
   pdfKey         String?       @map("pdf_key")

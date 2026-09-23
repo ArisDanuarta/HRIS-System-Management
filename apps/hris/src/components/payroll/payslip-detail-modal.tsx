@@ -9,6 +9,8 @@ import {
   CreditCard,
   TrendingUp,
   TrendingDown,
+  Clock,
+  DownloadCloud,
 } from "lucide-react";
 
 export interface PayslipDetailData {
@@ -17,6 +19,15 @@ export interface PayslipDetailData {
   totalDeduction: number;
   netAmount: number;
   status: string;
+  wageType?: string | null;
+  totalHours?: number | null;
+  hourlyRate?: number | null;
+  timesheetKey?: string | null;
+  contract?: {
+    wageType: string;
+    hourlyRate: number | null;
+    baseSalary: number | null;
+  } | null;
   employee: {
     id: string;
     employeeNo: string;
@@ -118,6 +129,40 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
             </div>
           </div>
         </div>
+
+        {/* Info Timesheet Khusus Staf Per Jam */}
+        {payslip.wageType === "HOURLY" && (
+          <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3.5 mb-5 text-xs text-amber-950">
+            <div className="flex items-center justify-between font-bold mb-1.5 text-amber-900">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-amber-600" />
+                Skema Penggajian: PKWT Per Jam (Timesheet)
+              </span>
+              <span className="font-mono bg-amber-100 text-amber-800 px-2 py-0.5 rounded border border-amber-300">
+                {payslip.totalHours || 0} Jam Terhitung
+              </span>
+            </div>
+            <div className="text-[11px] text-amber-800/90 leading-relaxed mb-2">
+              Tarif Kontrak: {formatRupiah(payslip.hourlyRate || payslip.contract?.hourlyRate || 30000)} / jam.
+              Kebijakan kompensasi berbasis jam kerja terverifikasi lembar timesheet (acc Project Lead).
+            </div>
+            {payslip.timesheetKey ? (
+              <a
+                href={`/api/documents/${payslip.timesheetKey}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-amber-300 text-amber-900 hover:bg-amber-100 rounded-lg text-xs font-semibold shadow-2xs transition-colors"
+              >
+                <DownloadCloud className="w-3.5 h-3.5 text-amber-700" />
+                <span>Unduh Lembar Bukti Timesheet Terlampir</span>
+              </a>
+            ) : (
+              <div className="text-[11px] text-amber-700 italic">
+                Belum ada berkas lampiran timesheet yang diunggah.
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tabel Komponen Gaji: Pendapatan & Potongan */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

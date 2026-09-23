@@ -570,11 +570,13 @@ async function main() {
         currentPositionId: posStafHRId,
         contracts: {
           create: {
-            type: "PERMANENT",
+            type: "FIXED_TERM",
+            wageType: "HOURLY",
+            hourlyRate: 30000,
+            baseSalary: null,
             startDate: new Date("2024-01-01"),
-            baseSalary: 18000000,
             status: "ACTIVE",
-            notes: "Pegawai Tetap IT Administrator PSPK",
+            notes: "PKWT Freelance IT Administrator & Developer PSPK (Upah Per Jam Rp 30.000)",
           },
         },
       },
@@ -587,6 +589,23 @@ async function main() {
         userId: userMap.get("aris@pspk.id"),
       },
     });
+
+    // Perbarui kontrak aktif Aris menjadi HOURLY
+    const arisContract = await prisma.employmentContract.findFirst({
+      where: { employeeId: empAris.id, status: "ACTIVE" },
+    });
+    if (arisContract) {
+      await prisma.employmentContract.update({
+        where: { id: arisContract.id },
+        data: {
+          type: "FIXED_TERM",
+          wageType: "HOURLY",
+          hourlyRate: 30000,
+          baseSalary: null,
+          notes: "PKWT Freelance IT Administrator & Developer PSPK (Upah Per Jam Rp 30.000)",
+        },
+      });
+    }
   }
 
   // 8. Seed Holidays for 2026 (Hari Libur Nasional & Cuti Bersama)

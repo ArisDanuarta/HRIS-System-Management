@@ -35,4 +35,25 @@ describe("Formula Kalkulasi Payroll PSPK", () => {
     const netAmount = Math.max(0, totalGross - totalDeductions);
     expect(netAmount).toBe(0);
   });
+
+  it("menghitung upah PKWT berbasis jam kerja (Timesheet) dengan tarif per jam", () => {
+    const totalHours = 120; // 120 jam kerja teracc
+    const hourlyRate = 30000; // Rp 30.000 / jam
+    const grossAmount = Math.round(totalHours * hourlyRate);
+
+    expect(grossAmount).toBe(3600000); // Rp 3.600.000
+    const netAmount = Math.max(0, grossAmount - 0);
+    expect(netAmount).toBe(3600000);
+  });
+
+  it("menerapkan kebijakan 'No Work, No Pay' jika jam kerja 0 atau belum ada timesheet", () => {
+    const totalHours = 0;
+    const hourlyRate = 30000;
+    const grossAmount = Math.round(totalHours * hourlyRate);
+    expect(grossAmount).toBe(0);
+
+    const netAmount = Math.max(0, grossAmount - 0);
+    expect(netAmount).toBe(0);
+  });
 });
+

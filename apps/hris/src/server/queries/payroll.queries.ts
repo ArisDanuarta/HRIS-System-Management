@@ -87,6 +87,16 @@ export async function getPayrollPeriodById(periodId: string) {
               bankAccountEnc: true,
               currentDepartment: { select: { id: true, name: true } },
               currentPosition: { select: { id: true, title: true } },
+              contracts: {
+                where: { status: "ACTIVE" },
+                orderBy: { startDate: "desc" },
+                take: 1,
+                select: {
+                  wageType: true,
+                  hourlyRate: true,
+                  baseSalary: true,
+                },
+              },
             },
           },
           lines: {
@@ -124,6 +134,21 @@ export async function getPayrollPeriodById(periodId: string) {
     grossAmount: Number(p.grossAmount),
     totalDeduction: Number(p.totalDeduction),
     netAmount: Number(p.netAmount),
+    wageType: p.wageType,
+    totalHours: p.totalHours ? Number(p.totalHours) : null,
+    hourlyRate: p.hourlyRate ? Number(p.hourlyRate) : null,
+    timesheetKey: p.timesheetKey,
+    contract: p.employee.contracts[0]
+      ? {
+          wageType: p.employee.contracts[0].wageType,
+          hourlyRate: p.employee.contracts[0].hourlyRate
+            ? Number(p.employee.contracts[0].hourlyRate)
+            : null,
+          baseSalary: p.employee.contracts[0].baseSalary
+            ? Number(p.employee.contracts[0].baseSalary)
+            : null,
+        }
+      : null,
     employee: p.employee,
     lines: p.lines.map((l) => ({
       id: l.id,
@@ -275,6 +300,10 @@ export async function getPayslipById(payslipId: string) {
     grossAmount: Number(p.grossAmount),
     totalDeduction: Number(p.totalDeduction),
     netAmount: Number(p.netAmount),
+    wageType: p.wageType,
+    totalHours: p.totalHours ? Number(p.totalHours) : null,
+    hourlyRate: p.hourlyRate ? Number(p.hourlyRate) : null,
+    timesheetKey: p.timesheetKey,
     period: {
       id: p.period.id,
       year: p.period.year,

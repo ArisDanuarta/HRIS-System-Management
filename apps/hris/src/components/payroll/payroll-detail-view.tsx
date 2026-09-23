@@ -17,6 +17,7 @@ import {
   Eye,
   RefreshCw,
   ChevronLeft,
+  Clock,
 } from "lucide-react";
 import {
   calculatePayrollAction,
@@ -26,6 +27,7 @@ import {
   exportPayrollBankCsvAction,
 } from "@/server/actions/payroll.actions";
 import { PayslipDetailModal, PayslipDetailData } from "./payslip-detail-modal";
+import { TimesheetInputModal } from "./timesheet-input-modal";
 
 interface PeriodDetail {
   id: string;
@@ -50,6 +52,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDeptFilter, setSelectedDeptFilter] = useState("ALL");
   const [selectedPayslip, setSelectedPayslip] = useState<PayslipDetailData | null>(null);
+  const [timesheetPayslip, setTimesheetPayslip] = useState<PayslipDetailData | null>(null);
 
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -456,12 +459,43 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                     <tr key={p.id} className="hover:bg-slate-50/60 transition-colors group">
                       {/* Pegawai */}
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900 text-xs">
-                          {p.employee.fullName}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900 text-xs">
+                            {p.employee.fullName}
+                          </span>
+                          {p.wageType === "HOURLY" ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                              <Clock className="w-2.5 h-2.5 text-amber-600" />
+                              Per Jam
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center text-[10px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                              Bulanan
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] font-mono text-slate-500">
                           {p.employee.employeeNo}
                         </div>
+                        {p.wageType === "HOURLY" && (
+                          <div className="text-[10px] text-amber-800 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span>
+                              {p.totalHours || 0} jam @ {formatRupiah(p.hourlyRate || p.contract?.hourlyRate || 30000)}
+                            </span>
+                            {p.timesheetKey && (
+                              <a
+                                href={`/api/documents/${p.timesheetKey}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Unduh Berkas Bukti Timesheet Acc"
+                                className="inline-flex items-center gap-0.5 text-blue-600 hover:text-blue-800 font-semibold underline"
+                              >
+                                <Download className="w-2.5 h-2.5" />
+                                <span>File Timesheet</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </td>
 
                       {/* Divisi & Jabatan */}
@@ -491,14 +525,26 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
 
                       {/* Aksi */}
                       <td className="py-3 px-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPayslip(p)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-[#102E50] hover:bg-slate-50 rounded-lg text-xs font-medium transition-colors shadow-2xs"
-                        >
-                          <Eye className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Rincian Slip</span>
-                        </button>
+                        <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                          {p.wageType === "HOURLY" && period.status !== "LOCKED" && (
+                            <button
+                              type="button"
+                              onClick={() => setTimesheetPayslip(p)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 rounded-lg text-xs font-semibold transition-colors shadow-2xs"
+                            >
+                              <Clock className="w-3.5 h-3.5 text-amber-600" />
+                              <span>{p.totalHours && p.totalHours > 0 ? "Ubah Timesheet" : "Input Timesheet"}</span>
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setSelectedPayslip(p)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-[#102E50] hover:bg-slate-50 rounded-lg text-xs font-medium transition-colors shadow-2xs"
+                          >
+                            <Eye className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Rincian Slip</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -515,6 +561,16 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
         periodTitle={periodTitle}
         onClose={() => setSelectedPayslip(null)}
       />
+
+      {/* Modal Input Timesheet Jam Kerja */}
+      {timesheetPayslip && (
+        <TimesheetInputModal
+          isOpen={!!timesheetPayslip}
+          payslip={timesheetPayslip}
+          periodTitle={periodTitle}
+          onClose={() => setTimesheetPayslip(null)}
+        />
+      )}
     </div>
   );
 }
