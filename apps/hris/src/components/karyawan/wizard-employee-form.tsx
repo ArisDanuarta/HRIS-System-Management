@@ -91,6 +91,7 @@ interface WizardEmployeeFormProps {
   departments: DepartmentOption[];
   managers: ManagerOption[];
   roles?: RoleOption[];
+  isSuperAdmin?: boolean;
   initialData?: InitialEmployeeData | null;
 }
 
@@ -99,6 +100,7 @@ export function WizardEmployeeForm({
   departments,
   managers,
   roles,
+  isSuperAdmin = false,
   initialData,
 }: WizardEmployeeFormProps) {
   const router = useRouter();
@@ -469,7 +471,10 @@ export function WizardEmployeeForm({
     { id: "3", key: "admin_hr", name: "Admin HR", description: "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll)" },
     { id: "4", key: "admin_it", name: "Admin IT", description: "Pengelolaan user, inventaris aset, lisensi, dokumen & audit log" },
   ];
-  const availableRoles = roles && roles.length > 0 ? roles : defaultRoles;
+  const allRoles = roles && roles.length > 0 ? roles : defaultRoles;
+  const availableRoles = isSuperAdmin
+    ? allRoles
+    : allRoles.filter((r) => r.key === "staff" || r.key === "manager");
 
   const steps = [
     { num: 1, title: "Identitas Pribadi", icon: User },

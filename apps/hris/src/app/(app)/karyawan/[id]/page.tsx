@@ -1,7 +1,9 @@
 import React from "react";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { formatDate, formatRupiah } from "@pspk/shared";
+import { getSession, getUserProfile } from "@pspk/auth";
 import {
   ArrowLeft,
   Edit,
@@ -12,6 +14,7 @@ import {
   Phone,
   Mail,
   UserCheck,
+  KeyRound,
 } from "lucide-react";
 import {
   getEmployeeById,
@@ -21,6 +24,7 @@ import {
 import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-badge";
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
 import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
+import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-role-card";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +39,14 @@ export default async function EmployeeDetailPage({
 }: EmployeeDetailPageProps) {
   const { id } = await params;
   const { tab = "biodata" } = await searchParams;
+
+  const reqHeaders = await headers();
+  const session = await getSession(reqHeaders);
+  const actorProfile = session?.user?.id ? await getUserProfile(session.user.id) : null;
+  const actorRoleKeys = actorProfile?.roles.map((r) => r.role.key) || [];
+  const isSuperAdmin = actorRoleKeys.includes("super_admin");
+  const isAdminIt = actorRoleKeys.includes("admin_it");
+  const isAdminHr = actorRoleKeys.includes("admin_hr");
 
   const [employee, departments, managers] = await Promise.all([
     getEmployeeById(id),
@@ -93,6 +105,12 @@ export default async function EmployeeDetailPage({
               </span>
               <StatusBadge status={employee.status} size="sm" />
               {activeContract && <ContractTypeBadge type={activeContract.type} />}
+              {employee.user?.roles && employee.user.roles.length > 0 && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
+                  <KeyRound className="w-3 h-3 text-[#F2AF3E]" />
+                  <span>{employee.user.roles.map((r) => r.role.name).join(", ")}</span>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -157,6 +175,23 @@ export default async function EmployeeDetailPage({
         >
           <Briefcase className="w-4 h-4" />
           <span>Jabatan & Tim</span>
+        </Link>
+
+        <Link
+          href={`/karyawan/${employee.id}?tab=akun`}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            tab === "akun"
+              ? "border-[#102E50] text-[#102E50] bg-white"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <KeyRound className="w-4 h-4 text-[#F2AF3E]" />
+          <span>Akun & Hak Akses</span>
+          {employee.user ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Akun aktif" />
+          ) : (
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Belum memiliki akun" />
+          )}
         </Link>
       </div>
 
@@ -494,6 +529,20 @@ export default async function EmployeeDetailPage({
             managers={managers}
           />
         </div>
+      )}
+
+      {/* TAB 5: AKUN & HAK AKSES */}
+      {tab === "akun" && (
+        <EmployeeAccountRoleCard
+          employeeId={employee.id}
+          fullName={employee.fullName}
+          workEmail={employee.workEmail}
+          personalEmail={employee.personalEmail}
+          user={employee.user}
+          isSuperAdmin={isSuperAdmin}
+          isAdminIt={isAdminIt}
+          isAdminHr={isAdminHr}
+        />
       )}
     </div>
   );

@@ -214,6 +214,11 @@ export async function getEmployeeById(id: string) {
           id: true,
           email: true,
           isActive: true,
+          roles: {
+            include: {
+              role: true,
+            },
+          },
         },
       },
     },

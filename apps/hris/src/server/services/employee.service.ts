@@ -11,7 +11,7 @@ export type ActorContext = {
   userAgent?: string | null;
 };
 
-function generateSecureTemporaryPassword(): string {
+export function generateSecureTemporaryPassword(): string {
   const letters = "abcdefghjkmnpqrstuvwxyz";
   const uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const numbers = "23456789";
