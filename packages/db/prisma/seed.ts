@@ -173,6 +173,67 @@ async function main() {
     }
   }
 
+  // 4b. Seed PSPK Master Employment Types (Tipe Ikatan Kerja)
+  console.log("📋 Seeding default employment types (Tipe Ikatan Kerja)...");
+  const defaultEmploymentTypes = [
+    {
+      code: "PERMANENT",
+      name: "Pegawai Tetap (Permanent)",
+      category: "PERMANENT" as const,
+      wageType: "MONTHLY" as const,
+      defaultHourlyRate: null,
+      description: "Pegawai tetap lembaga dengan skema gaji bulanan penuh, tunjangan, dan benefit organisasi.",
+    },
+    {
+      code: "PKWT_RISET",
+      name: "PKWT Riset Kebijakan (Gaji Bulanan)",
+      category: "FIXED_TERM" as const,
+      wageType: "MONTHLY" as const,
+      defaultHourlyRate: null,
+      description: "Perjanjian Kerja Waktu Tertentu (PKWT) untuk proyek riset berjangka dengan skema upah bulanan.",
+    },
+    {
+      code: "PKWT_HOURLY",
+      name: "PKWT Freelance / Peneliti Lepas (Upah Per Jam)",
+      category: "FIXED_TERM" as const,
+      wageType: "HOURLY" as const,
+      defaultHourlyRate: 30000,
+      description: "Staf PKWT lepas berbasis jam kerja terverifikasi lembar timesheet acc Project Lead (No Work, No Pay).",
+    },
+    {
+      code: "PART_TIME_PROJECT",
+      name: "Paruh Waktu / Proyek Ad-Hoc",
+      category: "PART_TIME_PROJECT" as const,
+      wageType: "MONTHLY" as const,
+      defaultHourlyRate: null,
+      description: "Penugasan paruh waktu fleksibel per deliverables proyek riset tertentu.",
+    },
+    {
+      code: "INTERNSHIP",
+      name: "Program Magang Riset (Internship)",
+      category: "PART_TIME_PROJECT" as const,
+      wageType: "MONTHLY" as const,
+      defaultHourlyRate: null,
+      description: "Peserta program magang mahasiswa / fresh graduate dengan uang saku bulanan.",
+    },
+  ];
+
+  const employmentTypeMap = new Map<string, string>();
+  for (const et of defaultEmploymentTypes) {
+    const existing = await prisma.employmentTypeMaster.upsert({
+      where: { code: et.code },
+      update: {
+        name: et.name,
+        category: et.category,
+        wageType: et.wageType,
+        defaultHourlyRate: et.defaultHourlyRate,
+        description: et.description,
+      },
+      create: et,
+    });
+    employmentTypeMap.set(et.code, existing.id);
+  }
+
   // 5. Seed PSPK Departments & Positions
   console.log("🏛️ Seeding PSPK departments and positions...");
   const orgStructure = [

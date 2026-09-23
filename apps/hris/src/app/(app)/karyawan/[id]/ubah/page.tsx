@@ -7,6 +7,7 @@ import {
   getOrgStructureData,
   getManagersList,
 } from "@/server/queries/employee.queries";
+import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
 
 export const dynamic = "force-dynamic";
@@ -18,10 +19,11 @@ interface UbahKaryawanPageProps {
 export default async function UbahKaryawanPage({ params }: UbahKaryawanPageProps) {
   const { id } = await params;
 
-  const [employee, departments, managers] = await Promise.all([
+  const [employee, departments, managers, employmentTypes] = await Promise.all([
     getEmployeeById(id),
     getOrgStructureData(),
     getManagersList(),
+    getActiveEmploymentTypes(),
   ]);
 
   if (!employee) {
@@ -62,6 +64,7 @@ export default async function UbahKaryawanPage({ params }: UbahKaryawanPageProps
         departments={departments}
         managers={filteredManagers}
         initialData={employee}
+        employmentTypes={employmentTypes}
       />
     </div>
   );

@@ -243,24 +243,45 @@ model EmploymentHistory {
   @@schema("hris")
 }
 
-model EmploymentContract {
-  id          String         @id @default(uuid())
-  employeeId  String         @map("employee_id")
-  type        EmploymentType
-  startDate   DateTime       @map("start_date") @db.Date
-  endDate     DateTime?      @map("end_date") @db.Date
-  baseSalary  Decimal?       @map("base_salary") @db.Decimal(15, 2)
-  wageType    WageType       @default(MONTHLY) @map("wage_type")
-  hourlyRate  Decimal?       @map("hourly_rate") @db.Decimal(15, 2)
-  documentKey String?        @map("document_key")
-  status      ContractStatus @default(ACTIVE)
-  notes       String?
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+model EmploymentTypeMaster {
+  id                String              @id @default(uuid())
+  code              String              @unique
+  name              String
+  category          EmploymentType      @default(FIXED_TERM)
+  wageType          WageType            @default(MONTHLY) @map("wage_type")
+  defaultHourlyRate Decimal?            @map("default_hourly_rate") @db.Decimal(15, 2)
+  description       String?
+  isActive          Boolean             @default(true) @map("is_active")
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  contracts         EmploymentContract[]
+
+  @@map("employment_types")
+  @@schema("hris")
+}
+
+model EmploymentContract {
+  id                   String                @id @default(uuid())
+  employeeId           String                @map("employee_id")
+  type                 EmploymentType
+  employmentTypeId     String?               @map("employment_type_id")
+  startDate            DateTime              @map("start_date") @db.Date
+  endDate              DateTime?             @map("end_date") @db.Date
+  baseSalary           Decimal?              @map("base_salary") @db.Decimal(15, 2)
+  wageType             WageType              @default(MONTHLY) @map("wage_type")
+  hourlyRate           Decimal?              @map("hourly_rate") @db.Decimal(15, 2)
+  documentKey          String?               @map("document_key")
+  status               ContractStatus        @default(ACTIVE)
+  notes                String?
+  createdAt            DateTime              @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime              @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee             Employee              @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employmentTypeMaster EmploymentTypeMaster? @relation(fields: [employmentTypeId], references: [id], onDelete: SetNull)
 
   @@index([employeeId, status])
+  @@index([employmentTypeId])
   @@map("employment_contracts")
   @@schema("hris")
 }

@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { getOrgStructureData, getManagersList, getAssignableRoles } from "@/server/queries/employee.queries";
+import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +15,11 @@ export default async function TambahKaryawanPage() {
   const userProfile = session?.user?.id ? await getUserProfile(session.user.id) : null;
   const isSuperAdmin = userProfile?.roles.some((r) => r.role.key === "super_admin") ?? false;
 
-  const [departments, managers, roles] = await Promise.all([
+  const [departments, managers, roles, employmentTypes] = await Promise.all([
     getOrgStructureData(),
     getManagersList(),
     getAssignableRoles(),
+    getActiveEmploymentTypes(),
   ]);
 
   return (
@@ -56,6 +58,7 @@ export default async function TambahKaryawanPage() {
         managers={managers}
         roles={roles}
         isSuperAdmin={isSuperAdmin}
+        employmentTypes={employmentTypes}
       />
     </div>
   );

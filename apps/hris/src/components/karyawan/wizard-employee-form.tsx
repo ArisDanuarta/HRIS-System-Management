@@ -52,6 +52,16 @@ export interface RoleOption {
   description?: string | null;
 }
 
+export interface EmploymentTypeOption {
+  id: string;
+  code: string;
+  name: string;
+  category: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+  wageType: "MONTHLY" | "HOURLY";
+  defaultHourlyRate: number | null;
+  description: string | null;
+}
+
 export interface InitialEmployeeData {
   id: string;
   fullName: string;
@@ -93,6 +103,8 @@ interface WizardEmployeeFormProps {
   roles?: RoleOption[];
   isSuperAdmin?: boolean;
   initialData?: InitialEmployeeData | null;
+  /** Daftar tipe ikatan kerja aktif dari master data (EmploymentTypeMaster) */
+  employmentTypes?: EmploymentTypeOption[];
 }
 
 export function WizardEmployeeForm({
@@ -102,6 +114,7 @@ export function WizardEmployeeForm({
   roles,
   isSuperAdmin = false,
   initialData,
+  employmentTypes = [],
 }: WizardEmployeeFormProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
@@ -161,6 +174,9 @@ export function WizardEmployeeForm({
 
     // Step 3: Contract
     employmentType: initialData?.contracts?.[0]?.type || "PERMANENT",
+    employmentTypeId: "",
+    wageType: "MONTHLY" as "MONTHLY" | "HOURLY",
+    hourlyRate: 0,
     contractStartDate: initialData?.contracts?.[0]?.startDate
       ? new Date(initialData.contracts[0].startDate).toISOString().split("T")[0]
       : new Date().toISOString().split("T")[0],
@@ -379,9 +395,12 @@ export function WizardEmployeeForm({
         joinDate: baseJoinDate,
         status: formData.status as EmployeeStatus,
         employmentType: formData.employmentType as EmploymentType,
+        employmentTypeId: formData.employmentTypeId || undefined,
+        wageType: formData.wageType,
+        hourlyRate: formData.wageType === "HOURLY" ? Number(formData.hourlyRate) || 0 : undefined,
         contractStartDate: baseContractStart,
         contractEndDate: formData.contractEndDate || undefined,
-        baseSalary: Number(formData.baseSalary) || 0,
+        baseSalary: formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0,
         contractNotes: formData.contractNotes.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
@@ -440,9 +459,12 @@ export function WizardEmployeeForm({
         joinDate: baseJoinDate,
         status: formData.status as EmployeeStatus,
         employmentType: formData.employmentType as EmploymentType,
+        employmentTypeId: formData.employmentTypeId || undefined,
+        wageType: formData.wageType,
+        hourlyRate: formData.wageType === "HOURLY" ? Number(formData.hourlyRate) || 0 : undefined,
         contractStartDate: baseContractStart,
         contractEndDate: formData.contractEndDate || undefined,
-        baseSalary: Number(formData.baseSalary) || 0,
+        baseSalary: formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0,
         contractNotes: formData.contractNotes?.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
@@ -932,40 +954,129 @@ export function WizardEmployeeForm({
               </p>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+            {/* Tipe Ikatan Kerja — dinamis dari EmploymentTypeMaster */}
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2">
                 Tipe Ikatan Kerja <span className="text-[#A8281C]">*</span>
               </label>
-              <select
-                name="employmentType"
-                value={formData.employmentType}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              >
-                <option value="PERMANENT">Pegawai Tetap (Permanent)</option>
-                <option value="FIXED_TERM">PKWT Riset (Fixed Term Project)</option>
-                <option value="PART_TIME_PROJECT">Paruh Waktu / Proyek Ad-Hoc</option>
-              </select>
+              {employmentTypes.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {employmentTypes.map((et) => {
+                    const isSelected = formData.employmentTypeId === et.id;
+                    return (
+                      <button
+                        key={et.id}
+                        type="button"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            employmentTypeId: et.id,
+                            employmentType: et.category as EmploymentType,
+                            wageType: et.wageType,
+                            hourlyRate:
+                              et.wageType === "HOURLY"
+                                ? (et.defaultHourlyRate ?? 30000)
+                                : prev.hourlyRate,
+                          }))
+                        }
+                        className={`text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-[#102E50] bg-[#102E50]/5 shadow-xs"
+                            : "border-slate-200 bg-slate-50/70 hover:border-slate-300"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span
+                            className={`text-xs font-bold ${
+                              isSelected ? "text-[#102E50]" : "text-slate-700"
+                            }`}
+                          >
+                            {et.name}
+                          </span>
+                          <span
+                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                              et.wageType === "HOURLY"
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {et.wageType === "HOURLY" ? "Per Jam" : "Bulanan"}
+                          </span>
+                        </div>
+                        {et.description && (
+                          <p className="text-[11px] text-slate-500 mt-1 leading-tight">
+                            {et.description}
+                          </p>
+                        )}
+                        {et.wageType === "HOURLY" && et.defaultHourlyRate && (
+                          <p className="text-[11px] text-slate-400 mt-1">
+                            Tarif default: Rp{et.defaultHourlyRate.toLocaleString("id-ID")}/jam
+                          </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                // Fallback ke dropdown biasa jika master data belum tersedia
+                <select
+                  name="employmentType"
+                  value={formData.employmentType}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                >
+                  <option value="PERMANENT">Pegawai Tetap (Permanent)</option>
+                  <option value="FIXED_TERM">PKWT Riset (Fixed Term Project)</option>
+                  <option value="PART_TIME_PROJECT">Paruh Waktu / Proyek Ad-Hoc</option>
+                </select>
+              )}
+              {!formData.employmentTypeId && employmentTypes.length > 0 && (
+                <p className="text-[11px] text-[#A8281C] mt-1.5">Pilih tipe ikatan kerja terlebih dahulu</p>
+              )}
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Gaji Pokok (IDR) <span className="text-[#A8281C]">*</span>
-              </label>
-              <input
-                type="number"
-                name="baseSalary"
-                value={formData.baseSalary}
-                onChange={handleChange}
-                required
-                min={0}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Dasar perhitungan payroll bulanan dan tunjangan fungsional
-              </span>
-            </div>
+            {/* Gaji Pokok — hanya tampil untuk tipe MONTHLY */}
+            {formData.wageType !== "HOURLY" && (
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Gaji Pokok (IDR) <span className="text-[#A8281C]">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="baseSalary"
+                  value={formData.baseSalary}
+                  onChange={handleChange}
+                  required
+                  min={0}
+                  className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Dasar perhitungan payroll bulanan dan tunjangan fungsional
+                </span>
+              </div>
+            )}
+
+            {/* Tarif Per Jam — hanya tampil untuk tipe HOURLY */}
+            {formData.wageType === "HOURLY" && (
+              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-lg">
+                <label className="block text-xs font-semibold text-amber-900 mb-1.5">
+                  Tarif Per Jam (IDR) <span className="text-[#A8281C]">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="hourlyRate"
+                  value={formData.hourlyRate}
+                  onChange={handleChange}
+                  required
+                  min={0}
+                  className="w-full px-3 py-2 text-sm font-mono bg-white border border-amber-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <span className="text-[11px] text-amber-700 mt-1.5 block">
+                  Gaji dihitung dari total jam kerja × tarif per jam berdasarkan timesheet bulanan
+                </span>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">

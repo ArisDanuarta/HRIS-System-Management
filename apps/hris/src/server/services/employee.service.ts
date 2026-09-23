@@ -181,9 +181,20 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
       data: {
         employeeId: newEmployee.id,
         type: data.employmentType,
+        employmentTypeId:
+          data.employmentTypeId && data.employmentTypeId.trim() !== ""
+            ? data.employmentTypeId
+            : null,
+        wageType: data.wageType || "MONTHLY",
+        hourlyRate: data.wageType === "HOURLY" && data.hourlyRate ? data.hourlyRate : null,
         startDate: new Date(data.contractStartDate),
         endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
-        baseSalary: data.baseSalary !== undefined ? data.baseSalary : null,
+        baseSalary:
+          data.wageType === "HOURLY"
+            ? null
+            : data.baseSalary !== undefined && data.baseSalary !== null
+            ? data.baseSalary
+            : null,
         status: "ACTIVE",
         notes: data.contractNotes?.trim() || "Kontrak kerja awal saat pendaftaran pegawai",
       },
