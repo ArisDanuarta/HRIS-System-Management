@@ -18,10 +18,17 @@ export const EmploymentTypeEnum = z.enum([
   "PART_TIME_PROJECT",
 ]);
 
-export const createEmployeeSchema = z.object({
+export const AccountRoleEnum = z.enum(["staff", "manager", "admin_hr", "admin_it"]);
+
+export const baseEmployeeSchema = z.object({
   fullName: z.string().min(3, "Nama lengkap minimal 3 karakter"),
   nickname: z.string().optional(),
-  workEmail: z.string().email("Format email kantor tidak valid"),
+  workEmail: z
+    .string()
+    .email("Format email kantor tidak valid")
+    .refine((val) => val.toLowerCase().trim().endsWith("@pspk.id"), {
+      message: "Email kantor wajib menggunakan domain resmi @pspk.id (contoh: nama@pspk.id)",
+    }),
   personalEmail: z.string().email("Format email pribadi tidak valid").optional().or(z.literal("")),
   phone: z.string().optional(),
   birthDate: z.string().optional(),
@@ -47,12 +54,31 @@ export const createEmployeeSchema = z.object({
   bankName: z.string().optional(),
   bankAccount: z.string().optional(),
   bankAccountName: z.string().optional(),
-  createUserAccount: z.boolean().optional().default(false),
+  createUserAccount: z.boolean().optional().default(true),
+  accountRole: AccountRoleEnum.optional().default("staff"),
+});
+
+export const createEmployeeSchema = baseEmployeeSchema.superRefine((data, ctx) => {
+  if (data.createUserAccount) {
+    if (!data.personalEmail || data.personalEmail.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["personalEmail"],
+        message: "Email pribadi wajib diisi untuk pengiriman kredensial login akun pegawai.",
+      });
+    } else if (data.personalEmail.toLowerCase().trim().endsWith("@pspk.id")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["personalEmail"],
+        message: "Email pribadi harus merupakan email pribadi (bukan email kantor @pspk.id).",
+      });
+    }
+  }
 });
 
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
-export const updateEmployeeSchema = createEmployeeSchema.extend({
+export const updateEmployeeSchema = baseEmployeeSchema.extend({
   id: z.string().uuid("ID pegawai tidak valid"),
 });
 

@@ -58,7 +58,7 @@ export async function createEmployeeAction(input: CreateEmployeeInput) {
       return { ok: false as const, error: errorMsg };
     }
 
-    const newEmp = await createEmployee(parsed.data, actor);
+    const { employee: newEmp, accountCreated, credentials } = await createEmployee(parsed.data, actor);
     revalidatePath("/karyawan");
 
     return {
@@ -66,6 +66,9 @@ export async function createEmployeeAction(input: CreateEmployeeInput) {
       data: {
         id: newEmp.id,
         employeeNo: newEmp.employeeNo,
+        fullName: newEmp.fullName,
+        accountCreated,
+        credentials,
       },
       message: `Pegawai ${newEmp.fullName} (${newEmp.employeeNo}) berhasil ditambahkan.`,
     };

@@ -12,6 +12,11 @@ import {
   ArrowRight,
   ArrowLeft,
   Save,
+  Key,
+  ShieldCheck,
+  Copy,
+  Check,
+  Mail,
 } from "lucide-react";
 import { createEmployeeAction, updateEmployeeAction } from "@/server/actions/employee.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
@@ -29,6 +34,13 @@ interface ManagerOption {
   fullName: string;
   employeeNo: string;
   currentPosition?: { title: string } | null;
+}
+
+export interface RoleOption {
+  id: string;
+  key: string;
+  name: string;
+  description?: string | null;
 }
 
 export interface InitialEmployeeData {
@@ -69,6 +81,7 @@ interface WizardEmployeeFormProps {
   mode: "create" | "edit";
   departments: DepartmentOption[];
   managers: ManagerOption[];
+  roles?: RoleOption[];
   initialData?: InitialEmployeeData | null;
 }
 
@@ -76,12 +89,28 @@ export function WizardEmployeeForm({
   mode,
   departments,
   managers,
+  roles,
   initialData,
 }: WizardEmployeeFormProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [stepCooldown, setStepCooldown] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    id: string;
+    employeeNo: string;
+    fullName: string;
+    workEmail: string;
+    temporaryPassword?: string;
+    roleKey?: string;
+    roleName?: string;
+    personalEmail?: string | null;
+    emailSent?: boolean;
+    emailSimulated?: boolean;
+    emailMessage?: string;
+  } | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -129,6 +158,7 @@ export function WizardEmployeeForm({
     bankAccount: "",
     bankAccountName: initialData?.bankAccountName || "",
     createUserAccount: mode === "create",
+    accountRole: "staff",
   });
 
   // Keep positions filtered by selected department
@@ -166,9 +196,21 @@ export function WizardEmployeeForm({
         setServerError("Nama lengkap wajib diisi minimal 3 karakter.");
         return false;
       }
-      if (!formData.workEmail.trim() || !formData.workEmail.includes("@")) {
-        setServerError("Email kantor tidak valid.");
+      const emailTrimmed = formData.workEmail.trim().toLowerCase();
+      if (!emailTrimmed || !emailTrimmed.includes("@") || !emailTrimmed.endsWith("@pspk.id")) {
+        setServerError("Email kantor wajib menggunakan domain resmi @pspk.id (contoh: nama@pspk.id).");
         return false;
+      }
+      if (mode === "create" && formData.createUserAccount) {
+        const personalTrimmed = formData.personalEmail.trim().toLowerCase();
+        if (!personalTrimmed || !personalTrimmed.includes("@")) {
+          setServerError("Email pribadi wajib diisi untuk pengiriman kredensial akun & kata sandi baru.");
+          return false;
+        }
+        if (personalTrimmed.endsWith("@pspk.id")) {
+          setServerError("Email pribadi harus merupakan email pribadi (bukan email kantor @pspk.id).");
+          return false;
+        }
       }
     } else if (step === 2) {
       if (!formData.employeeNo.trim()) {
@@ -192,12 +234,23 @@ export function WizardEmployeeForm({
         setServerError("Kontrak PKWT Riset wajib memiliki tanggal berakhir.");
         return false;
       }
+    } else if (step === 4) {
+      if (mode === "create" && formData.createUserAccount) {
+        if (!formData.personalEmail.trim() || !formData.personalEmail.includes("@")) {
+          setServerError("Email pribadi pada Langkah 1 wajib diisi untuk pengiriman informasi akun & kata sandi.");
+          return false;
+        }
+      }
     }
     return true;
   };
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
+      if (currentStep === 3) {
+        setStepCooldown(true);
+        setTimeout(() => setStepCooldown(false), 400);
+      }
       setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
   };
@@ -210,7 +263,13 @@ export function WizardEmployeeForm({
   // Final Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(currentStep)) return;
+    // Guard ketat: Submit form hanya dapat diproses pada Langkah 4!
+    if (currentStep < 4) {
+      handleNext();
+      return;
+    }
+    if (stepCooldown) return;
+    if (!validateStep(4)) return;
 
     setIsSubmitting(true);
     setServerError(null);
@@ -222,7 +281,7 @@ export function WizardEmployeeForm({
       const payload: CreateEmployeeInput = {
         fullName: formData.fullName.trim(),
         nickname: formData.nickname.trim() || undefined,
-        workEmail: formData.workEmail.trim(),
+        workEmail: formData.workEmail.toLowerCase().trim(),
         personalEmail: formData.personalEmail.trim() || undefined,
         phone: formData.phone.trim() || undefined,
         birthDate: formData.birthDate || undefined,
@@ -249,14 +308,31 @@ export function WizardEmployeeForm({
         bankAccount: formData.bankAccount.trim() || undefined,
         bankAccountName: formData.bankAccountName.trim() || undefined,
         createUserAccount: formData.createUserAccount,
+        accountRole: (formData.accountRole || "staff") as "staff" | "manager" | "admin_hr" | "admin_it",
       };
 
       const res = await createEmployeeAction(payload);
       setIsSubmitting(false);
 
       if (res.ok) {
-        router.push("/karyawan");
-        router.refresh();
+        if (res.data.accountCreated && res.data.credentials) {
+          setCreatedCredentials({
+            id: res.data.id,
+            employeeNo: res.data.employeeNo,
+            fullName: payload.fullName,
+            workEmail: res.data.credentials.workEmail,
+            temporaryPassword: res.data.credentials.temporaryPassword,
+            roleKey: res.data.credentials.roleKey,
+            roleName: res.data.credentials.roleName,
+            personalEmail: res.data.credentials.personalEmail,
+            emailSent: res.data.credentials.emailSent,
+            emailSimulated: res.data.credentials.emailSimulated,
+            emailMessage: res.data.credentials.emailMessage,
+          });
+        } else {
+          router.push("/karyawan");
+          router.refresh();
+        }
       } else {
         setServerError(res.error);
       }
@@ -306,6 +382,14 @@ export function WizardEmployeeForm({
       }
     }
   };
+
+  const defaultRoles: RoleOption[] = [
+    { id: "1", key: "staff", name: "Karyawan (Staff)", description: "Akses mandiri (self-service) data pribadi, presensi, cuti, slip gaji" },
+    { id: "2", key: "manager", name: "Manajer / Atasan", description: "Persetujuan cuti tim, melihat kinerja & presensi bawahan langsung" },
+    { id: "3", key: "admin_hr", name: "Admin HR", description: "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll)" },
+    { id: "4", key: "admin_it", name: "Admin IT", description: "Pengelolaan user, inventaris aset, lisensi, dokumen & audit log" },
+  ];
+  const availableRoles = roles && roles.length > 0 ? roles : defaultRoles;
 
   const steps = [
     { num: 1, title: "Identitas Pribadi", icon: User },
@@ -369,7 +453,18 @@ export function WizardEmployeeForm({
       </div>
 
       {/* Form Content Body */}
-      <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target instanceof HTMLInputElement) {
+            e.preventDefault();
+            if (currentStep < 4) {
+              handleNext();
+            }
+          }
+        }}
+        className="p-6 flex flex-col gap-6"
+      >
         {serverError && (
           <div className="p-3 bg-red-50 border border-red-200 text-[#A8281C] text-sm rounded-lg flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -427,24 +522,31 @@ export function WizardEmployeeForm({
                 name="workEmail"
                 value={formData.workEmail}
                 onChange={handleChange}
-                placeholder="nama@pspk.example"
+                placeholder="nama@pspk.id"
                 required
                 className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Wajib berakhiran <strong className="text-slate-600">@pspk.id</strong> (digunakan untuk login akun pegawai).
+              </span>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Email Pribadi
+                Email Pribadi {formData.createUserAccount && <span className="text-[#A8281C]">* (Wajib untuk Akun)</span>}
               </label>
               <input
                 type="email"
                 name="personalEmail"
                 value={formData.personalEmail}
                 onChange={handleChange}
-                placeholder="nama.personal@example.com"
+                placeholder="nama.pribadi@gmail.com"
+                required={formData.createUserAccount}
                 className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Kredensial login & kata sandi sementara akan otomatis dikirimkan ke email ini.
+              </span>
             </div>
 
             <div>
@@ -876,26 +978,91 @@ export function WizardEmployeeForm({
             </div>
 
             {mode === "create" && (
-              <div className="md:col-span-2 p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="createUserAccount"
-                  name="createUserAccount"
-                  checked={formData.createUserAccount}
-                  onChange={handleChange}
-                  className="w-4 h-4 mt-1 rounded text-[#102E50] focus:ring-[#102E50]"
-                />
-                <div className="flex flex-col">
-                  <label
-                    htmlFor="createUserAccount"
-                    className="font-bold text-xs text-slate-900 cursor-pointer"
-                  >
-                    Otomatis Buat Akun Pengguna Portal HRIS
-                  </label>
-                  <span className="text-[11px] text-slate-500">
-                    Sistem akan membuat akun login aktif dengan email kantor ({formData.workEmail || "email kerja"}) dan menetapkan peran dasar &apos;staff&apos; untuk akses portal mandiri.
-                  </span>
+              <div className="md:col-span-2 p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-blue-200/60 flex flex-col gap-4">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="createUserAccount"
+                    name="createUserAccount"
+                    checked={formData.createUserAccount}
+                    onChange={handleChange}
+                    className="w-4 h-4 mt-0.5 rounded text-[#102E50] focus:ring-[#102E50] cursor-pointer"
+                  />
+                  <div className="flex flex-col">
+                    <label
+                      htmlFor="createUserAccount"
+                      className="font-bold text-sm text-[#102E50] cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>Otomatis Buat Akun Pengguna Portal HRIS</span>
+                      <span className="text-[10px] font-semibold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                        Rekomendasi
+                      </span>
+                    </label>
+                    <span className="text-xs text-slate-600 mt-0.5">
+                      Sistem akan membuat akun login aktif dengan email kantor ({formData.workEmail || "nama@pspk.id"}), menghasilkan kata sandi sementara secara otomatis, dan mengirimkannya ke email pribadi ({formData.personalEmail || "email pribadi"}).
+                    </span>
+                  </div>
                 </div>
+
+                {formData.createUserAccount && (
+                  <div className="pt-3 border-t border-slate-200/80 flex flex-col gap-4 animate-in fade-in duration-150">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Pilih Hak Akses / Peran Sistem (Role) <span className="text-[#A8281C]">*</span>
+                      </label>
+                      <select
+                        name="accountRole"
+                        value={formData.accountRole}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      >
+                        {availableRoles.map((r) => (
+                          <option key={r.key} value={r.key}>
+                            {r.name} — {r.description}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="text-[11px] text-slate-500 mt-1 block">
+                        Peran ini menentukan hak akses serta menu yang dapat dibuka oleh staf di dalam portal.
+                      </span>
+                    </div>
+
+                    {/* Ringkasan Akun yang akan dibuat */}
+                    <div className="p-3.5 bg-white/90 rounded-lg border border-slate-200/90 text-xs flex flex-col gap-2">
+                      <div className="font-semibold text-slate-700 flex items-center gap-1.5">
+                        <Key className="w-3.5 h-3.5 text-[#F2AF3E]" />
+                        <span>Rincian Otomatisasi Kredensial Login:</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 pt-1">
+                        <div>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Email Login Kantor</span>
+                          <span className="font-mono font-semibold text-slate-800 text-xs">
+                            {formData.workEmail || "(Wajib diisi di Langkah 1)"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Kata Sandi Awal</span>
+                          <span className="text-slate-700 font-semibold text-xs flex items-center gap-1">
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                            Auto-generated aman (≥ 12 karakter)
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Tujuan Pengiriman Kredensial</span>
+                          <span className="font-semibold text-slate-800 text-xs">
+                            {formData.personalEmail || "(Wajib diisi di Langkah 1)"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Notifikasi Email</span>
+                          <span className="text-emerald-700 font-medium text-xs">
+                            Otomatis terkirim ke email pribadi saat pendaftaran berhasil
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -929,6 +1096,7 @@ export function WizardEmployeeForm({
 
             {currentStep < 4 ? (
               <button
+                key="btn-next-step"
                 type="button"
                 onClick={handleNext}
                 className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98]"
@@ -938,8 +1106,9 @@ export function WizardEmployeeForm({
               </button>
             ) : (
               <button
+                key="btn-submit-final"
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || stepCooldown}
                 className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg text-xs font-semibold bg-[#feba48] text-[#102E50] hover:bg-[#e5a63d] transition-all cursor-pointer active:scale-[0.98] shadow-xs disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
@@ -949,6 +1118,126 @@ export function WizardEmployeeForm({
           </div>
         </div>
       </form>
+
+      {/* Modal Sukses Kredensial Akun Pegawai Baru */}
+      {createdCredentials && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 flex flex-col gap-5">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-lg font-bold text-[#102E50] font-heading">
+                  Pendaftaran Pegawai & Akun Berhasil!
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Data pegawai {createdCredentials.fullName} ({createdCredentials.employeeNo}) telah tersimpan.
+                </p>
+              </div>
+            </div>
+
+            {/* Credential Card */}
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/80 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Kredensial Login Pegawai
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50]">
+                  {createdCredentials.roleName || "Karyawan"}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-1 font-mono text-xs">
+                <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-slate-200">
+                  <span className="text-slate-500 font-sans text-[11px]">Email Kantor:</span>
+                  <span className="font-bold text-slate-900">{createdCredentials.workEmail}</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-amber-200 bg-amber-50/30">
+                  <span className="text-slate-500 font-sans text-[11px]">Kata Sandi Sementara:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded font-mono">
+                      {createdCredentials.temporaryPassword}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (createdCredentials.temporaryPassword) {
+                          navigator.clipboard.writeText(createdCredentials.temporaryPassword);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        }
+                      }}
+                      className="p-1 text-slate-500 hover:text-[#102E50] hover:bg-slate-100 rounded transition-colors cursor-pointer"
+                      title="Salin Kata Sandi"
+                    >
+                      {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status pengiriman email */}
+              <div className="text-[11px] p-2.5 rounded-lg border bg-white flex items-start gap-2 text-slate-600">
+                <Mail className="w-4 h-4 text-[#102E50] shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="font-semibold text-slate-800">
+                    {createdCredentials.emailSent
+                      ? "Kredensial Terkirim ke Email Pribadi"
+                      : "Status Pengiriman Email"}
+                  </span>
+                  <span className="text-slate-500">
+                    {createdCredentials.emailSent
+                      ? `Informasi akun telah dikirim ke: ${createdCredentials.personalEmail}`
+                      : `${createdCredentials.emailMessage} (Silakan berikan kata sandi di atas secara langsung kepada staf).`}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const text = `Kredensial Akses Portal HRIS PSPK:\nNama: ${createdCredentials.fullName}\nEmail Login: ${createdCredentials.workEmail}\nKata Sandi Sementara: ${createdCredentials.temporaryPassword}\nHak Akses: ${createdCredentials.roleName}\nLink: http://localhost:3001/masuk`;
+                  navigator.clipboard.writeText(text);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copied ? "Tersalin!" : "Salin Semua Info"}</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push(`/karyawan/${createdCredentials.id}`);
+                    router.refresh();
+                  }}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-colors cursor-pointer"
+                >
+                  Lihat Profil Pegawai
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    router.push("/karyawan");
+                    router.refresh();
+                  }}
+                  className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#feba48] text-[#102E50] hover:bg-[#e5a63d] transition-colors cursor-pointer"
+                >
+                  Ke Direktori Pegawai
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

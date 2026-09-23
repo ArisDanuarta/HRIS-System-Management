@@ -21,4 +21,6 @@ import { toNextJsHandler } from "better-auth/next-js";
 
 export const authHandlers = toNextJsHandler(auth);
 
+export { hashPassword } from "better-auth/crypto";
+
 export * from "./session";

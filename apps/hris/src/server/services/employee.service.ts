@@ -1,6 +1,8 @@
 import { prisma, writeAudit } from "@pspk/db";
 import { encryptField, decryptField } from "@pspk/shared";
+import { hashPassword } from "@pspk/auth";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "../schemas/employee.schema";
+import { sendEmployeeCredentialsEmail } from "./email.service";
 
 export type ActorContext = {
   id: string;
@@ -8,6 +10,23 @@ export type ActorContext = {
   ip?: string | null;
   userAgent?: string | null;
 };
+
+function generateSecureTemporaryPassword(): string {
+  const letters = "abcdefghjkmnpqrstuvwxyz";
+  const uppers = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const numbers = "23456789";
+  const symbols = "!@#$*&";
+
+  const pick = (chars: string) => chars[Math.floor(Math.random() * chars.length)];
+
+  // Minimum 12 karakter: 'Pspk' + 1 simbol + 3 huruf besar + 3 huruf kecil + 2 angka (Total 13 karakter)
+  let pwd = "Pspk" + pick(symbols);
+  for (let i = 0; i < 3; i++) pwd += pick(uppers);
+  for (let i = 0; i < 3; i++) pwd += pick(letters);
+  for (let i = 0; i < 2; i++) pwd += pick(numbers);
+
+  return pwd;
+}
 
 export async function createEmployee(data: CreateEmployeeInput, actor: ActorContext) {
   // 1. Validation checks
@@ -34,9 +53,15 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
   // 3. Database transaction
   const result = await prisma.$transaction(async (tx) => {
     let linkedUserId: string | null = null;
+    let generatedPassword: string | null = null;
+    const assignedRoleKey = data.accountRole || "staff";
+    let assignedRoleName = "Karyawan (Staff)";
 
-    // Optional user account creation
+    // Pembuatan akun pengguna pada skema core jika opsi aktif
     if (data.createUserAccount) {
+      generatedPassword = generateSecureTemporaryPassword();
+      const hashedPassword = await hashPassword(generatedPassword);
+
       let existingUser = await tx.user.findUnique({
         where: { email: data.workEmail.toLowerCase().trim() },
       });
@@ -45,19 +70,75 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         existingUser = await tx.user.create({
           data: {
             email: data.workEmail.toLowerCase().trim(),
-            name: data.fullName,
+            name: data.fullName.trim(),
             isActive: true,
+            emailVerified: true,
           },
         });
 
-        // Assign default 'staff' role
-        const staffRole = await tx.role.findUnique({ where: { key: "staff" } });
-        if (staffRole) {
+        // Buat akun kredensial password untuk Better Auth
+        await tx.account.create({
+          data: {
+            userId: existingUser.id,
+            accountId: existingUser.id,
+            providerId: "credential",
+            password: hashedPassword,
+          },
+        });
+
+        // Pasangkan role yang dipilih
+        const targetRole = await tx.role.findUnique({
+          where: { key: assignedRoleKey },
+        });
+
+        if (targetRole) {
+          assignedRoleName = targetRole.name;
           await tx.userRole.create({
             data: {
               userId: existingUser.id,
-              roleId: staffRole.id,
+              roleId: targetRole.id,
             },
+          });
+        }
+      } else {
+        // Jika user sudah ada, sinkronkan kredensial password
+        const existingAcc = await tx.account.findFirst({
+          where: { userId: existingUser.id, providerId: "credential" },
+        });
+        if (!existingAcc) {
+          await tx.account.create({
+            data: {
+              userId: existingUser.id,
+              accountId: existingUser.id,
+              providerId: "credential",
+              password: hashedPassword,
+            },
+          });
+        } else {
+          await tx.account.update({
+            where: { id: existingAcc.id },
+            data: { password: hashedPassword },
+          });
+        }
+
+        const targetRole = await tx.role.findUnique({
+          where: { key: assignedRoleKey },
+        });
+
+        if (targetRole) {
+          assignedRoleName = targetRole.name;
+          await tx.userRole.upsert({
+            where: {
+              userId_roleId: {
+                userId: existingUser.id,
+                roleId: targetRole.id,
+              },
+            },
+            create: {
+              userId: existingUser.id,
+              roleId: targetRole.id,
+            },
+            update: {},
           });
         }
       }
@@ -142,10 +223,54 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
       tx,
     );
 
-    return newEmployee;
+    return {
+      newEmployee,
+      generatedPassword,
+      assignedRoleKey,
+      assignedRoleName,
+    };
   });
 
-  return result;
+  const { newEmployee, generatedPassword, assignedRoleKey, assignedRoleName } = result;
+
+  // Kirim email kredensial ke email pribadi staf jika akun berhasil dibuat
+  let emailResult = null;
+  if (data.createUserAccount && generatedPassword && data.personalEmail) {
+    try {
+      emailResult = await sendEmployeeCredentialsEmail({
+        to: data.personalEmail.trim(),
+        fullName: newEmployee.fullName,
+        workEmail: newEmployee.workEmail,
+        temporaryPassword: generatedPassword,
+        roleName: assignedRoleName,
+      });
+    } catch (emailErr) {
+      console.error("[createEmployee] Gagal mengirim email kredensial:", emailErr);
+      emailResult = {
+        success: false,
+        simulated: false,
+        message: "Gagal mengirim email kredensial.",
+      };
+    }
+  }
+
+  return {
+    employee: newEmployee,
+    accountCreated: !!data.createUserAccount,
+    credentials:
+      data.createUserAccount && generatedPassword
+        ? {
+            workEmail: newEmployee.workEmail,
+            temporaryPassword: generatedPassword,
+            roleKey: assignedRoleKey,
+            roleName: assignedRoleName,
+            personalEmail: data.personalEmail || null,
+            emailSent: emailResult?.success ?? false,
+            emailSimulated: emailResult?.simulated ?? false,
+            emailMessage: emailResult?.message ?? "Email tidak dikirim.",
+          }
+        : null,
+  };
 }
 
 export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorContext) {

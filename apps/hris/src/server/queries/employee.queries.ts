@@ -287,3 +287,21 @@ export async function getManagersList() {
 
   return managers;
 }
+
+export async function getAssignableRoles() {
+  const roles = await prisma.role.findMany({
+    where: {
+      key: { in: ["staff", "manager", "admin_hr", "admin_it"] },
+    },
+    select: {
+      id: true,
+      key: true,
+      name: true,
+      description: true,
+    },
+    orderBy: { name: "asc" },
+  });
+
+  return roles;
+}
+

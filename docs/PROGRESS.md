@@ -215,6 +215,42 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Perombakan Beranda / Dashboard per Role (HRIS PSPK)
+- **Status:** Selesai (Completed)
+- **Implementasi:**
+  - **Arsitektur Query Terproteksi (`apps/hris/src/server/queries/dashboard/`)**:
+    - `staff-dashboard.ts`: Query terisolasi `own` scope dengan validasi `assertCan(ctx, "hris.attendance.read:own")`.
+    - `manager-dashboard.ts`: Query terisolasi `team` scope (`managerId = ctx.employeeId`) dengan validasi `assertCan(ctx, "hris.leave.read:team")`.
+    - `hr-dashboard.ts`: Query agregat organisasi `all` scope dengan validasi `assertCan(ctx, "hris.employee.read:all")` dan `assertCan(ctx, "hris.attendance.read:all")`.
+  - **Dashboard Staff (`staff-dashboard.tsx`)**:
+    - Kartu presensi interaktif real-time dengan jam server dinamis dan tombol check-in/out.
+    - Metrik sisa cuti tahunan, status cuti pending, dan status slip gaji terbaru.
+    - Rincian kartu kuota per jenis cuti dengan progress bar.
+    - Riwayat 5 pengajuan cuti terakhir dan panduan SOP kepegawaian.
+  - **Dashboard Manajer (`manager-dashboard.tsx`)**:
+    - 3 kartu metrik tim: Total Anggota Tim, Tim Hadir Hari Ini, Antrean Persetujuan Cuti.
+    - **Widget Utama Actionable Approval List**: Daftar permohonan cuti tim dengan tombol cepat **Setujui** (konfirmasi cepat) dan tombol **Tolak** (membuka modal dialog dengan alasan penolakan wajib minimal 3 karakter).
+    - Kalender tim mingguan (Senin-Jumat) visual ringkas.
+    - Bagian bawah: Presensi dan saldo cuti pribadi milik manajer sendiri.
+  - **Dashboard Admin HR & Super Admin (`hr-dashboard.tsx`)**:
+    - 4 kartu metrik organisasi: Total Pegawai Aktif, Hadir Hari Ini (jumlah & %), Cuti Menunggu Seluruh Lembaga, Kontrak Berakhir ≤ 30 Hari.
+    - **Grafik Batang Kehadiran 7 Hari Terakhir** (Hadir, Telat, Cuti) responsif dan visual komposisi ikatan kerja (Tetap vs PKWT vs Proyek).
+    - Pusat Aksi "Perlu Tindakan" (cuti pending > 2 hari, kontrak segera habis) dan daftar pegawai cuti hari ini.
+    - Banner kendali Super Admin dengan tautan pintas ke portal System Management.
+  - **Dashboard IT Admin (`it-dashboard.tsx`)**:
+    - Tampilan minimalis pencarian direktori karyawan tanpa metrik operasional HR.
+  - **Penanganan Khusus Super Admin (`unlinked-employee-notice.tsx`)**:
+    - Tampilan fallback informatif jika akun Super Admin belum ditautkan ke data pegawai saat beralih ke pratinjau Staff atau Manajer.
+  - **Resolusi Role & Keamanan Server (`dashboard/page.tsx`)**:
+    - Resolusi role di tingkat Server Component menggunakan `getAuthContext(session.user.id)`.
+    - Cookie `pspk_role_view` hanya diakui jika role database pengguna terverifikasi memiliki `super_admin`.
+- **Perbaikan Konfigurasi & Kualitas Monorepo**:
+  - Eliminasi peringatan Turbopack Next.js CommonJS `@prisma/client` melalui explicit named & type-only exports.
+  - Penambahan `tsconfig.json` root dan `@types/node` untuk resolusi modul dan skrip scratch di tingkat monorepo.
+  - Hasil pengujian: `pnpm typecheck` (9/9 packages pass), `pnpm test` (29/29 unit tests pass), `pnpm --filter @pspk/hris build` (0 warning, 0 error).
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
@@ -232,3 +268,4 @@ pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
 ```
+

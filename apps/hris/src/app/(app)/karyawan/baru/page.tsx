@@ -1,15 +1,16 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft, UserPlus } from "lucide-react";
-import { getOrgStructureData, getManagersList } from "@/server/queries/employee.queries";
+import { getOrgStructureData, getManagersList, getAssignableRoles } from "@/server/queries/employee.queries";
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function TambahKaryawanPage() {
-  const [departments, managers] = await Promise.all([
+  const [departments, managers, roles] = await Promise.all([
     getOrgStructureData(),
     getManagersList(),
+    getAssignableRoles(),
   ]);
 
   return (
@@ -46,6 +47,7 @@ export default async function TambahKaryawanPage() {
         mode="create"
         departments={departments}
         managers={managers}
+        roles={roles}
       />
     </div>
   );
