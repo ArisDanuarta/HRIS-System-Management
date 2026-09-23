@@ -25,6 +25,7 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.employee.read:all",
       "hris.employee.write:all",
       "hris.employee.import:all",
+      "hris.org.manage:all",
       "hris.contract.read:all",
       "hris.contract.write:all",
       "hris.attendance.read:all",

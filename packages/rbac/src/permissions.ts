@@ -12,6 +12,7 @@ export const PERMISSIONS = [
   { key: "hris.employee.write:own", module: "hris", description: "Memperbarui data pribadi terbatas sendiri" },
   { key: "hris.employee.write:all", module: "hris", description: "Mengelola seluruh data karyawan" },
   { key: "hris.employee.import:all", module: "hris", description: "Mengimpor data karyawan dari Excel" },
+  { key: "hris.org.manage:all", module: "hris", description: "Mengelola struktur organisasi, divisi, dan jabatan" },
 
   // --- HRIS: Contracts & History ---
   { key: "hris.contract.read:own", module: "hris", description: "Membaca kontrak sendiri" },

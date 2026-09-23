@@ -135,6 +135,7 @@ model Department {
   children  Department[] @relation("DepartmentHierarchy")
   positions Position[]
   employees Employee[]
+  histories EmploymentHistory[]
 
   @@map("departments")
   @@schema("hris")
@@ -149,6 +150,7 @@ model Position {
 
   department Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
   employees  Employee[]
+  histories  EmploymentHistory[]
 
   @@map("positions")
   @@schema("hris")
@@ -220,10 +222,16 @@ model EmploymentHistory {
   startDate    DateTime  @map("startDate") @db.Date
   endDate      DateTime? @map("endDate") @db.Date
   notes        String?
+  documentKey  String?   @map("document_key")
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  position   Position?   @relation(fields: [positionId], references: [id], onDelete: SetNull)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
+  @@index([employeeId])
+  @@index([positionId])
+  @@index([departmentId])
   @@map("employment_histories")
   @@schema("hris")
 }
