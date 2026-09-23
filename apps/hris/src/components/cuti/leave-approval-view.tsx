@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertCircle,
+  Paperclip,
 } from "lucide-react";
 import {
   approveLeaveRequestAction,
@@ -20,6 +21,7 @@ interface LeaveApprovalItem {
   endDate: Date;
   days: number | string | { toString(): string };
   reason?: string | null;
+  attachmentKey?: string | null;
   status: string;
   decisionNote?: string | null;
   decidedAt?: Date | null;
@@ -232,8 +234,22 @@ export function LeaveApprovalView({
                       <td className="py-3.5 px-4 text-center font-bold text-[#102e50]">
                         {Number(r.days)} Hari
                       </td>
-                      <td className="py-3.5 px-4 max-w-xs truncate text-slate-600">
-                        {r.reason || "-"}
+                      <td className="py-3.5 px-4 text-slate-600">
+                        <div className="flex flex-col gap-1 max-w-xs">
+                          <span className="truncate">{r.reason || "-"}</span>
+                          {r.attachmentKey && (
+                            <a
+                              href={`/api/documents/${r.attachmentKey}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#102e50] hover:text-[#0c233d] hover:underline"
+                              title="Buka lampiran surat keterangan"
+                            >
+                              <Paperclip className="w-3 h-3 text-[#102e50]" />
+                              <span>Lihat Surat Lampiran</span>
+                            </a>
+                          )}
+                        </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
                         {r.status === "APPROVED" && (
@@ -338,6 +354,21 @@ export function LeaveApprovalView({
                   {formatDate(selectedAction.request.startDate)} s/d {formatDate(selectedAction.request.endDate)}
                 </span>
               </div>
+              {selectedAction.request.attachmentKey && (
+                <div className="flex justify-between items-center pt-2 mt-0.5 border-t border-slate-200">
+                  <span className="text-slate-500">Lampiran Surat:</span>
+                  <a
+                    href={`/api/documents/${selectedAction.request.attachmentKey}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold text-[#102e50] hover:text-[#0c233d] hover:underline"
+                    title="Buka berkas surat keterangan di tab baru"
+                  >
+                    <Paperclip className="w-3.5 h-3.5 text-[#102e50]" />
+                    <span>Buka Berkas Lampiran</span>
+                  </a>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleConfirmAction} className="flex flex-col gap-3">

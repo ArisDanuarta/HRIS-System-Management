@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can, AuthContext } from "@pspk/rbac";
 import { prisma } from "@pspk/db";
+import { getStorageProvider } from "@pspk/storage";
 import {
   createLeaveRequestSchema,
   approveLeaveRequestSchema,
@@ -293,3 +294,65 @@ export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
     };
   }
 }
+
+/**
+ * Server Action: Upload Leave Attachment File (Surat Keterangan Dokter / Dokumen Pendukung)
+ */
+export async function uploadLeaveAttachmentAction(formData: FormData) {
+  try {
+    const { employeeId } = await getAuthenticatedUser();
+    const file = formData.get("file") as File | null;
+
+    if (!file || file.size === 0) {
+      return { success: false, message: "Berkas tidak ditemukan atau kosong." };
+    }
+
+    // Allowed mime types & extensions: PDF, JPG, PNG, WEBP
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+    const isAllowedExt = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.name);
+    if (!allowedTypes.includes(file.type) && !isAllowedExt) {
+      return {
+        success: false,
+        message: "Format berkas tidak didukung. Harap unggah berkas bertipe PDF, JPG, atau PNG.",
+      };
+    }
+
+    // 10 MB limit
+    const maxSizeBytes = 10 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      return {
+        success: false,
+        message: "Ukuran berkas melebihi batas maksimal 10 MB.",
+      };
+    }
+
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const storageKey = `cuti/lampiran/${employeeId}_${Date.now()}_${safeFileName}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const storage = getStorageProvider();
+    const contentType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+    await storage.put(storageKey, buffer, { contentType });
+
+    return {
+      success: true,
+      message: "Berkas lampiran berhasil diunggah.",
+      key: storageKey,
+      fileName: file.name,
+      fileSize: file.size,
+    };
+  } catch (err) {
+    console.error("uploadLeaveAttachmentAction error:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "Gagal mengunggah berkas lampiran.",
+    };
+  }
+}
+

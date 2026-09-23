@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useState, useMemo, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -9,9 +9,24 @@ import {
   ArrowLeft,
   Send,
   Info,
+  Upload,
+  FileText,
+  Image as ImageIcon,
+  X,
+  Paperclip,
+  Loader2,
 } from "lucide-react";
 import { calculateWorkingDays } from "@pspk/shared";
-import { submitLeaveRequestAction } from "@/server/actions/leave.actions";
+import {
+  submitLeaveRequestAction,
+  uploadLeaveAttachmentAction,
+} from "@/server/actions/leave.actions";
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 interface LeaveTypeItem {
   id: string;
@@ -45,7 +60,16 @@ export function LeaveRequestForm({
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [reason, setReason] = useState<string>("");
+  
+  // File upload state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [attachmentKey, setAttachmentKey] = useState<string>("");
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -73,6 +97,97 @@ export function LeaveRequestForm({
 
   const isBalanceExceeded = calculatedDays > remainingQuota;
 
+  const handleUploadFile = async (file: File) => {
+    setUploadError(null);
+    setIsUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await uploadLeaveAttachmentAction(formData);
+      if (res.success && res.key) {
+        setAttachmentKey(res.key);
+        setUploadedFileName(res.fileName || file.name);
+      } else {
+        setUploadError(res.message || "Gagal mengunggah berkas lampiran.");
+        setSelectedFile(null);
+        setAttachmentKey("");
+      }
+    } catch {
+      setUploadError("Terjadi kesalahan sistem saat mengunggah berkas.");
+      setSelectedFile(null);
+      setAttachmentKey("");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const validateAndProcessFile = (file: File) => {
+    setUploadError(null);
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+    ];
+    const isAllowedExt = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.name);
+
+    if (!allowedTypes.includes(file.type) && !isAllowedExt) {
+      setUploadError("Format berkas tidak didukung. Harap unggah berkas PDF, JPG, atau PNG.");
+      return;
+    }
+
+    const maxSizeBytes = 10 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      setUploadError("Ukuran berkas melebihi batas maksimal 10 MB.");
+      return;
+    }
+
+    setSelectedFile(file);
+    handleUploadFile(file);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      validateAndProcessFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      validateAndProcessFile(file);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setAttachmentKey("");
+    setUploadedFileName(null);
+    setUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -95,8 +210,13 @@ export function LeaveRequestForm({
       return;
     }
 
+    if (isUploading) {
+      setError("Berkas lampiran sedang dalam proses pengunggahan. Harap tunggu hingga selesai.");
+      return;
+    }
+
     if (selectedType?.requiresAttachment && !attachmentKey) {
-      setError(`Jenis cuti ${selectedType.name} mewajibkan pengunggahan berkas lampiran pendukung.`);
+      setError(`Jenis cuti ${selectedType.name} mewajibkan pengunggahan berkas lampiran pendukung (surat dokter/keterangan).`);
       return;
     }
 
@@ -262,22 +382,118 @@ export function LeaveRequestForm({
       </div>
 
       {/* 4. Attachment (Optional or Required) */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-          <span>Lampiran Surat Keterangan {selectedType?.requiresAttachment && <span className="text-red-500">*</span>}</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+            <Paperclip className="w-3.5 h-3.5 text-[#102e50]" />
+            <span>Lampiran Surat Keterangan</span>
+            {selectedType?.requiresAttachment && <span className="text-red-500">*</span>}
+          </label>
           <span className="text-[11px] text-slate-400 font-normal">PDF / JPG / PNG (Maks 10MB)</span>
-        </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
-            placeholder="Kunci dokumen / nama berkas lampiran..."
-            value={attachmentKey}
-            onChange={(e) => setAttachmentKey(e.target.value)}
-            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none"
-          />
         </div>
+
+        {/* Hidden File Input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+          onChange={handleFileInputChange}
+          className="hidden"
+        />
+
+        {selectedFile || attachmentKey ? (
+          /* Selected File Card */
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-emerald-200 bg-emerald-50/50 shadow-2xs">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-lg bg-white border border-emerald-200 flex items-center justify-center shrink-0 text-emerald-700 shadow-2xs">
+                {selectedFile?.type.includes("pdf") || uploadedFileName?.endsWith(".pdf") ? (
+                  <FileText className="w-5 h-5" />
+                ) : (
+                  <ImageIcon className="w-5 h-5" />
+                )}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-slate-800 truncate">
+                  {selectedFile ? selectedFile.name : uploadedFileName || "Berkas Lampiran"}
+                </span>
+                <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                  {selectedFile && <span>{formatFileSize(selectedFile.size)}</span>}
+                  {isUploading ? (
+                    <span className="inline-flex items-center gap-1 text-amber-600 font-medium">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Mengunggah...
+                    </span>
+                  ) : attachmentKey ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-700 font-medium">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      Siap dilampirkan
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0 ml-3">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 hover:text-[#102e50] hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all cursor-pointer"
+              >
+                Ganti
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveFile}
+                disabled={isUploading}
+                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all cursor-pointer"
+                title="Hapus berkas"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* Dropzone / Upload Placeholder */
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all duration-200 ${
+              isDragging
+                ? "border-[#102e50] bg-[#eff4ff]"
+                : "border-slate-300 hover:border-[#102e50] hover:bg-slate-50/70 bg-slate-50/40"
+            }`}
+          >
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className="w-10 h-10 rounded-full bg-white shadow-2xs border border-slate-200 flex items-center justify-center text-[#102e50]">
+                <Upload className="w-4 h-4" />
+              </div>
+              <div className="text-xs">
+                <span className="font-semibold text-[#102e50] hover:underline">
+                  Klik untuk memilih berkas
+                </span>{" "}
+                <span className="text-slate-500">atau seret dan lepas berkas ke sini</span>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Format didukung: PDF, JPG, PNG (Maksimal 10 MB)
+              </p>
+            </div>
+          </div>
+        )}
+
+        {uploadError && (
+          <p className="text-xs text-red-600 font-medium flex items-center gap-1.5 mt-0.5">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>{uploadError}</span>
+          </p>
+        )}
+
         <p className="text-[11px] text-slate-400">
-          Untuk cuti sakit wajib melampirkan surat keterangan dokter.
+          {selectedType?.requiresAttachment
+            ? "Untuk jenis cuti ini (seperti cuti sakit), wajib melampirkan surat keterangan dokter atau dokumen pendukung."
+            : "Opsional. Anda dapat melampirkan surat keterangan dokter atau berkas pendukung bila diperlukan."}
         </p>
       </div>
 

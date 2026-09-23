@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Calendar, Clock, AlertCircle, CheckCircle2, XCircle, Ban } from "lucide-react";
+import { Calendar, Clock, AlertCircle, CheckCircle2, XCircle, Ban, Paperclip } from "lucide-react";
 import { cancelLeaveRequestAction } from "@/server/actions/leave.actions";
 
 interface LeaveRequestItem {
@@ -10,6 +10,7 @@ interface LeaveRequestItem {
   endDate: Date;
   days: number | string | { toString(): string };
   reason?: string | null;
+  attachmentKey?: string | null;
   status: string;
   decisionNote?: string | null;
   decidedAt?: Date | null;
@@ -161,8 +162,22 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
                   <td className="py-3.5 px-4 text-center font-bold text-[#102e50]">
                     {Number(r.days)} Hari
                   </td>
-                  <td className="py-3.5 px-4 max-w-xs truncate text-slate-600">
-                    {r.reason || "-"}
+                  <td className="py-3.5 px-4 text-slate-600">
+                    <div className="flex flex-col gap-1 max-w-xs">
+                      <span className="truncate">{r.reason || "-"}</span>
+                      {r.attachmentKey && (
+                        <a
+                          href={`/api/documents/${r.attachmentKey}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#102e50] hover:text-[#0c233d] hover:underline"
+                          title="Buka berkas lampiran surat keterangan"
+                        >
+                          <Paperclip className="w-3 h-3 text-[#102e50]" />
+                          <span>Lihat Surat / Lampiran</span>
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className="py-3.5 px-4 text-center">
                     {renderStatusBadge(r.status)}
