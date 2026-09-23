@@ -334,8 +334,19 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - **Hasil Uji & Kualitas**:
     - `pnpm --filter @pspk/hris typecheck`: Lolos (0 error).
     - `pnpm lint`: Lolos (0 error).
-    - `pnpm test`: Lolos (31 unit tests hijau).
+    - `pnpm test`: Lolos (33 unit tests hijau).
     - `pnpm build`: Standalone build berhasil untuk kedua aplikasi.
+
+### Fitur Khusus: Dukungan PKWT Per Jam (Timesheet) & "No Work, No Pay"
+- **Status:** Selesai (Completed)
+- **Implementasi**:
+  - Model data `hris.contracts` mendukung `wageType: HOURLY` dan tarif per jam `hourlyRate`.
+  - Model data `hris.payslips` menyimpan snapshot `wageType`, `totalHours`, `hourlyRate`, dan `timesheetKey`.
+  - Logika kalkulasi: $\text{Upah Jam Kerja} = \text{Total Jam Kerja Valid} \times \text{Tarif per Jam}$. Jika jam kerja 0 (belum ada timesheet), upah Rp 0 (*No Work, No Pay*).
+  - Modal `TimesheetInputModal`: Admin HR dapat menginput jam kerja dan melampirkan berkas bukti spreadsheet/PDF yang sudah ditandatangani dan di-acc Project Lead per tanggal 20.
+  - Tautan berkas bukti timesheet dapat langsung diunduh dari tabel maupun modal slip gaji melalui rute streaming aman `/api/documents/[...path]`.
+  - Audit log tercatat otomatis untuk setiap pembaruan timesheet (`UPDATE PayslipTimesheet`).
+  - Arsitektur *future-proof*: saat modul pengisian timesheet mandiri staf dibangun di web HRIS, sistem payroll siap mengambil jam terverifikasi otomatis.
 
 ---
 

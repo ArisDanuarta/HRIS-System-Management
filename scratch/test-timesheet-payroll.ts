@@ -43,10 +43,13 @@ async function main() {
     });
   }
 
-  // Set status DRAFT agar bisa dihitung ulang
+  // Set status DRAFT dan bersihkan slip Aris untuk pengujian awal
   await prisma.payrollPeriod.update({
     where: { id: period.id },
     data: { status: "DRAFT" },
+  });
+  await prisma.payslip.deleteMany({
+    where: { periodId: period.id, employeeId: aris.id },
   });
 
   // 3. Kalkulasi awal (tanpa timesheet)
@@ -101,7 +104,7 @@ async function main() {
   // 6. Cek Audit Log
   const lastAudit = await prisma.auditLog.findFirst({
     where: { entityType: "PayslipTimesheet", entityId: updatedSlip.id },
-    orderBy: { createdAt: "desc" },
+    orderBy: { occurredAt: "desc" },
   });
   if (!lastAudit) throw new Error("Audit log update timesheet tidak tercatat!");
   console.log(`   ✓ Audit Log tercatat: Action=${lastAudit.action}, Entity=${lastAudit.entityType}, Actor=${lastAudit.actorEmail}`);

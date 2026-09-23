@@ -496,8 +496,10 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
     if (comp.calcType === "FIXED") {
       if (empOverride) amount = Number(empOverride.amount);
     } else if (comp.calcType === "PERCENT_OF_BASE") {
-      const percent = empOverride ? Number(empOverride.amount) : Number(comp.defaultValue || 0);
-      amount = Math.round((percent / 100) * hourlyPay);
+      if (empOverride) {
+        const percent = Number(empOverride.amount);
+        amount = Math.round((percent / 100) * hourlyPay);
+      }
     } else if (comp.calcType === "MANUAL") {
       amount = empOverride ? Number(empOverride.amount) : 0;
     }
