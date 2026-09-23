@@ -64,27 +64,9 @@ export default async function PayrollDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Format payload untuk client component
-  const formattedPeriod = {
-    ...period,
-    totalGross: period.totalGross,
-    totalDeduction: period.totalDeduction,
-    totalNet: period.totalNet,
-    payslips: period.payslips.map((p) => ({
-      ...p,
-      grossAmount: Number(p.grossAmount),
-      totalDeduction: Number(p.totalDeduction),
-      netAmount: Number(p.netAmount),
-      lines: p.lines.map((l) => ({
-        ...l,
-        amount: Number(l.amount),
-      })),
-    })),
-  };
-
   return (
     <PayrollDetailView
-      period={formattedPeriod as unknown as Parameters<typeof PayrollDetailView>[0]["period"]}
+      period={period as unknown as Parameters<typeof PayrollDetailView>[0]["period"]}
     />
   );
 }

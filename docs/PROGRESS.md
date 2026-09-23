@@ -308,6 +308,37 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Payroll & Penggajian (Role Admin HR)
+- **Status:** Selesai (Completed)
+- **Capaian:**
+  - **Siklus Status Periode Penggajian**:
+    - Alur 5 tahap: `DRAFT` $\to$ `CALCULATED` $\to$ `APPROVED` $\to$ `PUBLISHED` $\to$ `LOCKED`.
+    - Pilihan jenis siklus: Gaji Reguler Bulanan dan Tunjangan Hari Raya (THR).
+    - Penetapan tanggal cut-off presensi/dokumen.
+  - **Kalkulasi Payroll Massal Otomatis**:
+    - Menghitung seluruh pegawai aktif secara paralel dalam Prisma Transaction.
+    - Menghubungkan gaji pokok dari kontrak kerja aktif (`EmploymentContract.baseSalary`).
+    - Mengintegrasikan tunjangan tetap & fungsional (Transportasi, Komunikasi, Jabatan Riset).
+    - Menghitung potongan persentase BPJS Kesehatan (1%), BPJS Ketenagakerjaan JHT (2%), BPJS Ketenagakerjaan JP (1%), dan estimasi PPh 21.
+    - Menyimpan snapshot rincian baris pendapatan dan potongan di `PayslipLine` agar kebal dari perubahan tarif di masa mendatang.
+  - **Pemisahan Wewenang (Separation of Duties)**:
+    - Akses `/payroll` dan `/payroll/[id]` hanya untuk **Admin HR** dan **Super Admin**.
+    - Manajer dan staf umum dibatasi dan tidak dapat melihat nominal gaji rekan/tim.
+  - **Ekspor Rekap Perbankan**:
+    - Generator berkas CSV transfer perbankan siap upload (NIP, Nama, Bank, Nomor Rekening terdekripsi, Nominal Bersih).
+  - **Master Komponen Gaji (`/payroll/komponen`)**:
+    - Konfigurasi master tunjangan (*Earnings*) dan potongan (*Deductions*).
+    - Pilihan metode kalkulasi: Nominal Tetap (*Fixed*), Persentase dari Gaji Pokok (*Percent of Base*), dan Input Manual.
+  - **Kepatuhan Audit Log**:
+    - Seluruh aksi kalkulasi massal, persetujuan, publikasi slip ke pegawai, penguncian permanen, dan ekspor data tercatat di `core.audit_logs`.
+  - **Hasil Uji & Kualitas**:
+    - `pnpm --filter @pspk/hris typecheck`: Lolos (0 error).
+    - `pnpm lint`: Lolos (0 error).
+    - `pnpm test`: Lolos (31 unit tests hijau).
+    - `pnpm build`: Standalone build berhasil untuk kedua aplikasi.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

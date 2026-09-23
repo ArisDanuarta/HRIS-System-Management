@@ -52,7 +52,15 @@ export async function getPayrollPeriods(filter?: GetPayrollPeriodsFilter) {
     const totalNet = p.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
 
     return {
-      ...p,
+      id: p.id,
+      year: p.year,
+      month: p.month,
+      kind: p.kind,
+      status: p.status,
+      cutoffDate: p.cutoffDate ? p.cutoffDate.toISOString() : null,
+      lockedAt: p.lockedAt ? p.lockedAt.toISOString() : null,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
       totalEmployees,
       totalGross,
       totalDeduction,
@@ -104,12 +112,44 @@ export async function getPayrollPeriodById(periodId: string) {
   );
   const totalNet = period.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
 
+  const formattedPayslips = period.payslips.map((p) => ({
+    id: p.id,
+    periodId: p.periodId,
+    employeeId: p.employeeId,
+    status: p.status,
+    publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+    pdfKey: p.pdfKey,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+    grossAmount: Number(p.grossAmount),
+    totalDeduction: Number(p.totalDeduction),
+    netAmount: Number(p.netAmount),
+    employee: p.employee,
+    lines: p.lines.map((l) => ({
+      id: l.id,
+      payslipId: l.payslipId,
+      componentId: l.componentId,
+      label: l.label,
+      type: l.type,
+      amount: Number(l.amount),
+    })),
+  }));
+
   return {
-    ...period,
+    id: period.id,
+    year: period.year,
+    month: period.month,
+    kind: period.kind,
+    status: period.status,
+    cutoffDate: period.cutoffDate ? period.cutoffDate.toISOString() : null,
+    lockedAt: period.lockedAt ? period.lockedAt.toISOString() : null,
+    createdAt: period.createdAt.toISOString(),
+    updatedAt: period.updatedAt.toISOString(),
     totalEmployees,
     totalGross,
     totalDeduction,
     totalNet,
+    payslips: formattedPayslips,
   };
 }
 
@@ -150,7 +190,15 @@ export async function getPayrollStats() {
 
   return {
     totalPeriods,
-    activePeriod,
+    activePeriod: activePeriod
+      ? {
+          id: activePeriod.id,
+          year: activePeriod.year,
+          month: activePeriod.month,
+          kind: activePeriod.kind,
+          status: activePeriod.status,
+        }
+      : null,
     allComponentsCount,
     totalActiveEmployees,
     currentPeriodNet,
@@ -162,7 +210,7 @@ export async function getPayrollStats() {
  * Mengambil daftar seluruh master komponen gaji
  */
 export async function getSalaryComponents() {
-  return prisma.salaryComponent.findMany({
+  const components = await prisma.salaryComponent.findMany({
     orderBy: [{ type: "asc" }, { name: "asc" }],
     include: {
       _count: {
@@ -173,13 +221,26 @@ export async function getSalaryComponents() {
       },
     },
   });
+
+  return components.map((c) => ({
+    id: c.id,
+    code: c.code,
+    name: c.name,
+    type: c.type,
+    calcType: c.calcType,
+    defaultValue: c.defaultValue ? Number(c.defaultValue) : 0,
+    isActive: c.isActive,
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+    _count: c._count,
+  }));
 }
 
 /**
  * Mengambil detail satu slip gaji dengan rincian barisnya
  */
 export async function getPayslipById(payslipId: string) {
-  return prisma.payslip.findUnique({
+  const p = await prisma.payslip.findUnique({
     where: { id: payslipId },
     include: {
       period: true,
@@ -199,4 +260,36 @@ export async function getPayslipById(payslipId: string) {
       },
     },
   });
+
+  if (!p) return null;
+
+  return {
+    id: p.id,
+    periodId: p.periodId,
+    employeeId: p.employeeId,
+    status: p.status,
+    publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+    pdfKey: p.pdfKey,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
+    grossAmount: Number(p.grossAmount),
+    totalDeduction: Number(p.totalDeduction),
+    netAmount: Number(p.netAmount),
+    period: {
+      id: p.period.id,
+      year: p.period.year,
+      month: p.period.month,
+      kind: p.period.kind,
+      status: p.period.status,
+    },
+    employee: p.employee,
+    lines: p.lines.map((l) => ({
+      id: l.id,
+      payslipId: l.payslipId,
+      componentId: l.componentId,
+      label: l.label,
+      type: l.type,
+      amount: Number(l.amount),
+    })),
+  };
 }
