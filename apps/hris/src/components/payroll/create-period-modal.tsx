@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Calendar, Plus, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Plus, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { createPayrollPeriodAction } from "@/server/actions/payroll.actions";
 
 interface CreatePeriodModalProps {

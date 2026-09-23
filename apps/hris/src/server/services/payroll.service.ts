@@ -275,7 +275,7 @@ export async function generatePayrollBankExport(periodId: string) {
               employeeNo: true,
               fullName: true,
               bankName: true,
-              bankAccountNo: true,
+              bankAccountEnc: true,
             },
           },
         },
@@ -307,9 +307,9 @@ export async function generatePayrollBankExport(periodId: string) {
 
   period.payslips.forEach((p, idx) => {
     let plainAccount = "-";
-    if (p.employee.bankAccountNo) {
+    if (p.employee.bankAccountEnc) {
       try {
-        plainAccount = decryptField(p.employee.bankAccountNo);
+        plainAccount = decryptField(p.employee.bankAccountEnc);
       } catch {
         plainAccount = "[Terenkripsi]";
       }

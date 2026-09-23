@@ -9,7 +9,6 @@ import {
   CreditCard,
   TrendingUp,
   TrendingDown,
-  CheckCircle2,
 } from "lucide-react";
 
 export interface PayslipDetailData {
@@ -23,7 +22,7 @@ export interface PayslipDetailData {
     employeeNo: string;
     fullName: string;
     bankName: string | null;
-    bankAccountNo: string | null;
+    bankAccountEnc: string | null;
     currentDepartment: { id: string; name: string } | null;
     currentPosition: { id: string; title: string } | null;
   };
@@ -48,9 +47,9 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
   const deductions = payslip.lines.filter((l) => l.type === "DEDUCTION");
 
   let decryptedBankNo = "-";
-  if (payslip.employee.bankAccountNo) {
+  if (payslip.employee.bankAccountEnc) {
     try {
-      decryptedBankNo = decryptField(payslip.employee.bankAccountNo);
+      decryptedBankNo = decryptField(payslip.employee.bankAccountEnc);
     } catch {
       decryptedBankNo = "[Terenkripsi]";
     }
