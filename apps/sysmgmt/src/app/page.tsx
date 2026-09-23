@@ -7,12 +7,17 @@ export default function HomePage() {
       {/* Top navigation */}
       <header className="bg-white border-b border-[#E1E6ED] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-4 h-4 rounded-sm bg-[#102E50]"></span>
-            <span className="font-bold text-[#102E50] text-lg tracking-tight">PSPK</span>
+          <div className="flex items-center gap-3">
+            <div className="h-9 px-2.5 py-1 bg-white border border-[#E1E6ED] rounded-lg shadow-xs flex items-center justify-center">
+              <img
+                src="/images/logo_pspk_horizontal_trimmed.png"
+                alt="Logo Resmi PSPK"
+                className="h-6 w-auto object-contain"
+              />
+            </div>
+            <span className="text-[#E1E6ED]">|</span>
+            <h1 className="text-base font-semibold text-[#1B2430]">System Management</h1>
           </div>
-          <span className="text-[#E1E6ED]">|</span>
-          <h1 className="text-base font-semibold text-[#1B2430]">System Management</h1>
         </div>
 
         <div className="flex items-center gap-3">

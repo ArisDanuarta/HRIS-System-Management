@@ -173,38 +173,27 @@ export function LoginPage({
           </svg>
         </div>
 
-        {/* Top Header: Monogram, Identity & App Portal Tag */}
+        {/* Top Header: Official Logo, Identity & App Portal Tag */}
         <div className="relative z-10 flex flex-col gap-3">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-xl bg-white p-1.5 shadow-md flex items-center justify-center overflow-hidden shrink-0 transition-transform duration-300 hover:scale-105">
+          <div className="flex items-center gap-3">
+            <div className="h-12 px-3.5 py-1.5 rounded-xl bg-white shadow-md flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 border border-white/20">
               <img
-                alt="PSPK Logo Monogram"
-                className="w-full h-full object-contain"
-                src="/images/pspk-logo.png"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.dataset.fallback) {
-                    target.dataset.fallback = "true";
-                    target.src =
-                      "https://lh3.googleusercontent.com/aida/AEtjO1X2Y-r2loLeUuBwqlHaZoq9t68fFcf1AWz2PeodD3-vWrMPB4rYktV4GejyIjDqF7wAqcXLuzt5TKfS_VLcjmTVtZNYrvuPpad7UyM95eHD0ZZjZE4upc9h9Srf64tFa7t1yJmSbHpdpSngAzk4ELwtcPIfpIN3rNxNbY4mEziQqRdTCc4tEviFPPD5WOLkaQix_GdBEaRLpwHNEj4VVxEVFcplPC307dKB96E-xkL9L-2wytejg7loIt8";
-                  }
-                }}
+                alt="Logo Resmi PSPK"
+                className="h-8 w-auto object-contain"
+                src="/images/logo_pspk_horizontal_trimmed.png"
               />
             </div>
+            <div className="h-8 w-px bg-white/20" />
             <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-base tracking-wide text-white uppercase leading-tight font-bold">PSPK</span>
-                <span className="text-xs text-white/40">•</span>
-                <span
-                  key={activeTab}
-                  className={`text-xs font-semibold uppercase tracking-wider transition-all duration-300 animate-in fade-in slide-in-from-left-2 ${
-                    isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"
-                  }`}
-                >
-                  {isHris ? "HRIS Portal" : "System Management"}
-                </span>
-              </div>
-              <span className="text-[10px] text-white/60 tracking-widest uppercase font-semibold">
+              <span
+                key={activeTab}
+                className={`text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+                  isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"
+                }`}
+              >
+                {isHris ? "HRIS Portal" : "System Management"}
+              </span>
+              <span className="text-[10px] text-white/70 tracking-wider uppercase font-medium">
                 Platform Tata Kelola Terpadu
               </span>
             </div>
@@ -402,6 +391,24 @@ export function LoginPage({
 
             {/* Card Header */}
             <div className="mb-6">
+              {/* Mobile-only Brand Header */}
+              <div className="lg:hidden flex items-center justify-between mb-5 pb-4 border-b border-[#e6eeff]">
+                <div className="h-10 px-3 py-1 bg-white border border-[#c8d8f0] rounded-xl shadow-xs inline-flex items-center">
+                  <img
+                    src="/images/logo_pspk_horizontal_trimmed.png"
+                    alt="Logo PSPK"
+                    className="h-6 w-auto object-contain"
+                  />
+                </div>
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                    isHris ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dbeafe] text-[#1e40af]"
+                  }`}
+                >
+                  {isHris ? "HRIS Portal" : "System Management"}
+                </span>
+              </div>
+
               <div className="flex items-center gap-2">
                 <span className={`w-2 h-2 rounded-full transition-colors duration-300 ${isHris ? "bg-[#f2af3e]" : "bg-[#60a5fa]"}`}></span>
                 <span className={`text-[11px] font-bold tracking-widest uppercase transition-colors duration-300 ${isHris ? "text-[#805600]" : "text-[#102e50]"}`}>

@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -63,29 +64,30 @@ export function AppSidebar({
     >
       <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
         {/* Brand Header */}
-        <div className="h-16 px-4 flex items-center gap-3 bg-[#0c233d]/40 border-b border-white/10">
-          <div className="w-9 h-9 rounded-lg bg-white p-1 shadow-sm flex items-center justify-center shrink-0">
-            <img
-              alt="Logo PSPK"
-              className="w-full h-full object-contain"
-              src="/images/pspk-logo.png"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (!target.dataset.fallback) {
-                  target.dataset.fallback = "true";
-                  target.src =
-                    "https://lh3.googleusercontent.com/aida/AEtjO1X2Y-r2loLeUuBwqlHaZoq9t68fFcf1AWz2PeodD3-vWrMPB4rYktV4GejyIjDqF7wAqcXLuzt5TKfS_VLcjmTVtZNYrvuPpad7UyM95eHD0ZZjZE4upc9h9Srf64tFa7t1yJmSbHpdpSngAzk4ELwtcPIfpIN3rNxNbY4mEziQqRdTCc4tEviFPPD5WOLkaQix_GdBEaRLpwHNEj4VVxEVFcplPC307dKB96E-xkL9L-2wytejg7loIt8";
-                }
-              }}
-            />
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col overflow-hidden">
-              <span className="font-bold text-base leading-tight text-white tracking-wide">
-                PSPK
-              </span>
-              <span className="text-[10px] leading-tight text-[#ffddb0] uppercase tracking-wider truncate font-semibold">
-                Portal HRIS Lembaga
+        <div className="h-16 px-3.5 flex items-center justify-center bg-[#0c233d]/40 border-b border-white/10">
+          {isCollapsed ? (
+            <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm border border-white/20 flex items-center justify-center shrink-0">
+              <Image
+                alt="Logo PSPK"
+                className="w-full h-full object-contain"
+                src="/images/logo_pspk_circle_trimmed.png"
+                width={36}
+                height={36}
+                priority
+              />
+            </div>
+          ) : (
+            <div className="h-11 px-3 py-1 bg-white rounded-xl shadow-xs border border-white/15 flex items-center justify-between w-full transition-all">
+              <Image
+                alt="Pusat Studi Pendidikan dan Kebijakan"
+                className="h-7 w-auto object-contain"
+                src="/images/logo_pspk_horizontal_trimmed.png"
+                width={170}
+                height={28}
+                priority
+              />
+              <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">
+                HRIS
               </span>
             </div>
           )}
