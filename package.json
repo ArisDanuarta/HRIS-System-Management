@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "clean": "rm -rf apps/*/.next .turbo apps/*/.turbo packages/*/.turbo",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "vitest run",
