@@ -452,6 +452,43 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Layar P-C2 — Profil Saya & Keamanan Akun (`/profil` — Semua Role)
+- **Status:** Selesai (Completed)
+- **Sumber Desain:** Blueprint & Panduan Desain PSPK (Layar P-C2 — Profil Pengguna, Ganti Kata Sandi, & Keamanan Sesi)
+- **Deskripsi:** Halaman profil terpadu untuk semua peran (Staf Karyawan, Manajer, Admin HR, Super Admin) yang dapat diakses langsung dari menu navigasi profil pengguna (`UserNav`).
+- **Implementasi:**
+  - **Endpoint & Routing**:
+    - URL: `http://localhost:3001/profil` (in-shell protected route di `apps/hris/src/app/(app)/profil/page.tsx` & `loading.tsx`).
+    - Sinkronisasi URL Hash: navigasi tab otomatis membaca dan memperbarui hash (`#identitas`, `#keamanan`, `#sesi`). Tautan cepat dropdown *"Ganti Kata Sandi"* (`/profil#keamanan`) langsung membuka formulir keamanan.
+  - **Komponen & Desain**:
+    - **Header Profil**: Banner gradient PSPK Navy (`#102E50`), container avatar dengan tombol unggah foto kamera interaktif, nama lengkap Lora, email resmi, jabatan, departemen, serta deretan lencana peran sistem RBAC.
+    - **Tab 1: Identitas & Kepegawaian** (`ProfileInfoTab`):
+      - Kartu resmi kepegawaian PSPK: NIP, nama lengkap KTP/SK, nama panggilan, email kerja, nomor kontak WhatsApp, departemen/divisi riset, jabatan/posisi, jenis hubungan kerja (PKWTT/PKWT/Magang), status kepegawaian, tanggal bergabung (*join date*), dan penghitungan otomatis masa kerja (tenure).
+      - Kartu akun sistem & RBAC: email login, status akun, tanggal pendaftaran, dan daftar wewenang/peran.
+      - Penanganan khusus untuk akun pengelola murni tanpa data kepegawaian internal HRIS dengan kartu penjelasan yang informatif.
+    - **Tab 2: Keamanan & Kata Sandi** (`ChangePasswordTab`):
+      - Formulir ganti kata sandi dengan input sandi saat ini, sandi baru, dan konfirmasi sandi dengan tombol tampilkan/sembunyikan (*toggle visibility*).
+      - *Password Strength Meter*: Visualisasi kekuatan kata sandi 4 tingkat (*Lemah*, *Cukup*, *Kuat*, *Sangat Kuat*) dengan indikator warna dinamis.
+      - *Security Criteria Checklist* Real-time: Minimal 12 karakter, huruf besar & kecil, angka, karakter simbol khusus, dan kecocokan konfirmasi sandi.
+      - Fitur Pemutusan Sesi Otomatis: Mengubah kata sandi secara otomatis memutuskan seluruh sesi aktif di perangkat lain (*revoke other sessions*) demi keamanan akun.
+    - **Tab 3: Riwayat Sesi Aktif** (`SessionHistoryTab`):
+      - Menampilkan seluruh sesi aktif dari tabel `core.sessions`.
+      - Pengurai User-Agent cerdas: Mendeteksi jenis perangkat (Laptop/Desktop vs Ponsel Pintar), sistem operasi (macOS, Windows, Linux, Android, iOS), dan peramban web (Chrome, Safari, Firefox, Edge, Opera).
+      - Menampilkan alamat IP klien, waktu login awal (*relative & exact*), masa berlaku sesi, dan badge pembeda hijau *"Sesi Perangkat Ini"* vs *"Perangkat Terhubung"*.
+    - **Unggah & Ganti Foto Profil Langsung**:
+      - Server Action `uploadAvatarAction` menerima berkas gambar (JPG, PNG, WEBP hingga 2MB), menyimpannya via `StorageProvider` (`avatars/...`), memperbarui `user.image` serta `employee.photoKey`, dan mencatat audit trail `UPDATE UserAvatar`.
+      - Endpoint dokumen `apps/hris/src/app/api/documents/[...path]/route.ts` dikonfigurasi melayani berkas gambar dengan Content-Type yang tepat.
+  - **Audit Log Terpusat**:
+    - Setiap pergantian kata sandi dicatat ke `core.audit_logs` dengan aksi `UPDATE` pada entitas `UserPassword` (`event: USER_CHANGE_PASSWORD`).
+    - Setiap penggantian foto avatar dicatat ke `core.audit_logs` dengan aksi `UPDATE` pada entitas `UserAvatar`.
+  - **Hasil Uji & Kualitas (Quality Gate)**:
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
+    - `pnpm lint`: Lolos (0 error).
+    - `pnpm test`: Lolos (37 unit tests hijau).
+    - `pnpm build`: Standalone build Next.js sukses 100% untuk `@pspk/hris` (termasuk rute dinamis `/profil`).
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

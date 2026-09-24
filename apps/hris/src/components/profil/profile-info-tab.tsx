@@ -188,7 +188,7 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
                   Status Ikatan Kerja
                 </span>
                 <div className="px-3.5 py-2.5 rounded-xl bg-[#f8fafd] border border-[#dee9fc]/60 text-sm font-semibold text-[#121c2a]">
-                  {getEmploymentTypeLabel(employee.employmentType)}
+                  {getEmploymentTypeLabel(employee.employmentType ?? undefined)}
                 </div>
               </div>
 
@@ -209,10 +209,10 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
               <div className="space-y-1.5">
                 <span className="text-xs font-semibold text-[#74777f] uppercase tracking-wider flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-[#102e50]" />
-                  Tanggal Bergabung (Hire Date)
+                  Tanggal Bergabung (Join Date)
                 </span>
                 <div className="px-3.5 py-2.5 rounded-xl bg-[#f8fafd] border border-[#dee9fc]/60 text-sm font-semibold text-[#121c2a]">
-                  {employee.hireDate ? formatDate(employee.hireDate) : "-"}
+                  {employee.joinDate ? formatDate(employee.joinDate) : "-"}
                 </div>
               </div>
 
@@ -223,7 +223,7 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
                   Masa Kerja Terhitung
                 </span>
                 <div className="px-3.5 py-2.5 rounded-xl bg-[#eff4ff]/60 border border-[#dee9fc] text-sm font-bold text-[#102e50]">
-                  {calculateTenure(employee.hireDate)}
+                  {calculateTenure(employee.joinDate)}
                 </div>
               </div>
             </div>

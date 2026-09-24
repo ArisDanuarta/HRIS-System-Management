@@ -72,11 +72,13 @@ export async function changePasswordAction(data: ChangePasswordInput) {
 
     // Catat log audit
     await writeAudit({
-      actorId: session.user.id,
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
       action: "UPDATE",
-      targetType: "UserPassword",
-      targetId: session.user.id,
-      metadata: {
+      entityType: "UserPassword",
+      entityId: session.user.id,
+      after: {
         event: "USER_CHANGE_PASSWORD",
         revokedOtherSessions: true,
       },
@@ -167,17 +169,20 @@ export async function uploadAvatarAction(formData: FormData) {
     // Update foto di tabel hris.employees bila ada
     await prisma.employee.updateMany({
       where: { userId: session.user.id },
-      data: { avatarUrl },
+      data: { photoKey: key },
     });
 
     // Audit log
     await writeAudit({
-      actorId: session.user.id,
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
       action: "UPDATE",
-      targetType: "UserAvatar",
-      targetId: session.user.id,
-      metadata: {
+      entityType: "UserAvatar",
+      entityId: session.user.id,
+      after: {
         avatarUrl,
+        photoKey: key,
         sizeBytes: file.size,
       },
     });

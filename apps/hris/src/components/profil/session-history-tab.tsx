@@ -8,7 +8,6 @@ import {
   Clock,
   ShieldAlert,
   ShieldCheck,
-  CheckCircle2,
   Calendar,
   Layers,
 } from "lucide-react";

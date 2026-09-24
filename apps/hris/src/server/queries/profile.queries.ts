@@ -29,9 +29,9 @@ export interface UserProfileData {
     workEmail: string;
     phone: string | null;
     avatarUrl: string | null;
-    employmentType: string;
+    employmentType: string | null;
     status: string;
-    hireDate: string | null;
+    joinDate: string | null;
     department: string | null;
     position: string | null;
   } | null;
@@ -66,6 +66,15 @@ export async function getCurrentUserProfile(
           currentPosition: {
             select: { title: true },
           },
+          contracts: {
+            where: { status: "ACTIVE" },
+            take: 1,
+            include: {
+              employmentTypeMaster: {
+                select: { name: true },
+              },
+            },
+          },
         },
       },
       sessions: {
@@ -84,11 +93,19 @@ export async function getCurrentUserProfile(
 
   if (!user) return null;
 
+  const activeContract = user.employee?.contracts?.[0];
+  const employmentType =
+    activeContract?.employmentTypeMaster?.name || activeContract?.type || null;
+
+  const employeeAvatar = user.employee?.photoKey
+    ? `/api/documents/${user.employee.photoKey}`
+    : null;
+
   return {
     id: user.id,
     name: user.name,
     email: user.email,
-    image: user.image,
+    image: user.image || employeeAvatar,
     isActive: user.isActive,
     createdAt: user.createdAt.toISOString(),
     roles: user.roles.map((r) => ({
@@ -103,10 +120,10 @@ export async function getCurrentUserProfile(
           nickname: user.employee.nickname,
           workEmail: user.employee.workEmail,
           phone: user.employee.phone,
-          avatarUrl: user.employee.avatarUrl,
-          employmentType: user.employee.employmentType,
+          avatarUrl: employeeAvatar || user.image,
+          employmentType,
           status: user.employee.status,
-          hireDate: user.employee.hireDate ? user.employee.hireDate.toISOString() : null,
+          joinDate: user.employee.joinDate ? user.employee.joinDate.toISOString() : null,
           department: user.employee.currentDepartment?.name ?? null,
           position: user.employee.currentPosition?.title ?? null,
         }

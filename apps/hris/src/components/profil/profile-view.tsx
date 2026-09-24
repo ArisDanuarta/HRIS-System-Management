@@ -1,17 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useTransition } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   User,
-  ShieldCheck,
   KeyRound,
   Layers,
   Camera,
   Loader2,
   CheckCircle2,
   AlertCircle,
-  Building2,
-  Briefcase,
   Sparkles,
 } from "lucide-react";
 import { ProfileInfoTab } from "./profile-info-tab";

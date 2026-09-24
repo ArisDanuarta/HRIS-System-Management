@@ -254,11 +254,11 @@
 ## 7. Modul 6: Layanan Pendukung (Notifikasi & Profil Akun)
 
 ### 7.1 Profil Saya & Keamanan Akun (`/profil`) — Layar C2
-* **Aktor:** Seluruh Pegawai.
-* **Fitur yang Perlu Dibuat:**
-  - [ ] Halaman profil pribadi: melihat biodata resmi dan mengunggah foto avatar profil.
-  - [ ] Tab Keamanan: Formulir ubah kata sandi akun (validasi kata sandi saat ini & konfirmasi kata sandi baru).
-  - [ ] Riwayat sesi login aktif pada perangkat yang digunakan.
+* **Aktor:** Seluruh Pegawai (Semua Role).
+* **Fitur yang Telah Dibuat:**
+  - [x] Halaman profil pribadi: melihat biodata resmi dan mengunggah foto avatar profil langsung dari perangkat.
+  - [x] Tab Keamanan: Formulir ubah kata sandi akun (validasi kata sandi saat ini & konfirmasi kata sandi baru, meter kekuatan sandi, kriteria keamanan real-time, dan pemutusan otomatis sesi perangkat lain).
+  - [x] Riwayat sesi login aktif pada perangkat yang digunakan dengan parser user-agent cerdas dan pembeda sesi aktif saat ini.
 
 ### 7.2 Pusat Notifikasi In-App (`/notifikasi`) — Layar C3
 * **Aktor:** Seluruh Pegawai (Semua Role).
@@ -330,7 +330,7 @@ apps/hris/src/
 | 11 | **Struktur Organisasi (Org-Chart)**| `/karyawan/struktur` | `hris.employee.read:all` | **P2 (Fase 2)** | ✅ Selesai |
 | 12 | **Wizard Impor Excel Pegawai** | `/karyawan/impor` | `hris.employee.import:all` | **P2 (Fase 2)** | ✅ Selesai |
 | 13 | **Pusat Notifikasi & Bell (P-C3)**| `/notifikasi` | Autentikasi Sesi Valid | **P2 (Fase 2)** | ✅ Selesai |
-| 14 | **Profil Akun & Keamanan** | `/profil` | Autentikasi Sesi Valid | **P2 (Fase 2)** | Mengantri |
+| 14 | **Profil Akun & Keamanan** | `/profil` | Autentikasi Sesi Valid | **P2 (Fase 2)** | ✅ Selesai |
 | 15 | **Periode Payroll & Kalkulasi** | `/payroll` | `hris.payroll.read:all` | **P3 (Fase 4)** | ✅ Selesai |
 | 16 | **Komponen Gaji Pegawai** | `/payroll/komponen/[id]` | `hris.payroll.manage:all` | **P3 (Fase 4)** | ✅ Selesai |
 | 17 | **Slip Gaji Mandiri Staf (PDF)** | `/slip-gaji` | `hris.payslip.read:own` | **P3 (Fase 4)** | ✅ Selesai |
