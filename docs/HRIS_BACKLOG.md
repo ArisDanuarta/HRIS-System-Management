@@ -261,10 +261,21 @@
   - [ ] Riwayat sesi login aktif pada perangkat yang digunakan.
 
 ### 7.2 Pusat Notifikasi In-App (`/notifikasi`) — Layar C3
-* **Aktor:** Seluruh Pegawai.
-* **Fitur yang Perlu Dibuat:**
-  - [ ] Halaman daftar seluruh notifikasi masuk (Persetujuan cuti, pengingat presensi, pengumuman payroll, pengingat kontrak).
-  - [ ] Fitur tandai semua telah dibaca (*Mark all as read*).
+* **Aktor:** Seluruh Pegawai (Semua Role).
+* **Fitur yang Telah Dibuat:**
+  - [x] Dropdown interaktif di navbar topbar (`NotificationBell`) dengan unread badge merah berdenyut, panel pratinjau 5 notifikasi terbaru, dan tombol tandai semua dibaca.
+  - [x] Halaman pusat notifikasi mandiri (`/notifikasi`):
+    - Pengelompokan kronologis ("Hari Ini", "Kemarin", "Sebelumnya").
+    - Filter status ("Semua", "Belum Dibaca") & filter kategori (Cuti, Presensi, Penggajian, Kinerja, Kontrak, Sistem).
+    - Bilah pencarian instan (judul & pesan).
+    - Kartu metrik ringkasan (Total, Belum Dibaca, Cuti/Presensi, Payroll/Kinerja).
+    - Tombol "Tandai Semua Dibaca" & aksi per-item "Tandai Dibaca" dengan optimistic UI update.
+    - Tautan navigasi langsung (*deep link*) ke dokumen terkait (mis. `/cuti`, `/kinerja`, `/slip-gaji`).
+  - [x] Pemicu (*triggers*) otomatis dari modul:
+    - Pengajuan cuti baru $\to$ notifikasi ke Manajer & Admin HR.
+    - Persetujuan/penolakan cuti $\to$ notifikasi ke Pegawai pemohon.
+    - Publikasi slip gaji $\to$ notifikasi ke seluruh penerima slip.
+    - Pembukaan periode kinerja & finalisasi review $\to$ notifikasi ke pegawai.
 
 ---
 
@@ -280,17 +291,22 @@ apps/hris/src/
 │  │  ├─ attendance.service.ts   # Check-in/out waktu server, rekapitulasi, koreksi HR
 │  │  ├─ leave.service.ts        # Hitung hari kerja, cek saldo, approval workflow
 │  │  ├─ payroll.service.ts      # Kalkulasi gaji, snapshot slip gaji, locking
-│  │  └─ performance.service.ts  # Penetapan OKR & form penilaian kinerja
+│  │  ├─ performance.service.ts  # Penetapan OKR & form penilaian kinerja
+│  │  └─ notification.service.ts # Pengiriman notifikasi & pembaruan status baca
 │  ├─ actions/                   # Next.js Server Actions (Zod -> assertCan -> Service -> Audit)
 │  │  ├─ employee.actions.ts
 │  │  ├─ attendance.actions.ts
 │  │  ├─ leave.actions.ts
-│  │  └─ payroll.actions.ts
+│  │  ├─ payroll.actions.ts
+│  │  ├─ performance.actions.ts
+│  │  └─ notification.actions.ts
 │  └─ queries/                   # Database Queries Cepat untuk Server Components
 │     ├─ employee.queries.ts
 │     ├─ attendance.queries.ts
 │     ├─ leave.queries.ts
-│     └─ payroll.queries.ts
+│     ├─ payroll.queries.ts
+│     ├─ performance.queries.ts
+│     └─ notification.queries.ts
 └─ app/api/
    └─ files/[...key]/route.ts    # Secure authenticated file streaming (StorageProvider)
 ```
@@ -299,22 +315,24 @@ apps/hris/src/
 
 ## 9. Tabel Matriks Backlog, Rute, Permission & Prioritas
 
-| No | Modul & Fitur | Target Rute | Permission Minimum (`@pspk/rbac`) | Prioritas Pengerjaan |
-| :---: | :--- | :--- | :--- | :---: |
-| 1 | **Daftar Karyawan** | `/karyawan` | `hris.employee.read:all` / `:team` | **P1 (Fase 2)** |
-| 2 | **Detail Profil Karyawan** | `/karyawan/[id]` | `hris.employee.read:own` / `:all` | **P1 (Fase 2)** |
-| 3 | **Form Tambah & Edit Karyawan** | `/karyawan/baru` | `hris.employee.write:all` | **P1 (Fase 2)** |
-| 4 | **Absensi Mandiri (Check-in/out)**| `/absensi` | `hris.attendance.read:own` | **P1 (Fase 2)** |
-| 5 | **Rekap Presensi & Koreksi HR** | `/absensi/rekap` | `hris.attendance.read:team` / `:all` | **P1 (Fase 2)** |
-| 6 | **Cuti Saya & Riwayat** | `/cuti` | `hris.leave.read:own` | **P1 (Fase 2)** |
-| 7 | **Formulir Ajukan Cuti** | `/cuti/ajukan` | `hris.leave.create:own` | **P1 (Fase 2)** |
-| 8 | **Persetujuan Cuti Manajer** | `/cuti/persetujuan` | `hris.leave.approve:team` / `:all` | **P1 (Fase 2)** |
-| 9 | **Kalender Cuti Bersama** | `/cuti/kalender` | `hris.leave.read:team` | **P2 (Fase 2)** |
-| 10 | **Pengaturan Tipe Cuti & Libur** | `/cuti/pengaturan` | `hris.leave.configure:all` | **P2 (Fase 2)** |
-| 11 | **Struktur Organisasi (Org-Chart)**| `/karyawan/struktur` | `hris.employee.read:all` | **P2 (Fase 2)** |
-| 12 | **Wizard Impor Excel Pegawai** | `/karyawan/impor` | `hris.employee.import:all` | **P2 (Fase 2)** |
-| 13 | **Profil Akun & Keamanan** | `/profil` | Autentikasi Sesi Valid | **P2 (Fase 2)** |
-| 14 | **Periode Payroll & Kalkulasi** | `/payroll` | `hris.payroll.read:all` | **P3 (Fase 4)** |
-| 15 | **Komponen Gaji Pegawai** | `/payroll/komponen/[id]` | `hris.payroll.manage:all` | **P3 (Fase 4)** |
-| 16 | **Slip Gaji Mandiri Staf (PDF)** | `/slip-gaji` | `hris.payslip.read:own` | **P3 (Fase 4)** |
-| 17 | **Evaluasi Kinerja & KPI** | `/kinerja` | `hris.performance.read:own` | **P3 (Fase 4)** |
+| No | Modul & Fitur | Target Rute | Permission Minimum (`@pspk/rbac`) | Prioritas Pengerjaan | Status |
+| :---: | :--- | :--- | :--- | :---: | :---: |
+| 1 | **Daftar Karyawan** | `/karyawan` | `hris.employee.read:all` / `:team` | **P1 (Fase 2)** | ✅ Selesai |
+| 2 | **Detail Profil Karyawan** | `/karyawan/[id]` | `hris.employee.read:own` / `:all` | **P1 (Fase 2)** | ✅ Selesai |
+| 3 | **Form Tambah & Edit Karyawan** | `/karyawan/baru` | `hris.employee.write:all` | **P1 (Fase 2)** | ✅ Selesai |
+| 4 | **Absensi Mandiri (Check-in/out)**| `/absensi` | `hris.attendance.read:own` | **P1 (Fase 2)** | ✅ Selesai |
+| 5 | **Rekap Presensi & Koreksi HR** | `/absensi/rekap` | `hris.attendance.read:team` / `:all` | **P1 (Fase 2)** | ✅ Selesai |
+| 6 | **Cuti Saya & Riwayat** | `/cuti` | `hris.leave.read:own` | **P1 (Fase 2)** | ✅ Selesai |
+| 7 | **Formulir Ajukan Cuti** | `/cuti/ajukan` | `hris.leave.create:own` | **P1 (Fase 2)** | ✅ Selesai |
+| 8 | **Persetujuan Cuti Manajer** | `/cuti/persetujuan` | `hris.leave.approve:team` / `:all` | **P1 (Fase 2)** | ✅ Selesai |
+| 9 | **Kalender Cuti Bersama** | `/cuti/kalender` | `hris.leave.read:team` | **P2 (Fase 2)** | ✅ Selesai |
+| 10 | **Pengaturan Tipe Cuti & Libur** | `/cuti/pengaturan` | `hris.leave.configure:all` | **P2 (Fase 2)** | ✅ Selesai |
+| 11 | **Struktur Organisasi (Org-Chart)**| `/karyawan/struktur` | `hris.employee.read:all` | **P2 (Fase 2)** | ✅ Selesai |
+| 12 | **Wizard Impor Excel Pegawai** | `/karyawan/impor` | `hris.employee.import:all` | **P2 (Fase 2)** | ✅ Selesai |
+| 13 | **Pusat Notifikasi & Bell (P-C3)**| `/notifikasi` | Autentikasi Sesi Valid | **P2 (Fase 2)** | ✅ Selesai |
+| 14 | **Profil Akun & Keamanan** | `/profil` | Autentikasi Sesi Valid | **P2 (Fase 2)** | Mengantri |
+| 15 | **Periode Payroll & Kalkulasi** | `/payroll` | `hris.payroll.read:all` | **P3 (Fase 4)** | ✅ Selesai |
+| 16 | **Komponen Gaji Pegawai** | `/payroll/komponen/[id]` | `hris.payroll.manage:all` | **P3 (Fase 4)** | ✅ Selesai |
+| 17 | **Slip Gaji Mandiri Staf (PDF)** | `/slip-gaji` | `hris.payslip.read:own` | **P3 (Fase 4)** | ✅ Selesai |
+| 18 | **Evaluasi Kinerja & KPI (Admin HR)**| `/kinerja` | `hris.performance.read:own` | **P3 (Fase 4)** | ✅ Selesai |
+

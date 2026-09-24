@@ -259,6 +259,34 @@ export async function publishPayrollAction(input: { periodId: string }) {
       userAgent: actor.userAgent,
     });
 
+    // Kirim notifikasi slip gaji terbit ke seluruh pegawai penerima slip
+    try {
+      const payslips = await prisma.payslip.findMany({
+        where: { periodId: input.periodId },
+        include: { employee: { select: { userId: true } } },
+      });
+
+      const userIds = [
+        ...new Set(payslips.map((p) => p.employee.userId).filter(Boolean)),
+      ] as string[];
+
+      if (userIds.length > 0) {
+        await prisma.notification.createMany({
+          data: userIds.map((userId) => ({
+            userId,
+            title: "Slip Gaji Telah Terbit",
+            message: "Slip gaji resmi Anda telah diterbitkan dan dapat dilihat di portal.",
+            type: "SUCCESS",
+            category: "PAYROLL",
+            link: "/payroll",
+            isRead: false,
+          })),
+        });
+      }
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi publish payroll:", notifErr);
+    }
+
     revalidatePath("/payroll");
     revalidatePath(`/payroll/${input.periodId}`);
 

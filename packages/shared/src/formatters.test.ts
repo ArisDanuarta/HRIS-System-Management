@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatRupiah, formatDate } from "./formatters";
+import { formatRupiah, formatDate, formatRelativeTime } from "./formatters";
 
 describe("formatRupiah", () => {
   it("formats positive numbers correctly", () => {
@@ -29,3 +29,27 @@ describe("formatDate", () => {
     expect(formatDate("invalid-date")).toBe("-");
   });
 });
+
+describe("formatRelativeTime", () => {
+  it("formats just now correctly", () => {
+    const now = new Date();
+    expect(formatRelativeTime(now)).toBe("Baru saja");
+  });
+
+  it("formats minutes ago correctly", () => {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    expect(formatRelativeTime(fiveMinutesAgo)).toBe("5 menit lalu");
+  });
+
+  it("formats hours ago correctly", () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    expect(formatRelativeTime(twoHoursAgo)).toBe("2 jam lalu");
+  });
+
+  it("handles null and invalid dates safely", () => {
+    expect(formatRelativeTime(null)).toBe("-");
+    expect(formatRelativeTime(undefined)).toBe("-");
+    expect(formatRelativeTime("invalid")).toBe("-");
+  });
+});
+

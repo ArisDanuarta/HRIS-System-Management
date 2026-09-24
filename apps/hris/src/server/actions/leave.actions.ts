@@ -26,6 +26,11 @@ import {
   rejectLeaveRequest,
   cancelLeaveRequest,
 } from "../services/leave.service";
+import {
+  createNotification,
+  createNotificationForRole,
+  createNotificationForEmployeeManager,
+} from "../services/notification.service";
 
 async function getAuthenticatedUser(): Promise<{
   userId: string;
@@ -81,6 +86,34 @@ export async function submitLeaveRequestAction(input: CreateLeaveRequestInput) {
     const validated = createLeaveRequestSchema.parse(input);
     const request = await submitLeaveRequest(employeeId, validated, userId);
 
+    // Kirim notifikasi in-app ke atasan langsung dan tim Admin HR
+    try {
+      const emp = await prisma.employee.findUnique({
+        where: { id: employeeId },
+        select: { fullName: true },
+      });
+      const empName = emp?.fullName || "Pegawai";
+
+      await Promise.all([
+        createNotificationForEmployeeManager(employeeId, {
+          title: "Pengajuan Cuti Baru",
+          message: `${empName} mengajukan permohonan cuti baru. Silakan tinjau di portal persetujuan.`,
+          type: "ACTION_REQUIRED",
+          category: "LEAVE",
+          link: "/cuti/persetujuan",
+        }),
+        createNotificationForRole("admin_hr", {
+          title: "Permohonan Cuti Masuk",
+          message: `${empName} mengajukan permohonan cuti baru.`,
+          type: "INFO",
+          category: "LEAVE",
+          link: "/cuti/persetujuan",
+        }),
+      ]);
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi cuti:", notifErr);
+    }
+
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");
     revalidatePath("/cuti/kalender");
@@ -122,6 +155,30 @@ export async function approveLeaveRequestAction(input: ApproveLeaveRequestInput)
       validated.decisionNote,
     );
 
+    // Kirim notifikasi ke pegawai pemohon
+    try {
+      const leaveReq = await prisma.leaveRequest.findUnique({
+        where: { id: validated.leaveRequestId },
+        include: {
+          employee: { select: { userId: true } },
+          leaveType: { select: { name: true } },
+        },
+      });
+
+      if (leaveReq?.employee?.userId) {
+        await createNotification({
+          userId: leaveReq.employee.userId,
+          title: "Pengajuan Cuti Disetujui",
+          message: `Permohonan cuti (${leaveReq.leaveType.name}) Anda telah disetujui.`,
+          type: "SUCCESS",
+          category: "LEAVE",
+          link: "/cuti",
+        });
+      }
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi persetujuan cuti:", notifErr);
+    }
+
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");
     revalidatePath("/cuti/kalender");
@@ -162,6 +219,30 @@ export async function rejectLeaveRequestAction(input: RejectLeaveRequestInput) {
       employeeId,
       validated.decisionNote,
     );
+
+    // Kirim notifikasi ke pegawai pemohon
+    try {
+      const leaveReq = await prisma.leaveRequest.findUnique({
+        where: { id: validated.leaveRequestId },
+        include: {
+          employee: { select: { userId: true } },
+          leaveType: { select: { name: true } },
+        },
+      });
+
+      if (leaveReq?.employee?.userId) {
+        await createNotification({
+          userId: leaveReq.employee.userId,
+          title: "Pengajuan Cuti Ditolak",
+          message: `Permohonan cuti (${leaveReq.leaveType.name}) Anda ditolak. Catatan: ${validated.decisionNote || "-"}`,
+          type: "WARNING",
+          category: "LEAVE",
+          link: "/cuti",
+        });
+      }
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi penolakan cuti:", notifErr);
+    }
 
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");

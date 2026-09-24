@@ -86,6 +86,38 @@ export async function createPerformancePeriodAction(rawData: unknown) {
       userAgent: actor.userAgent,
     });
 
+    // Kirim notifikasi in-app ke seluruh pegawai aktif bahwa siklus evaluasi dibuka
+    try {
+      const activeUsers = await prisma.employee.findMany({
+        where: {
+          status: { in: ["ACTIVE", "PROBATION"] },
+          deletedAt: null,
+          userId: { not: null },
+        },
+        select: { userId: true },
+      });
+
+      const userIds = [
+        ...new Set(activeUsers.map((u) => u.userId).filter(Boolean)),
+      ] as string[];
+
+      if (userIds.length > 0) {
+        await prisma.notification.createMany({
+          data: userIds.map((userId) => ({
+            userId,
+            title: "Periode Kinerja Dibuka",
+            message: `Siklus evaluasi "${period.name}" telah dibuka. Harap menyusun sasaran riset & OKR Anda.`,
+            type: "INFO",
+            category: "PERFORMANCE",
+            link: "/kinerja",
+            isRead: false,
+          })),
+        });
+      }
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi pembukaan periode kinerja:", notifErr);
+    }
+
     revalidatePath("/kinerja");
     return { success: true, data: period };
   } catch (error) {
@@ -203,6 +235,30 @@ export async function finalizePerformanceReviewAction(rawData: unknown) {
       ip: actor.ip,
       userAgent: actor.userAgent,
     });
+
+    // Kirim notifikasi in-app hasil penilaian ke pegawai terkait
+    try {
+      const emp = await prisma.employee.findUnique({
+        where: { id: existing.employeeId },
+        select: { userId: true },
+      });
+
+      if (emp?.userId) {
+        await prisma.notification.create({
+          data: {
+            userId: emp.userId,
+            title: "Evaluasi Kinerja Difinalisasi",
+            message: `Penilaian kinerja Anda telah resmi disahkan dengan skor akhir ${updated.finalScore}.`,
+            type: "SUCCESS",
+            category: "PERFORMANCE",
+            link: "/kinerja",
+            isRead: false,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi finalisasi kinerja:", notifErr);
+    }
 
     revalidatePath("/kinerja");
     return { success: true, data: updated };

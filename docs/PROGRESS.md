@@ -384,6 +384,42 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Notifikasi Terpadu (Semua Role — Layar P-C3)
+- **Status:** Selesai (Completed)
+- **Sumber Desain:** Stitch AI Screen P-C3 (`md/design_stitch.md`)
+- **Capaian:**
+  - **Prisma Model & Migrasi Skema Core (`core.notifications`)**:
+    - Ditempatkan di skema `core` agar universal dapat diakses oleh Portal HRIS (`apps/hris`) maupun System Management (`apps/sysmgmt`).
+    - Atribut lengkap: `id`, `userId`, `title`, `message`, `type` (`INFO`, `SUCCESS`, `WARNING`, `ACTION_REQUIRED`), `category` (`LEAVE`, `ATTENDANCE`, `PAYROLL`, `CONTRACT`, `PERFORMANCE`, `SYSTEM`), `link`, `isRead`, `createdAt`.
+    - Migrasi `20260924055341_add_notifications` diaplikasikan ke database.
+  - **Dropdown Live Topbar (`NotificationBell`)**:
+    - Terintegrasi di navbar `app-topbar.tsx`.
+    - Badge hitungan notifikasi belum dibaca (*Unread Count Badge*) dengan animasi berdenyut dinamis.
+    - Panel popover memuat 5 notifikasi terbaru, ikon kategori, badge tipe, waktu relatif format Bahasa Indonesia (`formatRelativeTime`), dan tombol "Tandai Semua Dibaca".
+    - Navigasi instan ke halaman penuh via tautan *"Lihat Semua Notifikasi"*.
+  - **Halaman Pusat Notifikasi Mandiri (`/notifikasi` — Layar P-C3)**:
+    - Desain premium mengikuti PSPK Design System (Navy `#102E50`, Gold `#F2AF3E`, Maroon `#A8281C`, font Lora & Rubik).
+    - **Pengelompokan Kronologis**: "Hari Ini", "Kemarin", dan "Sebelumnya" dengan pemisah seksi yang rapi.
+    - **Filter Multi-dimensi**:
+      - Tab status: "Semua" vs "Belum Dibaca".
+      - Filter kategori (pills): Cuti, Presensi, Penggajian, Kinerja, Kontrak, Sistem beserta penghitung dinamis.
+      - Bilah pencarian instan: Filter real-time judul atau isi pesan notifikasi.
+    - **Kartu Metrik Ringkasan**: Total Notifikasi, Belum Dibaca, Cuti/Presensi, dan Payroll/Kinerja.
+    - **Aksi Cepat & Optimistic UI**: Tombol "Tandai Semua Dibaca" dan per-item "Tandai Dibaca" yang memperbarui antarmuka secara instan.
+    - **Deep Linking**: Tautan langsung *"Lihat Dokumen Terkait"* yang mengarahkan pengguna ke modul target (mis. `/cuti`, `/kinerja`, `/slip-gaji`).
+    - **Empty State Elegan**: Tampilan ramah ketika tidak ada notifikasi yang cocok dengan kriteria pencarian/filter.
+  - **Integrasi Pemicu (*Event Triggers*) Lintas Modul**:
+    - *Modul Cuti*: Pengajuan cuti baru mengirim notifikasi `ACTION_REQUIRED` ke Manajer atasan dan Admin HR; Persetujuan/penolakan cuti mengirim notifikasi ke pegawai pemohon.
+    - *Modul Payroll*: Publikasi siklus gaji (`publishPayrollAction`) mengirim notifikasi `SUCCESS` ke seluruh karyawan penerima slip gaji dengan tautan ke `/slip-gaji`.
+    - *Modul Kinerja*: Pembukaan periode review baru mengirim notifikasi ke seluruh staf aktif; Finalisasi evaluasi kinerja mengirim notifikasi ke pegawai terkait.
+  - **Hasil Uji & Kualitas (Quality Gate)**:
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
+    - `pnpm lint`: Lolos (0 error).
+    - `pnpm test`: Lolos (37 unit tests hijau termasuk 4 tes baru untuk `formatRelativeTime`).
+    - `pnpm build`: Standalone build Next.js sukses untuk `@pspk/hris` dan `@pspk/sysmgmt`.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
@@ -396,9 +432,10 @@ pnpm dev
 # System Management: http://localhost:3002
 
 # 3. Jalankan pengujian
-pnpm test          # Menjalankan 29 unit test (Vitest)
+pnpm test          # Menjalankan 37 unit test (Vitest)
 pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
 ```
+
 

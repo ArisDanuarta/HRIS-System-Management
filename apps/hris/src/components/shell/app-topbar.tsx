@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
-import { Bell, ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck } from "lucide-react";
 import { UserNav } from "./user-nav";
+import { NotificationBell } from "./notification-bell";
 import { RoleViewType } from "./app-sidebar";
 
 export interface AppTopbarProps {
@@ -28,7 +29,6 @@ export function AppTopbar({
   onRoleChange,
 }: AppTopbarProps) {
   const pathname = usePathname();
-  const [showNotificationList, setShowNotificationList] = useState(false);
 
   // Derive breadcrumb page title from pathname
   const getPageTitle = () => {
@@ -37,6 +37,7 @@ export function AppTopbar({
       if (currentRole === "manager") return "Persetujuan Cuti Tim";
       return "Profil Saya & Portofolio";
     }
+    if (pathname.startsWith("/notifikasi")) return "Pusat Notifikasi";
     if (pathname.startsWith("/karyawan")) return "Manajemen Karyawan";
     if (pathname.startsWith("/cuti/persetujuan")) return "Persetujuan Cuti Tim";
     if (pathname.startsWith("/cuti")) return "Kehadiran & Cuti";
@@ -118,50 +119,8 @@ export function AppTopbar({
 
       {/* Right: Notifications & UserNav */}
       <div className="flex items-center gap-2 sm:gap-3">
-
-        {/* Notification Bell */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setShowNotificationList(!showNotificationList)}
-            aria-label="Notifikasi sistem"
-            className="relative p-2 rounded-lg text-[#43474e] hover:text-[#102e50] hover:bg-[#eff4ff] transition-colors cursor-pointer"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[#ba1a1a] text-white text-[10px] font-bold ring-2 ring-white">
-              3
-            </span>
-          </button>
-
-          {showNotificationList && (
-            <div className="absolute right-0 mt-2 w-72 rounded-xl bg-white shadow-xl border border-[#dee9fc] p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between px-2 py-1.5 border-b border-[#dee9fc]">
-                <span className="text-xs font-bold text-[#102e50]">Pemberitahuan</span>
-                <span className="text-[10px] text-[#f2af3e] font-semibold cursor-pointer hover:underline">
-                  Tandai Dibaca
-                </span>
-              </div>
-              <div className="py-1 flex flex-col gap-1 text-xs">
-                <div className="p-2 rounded-lg hover:bg-[#eff4ff] transition-colors cursor-pointer">
-                  <p className="font-semibold text-[#121c2a] text-[11px] leading-tight">
-                    Pengajuan Cuti: Siti Rahma
-                  </p>
-                  <p className="text-[10px] text-[#74777f] mt-0.5">
-                    Membutuhkan persetujuan manajerial Anda • 2 jam lalu
-                  </p>
-                </div>
-                <div className="p-2 rounded-lg hover:bg-[#eff4ff] transition-colors cursor-pointer">
-                  <p className="font-semibold text-[#121c2a] text-[11px] leading-tight">
-                    Pengingat Kontrak Riset
-                  </p>
-                  <p className="text-[10px] text-[#74777f] mt-0.5">
-                    2 kontrak fixed-term berakhir dalam ≤ 30 hari
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Notification Bell Live Dropdown */}
+        <NotificationBell />
 
         {/* Divider */}
         <div className="h-6 w-px bg-[#dee9fc] hidden sm:block" />
