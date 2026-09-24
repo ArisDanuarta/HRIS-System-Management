@@ -111,13 +111,35 @@ export function ProfileView({ profile }: ProfileViewProps) {
       {/* 1. HEADER PROFILE BANNER */}
       <div className="bg-white rounded-3xl border border-[#dee9fc] shadow-sm overflow-hidden">
         {/* Banner Background */}
-        <div className="h-36 md:h-44 bg-gradient-to-r from-[#102e50] via-[#1b4372] to-[#102e50] relative overflow-hidden">
-          {/* Subtle decorative circles */}
-          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
-          <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-[#f2af3e]/10 blur-xl pointer-events-none" />
-          <div className="absolute bottom-3 right-6 hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-white/90 text-xs font-medium border border-white/15">
+        <div className="h-36 md:h-44 bg-gradient-to-r from-[#f4f7fb] via-[#f8fafd] to-[#eef4fc] border-b border-[#dee9fc] relative overflow-hidden flex items-center justify-center px-6">
+          {/* Subtle decorative dot pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(#102e50_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.035] pointer-events-none" />
+
+          {/* Watermark Logo (faded in background) */}
+          <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-[0.06] pointer-events-none select-none hidden sm:block">
+            <img
+              src="/images/logo_pspk_horizontal_trimmed.png"
+              alt=""
+              className="h-36 w-auto object-contain filter grayscale"
+            />
+          </div>
+
+          {/* Featured PSPK Logo */}
+          <div className="flex flex-col items-center justify-center gap-1.5 sm:ml-28 md:ml-0 z-0">
+            <img
+              src="/images/logo_pspk_horizontal_trimmed.png"
+              alt="Pusat Studi Pendidikan dan Kebijakan"
+              className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-xs"
+            />
+            <span className="text-[11px] font-semibold text-[#74777f] tracking-wider uppercase">
+              Pusat Studi Pendidikan dan Kebijakan
+            </span>
+          </div>
+
+          {/* Top Right Portal Badge */}
+          <div className="absolute top-3.5 right-5 hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-xs text-[#102e50] text-[11px] font-semibold border border-[#dee9fc] shadow-2xs">
             <Sparkles className="w-3.5 h-3.5 text-[#f2af3e]" />
-            <span>Portal Profil & Keamanan PSPK</span>
+            <span>Portal HRIS</span>
           </div>
         </div>
 
