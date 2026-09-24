@@ -7,9 +7,9 @@ export default function ProfilLoading() {
       <div className="bg-white rounded-3xl border border-[#dee9fc] overflow-hidden">
         <div className="h-36 md:h-44 bg-slate-200" />
         <div className="px-6 md:px-8 pb-6 pt-0">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 -mt-16 md:-mt-20">
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-slate-300 border-4 border-white" />
-            <div className="space-y-2 pb-2">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+            <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-slate-300 border-4 border-white -mt-14 md:-mt-16 shrink-0" />
+            <div className="space-y-2 pt-2 sm:pt-3">
               <div className="h-7 w-48 bg-slate-200 rounded-lg" />
               <div className="h-4 w-64 bg-slate-200 rounded-md" />
               <div className="h-5 w-32 bg-slate-200 rounded-md" />

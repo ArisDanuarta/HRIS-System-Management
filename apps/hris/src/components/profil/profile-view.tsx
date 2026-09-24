@@ -123,12 +123,12 @@ export function ProfileView({ profile }: ProfileViewProps) {
 
         {/* User Card Content */}
         <div className="px-6 md:px-8 pb-6 pt-0 relative">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 -mt-16 md:-mt-20">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
             {/* Avatar & Basic Info */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-end gap-5 text-center sm:text-left">
-              {/* Avatar Container with Upload trigger */}
-              <div className="relative group shrink-0">
-                <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#102e50] border-4 border-white shadow-lg overflow-hidden flex items-center justify-center text-white text-3xl font-bold font-heading">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+              {/* Avatar Container with Upload trigger: ONLY this element has negative margin */}
+              <div className="relative group shrink-0 -mt-14 md:-mt-16 z-10">
+                <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#102e50] border-4 border-white shadow-md overflow-hidden flex items-center justify-center text-white text-3xl font-bold font-heading">
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
@@ -164,38 +164,40 @@ export function ProfileView({ profile }: ProfileViewProps) {
                 />
               </div>
 
-              {/* Title & Subtitle */}
-              <div className="space-y-1.5 pb-1">
+              {/* Title & Subtitle: Perfectly positioned on the white background */}
+              <div className="space-y-1.5 pt-2 sm:pt-3">
                 <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                   <h1 className="text-2xl md:text-3xl font-bold text-[#102e50] font-heading tracking-tight">
                     {displayName}
                   </h1>
                 </div>
 
-                <div className="flex items-center justify-center sm:justify-start gap-2 text-xs md:text-sm text-[#74777f] flex-wrap">
-                  <span>{profile.employee?.workEmail || profile.email}</span>
+                <div className="flex items-center justify-center sm:justify-start gap-2 text-xs md:text-sm text-[#475467] flex-wrap">
+                  <span className="font-medium text-[#121c2a]">
+                    {profile.employee?.workEmail || profile.email}
+                  </span>
                   {(department || position) && (
                     <>
-                      <span>•</span>
-                      <span className="font-semibold text-[#121c2a]">
+                      <span className="text-[#98a2b3]">•</span>
+                      <span className="font-semibold text-[#102e50]">
                         {position || "Pegawai"} {department ? `(${department})` : ""}
                       </span>
                     </>
                   )}
                 </div>
 
-                {/* Role badges */}
-                <div className="flex items-center justify-center sm:justify-start gap-1.5 pt-1 flex-wrap">
+                {/* Role badges & NIP */}
+                <div className="flex items-center justify-center sm:justify-start gap-2 pt-1 flex-wrap">
                   {profile.roles.map((r) => (
                     <span
                       key={r.key}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-[#dee9fc] text-[#102e50] border border-[#dee9fc]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-[#eff4ff] text-[#102e50] border border-[#dee9fc]"
                     >
                       {r.name}
                     </span>
                   ))}
                   {profile.employee?.employeeNo && (
-                    <span className="font-mono text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200">
+                    <span className="font-mono text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 font-semibold">
                       NIP: {profile.employee.employeeNo}
                     </span>
                   )}
@@ -203,9 +205,9 @@ export function ProfileView({ profile }: ProfileViewProps) {
               </div>
             </div>
 
-            {/* Quick Status / Hint */}
-            <div className="flex items-center justify-center md:justify-end gap-2 pb-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold">
+            {/* Quick Status / Verified */}
+            <div className="flex items-center justify-center md:justify-end gap-2 pt-2 sm:pt-4">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold shadow-xs">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 Status Akun Terverifikasi
               </span>

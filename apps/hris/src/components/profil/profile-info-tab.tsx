@@ -52,6 +52,7 @@ function getEmploymentTypeLabel(type?: string): string {
     case "PERMANENT":
       return "Karyawan Tetap (PKWTT)";
     case "CONTRACT":
+    case "FIXED_TERM":
       return "Karyawan Kontrak (PKWT)";
     case "INTERN":
       return "Magang (Internship)";
@@ -59,6 +60,8 @@ function getEmploymentTypeLabel(type?: string): string {
       return "Masa Percobaan";
     case "CONSULTANT":
       return "Konsultan Ahli";
+    case "PART_TIME_PROJECT":
+      return "Proyek / Paruh Waktu";
     default:
       return type || "Karyawan";
   }
