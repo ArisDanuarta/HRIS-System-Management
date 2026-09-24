@@ -41,8 +41,15 @@ export async function GET(
       },
     });
 
-    const isPdf = key.toLowerCase().endsWith(".pdf");
-    const contentType = file.contentType || (isPdf ? "application/pdf" : "application/octet-stream");
+    const lowerKey = key.toLowerCase();
+    let contentType = file.contentType;
+    if (!contentType) {
+      if (lowerKey.endsWith(".pdf")) contentType = "application/pdf";
+      else if (lowerKey.endsWith(".png")) contentType = "image/png";
+      else if (lowerKey.endsWith(".jpg") || lowerKey.endsWith(".jpeg")) contentType = "image/jpeg";
+      else if (lowerKey.endsWith(".webp")) contentType = "image/webp";
+      else contentType = "application/octet-stream";
+    }
 
     return new Response(webStream, {
       status: 200,
