@@ -139,6 +139,7 @@ export function SysmgmtNavbar({ user }: SysmgmtNavbarProps) {
               currentApp="sysmgmt"
               hrisUrl="http://localhost:3001"
               sysmgmtUrl="http://localhost:3002"
+              userRoleName={user.roleName}
             />
 
             {/* Profil Dropdown */}

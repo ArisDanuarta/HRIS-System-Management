@@ -16,6 +16,7 @@ export interface ShellContainerProps {
   employeeCount?: number;
   pendingLeavesCount?: number;
   isSuperAdmin?: boolean;
+  canAccessSysmgmt?: boolean;
   children: React.ReactNode;
 }
 
@@ -25,6 +26,7 @@ export function ShellContainer({
   employeeCount,
   pendingLeavesCount,
   isSuperAdmin = false,
+  canAccessSysmgmt = false,
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -65,6 +67,7 @@ export function ShellContainer({
         currentRole={currentRole}
         isCollapsed={isCollapsed}
         isSuperAdmin={isSuperAdmin}
+        canAccessSysmgmt={canAccessSysmgmt}
         onRoleChange={isSuperAdmin ? handleRoleChange : undefined}
       />
 

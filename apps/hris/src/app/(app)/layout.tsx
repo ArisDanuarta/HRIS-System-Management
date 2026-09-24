@@ -29,6 +29,7 @@ export default async function AppProtectedLayout({
   // Map roles to determine primary view mode
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
   const isSuperAdmin = roleKeys.includes("super_admin");
+  const canAccessSysmgmt = isSuperAdmin || roleKeys.includes("admin_it");
 
   const cookieStore = await cookies();
   const previewCookie = cookieStore.get("pspk_role_view")?.value;
@@ -71,6 +72,7 @@ export default async function AppProtectedLayout({
       employeeCount={activeEmployeeCount}
       pendingLeavesCount={pendingLeavesCount}
       isSuperAdmin={isSuperAdmin}
+      canAccessSysmgmt={canAccessSysmgmt}
     >
       {children}
     </ShellContainer>

@@ -3,6 +3,7 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { ChevronRight, ShieldCheck } from "lucide-react";
+import { AppSwitcher } from "@pspk/ui";
 import { UserNav } from "./user-nav";
 import { NotificationBell } from "./notification-bell";
 import { RoleViewType } from "./app-sidebar";
@@ -18,6 +19,7 @@ export interface AppTopbarProps {
   currentRole?: RoleViewType;
   isCollapsed: boolean;
   isSuperAdmin?: boolean;
+  canAccessSysmgmt?: boolean;
   onRoleChange?: (role: RoleViewType) => void;
 }
 
@@ -26,6 +28,7 @@ export function AppTopbar({
   currentRole = "admin_hr",
   isCollapsed,
   isSuperAdmin = false,
+  canAccessSysmgmt = false,
   onRoleChange,
 }: AppTopbarProps) {
   const pathname = usePathname();
@@ -117,8 +120,18 @@ export function AppTopbar({
         </div>
       )}
 
-      {/* Right: Notifications & UserNav */}
+      {/* Right: AppSwitcher, Notifications & UserNav */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* App Switcher (HRIS <-> SysMgmt) */}
+        <AppSwitcher
+          currentApp="hris"
+          canAccessSysmgmt={canAccessSysmgmt}
+          userRoleName={user.roleName}
+        />
+
+        {/* Divider */}
+        <div className="h-6 w-px bg-[#dee9fc] hidden sm:block" />
+
         {/* Notification Bell Live Dropdown */}
         <NotificationBell />
 
