@@ -149,7 +149,15 @@ export async function getPayrollPeriodById(periodId: string) {
             : null,
         }
       : null,
-    employee: p.employee,
+    employee: {
+      id: p.employee.id,
+      employeeNo: p.employee.employeeNo,
+      fullName: p.employee.fullName,
+      bankName: p.employee.bankName,
+      bankAccountEnc: p.employee.bankAccountEnc,
+      currentDepartment: p.employee.currentDepartment,
+      currentPosition: p.employee.currentPosition,
+    },
     lines: p.lines.map((l) => ({
       id: l.id,
       payslipId: l.payslipId,

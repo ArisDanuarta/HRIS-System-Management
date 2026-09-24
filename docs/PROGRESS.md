@@ -348,6 +348,40 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - Audit log tercatat otomatis untuk setiap pembaruan timesheet (`UPDATE PayslipTimesheet`).
   - Arsitektur *future-proof*: saat modul pengisian timesheet mandiri staf dibangun di web HRIS, sistem payroll siap mengambil jam terverifikasi otomatis.
 
+## Modul Kinerja & Riset (Role Admin HR — Layar P-H20)
+- **Status:** Selesai (Completed)
+- **Capaian:**
+  - **Manajemen Siklus Periode Kinerja (`PerformancePeriod`)**:
+    - Alur status: Buka Pengisian (`OPEN`) $\leftrightarrow$ Kunci/Selesai (`CLOSED`).
+    - Modal pembuatan periode baru (`PerformancePeriodModal`) yang secara otomatis menginisialisasi draf penilaian untuk seluruh pegawai aktif di organisasi dan menetapkan atasan langsung sebagai penilai utama.
+    - Periode awal terisi: *"Semester Ganjil 2026 — Riset & Advokasi Kebijakan"*.
+  - **Dashboard Metrik & Ringkasan Lembaga (`PerformanceStatsCards`)**:
+    - 4 kartu metrik utama: Total Pegawai Dievaluasi, Status Evaluasi Diri (Self-Review), Menunggu Penilaian Atasan (Manager-Review), serta Kinerja Selesai & Terkunci (Finalized).
+    - Menghitung rata-rata skor lembaga secara agregat dan persentase kelengkapan target berbobot 100%.
+  - **Direktori & Monitoring Penilaian Pegawai (`PerformanceTable`)**:
+    - Pencarian instan (nama, NIP, email).
+    - Filter berdasarkan Divisi Riset dan Status Alur (`DRAFT`, `SELF_REVIEW`, `MANAGER_REVIEW`, `FINALIZED`).
+    - Indikator status kelengkapan target (bobot pas 100% vs peringatan belum lengkap).
+    - Tampilan predikat nilai akhir (Sangat Baik $\ge 90$, Baik $\ge 80$, Cukup $\ge 70$, Perlu Perbaikan $< 70$).
+  - **Modal Detail Review Komparatif & Penguncian Nilai (`PerformanceDetailModal`)**:
+    - Menampilkan daftar sasaran kerja & riset (OKR): Judul target, deskripsi, bobot (%), target indikator, dan capaian riil.
+    - Tampilan komparasi berdampingan (*Side-by-Side*): Evaluasi Diri Staf (skor + refleksi mandiri) vs Penilaian Atasan (skor + catatan rekomendasi manajer).
+    - Fitur Finalisasi & Kunci Skor (*Locking*) resmi oleh Admin HR/Pimpinan (`finalizePerformanceReviewAction`).
+  - **Fitur Ekspor Rekap Kinerja**:
+    - Ekspor data evaluasi kinerja seluruh pegawai ke dalam format CSV untuk laporan berkala direksi.
+  - **Kepatuhan RBAC & Audit Log**:
+    - Akses `/kinerja` terproteksi di tingkat server untuk Admin HR dan Super Admin.
+    - Setiap mutasi periode (`CREATE PerformancePeriod`, `UPDATE PerformancePeriodStatus`), finalisasi nilai (`FINALIZE PerformanceReview`), dan ekspor data (`EXPORT PerformanceReport`) dicatat ke `core.audit_logs`.
+  - **Hasil Uji & Kualitas (Quality Gate)**:
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
+    - `pnpm lint`: Lolos (0 error).
+    - `pnpm test`: Lolos (33 unit tests hijau).
+    - `pnpm build`: Standalone build Next.js sukses untuk `@pspk/hris` dan `@pspk/sysmgmt`.
+- **Catatan Penting untuk Pengembangan Tahap Berikutnya**:
+  - *Portal Karyawan (Staff View)*: Mengembangkan antarmuka penyusunan target OKR mandiri dan pengisian form refleksi diri (*Self-Review*).
+  - *Portal Manajer (Manager View)*: Mengembangkan antarmuka penilaian bawahan langsung bagi kepala divisi riset (*Manager-Review*).
+  - *Integrasi Payroll*: Menghubungkan skor kinerja final semesteran sebagai variabel pengali bonus tahunan atau penyesuaian gaji berkala bila disepakati HR.
+
 ---
 
 ## Cara Menjalankan Lingkungan Lokal

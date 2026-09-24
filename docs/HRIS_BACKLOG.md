@@ -238,15 +238,16 @@
 > **Fokus Utama:** Penetapan target sasaran riset/kerja (OKR/KPI) dan siklus evaluasi berkala.
 
 ### 6.1 Manajemen Kinerja Lembaga & Tim (`/kinerja`) — Layar H20
-* **Aktor:** Admin HR (Konfigurasi siklus), Manajer (Menilai tim), Staff (Evaluasi diri).
+* **Aktor:** Admin HR (Konfigurasi siklus & finalisasi), Manajer (Menilai tim), Staff (Evaluasi diri).
 * **Fitur yang Perlu Dibuat:**
-  - [ ] Pembuatan periode evaluasi kinerja (`PerformancePeriod`, misal: Semester Ganjil 2026).
-  - [ ] Penyusunan sasaran kerja / target OKR pegawai (`PerformanceGoal`):
+  - [x] Pembuatan periode evaluasi kinerja (`PerformancePeriod`, misal: Semester Ganjil 2026).
+  - [x] Penyusunan sasaran kerja / target OKR pegawai (`PerformanceGoal`):
     - Judul target, deskripsi, indikator keberhasilan, dan bobot (total bobot = 100%).
-  - [ ] Alur Penilaian:
-    - **Self-Review:** Pegawai mengisi capaian dan refleksi evaluasi diri.
-    - **Manager-Review:** Manajer memberikan skor penilaian, evaluasi kualitatif, dan rekomendasi pengembangan.
-    - **Finalisasi:** HR Lead dan Direksi mengunci hasil penilaian.
+  - [x] Alur Penilaian & Monitoring (Admin HR View):
+    - **Self-Review:** Monitoring pengisian capaian dan refleksi evaluasi mandiri pegawai.
+    - **Manager-Review:** Monitoring skor penilaian atasan langsung, evaluasi kualitatif, dan masukan pembinaan.
+    - **Finalisasi:** HR Lead dan Direksi mengunci hasil penilaian (*Lock Score*) serta mencatat audit log.
+    - **Ekspor:** Unduh rekapitulasi penilaian kinerja organisasi dalam format CSV.
 
 ---
 
