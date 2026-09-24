@@ -77,7 +77,7 @@ export function ExcelImporter() {
           const employeeNo = cols[1] || "";
           const workEmail = cols[2] || "";
           const phone = cols[3] || "";
-          const departmentName = cols[4] || "Divisi Operasional & Sumber Daya Manusia";
+          const departmentName = cols[4] || "Divisi PEMANTIK";
           const positionTitle = cols[5] || "Staf Teknis Riset";
           const contractTypeRaw = (cols[6] || "").toUpperCase();
           const employmentType: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT" =

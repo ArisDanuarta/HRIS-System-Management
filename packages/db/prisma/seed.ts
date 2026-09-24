@@ -238,7 +238,7 @@ async function main() {
   console.log("🏛️ Seeding PSPK departments and positions...");
   const orgStructure = [
     {
-      name: "Divisi Kebijakan Kurikulum & Pembelajaran",
+      name: "Divisi Lingkar Studi Kebijakan Pendidikan (LSKP)",
       positions: [
         "Kepala Divisi Kebijakan Kurikulum",
         "Peneliti Kebijakan Kurikulum Utama",
@@ -246,7 +246,7 @@ async function main() {
       ],
     },
     {
-      name: "Divisi Tata Kelola & Advokasi Pendidikan",
+      name: "Divisi KATALIS",
       positions: [
         "Kepala Divisi Tata Kelola Pendidikan",
         "Analis Kebijakan Tata Kelola",
@@ -254,21 +254,14 @@ async function main() {
       ],
     },
     {
-      name: "Divisi Asesmen & Standar Pendidikan",
+      name: "Divisi Lingkar Daerah Belajar (LDB)",
       positions: [
         "Kepala Divisi Asesmen Pendidikan",
         "Spesialis Asesmen & Evaluasi",
       ],
     },
     {
-      name: "Divisi Kemitraan & Komunikasi Publik",
-      positions: [
-        "Kepala Divisi Kemitraan",
-        "Spesialis Komunikasi & Advokasi",
-      ],
-    },
-    {
-      name: "Divisi Operasional & Sumber Daya Manusia",
+      name: "Divisi PEMANTIK",
       positions: [
         "Kepala Divisi Operasional & SDM",
         "Staf Administrasi & HR",
@@ -309,14 +302,14 @@ async function main() {
   console.log("👥 Seeding sample employees with contracts and encrypted sensitive fields...");
   const { encryptField } = await import("@pspk/shared");
 
-  const deptKurikulumId = departmentMap.get("Divisi Kebijakan Kurikulum & Pembelajaran")!;
+  const deptKurikulumId = departmentMap.get("Divisi Lingkar Studi Kebijakan Pendidikan (LSKP)")!;
   const posKepalaKurikulumId = positionMap.get("Kepala Divisi Kebijakan Kurikulum")!;
   const posPenelitiMudaId = positionMap.get("Peneliti Kebijakan Kurikulum Muda")!;
 
-  const deptTataKelolaId = departmentMap.get("Divisi Tata Kelola & Advokasi Pendidikan")!;
+  const deptTataKelolaId = departmentMap.get("Divisi KATALIS")!;
   const posAsistenRisetId = positionMap.get("Asisten Riset Kebijakan")!;
 
-  const deptOpsId = departmentMap.get("Divisi Operasional & Sumber Daya Manusia")!;
+  const deptOpsId = departmentMap.get("Divisi PEMANTIK")!;
   const posStafKeuanganId = positionMap.get("Staf Keuangan & Akuntansi")!;
   const posStafHRId = positionMap.get("Staf Administrasi & HR")!;
 
