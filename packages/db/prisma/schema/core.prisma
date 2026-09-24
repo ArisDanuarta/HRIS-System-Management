@@ -14,6 +14,7 @@ model User {
   accounts      Account[]
   roles         UserRole[]
   employee      Employee?
+  notifications Notification[]
 
   @@map("users")
   @@schema("core")
@@ -140,5 +141,24 @@ model AuditLog {
   @@index([actorUserId])
   @@index([entityType, entityId])
   @@map("audit_logs")
+  @@schema("core")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, SUCCESS, WARNING, ACTION_REQUIRED
+  category  String   // LEAVE, ATTENDANCE, PAYROLL, CONTRACT, PERFORMANCE, SYSTEM
+  link      String?
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("notifications")
   @@schema("core")
 }
