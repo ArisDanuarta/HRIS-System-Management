@@ -420,6 +420,38 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Fitur Umum: Navigasi & Error (Semua Role — Layar P-C4 & App Switcher)
+- **Status:** Selesai (Completed)
+- **Sumber Desain:** Stitch AI Screen P-C4 (`md/design_stitch.md`)
+- **Capaian:**
+  - **Komponen Bersama di `@pspk/ui`**:
+    - **`AppSwitcher`**: Pemindah portal ekosistem PSPK dengan kontrol hak akses cerdas.
+      - Menampilkan status portal aktif (*Sedang Aktif*).
+      - Menampilkan peran akun saat ini.
+      - Deteksi hak akses: Jika akun adalah `super_admin` atau `admin_it`, portal *System Management* dapat diklik untuk beralih. Jika akun adalah staf/manajer biasa tanpa wewenang TI, opsi *System Management* ditampilkan dalam keadaan nonaktif dengan badge gembok dan keterangan *"Khusus Admin TI"*.
+    - **`NotFoundView` (404)**: Tampilan halaman tidak ditemukan dengan ikon garis `Compass`, badge status `404`, headline Lora, pesan ramah, tombol *"Kembali ke Beranda"*, dan tombol *"Halaman Sebelumnya"*.
+    - **`ForbiddenView` (403)**: Tampilan akses ditolak dengan ikon garis `ShieldAlert`, badge status `403` marun (`#A8281C`), rincian peran akun saat ini vs wewenang yang dibutuhkan, tombol *"Kembali ke Beranda"*, dan petunjuk eskalasi ke administrator.
+    - **`ServerErrorView` (500)**: Tampilan error boundary dengan ikon `AlertTriangle`, tombol *"Coba Muat Ulang"* (`reset()`), dan kode referensi digest.
+    - **`EmptyStateView`**: Tampilan standar untuk daftar/tabel data yang masih kosong.
+  - **Integrasi pada Portal HRIS (`apps/hris`)**:
+    - `AppSwitcher` terpasang rapi di topbar navigasi [`app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx) berdampingan dengan notification bell dan profil pengguna.
+    - Halaman 404 in-shell: [`apps/hris/src/app/(app)/not-found.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/%28app%29/not-found.tsx) (mempertahankan sidebar dan topbar agar pengguna tidak kehilangan konteks navigasi).
+    - Halaman 404 global: [`apps/hris/src/app/not-found.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/not-found.tsx).
+    - Halaman 403 resmi: [`apps/hris/src/app/(app)/forbidden/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/%28app%29/forbidden/page.tsx) dan [`apps/hris/src/app/forbidden.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/forbidden.tsx).
+    - In-shell Error Boundary: [`apps/hris/src/app/(app)/error.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/%28app%29/error.tsx).
+  - **Integrasi pada System Management (`apps/sysmgmt`)**:
+    - `AppSwitcher` diperbarui di [`sysmgmt-navbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx).
+    - Halaman 404 in-shell: [`apps/sysmgmt/src/app/(app)/not-found.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/%28app%29/not-found.tsx) dan 404 global [`apps/sysmgmt/src/app/not-found.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/not-found.tsx).
+    - Halaman 403: [`apps/sysmgmt/src/app/(app)/forbidden/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/%28app%29/forbidden/page.tsx) dan [`apps/sysmgmt/src/app/forbidden.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/forbidden.tsx).
+    - In-shell Error Boundary: [`apps/sysmgmt/src/app/(app)/error.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/%28app%29/error.tsx).
+  - **Hasil Uji & Kualitas (Quality Gate)**:
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
+    - `pnpm lint`: Lolos (0 error).
+    - `pnpm test`: Lolos (37 unit tests hijau).
+    - `pnpm build`: Standalone build Next.js sukses 100% untuk `@pspk/hris` dan `@pspk/sysmgmt`.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

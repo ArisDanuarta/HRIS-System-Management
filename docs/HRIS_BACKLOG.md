@@ -335,4 +335,5 @@ apps/hris/src/
 | 16 | **Komponen Gaji Pegawai** | `/payroll/komponen/[id]` | `hris.payroll.manage:all` | **P3 (Fase 4)** | ✅ Selesai |
 | 17 | **Slip Gaji Mandiri Staf (PDF)** | `/slip-gaji` | `hris.payslip.read:own` | **P3 (Fase 4)** | ✅ Selesai |
 | 18 | **Evaluasi Kinerja & KPI (Admin HR)**| `/kinerja` | `hris.performance.read:own` | **P3 (Fase 4)** | ✅ Selesai |
+| 19 | **Navigasi & Error (Layar P-C4)**| `/forbidden`, 404, AppSwitcher | Semua Role | **P1 (Fase 1/2)** | ✅ Selesai |
 
