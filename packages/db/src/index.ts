@@ -8,7 +8,11 @@ const createPrismaClient = () =>
   });
 
 if (process.env.NODE_ENV !== "production") {
-  if (!globalForPrisma.prisma || !("notification" in (globalForPrisma.prisma as object))) {
+  if (
+    !globalForPrisma.prisma ||
+    !("notification" in (globalForPrisma.prisma as object)) ||
+    !("workScheduleSetting" in (globalForPrisma.prisma as object))
+  ) {
     globalForPrisma.prisma = createPrismaClient();
   }
 }

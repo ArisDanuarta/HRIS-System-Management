@@ -32,6 +32,11 @@ export async function getActiveWorkSchedule(
   departmentId?: string | null,
 ): Promise<ActiveWorkSchedule> {
   try {
+    if (!prisma.workScheduleSetting) {
+      console.warn("prisma.workScheduleSetting belum ter-load di Prisma instance, menggunakan fallback");
+      return DEFAULT_FALLBACK_SCHEDULE;
+    }
+
     if (departmentId) {
       const deptSchedule = await prisma.workScheduleSetting.findFirst({
         where: { departmentId },
@@ -63,6 +68,12 @@ export async function updateWorkSchedule(
   input: WorkScheduleInput,
   actorUserId: string,
 ) {
+  if (!prisma.workScheduleSetting) {
+    throw new Error(
+      "Skema jadwal kerja sedang diinisialisasi. Silakan refresh halaman atau muat ulang server dev.",
+    );
+  }
+
   const result = await prisma.$transaction(async (tx) => {
     let existing = null;
     if (input.id) {
