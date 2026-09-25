@@ -1,7 +1,5 @@
-import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
 import { getPendingLeaveApprovals, getAllLeaveRequests } from "@/server/queries/leave.queries";

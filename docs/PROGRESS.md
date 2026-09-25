@@ -489,6 +489,35 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Penyelarasan & Integrasi Terpadu Modul Kehadiran & Cuti (Admin HR & Super Admin)
+- **Status:** Selesai (Completed)
+- **Deskripsi:** Mengatasi pemisahan rute kehadiran dan cuti pada role Admin HR dan Super Admin. Seluruh fitur kehadiran (rekap presensi lembaga, koreksi HR, absensi mandiri) dan fitur cuti (saldo pribadi, pengajuan, persetujuan, kalender bersama, pengaturan kuota & libur) kini disatukan ke dalam satu ekosistem navigasi terpadu.
+- **Implementasi:**
+  - **Komponen Subnavigasi Terpadu (`AttendanceLeaveSubnav`)**:
+    - Dibuat di `apps/hris/src/components/shell/attendance-leave-subnav.tsx`.
+    - Menampilkan tab interaktif berbasis role & hak akses pengguna:
+      1. 📋 *Rekap Kehadiran* (`/absensi/rekap`) — Akses Admin HR, Super Admin, dan Manajer (monitoring presensi seluruh staf lembaga, filter divisi/periode, dan modal koreksi absensi manual HR).
+      2. ⏱️ *Presensi Saya* (`/absensi`) — Jam server real-time WIB, kartu check-in/out hari ini, dan riwayat presensi harian.
+      3. 🏖️ *Cuti Saya* (`/cuti`) — Saldo kuota cuti tahunan 2026 dan riwayat permohonan izin kerja.
+      4. ✅ *Persetujuan Cuti* (`/cuti/persetujuan`) — Verifikasi permohonan cuti tim/organisasi dengan badge dinamis jumlah pengajuan pending.
+      5. 📅 *Kalender Cuti* (`/cuti/kalender`) — Kalender bulanan jadwal cuti bersama dan hari libur nasional resmi.
+      6. ⚙️ *Pengaturan Kuota & Libur* (`/cuti/pengaturan`) — Pengelolaan master tipe cuti dan hari libur lembaga khusus Admin HR & Super Admin.
+  - **Penyelarasan Sidebar (`app-sidebar.tsx`)**:
+    - Menu *"Kehadiran & Cuti"* untuk Admin HR kini langsung mengarahkan ke `/absensi/rekap` sebagai halaman kerja operasional utama HR.
+    - Status aktif (`isActive`) menyala ketika pengguna berada di seluruh sub-rute `/absensi*` maupun `/cuti*`.
+  - **Penyelarasan Breadcrumbs (`app-topbar.tsx`)**:
+    - Breadcrumb pada header secara konsisten menampilkan kategori *"Kehadiran & Cuti"* untuk semua sub-halaman di bawah `/absensi` dan `/cuti`.
+  - **Pemasangan di Seluruh Halaman Terkait**:
+    - Terpasang rapi dan menggantikan sub-tab hardcoded pada `/absensi/rekap`, `/absensi`, `/cuti`, `/cuti/persetujuan`, `/cuti/kalender`, dan `/cuti/pengaturan`.
+  - **Hasil Uji & Kualitas (Quality Gate)**:
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
+    - `pnpm --filter @pspk/hris lint`: Lolos (0 error, 0 unused imports pada file terkait).
+    - `pnpm test`: Lolos (37 unit tests passing).
+    - `pnpm --filter @pspk/hris build`: Standalone Next.js build sukses 100% (semua 18 rute terkompilasi).
+    - Health check `/api/health`: HTTP 200 `{"status":"ok"}`.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
