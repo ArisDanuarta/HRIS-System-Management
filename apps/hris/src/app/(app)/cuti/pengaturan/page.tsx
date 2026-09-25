@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
 import { getLeaveTypes, getHolidays } from "@/server/queries/leave.queries";
+import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { LeaveSettingsView } from "@/components/cuti/leave-settings-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 
@@ -24,11 +25,12 @@ export default async function PengaturanCutiPage() {
     redirect("/cuti");
   }
 
-  // Fetch real leave types and holiday list for 2026
-  const [leaveTypes, holidays, pendingApprovalsCount] = await Promise.all([
+  // Fetch real leave types, holiday list for 2026, and active work schedule
+  const [leaveTypes, holidays, pendingApprovalsCount, workSchedule] = await Promise.all([
     getLeaveTypes(),
     getHolidays(2026),
     prisma.leaveRequest.count({ where: { status: "PENDING" } }),
+    getActiveWorkSchedule(),
   ]);
 
   return (
@@ -36,10 +38,10 @@ export default async function PengaturanCutiPage() {
       {/* Header */}
       <div>
         <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
-          Pengaturan Kuota Cuti & Hari Libur
+          Pengaturan Jam Kerja, Kuota Cuti & Hari Libur
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Kelola master jenis cuti lembaga, alokasi default hari, serta daftar hari libur nasional resmi.
+          Kelola kebijakan jam kerja operasional kantor, toleransi keterlambatan, master jenis cuti, serta daftar libur resmi.
         </p>
       </div>
 
@@ -55,6 +57,7 @@ export default async function PengaturanCutiPage() {
       <LeaveSettingsView
         leaveTypes={leaveTypes}
         holidays={holidays}
+        workSchedule={workSchedule}
       />
     </div>
   );

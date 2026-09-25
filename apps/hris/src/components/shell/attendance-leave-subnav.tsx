@@ -73,7 +73,7 @@ export function AttendanceLeaveSubnav({
     },
     {
       id: "pengaturan" as AttendanceLeaveTab,
-      label: "Pengaturan Kuota & Libur",
+      label: "Pengaturan Jadwal & Kuota",
       href: "/cuti/pengaturan",
       icon: <Settings className="w-3.5 h-3.5" />,
       visible: isHrOrAdmin,

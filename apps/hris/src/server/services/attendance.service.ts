@@ -1,6 +1,7 @@
 import { prisma, writeAudit } from "@pspk/db";
 import { toDateString } from "@pspk/shared";
 import { CorrectAttendanceInput } from "../schemas/attendance.schema";
+import { getActiveWorkSchedule } from "./work-schedule.service";
 
 /**
  * Records employee check-in using server timestamp.
@@ -33,7 +34,15 @@ export async function recordCheckIn(
     throw new Error(`Anda sudah melakukan check-in hari ini pada pukul ${timeStr} WIB.`);
   }
 
-  // Determine LATE vs PRESENT (Standard entry cut-off: 09:00:00 WIB)
+  // Fetch employee department to determine active work schedule & tolerance
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: { currentDepartmentId: true },
+  });
+
+  const schedule = await getActiveWorkSchedule(employee?.currentDepartmentId);
+
+  // Extract current time in operational timezone
   const hour = parseInt(
     now.toLocaleTimeString("id-ID", {
       hour: "2-digit",
@@ -50,7 +59,16 @@ export async function recordCheckIn(
     10,
   );
 
-  const isLate = hour > 9 || (hour === 9 && minute > 0);
+  // Calculate dynamic cutoff: workStartTime + gracePeriodMins
+  const [startHourStr, startMinStr] = (schedule.workStartTime || "09:00").split(":");
+  const startHour = parseInt(startHourStr || "9", 10);
+  const startMin = parseInt(startMinStr || "0", 10);
+
+  const startTotalMinutes = startHour * 60 + startMin;
+  const cutoffTotalMinutes = startTotalMinutes + (schedule.gracePeriodMins || 0);
+  const currentTotalMinutes = hour * 60 + minute;
+
+  const isLate = !schedule.isFlexible && currentTotalMinutes > cutoffTotalMinutes;
   const status = isLate ? "LATE" : "PRESENT";
 
   const attendance = await prisma.$transaction(async (tx) => {

@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Plus, Edit2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { createHolidayAction, updateLeaveTypeAction } from "@/server/actions/leave.actions";
+import { ActiveWorkSchedule } from "@/server/services/work-schedule.service";
+import { WorkScheduleSettingsView } from "./work-schedule-settings-view";
 
 interface LeaveTypeItem {
   id: string;
@@ -23,10 +25,11 @@ interface HolidayItem {
 interface LeaveSettingsViewProps {
   leaveTypes: LeaveTypeItem[];
   holidays: HolidayItem[];
+  workSchedule?: ActiveWorkSchedule;
 }
 
-export function LeaveSettingsView({ leaveTypes, holidays }: LeaveSettingsViewProps) {
-  const [activeTab, setActiveTab] = useState<"types" | "holidays">("types");
+export function LeaveSettingsView({ leaveTypes, holidays, workSchedule }: LeaveSettingsViewProps) {
+  const [activeTab, setActiveTab] = useState<"schedule" | "types" | "holidays">("schedule");
 
   // Holiday Modal state
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
@@ -121,14 +124,26 @@ export function LeaveSettingsView({ leaveTypes, holidays }: LeaveSettingsViewPro
       )}
 
       {/* Tabs Controller */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <button
+            type="button"
+            onClick={() => setActiveTab("schedule")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "schedule"
+                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Jadwal Kerja & Jam Masuk</span>
+          </button>
           <button
             type="button"
             onClick={() => setActiveTab("types")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "types"
-                ? "bg-[#102e50] text-white shadow-xs"
+                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -137,9 +152,9 @@ export function LeaveSettingsView({ leaveTypes, holidays }: LeaveSettingsViewPro
           <button
             type="button"
             onClick={() => setActiveTab("holidays")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "holidays"
-                ? "bg-[#102e50] text-white shadow-xs"
+                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
                 : "text-slate-600 hover:bg-slate-100"
             }`}
           >
@@ -151,13 +166,24 @@ export function LeaveSettingsView({ leaveTypes, holidays }: LeaveSettingsViewPro
           <button
             type="button"
             onClick={() => setIsHolidayModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
           >
             <Plus className="w-4 h-4 text-[#ffddb0]" />
             <span>Tambah Hari Libur</span>
           </button>
         )}
       </div>
+
+      {/* TAB 0: JADWAL KERJA & JAM MASUK */}
+      {activeTab === "schedule" && (
+        workSchedule ? (
+          <WorkScheduleSettingsView initialSchedule={workSchedule} />
+        ) : (
+          <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
+            Memuat data jadwal kerja...
+          </div>
+        )
+      )}
 
       {/* TAB 1: JENIS CUTI */}
       {activeTab === "types" && (
