@@ -18,3 +18,7 @@ Dokumen ini mencatat keputusan penting, arsitektur, dan versi dependensi proyek.
 
 ## 4. UI Brand & Styling
 - **Keputusan:** Tailwind CSS + custom CSS theme tokens di `packages/ui/src/brand.css`, font Google `Lora` (heading) & `Rubik` (body). Komponen antarmuka visual spesifik akan dibuat setelah hasil prompt Google Stitch AI (`md/design_stitch.md`) diserahkan oleh pengguna.
+
+## 5. Konfigurasi Jadwal Kerja & Toleransi Keterlambatan Presensi
+- **Keputusan:** Menghilangkan hardcoded jam operasional ("08:30 - 17:30" / "09:00"). Menyimpan konfigurasi jam kerja masuk, jam pulang, toleransi keterlambatan (*grace period*), dan hari kerja aktif ke dalam model `hris.work_schedule_settings` dengan relasi opsional per departemen dan flag `isDefault: true`. Perhitungan status kehadiran (`PRESENT` vs `LATE`) dikalkulasi secara dinamis di server saat `checkIn` berdasarkan waktu stempel WIB. Setiap perubahan konfigurasi oleh Admin HR atau Super Admin wajib mencatat rekam jejak audit (*audit trail*) di tabel `core.audit_logs`.
+- **Alasan:** Mematuhi aturan `AGENTS.md` (Aturan 12: dilarang melakukan hardcoding aturan bisnis) dan standar industri HR digital, di mana kebijakan waktu kerja lembaga bersifat dinamis dan dapat berubah sewaktu-waktu sesuai keputusan manajemen organisasi tanpa harus mengubah kode sumber atau *re-deploy* aplikasi.

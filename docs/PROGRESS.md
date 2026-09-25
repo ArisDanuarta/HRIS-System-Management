@@ -518,6 +518,42 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Pengaturan Jam Kerja & Toleransi Keterlambatan (Work Schedule & Grace Period)
+- **Status:** Selesai (Completed)
+- **Deskripsi:** Menghilangkan seluruh nilai jam kerja dan toleransi yang sebelumnya di-hardcode. Kini Admin HR dan Super Admin dapat mengonfigurasi jam masuk kerja resmi, jam pulang, toleransi keterlambatan (*grace period*), hari kerja aktif, dan jam fleksibel secara dinamis dengan audit log lengkap.
+- **Implementasi:**
+  - **Skema & Migrasi Database (`@pspk/db`)**:
+    - Model `WorkScheduleSetting` pada skema `hris` (`packages/db/prisma/schema/hris.prisma`).
+    - Field: `id`, `name`, `workStartTime` ("09:00"), `workEndTime` ("17:00"), `gracePeriodMins` (15), `workingDays` ([1, 2, 3, 4, 5]), `isFlexible` (false), `isDefault` (true), `departmentId` (relasi opsional).
+    - Migrasi Prisma: `20260925065131_add_work_schedule_settings` diaplikasikan ke database PostgreSQL lokal.
+    - Seeding default jadwal kantor resmi PSPK: "Jadwal Kerja Reguler PSPK" (09:00 - 17:00 WIB, toleransi 15 menit, Senin-Jumat).
+  - **Backend Service & Validasi**:
+    - Skema Zod `workScheduleSchema` (`apps/hris/src/server/schemas/work-schedule.schema.ts`).
+    - Service `getActiveWorkSchedule()` dan `updateWorkSchedule()` (`apps/hris/src/server/services/work-schedule.service.ts`).
+    - Integrasi Audit Log: Perubahan jadwal kerja mencatat audit trail di tabel `core.audit_logs` dengan `entityType: "WorkScheduleSetting"`, `action: "UPDATE"`, serta state `before` dan `after`.
+    - Server Action `updateWorkScheduleAction` (`apps/hris/src/server/actions/work-schedule.actions.ts`) terproteksi ketat server-side hanya untuk role `admin_hr` dan `super_admin`.
+  - **Kalkulasi Presensi Dinamis**:
+    - Fungsi `checkIn` pada `apps/hris/src/server/services/attendance.service.ts` kini memanggil `getActiveWorkSchedule()` secara dinamis.
+    - Karyawan check-in sebelum batas `workStartTime + gracePeriodMins` (mis. 09:15 WIB) berstatus `PRESENT` (Tepat Waktu).
+    - Karyawan check-in setelah batas tersebut otomatis berstatus `LATE` (Terlambat).
+  - **Antarmuka Pengaturan HR (`/cuti/pengaturan`)**:
+    - Tab baru terdepan: `⏰ Jadwal Kerja & Jam Masuk` di dalam `apps/hris/src/components/cuti/leave-settings-view.tsx`.
+    - Komponen interaktif `WorkScheduleSettingsView`:
+      - Input nama kebijakan, jam masuk & pulang format `HH:mm` WIB.
+      - Quick preset buttons untuk toleransi: *0 Menit (Ketat)*, *5 Menit*, *10 Menit*, *15 Menit (Standar PSPK)*, *30 Menit*.
+      - Pilihan interaktif hari kerja aktif organisasi (Senin - Minggu) beserta tombol cepat 5 hari & 6 hari kerja.
+      - *Live Simulator & Timeline*: Menghitung otomatis batas tepat waktu, total durasi kerja harian, dan simulator uji coba jam check-in interaktif.
+  - **Sinkronisasi Antarmuka Karyawan (`/absensi`)**:
+    - Kartu `TodayAttendanceCard` dan ringkasan bulanan di `apps/hris/src/app/(app)/absensi/page.tsx` menampilkan jadwal kerja kantor dan batas toleransi tepat waktu secara dinamis dari database.
+  - **Hasil Uji & Kualitas (Quality Gate)**:
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
+    - `pnpm lint`: Lolos (0 error).
+    - `pnpm test`: Lolos (37 unit tests passing).
+    - `pnpm build`: Standalone Next.js build sukses 100% untuk `@pspk/hris` dan `@pspk/sysmgmt`.
+    - Health check `/api/health`: HTTP 200 `{"status":"ok"}`.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

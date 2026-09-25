@@ -13,15 +13,34 @@ interface TodayAttendanceCardProps {
     notes?: string | null;
   } | null;
   employeeName?: string;
+  workSchedule?: {
+    workStartTime: string;
+    workEndTime: string;
+    gracePeriodMins: number;
+  };
 }
 
-export function TodayAttendanceCard({ todayAttendance, employeeName }: TodayAttendanceCardProps) {
+export function TodayAttendanceCard({
+  todayAttendance,
+  employeeName,
+  workSchedule,
+}: TodayAttendanceCardProps) {
   const [time, setTime] = useState<string>("");
   const [dateStr, setDateStr] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [showNotesInput, setShowNotesInput] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const cutoffTime = workSchedule
+    ? (() => {
+        const [h, m] = workSchedule.workStartTime.split(":").map((v) => parseInt(v, 10));
+        const total = (h || 9) * 60 + (m || 0) + workSchedule.gracePeriodMins;
+        const cH = Math.floor(total / 60) % 24;
+        const cM = total % 60;
+        return `${String(cH).padStart(2, "0")}:${String(cM).padStart(2, "0")}`;
+      })()
+    : null;
 
   // Keep live digital clock updating every second
   useEffect(() => {
@@ -144,6 +163,15 @@ export function TodayAttendanceCard({ todayAttendance, employeeName }: TodayAtte
           <p className="text-xs text-[#74777f] mt-1">
             Presensi tercatat atas nama: <strong className="text-[#102e50]">{employeeName}</strong>
           </p>
+        )}
+
+        {workSchedule && (
+          <div className="flex items-center gap-1.5 text-[11px] text-[#5b6675] mt-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>
+              Jadwal kantor: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong> (Tepat waktu s/d <strong>{cutoffTime} WIB</strong>)
+            </span>
+          </div>
         )}
       </div>
 

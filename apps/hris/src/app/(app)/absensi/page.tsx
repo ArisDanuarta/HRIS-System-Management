@@ -5,6 +5,7 @@ import { prisma } from "@pspk/db";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { AttendanceTable } from "@/components/absensi/attendance-table";
 import { getTodayAttendance, getPersonalMonthlyAttendance } from "@/server/queries/attendance.queries";
+import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import {
   CalendarCheck,
@@ -57,11 +58,19 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
   const currentMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
 
   // Fetch real data from PostgreSQL
-  const [todayAttendance, monthlyData, pendingLeavesCount] = await Promise.all([
+  const [todayAttendance, monthlyData, pendingLeavesCount, workSchedule] = await Promise.all([
     getTodayAttendance(employee.id),
     getPersonalMonthlyAttendance(employee.id, currentYear, currentMonth),
     prisma.leaveRequest.count({ where: { status: "PENDING" } }),
+    getActiveWorkSchedule(),
   ]);
+
+  // Calculate cutoff time dynamically
+  const [startH, startM] = workSchedule.workStartTime.split(":").map((v) => parseInt(v, 10));
+  const totalMinutes = (startH || 9) * 60 + (startM || 0) + workSchedule.gracePeriodMins;
+  const cutoffH = Math.floor(totalMinutes / 60) % 24;
+  const cutoffM = totalMinutes % 60;
+  const cutoffTime = `${String(cutoffH).padStart(2, "0")}:${String(cutoffM).padStart(2, "0")}`;
 
   const monthNames = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -97,6 +106,7 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
           <TodayAttendanceCard
             todayAttendance={todayAttendance}
             employeeName={employee.fullName}
+            workSchedule={workSchedule}
           />
         </div>
 
@@ -163,9 +173,13 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
               </div>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500 flex items-center justify-between">
-              <span>Jam kerja normal lembaga: <strong>08:30 — 17:30 WIB</strong></span>
-              <span className="text-[#a8281c]">Toleransi keterlambatan: 09:00 WIB</span>
+            <div className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+              <span>
+                Jam kerja normal lembaga: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong>
+              </span>
+              <span className="text-[#a8281c] font-medium">
+                Batas tepat waktu: <strong>{cutoffTime} WIB</strong> (Toleransi {workSchedule.gracePeriodMins} mnt)
+              </span>
             </div>
           </div>
 
@@ -173,10 +187,9 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
           <div className="bg-[#eff4ff] border border-[#adc8f2]/60 rounded-xl p-4 flex items-start gap-3 text-xs text-[#102e50]">
             <CalendarCheck className="w-5 h-5 text-[#102e50] shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-sm">Ketentuan Kehadiran Kerja</p>
+              <p className="font-semibold text-sm">Ketentuan Kehadiran Kerja — {workSchedule.name}</p>
               <p className="mt-0.5 text-gray-600 leading-relaxed">
-                Presensi dicatat otomatis berdasarkan stempel waktu server (WIB). Pastikan melakukan
-                check-out saat mengakhiri hari kerja untuk perhitungan akurat jam kerja dan kompensasi.
+                Check-in sebelum pukul <strong>{cutoffTime} WIB</strong> diakui hadir <strong>Tepat Waktu</strong>. Check-in setelah waktu tersebut tercatat otomatis sebagai keterlambatan. Pastikan melakukan check-out saat menyelesaikan hari kerja untuk perhitungan akurat.
               </p>
             </div>
           </div>
