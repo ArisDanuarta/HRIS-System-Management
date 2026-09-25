@@ -138,11 +138,12 @@ model Department {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  parent    Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
-  children  Department[] @relation("DepartmentHierarchy")
-  positions Position[]
-  employees Employee[]
-  histories EmploymentHistory[]
+  parent        Department?           @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children      Department[]          @relation("DepartmentHierarchy")
+  positions     Position[]
+  employees     Employee[]
+  histories     EmploymentHistory[]
+  workSchedules WorkScheduleSetting[]
 
   @@map("departments")
   @@schema("hris")
@@ -316,6 +317,25 @@ model Holiday {
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("holidays")
+  @@schema("hris")
+}
+
+model WorkScheduleSetting {
+  id              String   @id @default(uuid())
+  name            String   @default("Jadwal Reguler PSPK")
+  workStartTime   String   @default("09:00") @map("work_start_time")
+  workEndTime     String   @default("17:00") @map("work_end_time")
+  gracePeriodMins Int      @default(15)      @map("grace_period_mins")
+  workingDays     Int[]    @default([1, 2, 3, 4, 5]) @map("working_days")
+  isFlexible      Boolean  @default(false)   @map("is_flexible")
+  isDefault       Boolean  @default(true)    @map("is_default")
+  departmentId    String?  @map("department_id")
+  createdAt       DateTime @default(now())   @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt        @map("updated_at") @db.Timestamptz(6)
+
+  department      Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  @@map("work_schedule_settings")
   @@schema("hris")
 }
 

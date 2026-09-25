@@ -893,6 +893,25 @@ async function main() {
     },
   });
 
+  // 12. Seed WorkScheduleSetting (Default PSPK Regular Schedule)
+  console.log("⏰ Seeding default work schedule setting...");
+  const defaultSchedule = await prisma.workScheduleSetting.findFirst({
+    where: { isDefault: true },
+  });
+  if (!defaultSchedule) {
+    await prisma.workScheduleSetting.create({
+      data: {
+        name: "Jadwal Kerja Reguler PSPK",
+        workStartTime: "09:00",
+        workEndTime: "17:00",
+        gracePeriodMins: 15,
+        workingDays: [1, 2, 3, 4, 5],
+        isFlexible: false,
+        isDefault: true,
+      },
+    });
+  }
+
   console.log("✅ Seeding selesai dengan sukses!");
 }
 
