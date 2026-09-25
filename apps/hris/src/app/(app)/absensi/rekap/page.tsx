@@ -1,7 +1,5 @@
-import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { getAttendanceRekap } from "@/server/queries/attendance.queries";
 import { AttendanceRekapView } from "@/components/absensi/attendance-rekap-view";

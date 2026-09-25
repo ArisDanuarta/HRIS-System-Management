@@ -8,13 +8,7 @@ import { getEmployeeLeaveBalances, getPersonalLeaveRequests } from "@/server/que
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { LeaveRequestTable } from "@/components/cuti/leave-request-table";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
-import {
-  Plus,
-  Calendar,
-  CheckSquare,
-  CalendarDays,
-  Settings,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 

@@ -1,7 +1,5 @@
-import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
@@ -14,8 +12,6 @@ import {
   AlertTriangle,
   Clock,
   Calendar,
-  Layers,
-  ArrowRight,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
