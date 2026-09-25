@@ -7,6 +7,7 @@ import { prisma } from "@pspk/db";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { AttendanceTable } from "@/components/absensi/attendance-table";
 import { getTodayAttendance, getPersonalMonthlyAttendance } from "@/server/queries/attendance.queries";
+import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import {
   CalendarCheck,
   CheckCircle2,
@@ -52,6 +53,7 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
 
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
   const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
+  const isManager = roleKeys.includes("manager");
 
   const resolvedParams = await searchParams;
   const now = new Date();
@@ -59,9 +61,10 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
   const currentMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
 
   // Fetch real data from PostgreSQL
-  const [todayAttendance, monthlyData] = await Promise.all([
+  const [todayAttendance, monthlyData, pendingLeavesCount] = await Promise.all([
     getTodayAttendance(employee.id),
     getPersonalMonthlyAttendance(employee.id, currentYear, currentMonth),
+    prisma.leaveRequest.count({ where: { status: "PENDING" } }),
   ]);
 
   const monthNames = [
@@ -71,30 +74,25 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Top Header & Navigation Sub-Tabs */}
+      {/* Top Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
-            Absensi & Kehadiran Saya
+            Presensi & Kehadiran Saya
           </h1>
           <p className="text-sm text-gray-500 mt-1">
             Pencatatan jam masuk, pulang, dan riwayat presensi harian secara real-time.
           </p>
         </div>
-
-        {isHrOrAdmin && (
-          <div className="flex items-center gap-2">
-            <Link
-              href="/absensi/rekap"
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#102e50] bg-white border border-[#102e50]/20 rounded-lg hover:bg-slate-50 transition-colors shadow-xs"
-            >
-              <Layers className="w-4 h-4 text-[#102e50]" />
-              Rekap Absensi Staf & Koreksi
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        )}
       </div>
+
+      {/* Unified Subnavigation Tabs */}
+      <AttendanceLeaveSubnav
+        activeTab="absensi"
+        isHrOrAdmin={isHrOrAdmin}
+        isManager={isManager}
+        pendingLeavesCount={pendingLeavesCount}
+      />
 
       {/* Main Grid: Today Check-In Card & Monthly Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

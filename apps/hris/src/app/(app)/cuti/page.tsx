@@ -7,6 +7,7 @@ import { prisma } from "@pspk/db";
 import { getEmployeeLeaveBalances, getPersonalLeaveRequests } from "@/server/queries/leave.queries";
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { LeaveRequestTable } from "@/components/cuti/leave-request-table";
+import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import {
   Plus,
   Calendar,
@@ -76,49 +77,13 @@ export default async function CutiPage() {
         </div>
       </div>
 
-      {/* Subnavigation Tabs for Management & Staff */}
-      <div className="flex items-center gap-2 border-b border-gray-200 pb-2 overflow-x-auto">
-        <Link
-          href="/cuti"
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-md bg-[#102e50] text-white"
-        >
-          <Calendar className="w-3.5 h-3.5" />
-          Cuti Saya
-        </Link>
-
-        {(isHrOrAdmin || isManager) && (
-          <Link
-            href="/cuti/persetujuan"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-md text-gray-600 hover:text-[#102e50] hover:bg-slate-100 transition-colors"
-          >
-            <CheckSquare className="w-3.5 h-3.5 text-[#102e50]" />
-            Persetujuan Cuti
-            {pendingApprovalsCount > 0 && (
-              <span className="bg-[#a8281c] text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full">
-                {pendingApprovalsCount}
-              </span>
-            )}
-          </Link>
-        )}
-
-        <Link
-          href="/cuti/kalender"
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-md text-gray-600 hover:text-[#102e50] hover:bg-slate-100 transition-colors"
-        >
-          <CalendarDays className="w-3.5 h-3.5 text-[#102e50]" />
-          Kalender Cuti
-        </Link>
-
-        {isHrOrAdmin && (
-          <Link
-            href="/cuti/pengaturan"
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-md text-gray-600 hover:text-[#102e50] hover:bg-slate-100 transition-colors"
-          >
-            <Settings className="w-3.5 h-3.5 text-[#102e50]" />
-            Pengaturan Kuota & Libur
-          </Link>
-        )}
-      </div>
+      {/* Unified Subnavigation Tabs */}
+      <AttendanceLeaveSubnav
+        activeTab="cuti"
+        isHrOrAdmin={isHrOrAdmin}
+        isManager={isManager}
+        pendingLeavesCount={pendingApprovalsCount}
+      />
 
       {/* Real Leave Balance Cards */}
       <div className="space-y-3">

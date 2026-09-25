@@ -131,10 +131,10 @@ export function AppSidebar({
                 isCollapsed={isCollapsed}
               />
               <NavItem
-                href="/cuti"
+                href="/absensi/rekap"
                 label="Kehadiran & Cuti"
                 icon={<CalendarCheck className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/cuti") || isNavActive("/absensi")}
+                isActive={pathname.startsWith("/cuti") || pathname.startsWith("/absensi")}
                 isCollapsed={isCollapsed}
                 badge={
                   pendingLeavesCount > 0 ? (

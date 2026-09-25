@@ -5,7 +5,9 @@ import Link from "next/link";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { getAttendanceRekap } from "@/server/queries/attendance.queries";
 import { AttendanceRekapView } from "@/components/absensi/attendance-rekap-view";
-import { ArrowLeft, FileSpreadsheet } from "lucide-react";
+import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
+import { prisma } from "@pspk/db";
+import { FileSpreadsheet } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +39,9 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
     redirect("/absensi");
   }
 
+  const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
+  const isManager = roleKeys.includes("manager");
+
   const resolvedParams = await searchParams;
   const now = new Date();
   const currentYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
@@ -45,27 +50,21 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
   const searchQuery = resolvedParams.q || "";
 
   // Query real data from PostgreSQL
-  const rekapData = await getAttendanceRekap({
-    year: currentYear,
-    month: currentMonth,
-    departmentId: selectedDeptId,
-    search: searchQuery,
-  });
+  const [rekapData, pendingLeavesCount] = await Promise.all([
+    getAttendanceRekap({
+      year: currentYear,
+      month: currentMonth,
+      departmentId: selectedDeptId,
+      search: searchQuery,
+    }),
+    prisma.leaveRequest.count({ where: { status: "PENDING" } }),
+  ]);
 
   return (
     <div className="space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link
-              href="/absensi"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-[#102e50] transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Kembali ke Absensi Saya
-            </Link>
-          </div>
           <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
             Rekap Kehadiran Karyawan
           </h1>
@@ -77,14 +76,22 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#102e50] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-xs"
-            onClick={undefined}
+            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#102e50] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-xs cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             Ekspor Data (CSV)
           </button>
         </div>
       </div>
+
+      {/* Unified Subnavigation Tabs */}
+      <AttendanceLeaveSubnav
+        activeTab="rekap"
+        isHrOrAdmin={isHrOrAdmin}
+        isManager={isManager}
+        pendingLeavesCount={pendingLeavesCount}
+      />
+
 
       {/* Main Rekap Component with Filtering & Correction Modal */}
       <AttendanceRekapView

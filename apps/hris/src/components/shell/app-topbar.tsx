@@ -42,9 +42,7 @@ export function AppTopbar({
     }
     if (pathname.startsWith("/notifikasi")) return "Pusat Notifikasi";
     if (pathname.startsWith("/karyawan")) return "Manajemen Karyawan";
-    if (pathname.startsWith("/cuti/persetujuan")) return "Persetujuan Cuti Tim";
-    if (pathname.startsWith("/cuti")) return "Kehadiran & Cuti";
-    if (pathname.startsWith("/absensi")) return "Presensi & Kehadiran";
+    if (pathname.startsWith("/cuti") || pathname.startsWith("/absensi")) return "Kehadiran & Cuti";
     if (pathname.startsWith("/payroll")) return "Penggajian (Payroll)";
     if (pathname.startsWith("/slip-gaji")) return "Slip Gaji";
     if (pathname.startsWith("/kinerja")) return "Kinerja & Riset";
