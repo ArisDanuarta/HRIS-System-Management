@@ -53,3 +53,47 @@ describe("formatRelativeTime", () => {
   });
 });
 
+describe("Timezone Utilities", () => {
+  it("resolves timezone abbreviations correctly for Indonesia", async () => {
+    const { getTimezoneAbbr, getTimezoneLabel } = await import("./formatters");
+    expect(getTimezoneAbbr("Asia/Jakarta")).toBe("WIB");
+    expect(getTimezoneAbbr("Asia/Makassar")).toBe("WITA");
+    expect(getTimezoneAbbr("Asia/Jayapura")).toBe("WIT");
+
+    expect(getTimezoneLabel("Asia/Jakarta")).toContain("WIB");
+    expect(getTimezoneLabel("Asia/Makassar")).toContain("WITA");
+    expect(getTimezoneLabel("Asia/Jayapura")).toContain("WIT");
+  });
+
+  it("formats date in target timezone accurately without UTC date shift", async () => {
+    const { toDateStringInTimezone, formatTimeInZone } = await import("./formatters");
+    // 2026-09-28 06:30:00 WIB is 2026-09-27 23:30:00Z in UTC
+    const date = new Date("2026-09-27T23:30:00.000Z");
+
+    // In Asia/Jakarta (UTC+7), it is 2026-09-28 06:30
+    expect(toDateStringInTimezone(date, "Asia/Jakarta")).toBe("2026-09-28");
+    expect(formatTimeInZone(date, "Asia/Jakarta")).toBe("06.30");
+
+    // In Asia/Makassar (UTC+8), it is 2026-09-28 07:30
+    expect(toDateStringInTimezone(date, "Asia/Makassar")).toBe("2026-09-28");
+    expect(formatTimeInZone(date, "Asia/Makassar")).toBe("07.30");
+  });
+
+  it("converts work schedule between timezones correctly", async () => {
+    const { convertTimeStringZone } = await import("./formatters");
+    // 09:00 WIB (Asia/Jakarta, UTC+7) -> 10:00 WITA (Asia/Makassar, UTC+8)
+    expect(convertTimeStringZone("09:00", "Asia/Jakarta", "Asia/Makassar")).toBe("10:00");
+    // 17:00 WIB -> 18:00 WITA
+    expect(convertTimeStringZone("17:00", "Asia/Jakarta", "Asia/Makassar")).toBe("18:00");
+    // 09:15 WIB -> 10:15 WITA
+    expect(convertTimeStringZone("09:15", "Asia/Jakarta", "Asia/Makassar")).toBe("10:15");
+
+    // 09:00 WIB -> 11:00 WIT (Asia/Jayapura, UTC+9)
+    expect(convertTimeStringZone("09:00", "Asia/Jakarta", "Asia/Jayapura")).toBe("11:00");
+
+    // Same zone returns identical string
+    expect(convertTimeStringZone("09:00", "Asia/Jakarta", "Asia/Jakarta")).toBe("09:00");
+  });
+});
+
+

@@ -82,3 +82,156 @@ export function formatRelativeTime(date: Date | string | number | null | undefin
   return formatDateTime(d);
 }
 
+/**
+ * Known Indonesian Timezone definitions with labels and IANA mappings.
+ */
+export const INDONESIA_TIMEZONES = [
+  { key: "Asia/Jakarta", abbr: "WIB", label: "WIB (Jakarta / Barat)", offsetHours: 7 },
+  { key: "Asia/Makassar", abbr: "WITA", label: "WITA (Bali, Makassar / Tengah)", offsetHours: 8 },
+  { key: "Asia/Jayapura", abbr: "WIT", label: "WIT (Papua, Maluku / Timur)", offsetHours: 9 },
+] as const;
+
+/**
+ * Returns standard timezone abbreviation (e.g. WIB, WITA, WIT, GMT+X).
+ */
+export function getTimezoneAbbr(timeZone: string, date = new Date()): string {
+  try {
+    const parts = new Intl.DateTimeFormat("id-ID", {
+      timeZone,
+      timeZoneName: "short",
+    }).formatToParts(date);
+    const tzPart = parts.find((p) => p.type === "timeZoneName")?.value;
+    if (tzPart) return tzPart;
+  } catch {
+    // Ignore error and fallback
+  }
+
+  // Fallback map for common IANA zones
+  if (timeZone === "Asia/Jakarta" || timeZone === "Asia/Pontianak") return "WIB";
+  if (
+    timeZone === "Asia/Makassar" ||
+    timeZone === "Asia/Ujung_Pandang" ||
+    timeZone === "Asia/Denpasar"
+  ) {
+    return "WITA";
+  }
+  if (timeZone === "Asia/Jayapura") return "WIT";
+  return timeZone;
+}
+
+/**
+ * Returns user-friendly timezone label with regional context.
+ */
+export function getTimezoneLabel(timeZone: string): string {
+  const match = INDONESIA_TIMEZONES.find((z) => z.key === timeZone);
+  if (match) return match.label;
+  const abbr = getTimezoneAbbr(timeZone);
+  return `${timeZone} (${abbr})`;
+}
+
+/**
+ * Returns standard ISO YYYY-MM-DD date in target timezone.
+ * Avoids UTC host offset bugs on early morning check-ins.
+ */
+export function toDateStringInTimezone(
+  date: Date | string | number | null | undefined = new Date(),
+  timeZone: string = process.env.APP_TIMEZONE || "Asia/Jakarta",
+): string {
+  if (!date) return "";
+  const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+/**
+ * Formats time in a specific timezone with optional seconds.
+ */
+export function formatTimeInZone(
+  date: Date | string | number | null | undefined,
+  timeZone: string = process.env.APP_TIMEZONE || "Asia/Jakarta",
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  if (!date) return "--:--";
+  const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "--:--";
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone,
+  };
+
+  return new Intl.DateTimeFormat("id-ID", options || defaultOptions).format(d);
+}
+
+/**
+ * Formats date in a specific timezone.
+ */
+export function formatDateInZone(
+  date: Date | string | number | null | undefined,
+  timeZone: string = process.env.APP_TIMEZONE || "Asia/Jakarta",
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  if (!date) return "-";
+  const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "-";
+
+  const defaultOptions: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone,
+  };
+
+  return new Intl.DateTimeFormat("id-ID", options || defaultOptions).format(d);
+}
+
+/**
+ * Converts a HH:MM time string from one timezone to another (e.g. "09:00" WIB -> "10:00" WITA).
+ */
+export function convertTimeStringZone(
+  timeStr: string,
+  fromZone: string = "Asia/Jakarta",
+  toZone: string = "Asia/Jakarta",
+): string {
+  if (!timeStr || fromZone === toZone) return timeStr;
+
+  const [hStr, mStr] = timeStr.split(":");
+  const h = parseInt(hStr || "0", 10);
+  const m = parseInt(mStr || "0", 10);
+  if (isNaN(h) || isNaN(m)) return timeStr;
+
+  try {
+    const now = new Date();
+    const getOffset = (tz: string) => {
+      const utc = new Date(now.toLocaleString("en-US", { timeZone: "UTC" }));
+      const target = new Date(now.toLocaleString("en-US", { timeZone: tz }));
+      return Math.round((target.getTime() - utc.getTime()) / 60000);
+    };
+
+    const fromOffset = getOffset(fromZone);
+    const toOffset = getOffset(toZone);
+    const diffMins = toOffset - fromOffset;
+
+    let totalMins = h * 60 + m + diffMins;
+    while (totalMins < 0) totalMins += 24 * 60;
+    totalMins = totalMins % (24 * 60);
+
+    const outH = Math.floor(totalMins / 60);
+    const outM = totalMins % 60;
+
+    return `${String(outH).padStart(2, "0")}:${String(outM).padStart(2, "0")}`;
+  } catch {
+    return timeStr;
+  }
+}
+
+

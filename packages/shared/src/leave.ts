@@ -1,3 +1,5 @@
+import { toDateStringInTimezone } from "./formatters";
+
 /**
  * Pure functions for HRIS Leave calculations.
  * Adheres strictly to AGENTS.md Section 8.2.
@@ -5,13 +7,18 @@
 
 /**
  * Formats a Date object or string to YYYY-MM-DD for date-only comparison.
+ * If input is already YYYY-MM-DD string, preserves it.
+ * Defaults to operational timezone (Asia/Jakarta) to prevent UTC midnight date shift.
  */
-export function toDateString(date: Date | string): string {
+export function toDateString(
+  date: Date | string,
+  timeZone: string = process.env.APP_TIMEZONE || "Asia/Jakarta",
+): string {
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return date;
+  }
   const d = typeof date === "string" ? new Date(date) : date;
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return toDateStringInTimezone(d, timeZone);
 }
 
 /**
