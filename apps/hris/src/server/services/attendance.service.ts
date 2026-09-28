@@ -1,5 +1,5 @@
 import { prisma, writeAudit } from "@pspk/db";
-import { toDateString } from "@pspk/shared";
+import { toDateString, getTimezoneAbbr } from "@pspk/shared";
 import { CorrectAttendanceInput } from "../schemas/attendance.schema";
 import { getActiveWorkSchedule } from "./work-schedule.service";
 
@@ -11,8 +11,10 @@ export async function recordCheckIn(
   notes?: string,
   userId?: string,
 ) {
+  const opTimezone = process.env.APP_TIMEZONE || "Asia/Jakarta";
+  const tzAbbr = getTimezoneAbbr(opTimezone);
   const now = new Date();
-  const todayDateStr = toDateString(now);
+  const todayDateStr = toDateString(now, opTimezone);
   const todayDate = new Date(todayDateStr);
 
   // Check if today attendance already exists
@@ -29,9 +31,9 @@ export async function recordCheckIn(
     const timeStr = existing.checkInAt.toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit",
-      timeZone: process.env.APP_TIMEZONE || "Asia/Jakarta",
+      timeZone: opTimezone,
     });
-    throw new Error(`Anda sudah melakukan check-in hari ini pada pukul ${timeStr} WIB.`);
+    throw new Error(`Anda sudah melakukan check-in hari ini pada pukul ${timeStr} ${tzAbbr}.`);
   }
 
   // Fetch employee department to determine active work schedule & tolerance
@@ -128,8 +130,10 @@ export async function recordCheckOut(
   notes?: string,
   userId?: string,
 ) {
+  const opTimezone = process.env.APP_TIMEZONE || "Asia/Jakarta";
+  const tzAbbr = getTimezoneAbbr(opTimezone);
   const now = new Date();
-  const todayDateStr = toDateString(now);
+  const todayDateStr = toDateString(now, opTimezone);
   const todayDate = new Date(todayDateStr);
 
   const existing = await prisma.attendance.findUnique({
@@ -149,9 +153,9 @@ export async function recordCheckOut(
     const timeStr = existing.checkOutAt.toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit",
-      timeZone: process.env.APP_TIMEZONE || "Asia/Jakarta",
+      timeZone: opTimezone,
     });
-    throw new Error(`Anda sudah melakukan check-out hari ini pada pukul ${timeStr} WIB.`);
+    throw new Error(`Anda sudah melakukan check-out hari ini pada pukul ${timeStr} ${tzAbbr}.`);
   }
 
   const attendance = await prisma.$transaction(async (tx) => {
