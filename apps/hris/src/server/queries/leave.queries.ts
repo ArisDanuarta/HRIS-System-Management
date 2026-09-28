@@ -157,8 +157,8 @@ export async function getAllLeaveRequests(options?: {
  * Retrieves approved leaves and holidays for a given month calendar.
  */
 export async function getLeaveCalendarEvents(year: number, month: number) {
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0);
+  const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
   const [approvedLeaves, holidays] = await Promise.all([
     prisma.leaveRequest.findMany({
@@ -215,8 +215,8 @@ export async function getLeaveTypes() {
  * Retrieves all holidays for a given year.
  */
 export async function getHolidays(year: number = 2026) {
-  const startDate = new Date(year, 0, 1);
-  const endDate = new Date(year, 11, 31);
+  const startDate = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
 
   return prisma.holiday.findMany({
     where: {

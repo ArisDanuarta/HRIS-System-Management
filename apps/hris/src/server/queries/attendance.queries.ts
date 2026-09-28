@@ -28,8 +28,8 @@ export async function getPersonalMonthlyAttendance(
   year: number,
   month: number, // 1 to 12
 ) {
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0); // Last day of month
+  const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
   const [attendances, employee] = await Promise.all([
     prisma.attendance.findMany({
@@ -101,8 +101,8 @@ export async function getAttendanceRekap(options: {
   search?: string;
 }) {
   const { year, month, departmentId, search } = options;
-  const startDate = new Date(year, month - 1, 1);
-  const endDate = new Date(year, month, 0);
+  const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
   // Build employee filter
   const employeeWhere: Record<string, unknown> = {
