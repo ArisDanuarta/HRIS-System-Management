@@ -255,9 +255,12 @@ export function StaffPerformanceView({
 
               <StaffSelfReviewForm
                 reviewId={review.id}
+                employeeId={review.employeeId}
+                periodId={review.periodId}
                 initialSelfScore={review.selfScore}
                 initialSelfComment={review.selfComment}
                 goals={review.goals}
+                totalGoalWeight={review.totalGoalWeight}
                 periodName={review.period.name}
                 reviewerName={review.reviewer?.fullName || null}
               />

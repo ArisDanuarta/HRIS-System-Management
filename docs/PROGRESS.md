@@ -618,7 +618,38 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 - **Hasil Uji & Kualitas**:
   - `pnpm test`: 42/42 unit test lulus (100%).
   - `pnpm typecheck`: 9/9 package lolos tanpa error.
-  - `pnpm lint`: Lolos (0 error).
+## Modul Kinerja & Riset — Implementasi Role Staf (Self-Review & Scorecard)
+- **Status:** Selesai (Completed)
+- **Tujuan:** Membuka akses evaluasi kinerja untuk peran Staf (Karyawan & Peneliti) dengan alur pengisian mandiri (*self-review*), peninjauan realisasi sasaran riset (OKR), visual stepper status, dan lembar rapor resmi (*scorecard*).
+- **Rincian Implementasi:**
+  1. **Validasi Skema Zod (`performance.schema.ts`)**:
+     - `submitStaffSelfReviewSchema`: Validasi ID review, skor mandiri (0–100), teks refleksi minimal 10 karakter, dan array capaian aktual target kerja (`goalActuals`).
+  2. **Kueri Data Staf (`performance.queries.ts`)**:
+     - `getStaffPerformanceReview`: Mengambil review aktif, data atasan penilai, daftar sasaran riset (`PerformanceGoal`) beserta bobot %, kalkulasi kelengkapan bobot, dan predikat dinamis. Otomatis membuat draf review jika belum ada saat periode `OPEN`.
+     - `getStaffPerformancePeriods`: Mengambil riwayat periode evaluasi lampau yang diikuti oleh pegawai untuk arsip dan dropdown periode.
+  3. **Server Action Terproteksi (`performance.actions.ts`)**:
+     - `submitStaffSelfReviewAction`:
+       - *Server-Side Authorization & Ownership Check*: Memvalidasi sesi, permission `hris.performance.review:own`, dan memastikan review milik pegawai bersangkutan (`review.employeeId === session.employeeId`).
+       - Validasi status transaksi: status review harus `DRAFT` dan periode harus `OPEN`.
+       - Database transaction: memperbarui `actual` pada `PerformanceGoal`, menyimpan `selfScore` & `selfComment`, dan mengubah status ke `SELF_REVIEW`.
+       - *Audit Log*: Mencatat `writeAudit` dengan aksi `SUBMIT_SELF_REVIEW`.
+       - *Notifikasi In-App*: Mengirimkan notifikasi ke atasan penilai (`reviewerId`) bahwa staf telah menyelesaikan evaluasi mandiri.
+  4. **Antarmuka Pengguna Interaktif (UI)**:
+     - `StaffSelfReviewForm`: Formulir interaktif pengisian capaian per sasaran riset, slider & input numerik skor mandiri 0–100 dengan badge predikat dinamis (*Sangat Baik*, *Baik*, *Cukup*, *Perlu Peningkatan*), textarea refleksi diri, dan dialog konfirmasi sebelum submit.
+     - **Manajemen Sasaran Mandiri (`AddGoalModal`)**: Dilengkapi tombol `+ Tambah Sasaran Riset` untuk memungkinkan staf mendaftarkan target riset mereka secara mandiri pada periode aktif, mengatur bobot %, target, dan satuan, lengkap dengan penghitung alokasi bobot total real-time (`Bobot: X% / 100%`) serta tombol hapus sasaran.
+     - `PerformanceScorecard`: Tampilan rapor kinerja resmi khas brand PSPK (Navy & Gold) saat status `FINALIZED`, mencakup perbandingan 3 skor (Mandiri, Atasan, Resmi), rincian pencapaian target, dan catatan evaluasi kualitatif.
+     - `StaffPerformanceView`: Visual stepper 4 tahap (`DRAFT` → `SELF_REVIEW` → `MANAGER_REVIEW` → `FINALIZED`), pemilih periode aktif/lampau, dan kontainer adaptif sesuai status review.
+  5. **Routing Multi-Peran (`apps/hris/src/app/(app)/kinerja/page.tsx`)**:
+     - Menghapus pesan hard-block `HakAksesTerbatas`.
+     - Mendeteksi role aktif dan cookie role preview (`pspk_role_view`). Jika peran adalah `staff` (atau manajer mengisi evaluasi mandiri), merender `StaffPerformanceView`. Jika Admin HR / Super Admin, tetap menyajikan dashboard organisasi `PerformanceClientWrapper`.
+     - Proteksi akun tanpa relasi pegawai via `UnlinkedEmployeeNotice`.
+  6. **Server Action Manajemen Sasaran (`performance.actions.ts`)**:
+     - `createGoalAction`: Menambahkan sasaran riset baru dengan validasi total bobot maksimal 100% dan pencatatan audit log `CREATE`.
+     - `deleteGoalAction`: Menghapus sasaran riset selama periode masih `OPEN` dan status belum `FINALIZED` dengan pencatatan audit log `DELETE`.
+- **Hasil Uji & Kualitas**:
+  - `pnpm typecheck`: 9/9 packages lolos tanpa error.
+  - `pnpm test`: 42/42 unit test lulus (100%).
+  - `pnpm --filter @pspk/hris build`: Berhasil mengompilasi halaman `/kinerja` sebagai dynamic route teroptimasi.
 
 ---
 

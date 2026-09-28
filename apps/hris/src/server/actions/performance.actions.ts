@@ -9,6 +9,8 @@ import {
   updatePerformancePeriodStatusSchema,
   finalizePerformanceReviewSchema,
   submitStaffSelfReviewSchema,
+  createGoalSchema,
+  deleteGoalSchema,
 } from "../schemas/performance.schema";
 import {
   createPerformancePeriod,
@@ -458,4 +460,233 @@ export async function submitStaffSelfReviewAction(rawData: unknown) {
     };
   }
 }
+
+/**
+ * Server Action: Tambah Target Sasaran Kinerja / Riset (PerformanceGoal)
+ */
+export async function createGoalAction(rawData: unknown) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    if (!authCtx) {
+      return { success: false, error: "Pengguna tidak aktif atau hak akses tidak valid." };
+    }
+
+    const validated = createGoalSchema.safeParse(rawData);
+    if (!validated.success) {
+      const firstError = validated.error.issues[0]?.message || "Input sasaran tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    const currentEmployee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, fullName: true },
+    });
+
+    const isSuperAdmin = authCtx.roles.includes("super_admin");
+    const isAdminHr = authCtx.roles.includes("admin_hr");
+    const isOwner = currentEmployee?.id === validated.data.employeeId;
+
+    // Cek apakah user adalah atasan dari employeeId ini
+    let isManagerOfEmployee = false;
+    if (!isSuperAdmin && !isAdminHr && !isOwner) {
+      const targetEmp = await prisma.employee.findUnique({
+        where: { id: validated.data.employeeId },
+        select: { managerId: true },
+      });
+      isManagerOfEmployee = targetEmp?.managerId === currentEmployee?.id;
+    }
+
+    if (!isOwner && !isManagerOfEmployee && !isSuperAdmin && !isAdminHr) {
+      return { success: false, error: "Anda tidak memiliki wewenang untuk menambahkan sasaran pada pegawai ini." };
+    }
+
+    // Pastikan periode masih OPEN
+    const period = await prisma.performancePeriod.findUnique({
+      where: { id: validated.data.periodId },
+    });
+    if (!period || period.status !== "OPEN") {
+      return { success: false, error: "Periode evaluasi kinerja telah ditutup." };
+    }
+
+    // Pastikan review belum difinalisasi
+    const review = await prisma.performanceReview.findUnique({
+      where: {
+        employeeId_periodId: {
+          employeeId: validated.data.employeeId,
+          periodId: validated.data.periodId,
+        },
+      },
+    });
+
+    if (review && review.status === "FINALIZED") {
+      return { success: false, error: "Sasaran tidak dapat diubah karena penilaian kinerja telah disahkan resmi." };
+    }
+
+    // Hitung total bobot saat ini
+    const existingGoals = await prisma.performanceGoal.findMany({
+      where: {
+        employeeId: validated.data.employeeId,
+        periodId: validated.data.periodId,
+      },
+      select: { weight: true },
+    });
+
+    const currentTotalWeight = existingGoals.reduce((sum, g) => sum + Number(g.weight), 0);
+    const newTotal = currentTotalWeight + validated.data.weight;
+
+    if (newTotal > 100) {
+      return {
+        success: false,
+        error: `Total bobot melebihi 100%. Total saat ini sudah ${currentTotalWeight}%, penambahan ${validated.data.weight}% akan menjadi ${newTotal}%.`,
+      };
+    }
+
+    const newGoal = await prisma.performanceGoal.create({
+      data: {
+        employeeId: validated.data.employeeId,
+        periodId: validated.data.periodId,
+        title: validated.data.title,
+        description: validated.data.description || null,
+        weight: validated.data.weight,
+        target: validated.data.target || null,
+        unit: validated.data.unit || null,
+      },
+    });
+
+    const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "CREATE",
+      entityType: "PerformanceGoal",
+      entityId: newGoal.id,
+      after: {
+        title: newGoal.title,
+        weight: Number(newGoal.weight),
+        employeeId: newGoal.employeeId,
+        periodId: newGoal.periodId,
+      },
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/kinerja");
+    return { success: true, data: newGoal };
+  } catch (error) {
+    console.error("Gagal menambahkan sasaran riset:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat menambahkan sasaran riset.",
+    };
+  }
+}
+
+/**
+ * Server Action: Hapus Target Sasaran Kinerja / Riset
+ */
+export async function deleteGoalAction(rawData: unknown) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    if (!authCtx) {
+      return { success: false, error: "Pengguna tidak aktif atau hak akses tidak valid." };
+    }
+
+    const validated = deleteGoalSchema.safeParse(rawData);
+    if (!validated.success) {
+      return { success: false, error: "ID sasaran tidak valid." };
+    }
+
+    const goal = await prisma.performanceGoal.findUnique({
+      where: { id: validated.data.goalId },
+      include: {
+        period: true,
+      },
+    });
+
+    if (!goal) {
+      return { success: false, error: "Data sasaran tidak ditemukan." };
+    }
+
+    if (goal.period.status !== "OPEN") {
+      return { success: false, error: "Sasaran tidak dapat dihapus karena periode evaluasi telah ditutup." };
+    }
+
+    const currentEmployee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    const isSuperAdmin = authCtx.roles.includes("super_admin");
+    const isAdminHr = authCtx.roles.includes("admin_hr");
+    const isOwner = currentEmployee?.id === goal.employeeId;
+
+    if (!isOwner && !isSuperAdmin && !isAdminHr) {
+      return { success: false, error: "Anda tidak memiliki wewenang untuk menghapus sasaran ini." };
+    }
+
+    // Pastikan review belum final
+    const review = await prisma.performanceReview.findUnique({
+      where: {
+        employeeId_periodId: {
+          employeeId: goal.employeeId,
+          periodId: goal.periodId,
+        },
+      },
+    });
+
+    if (review && review.status === "FINALIZED") {
+      return { success: false, error: "Sasaran tidak dapat dihapus karena evaluasi kinerja telah disahkan resmi." };
+    }
+
+    await prisma.performanceGoal.delete({
+      where: { id: validated.data.goalId },
+    });
+
+    const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "DELETE",
+      entityType: "PerformanceGoal",
+      entityId: goal.id,
+      before: {
+        title: goal.title,
+        weight: Number(goal.weight),
+        employeeId: goal.employeeId,
+      },
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/kinerja");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal menghapus sasaran riset:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus sasaran riset.",
+    };
+  }
+}
+
 

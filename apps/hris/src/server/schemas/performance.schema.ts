@@ -96,3 +96,29 @@ export const submitStaffSelfReviewSchema = z.object({
 
 export type SubmitStaffSelfReviewInput = z.infer<typeof submitStaffSelfReviewSchema>;
 
+export const createGoalSchema = z.object({
+  employeeId: z.string().uuid("ID pegawai tidak valid"),
+  periodId: z.string().uuid("ID periode tidak valid"),
+  title: z
+    .string({ required_error: "Judul sasaran riset wajib diisi" })
+    .trim()
+    .min(3, "Judul sasaran minimal 3 karakter")
+    .max(200, "Judul sasaran maksimal 200 karakter"),
+  description: z.string().trim().optional().nullable(),
+  weight: z
+    .number({ required_error: "Bobot sasaran wajib diisi" })
+    .min(1, "Bobot minimal 1%")
+    .max(100, "Bobot maksimal 100%"),
+  target: z.string().trim().optional().nullable(),
+  unit: z.string().trim().optional().nullable(),
+});
+
+export type CreateGoalInput = z.infer<typeof createGoalSchema>;
+
+export const deleteGoalSchema = z.object({
+  goalId: z.string().uuid("ID sasaran tidak valid"),
+});
+
+export type DeleteGoalInput = z.infer<typeof deleteGoalSchema>;
+
+
