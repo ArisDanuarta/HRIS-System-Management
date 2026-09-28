@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useSyncExternalStore } from "react";
 import { Clock } from "lucide-react";
 import { getTimezoneAbbr } from "@pspk/shared";
