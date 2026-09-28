@@ -120,15 +120,18 @@ export function AppTopbar({
 
       {/* Right: AppSwitcher, Notifications & UserNav */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* App Switcher (HRIS <-> SysMgmt) */}
-        <AppSwitcher
-          currentApp="hris"
-          canAccessSysmgmt={canAccessSysmgmt}
-          userRoleName={user.roleName}
-        />
-
-        {/* Divider */}
-        <div className="h-6 w-px bg-[#dee9fc] hidden sm:block" />
+        {/* App Switcher (HRIS <-> SysMgmt) - Hanya tampil jika akun memiliki hak akses ke Sysmgmt */}
+        {canAccessSysmgmt && (
+          <>
+            <AppSwitcher
+              currentApp="hris"
+              canAccessSysmgmt={canAccessSysmgmt}
+              userRoleName={user.roleName}
+            />
+            {/* Divider */}
+            <div className="h-6 w-px bg-[#dee9fc] hidden sm:block" />
+          </>
+        )}
 
         {/* Notification Bell Live Dropdown */}
         <NotificationBell />
@@ -137,7 +140,7 @@ export function AppTopbar({
         <div className="h-6 w-px bg-[#dee9fc] hidden sm:block" />
 
         {/* User Navigation Dropdown */}
-        <UserNav user={user} />
+        <UserNav user={user} canAccessSysmgmt={canAccessSysmgmt} />
       </div>
     </header>
   );

@@ -16,12 +16,15 @@ export function AppSwitcher({
   currentApp = "hris",
   hrisUrl = "http://localhost:3001",
   sysmgmtUrl = "http://localhost:3002",
-  canAccessSysmgmt = true,
-  canAccessHris = true,
+  canAccessSysmgmt = false,
+  canAccessHris = false,
   userRoleName,
 }: AppSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const isHris = currentApp === "hris";
+  const canSwitch = isHris ? canAccessSysmgmt : canAccessHris;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -33,7 +36,10 @@ export function AppSwitcher({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isHris = currentApp === "hris";
+  // Sembunyikan tombol switch sepenuhnya jika pengguna tidak memiliki izin ke portal lain
+  if (!canSwitch) {
+    return null;
+  }
 
   return (
     <div className="relative inline-block text-left" ref={containerRef}>

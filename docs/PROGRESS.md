@@ -576,6 +576,52 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Audit Menyeluruh & Standardisasi Penanganan Zona Waktu Lintas Modul
+- **Status:** Selesai (Completed)
+- **Tujuan:** Memastikan seluruh modul penting (Presensi, Cuti, Kalender, Jadwal Kerja, Dasbor Multiperan, Log Audit, Koreksi HR, dan Karyawan) bebas dari masalah pergeseran tanggal/waktu (*timezone shift* / *offset bug*).
+- **Temuan & Perbaikan yang Diterapkan:**
+  1. **Dasbor Eksekutif HR (`apps/hris/src/server/queries/dashboard/hr-dashboard.ts`)**:
+     - *Masalah*: Angka "Hadir Hari Ini" bernilai 0 dan grafik 7 hari kosong untuk hari aktif meskipun staf dan HR telah presensi.
+     - *Penyebab*: `today.setHours(0, 0, 0, 0)` menghasilkan tengah malam lokal (WITA = `16:00:00.000Z` kemarin), sedangkan baris presensi tersimpan dengan tanggal UTC (`00:00:00.000Z`).
+     - *Solusi*: Menggunakan `toDateString(new Date())` dan `new Date(todayStr)` untuk mencocokkan tanggal UTC secara presisi, serta menyelaraskan perhitungan grafik 7 hari dan filter status kehadiran (`PRESENT`, `LATE`, `WFH`).
+  2. **Dasbor Manajer (`apps/hris/src/server/queries/dashboard/manager-dashboard.ts` & `components/dashboard/manager-dashboard.tsx`)**:
+     - Memperbaiki perhitungan kalender mingguan (Senin–Jumat) menggunakan `getUTCDay()`, `setUTCDate()`, dan `timeZone: "UTC"`.
+     - Menggantikan komparasi `toISOString().split("T")[0]` dengan `toDateString(d)` untuk memastikan highlight hari aktif (*isToday*) tidak melompat sebelum jam 07:00 pagi.
+  3. **Kueri Presensi & Rekap Bulanan (`apps/hris/src/server/queries/attendance.queries.ts`)**:
+     - Menstandarkan batas awal dan akhir bulan menggunakan `Date.UTC(year, month - 1, 1, 0, 0, 0, 0)` dan `Date.UTC(year, month, 0, 23, 59, 59, 999)`.
+  4. **Modul Cuti & Kalender Libur (`apps/hris/src/server/queries/leave.queries.ts`, `leave.service.ts`, `packages/shared/src/leave.ts`)**:
+     - Memastikan kalkulasi hari kerja aktif (`calculateWorkingDays`) dan loop pembuatan catatan presensi cuti disetujui (`leave.service.ts`) menggunakan iterasi UTC (`getUTCDay()`, `setUTCDate()`), sehingga cuti yang diajukan di WITA/WIT tidak terpotong atau bergeser 1 hari.
+     - Mengharmonisasi `apps/hris/src/server/services/leave-calculator.ts` agar mere-ekspor murni dari `@pspk/shared` (mencegah duplikasi implementasi).
+  5. **Modal Koreksi Presensi HR (`attendance-correction-modal.tsx`)**:
+     - Menghilangkan offset hardcoded `+07:00`.
+     - Menambahkan fungsi `getTimezoneOffsetString()` di `@pspk/shared` untuk menghitung offset ISO (`+07:00`, `+08:00`, `+09:00`) secara dinamis.
+     - Menyediakan pemilih zona waktu pada formulir koreksi agar HR admin dapat menentukan dengan jelas apakah jam yang diinput adalah WIB, WITA, atau WIT, serta mencatat tag zona ke audit log.
+  6. **Pencatatan Presensi Server (`attendance.service.ts`)**:
+     - Mengganti parsing string lokal dengan `Intl.DateTimeFormat formatToParts` dengan `hourCycle: "h23"` untuk penentuan keterlambatan yang 100% konsisten lintas OS.
+  7. **Komponen Form & Wizard (`wizard-employee-form.tsx`, `transfer-position-modal.tsx`, `excel-importer.tsx`, `performance-period-modal.tsx`)**:
+     - Menstandarkan inisialisasi tanggal form dengan `toDateString()` agar konsisten di zona waktu manapun browser berjalan.
+- **Hasil Uji & Kualitas**:
+  - `pnpm test`: 42/42 unit test lulus (100%).
+  - `pnpm typecheck`: 9/9 package lolos tanpa error.
+  - `pnpm lint`: Lolos (0 error).
+
+---
+
+## Penyesuaian Hak Akses Tombol Pengalih Portal (*App Switcher & User Nav*)
+- **Status:** Selesai (Completed)
+- **Implementasi:**
+  - **Prinsip RBAC**: Tombol *AppSwitcher* (`Portal HRIS AKTIF ^`) dan tautan `System Management` di dropdown profil (`UserNav`) kini **hanya muncul bagi akun yang memang memiliki hak akses** (`super_admin` atau `admin_it`).
+  - **Penyembunyian Bersih untuk Peran Non-IT**:
+    - Akun dengan peran `admin_hr` (seperti Dewi Permata), `manager`, dan `staff` tidak lagi melihat tombol pengalih portal maupun item menu `System Management`.
+    - Menghilangkan dropdown tidak perlu yang sebelumnya menampilkan item terkunci (*lock* "Khusus Admin TI").
+    - Mengintegrasikan pemeriksaan hak akses `canAccessSysmgmt` dari layout HRIS ke `AppTopbar` dan `UserNav`, serta `canAccessHris` di `SysmgmtNavbar`.
+- **Hasil Uji & Kualitas**:
+  - `pnpm test`: 42/42 unit test lulus (100%).
+  - `pnpm typecheck`: 9/9 package lolos tanpa error.
+  - `pnpm lint`: Lolos (0 error).
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
@@ -588,7 +634,7 @@ pnpm dev
 # System Management: http://localhost:3002
 
 # 3. Jalankan pengujian
-pnpm test          # Menjalankan 41 unit test (Vitest)
+pnpm test          # Menjalankan 42 unit test (Vitest)
 pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build

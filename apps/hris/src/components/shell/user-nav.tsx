@@ -13,9 +13,10 @@ export interface UserNavProps {
     image?: string | null;
     roleName?: string;
   };
+  canAccessSysmgmt?: boolean;
 }
 
-export function UserNav({ user }: UserNavProps) {
+export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -119,17 +120,19 @@ export function UserNav({ user }: UserNavProps) {
               <span>Ganti Kata Sandi</span>
             </a>
 
-            <a
-              href="http://localhost:3002"
-              className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
-              onClick={() => setIsOpen(false)}
-            >
-              <div className="flex items-center gap-2.5">
-                <ArrowLeftRight className="w-4 h-4 text-[#74777f]" />
-                <span>System Management</span>
-              </div>
-              <ExternalLink className="w-3.5 h-3.5 text-[#74777f]" />
-            </a>
+            {canAccessSysmgmt && (
+              <a
+                href={process.env.NEXT_PUBLIC_SYSMGMT_URL || "http://localhost:3002"}
+                className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
+                onClick={() => setIsOpen(false)}
+              >
+                <div className="flex items-center gap-2.5">
+                  <ArrowLeftRight className="w-4 h-4 text-[#74777f]" />
+                  <span>System Management</span>
+                </div>
+                <ExternalLink className="w-3.5 h-3.5 text-[#74777f]" />
+              </a>
+            )}
           </div>
 
           {/* Sign Out Button */}

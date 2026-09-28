@@ -35,6 +35,13 @@ export default async function SysmgmtProtectedLayout({
     roleDisplayName = "Manajer";
   }
 
+  const canAccessHris =
+    isSuperAdmin ||
+    roleKeys.includes("admin_hr") ||
+    roleKeys.includes("manager") ||
+    roleKeys.includes("staff") ||
+    Boolean(userProfile?.employee);
+
   const userData = {
     id: session.user.id,
     name: userProfile?.employee?.fullName || session.user.name || "Administrator PSPK",
@@ -45,7 +52,7 @@ export default async function SysmgmtProtectedLayout({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
-      <SysmgmtNavbar user={userData} />
+      <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>

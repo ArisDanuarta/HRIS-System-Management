@@ -23,9 +23,10 @@ interface SysmgmtNavbarProps {
     roleName: string;
     roleKey?: string;
   };
+  canAccessHris?: boolean;
 }
 
-export function SysmgmtNavbar({ user }: SysmgmtNavbarProps) {
+export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -134,13 +135,16 @@ export function SysmgmtNavbar({ user }: SysmgmtNavbarProps) {
 
           {/* Sisi Kanan: AppSwitcher & Profil Pengguna */}
           <div className="flex items-center gap-3">
-            {/* Pemindah Aplikasi */}
-            <AppSwitcher
-              currentApp="sysmgmt"
-              hrisUrl="http://localhost:3001"
-              sysmgmtUrl="http://localhost:3002"
-              userRoleName={user.roleName}
-            />
+            {/* Pemindah Aplikasi - Hanya jika berwenang mengakses HRIS */}
+            {canAccessHris && (
+              <AppSwitcher
+                currentApp="sysmgmt"
+                hrisUrl={process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}
+                sysmgmtUrl={process.env.NEXT_PUBLIC_SYSMGMT_URL || "http://localhost:3002"}
+                canAccessHris={canAccessHris}
+                userRoleName={user.roleName}
+              />
+            )}
 
             {/* Profil Dropdown */}
             <div className="relative">
