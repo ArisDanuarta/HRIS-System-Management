@@ -92,16 +92,15 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
 
   const subordinateIds = subordinates.map((s) => s.id);
 
-  // Week range for calendar (Monday to Friday of current week)
-  const dayOfWeek = today.getDay();
+  // Week range for calendar (Monday to Friday of current week in UTC)
+  const dayOfWeek = today.getUTCDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() + mondayOffset);
-  startOfWeek.setHours(0, 0, 0, 0);
+  startOfWeek.setUTCDate(today.getUTCDate() + mondayOffset);
 
   const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 4);
-  endOfWeek.setHours(23, 59, 59, 999);
+  endOfWeek.setUTCDate(startOfWeek.getUTCDate() + 4);
+  endOfWeek.setUTCHours(23, 59, 59, 999);
 
   const [
     todayTeamAttendances,
