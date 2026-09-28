@@ -71,6 +71,7 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
       <TodayAttendanceCard
         todayAttendance={data.todayAttendance}
         employeeName={employeeName}
+        workSchedule={data.workSchedule}
       />
 
       {/* 3 Personal Metrics Grid */}

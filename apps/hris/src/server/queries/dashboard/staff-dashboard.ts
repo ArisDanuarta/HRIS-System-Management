@@ -1,5 +1,7 @@
 import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
+import { toDateString } from "@pspk/shared";
+import { getActiveWorkSchedule } from "../../services/work-schedule.service";
 
 export interface StaffDashboardData {
   todayAttendance: {
@@ -9,6 +11,12 @@ export interface StaffDashboardData {
     status: string;
     notes?: string | null;
   } | null;
+  workSchedule?: {
+    workStartTime: string;
+    workEndTime: string;
+    gracePeriodMins: number;
+    name: string;
+  };
   leaveBalances: {
     id: string;
     leaveTypeId: string;
@@ -55,9 +63,9 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
   }
 
   const employeeId = ctx.employeeId;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const currentYear = today.getFullYear();
+  const todayDateStr = toDateString(new Date());
+  const todayDate = new Date(todayDateStr);
+  const currentYear = new Date().getFullYear();
 
   // Fetch all staff dashboard metrics in parallel
   const [
@@ -66,11 +74,12 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
     pendingLeavesCount,
     recentLeaves,
     latestPayslip,
+    workSchedule,
   ] = await Promise.all([
     prisma.attendance.findFirst({
       where: {
         employeeId,
-        date: today,
+        date: todayDate,
       },
     }),
     prisma.leaveBalance.findMany({
@@ -109,6 +118,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
       },
       orderBy: { createdAt: "desc" },
     }),
+    getActiveWorkSchedule(),
   ]);
 
   // Format balances for UI
@@ -167,5 +177,11 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           publishedAt: latestPayslip.publishedAt,
         }
       : null,
+    workSchedule: {
+      workStartTime: workSchedule.workStartTime,
+      workEndTime: workSchedule.workEndTime,
+      gracePeriodMins: workSchedule.gracePeriodMins,
+      name: workSchedule.name,
+    },
   };
 }
