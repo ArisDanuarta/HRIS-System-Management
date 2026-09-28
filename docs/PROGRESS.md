@@ -165,10 +165,9 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - 19 Hari Libur Nasional & Cuti Bersama 2026 disimpan di tabel `Holiday`.
     - Saldo cuti tahun 2026 (`LeaveBalance`) untuk seluruh pegawai benih (Tahunan: 12, Sakit: 14, Penting: 5, Melahirkan: 90).
     - Data presensi contoh bulan September 2026 dan 1 pengajuan cuti berstatus `PENDING` untuk verifikasi approval.
-  - **H9 Absensi & Kehadiran Saya (`/absensi`)**:
-    - `today-attendance-card.tsx`: Jam digital interaktif real-time WIB, status kehadiran hari ini, tombol *Catat Kehadiran Masuk* / *Catat Kehadiran Pulang*, dan input catatan aktivitas kerja. Stempel waktu diambil dari server (`TIMESTAMPTZ`), toleransi keterlambatan otomatis (lewat 09:00 WIB berstatus `LATE`).
+    - `today-attendance-card.tsx`: Jam digital interaktif multi-zona waktu dinamis (auto-detect zona browser seperti WITA/WIT/WIB + dropdown switcher zona waktu mandiri + dual-clock tersinkronisasi Waktu Lokal & Kantor Pusat WIB), konversi jam operasional kantor (09:00–17:00 WIB) ke jam lokal staf, status kehadiran harian, tombol *Catat Kehadiran Masuk* / *Catat Kehadiran Pulang*, dan catatan kerja. Stempel waktu berbasis `TIMESTAMPTZ` dengan proteksi offset UTC.
     - Widget ringkasan bulanan: Tepat Waktu, Terlambat, Izin/Cuti, dan Akumulasi Jam Kerja.
-    - `attendance-table.tsx`: Tabel log kehadiran harian sebulan penuh dengan badge status berlabel warna dan catatan koreksi jika ada.
+    - `attendance-table.tsx`: Tabel log kehadiran harian sebulan penuh dengan badge status berlabel warna, indikator zona waktu dinamis, dan catatan koreksi jika ada.
   - **H10 Rekap Absensi Staf & Koreksi HR (`/absensi/rekap`)**:
     - Akses terproteksi untuk Admin HR dan Manajer.
     - `attendance-rekap-view.tsx`: Filter berdasarkan bulan, tahun, divisi/departemen, dan pencarian nama/NIP pegawai.

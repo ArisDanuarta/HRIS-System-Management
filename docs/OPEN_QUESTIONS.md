@@ -14,6 +14,6 @@ Dokumen ini mencatat pertanyaan terbuka yang perlu dikonfirmasi kepada pihak HR,
 | 8 | Perlu notifikasi email (SMTP)? Penyedia SMTP apa? Perlu "lupa password" via email? | Fase 2 | Terbuka | Sementara in-app notification |
 | 9 | Perlu SSO (Google Workspace/Microsoft 365) atau cukup email + password? 2FA untuk admin? | Fase 1/2 | Terbuka | Default email + password |
 | 10 | Kebijakan retensi data (karyawan resign, audit log, slip gaji) dan kebutuhan kepatuhan UU PDP? | Fase 2 | Terbuka | Soft delete status & append-only audit |
-| 11 | Zona waktu operasional (kantor/staf tersebar di lebih dari satu zona)? | Fase 1 | Selesai | Default: `Asia/Jakarta` (WIB) |
+| 11 | Zona waktu operasional (kantor/staf tersebar di lebih dari satu zona)? | Fase 1 & 2 | Selesai | Default acuan kantor pusat: `Asia/Jakarta` (WIB). Modul jam dan presensi dibuat sepenuhnya dinamis: mendeteksi otomatis zona browser pengguna (WIB/WITA/WIT), menyediakan pemilih zona waktu mandiri, menampilkan jam ganda tersinkronisasi (Waktu Lokal & Waktu Kantor Pusat), serta konversi otomatis jadwal kerja 09:00–17:00 WIB ke waktu lokal staf. |
 | 12 | Apakah Pemantik akan dipindah ke VPS yang sama atau tetap terpisah? | Pasca Fase 3 | Terbuka | Terpisah |
 | 13 | Rekrutmen & Pelatihan: masuk sebelum go-live atau pasca go-live? | Fase 4 | Terbuka | Opsional di akhir Fase 4 |
