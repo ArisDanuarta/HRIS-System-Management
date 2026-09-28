@@ -366,3 +366,207 @@ export async function getPerformanceReviewDetail(reviewId: string) {
     })),
   };
 }
+
+export interface StaffPerformanceGoal {
+  id: string;
+  title: string;
+  description: string | null;
+  weight: number;
+  target: string | null;
+  unit: string | null;
+  actual: string | null;
+}
+
+export interface StaffPerformanceReviewData {
+  id: string;
+  employeeId: string;
+  periodId: string;
+  status: "DRAFT" | "SELF_REVIEW" | "MANAGER_REVIEW" | "FINALIZED";
+  selfScore: number | null;
+  managerScore: number | null;
+  finalScore: number | null;
+  predicate: string;
+  selfComment: string | null;
+  managerComment: string | null;
+  createdAt: string;
+  updatedAt: string;
+  period: {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+  };
+  reviewer: {
+    id: string;
+    fullName: string;
+    positionTitle: string;
+  } | null;
+  goals: StaffPerformanceGoal[];
+  totalGoalWeight: number;
+  isGoalComplete: boolean;
+}
+
+/**
+ * Mengambil data evaluasi kinerja untuk staf pada periode aktif atau terpilih
+ */
+export async function getStaffPerformanceReview(
+  employeeId: string,
+  periodId?: string
+): Promise<StaffPerformanceReviewData | null> {
+  const activePeriod = await getActivePerformancePeriod(periodId);
+  if (!activePeriod) return null;
+
+  let review = await prisma.performanceReview.findUnique({
+    where: {
+      employeeId_periodId: {
+        employeeId,
+        periodId: activePeriod.id,
+      },
+    },
+    include: {
+      period: true,
+      reviewer: {
+        select: {
+          id: true,
+          fullName: true,
+          currentPosition: { select: { title: true } },
+        },
+      },
+    },
+  });
+
+  // Jika review belum ada dan periode masih OPEN, buat draft review otomatis
+  if (!review && activePeriod.status === "OPEN") {
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { managerId: true },
+    });
+
+    let reviewerId = employee?.managerId;
+    if (!reviewerId) {
+      const defaultManager = await prisma.employee.findFirst({
+        where: {
+          currentPosition: {
+            title: { contains: "Kepala", mode: "insensitive" },
+          },
+        },
+        select: { id: true },
+      });
+      reviewerId = defaultManager?.id || employeeId;
+    }
+
+    review = await prisma.performanceReview.create({
+      data: {
+        employeeId,
+        periodId: activePeriod.id,
+        reviewerId,
+        status: "DRAFT",
+      },
+      include: {
+        period: true,
+        reviewer: {
+          select: {
+            id: true,
+            fullName: true,
+            currentPosition: { select: { title: true } },
+          },
+        },
+      },
+    });
+  }
+
+  if (!review) return null;
+
+  const goals = await prisma.performanceGoal.findMany({
+    where: {
+      periodId: activePeriod.id,
+      employeeId,
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const totalGoalWeight = goals.reduce((sum, g) => sum + Number(g.weight), 0);
+  const isGoalComplete = Math.abs(totalGoalWeight - 100) < 0.01;
+
+  const finalScore = review.finalScore ? Number(review.finalScore) : null;
+  let predicate = "-";
+  if (finalScore !== null) {
+    if (finalScore >= 90) predicate = "Sangat Baik";
+    else if (finalScore >= 80) predicate = "Baik";
+    else if (finalScore >= 70) predicate = "Cukup";
+    else predicate = "Perlu Perbaikan";
+  }
+
+  return {
+    id: review.id,
+    employeeId: review.employeeId,
+    periodId: review.periodId,
+    status: review.status,
+    selfScore: review.selfScore ? Number(review.selfScore) : null,
+    managerScore: review.managerScore ? Number(review.managerScore) : null,
+    finalScore,
+    predicate,
+    selfComment: review.selfComment,
+    managerComment: review.managerComment,
+    createdAt: review.createdAt.toISOString(),
+    updatedAt: review.updatedAt.toISOString(),
+    period: {
+      id: review.period.id,
+      name: review.period.name,
+      startDate: review.period.startDate.toISOString().split("T")[0]!,
+      endDate: review.period.endDate.toISOString().split("T")[0]!,
+      status: review.period.status,
+    },
+    reviewer: review.reviewer
+      ? {
+          id: review.reviewer.id,
+          fullName: review.reviewer.fullName,
+          positionTitle: review.reviewer.currentPosition?.title || "Atasan Langsung",
+        }
+      : null,
+    goals: goals.map((g) => ({
+      id: g.id,
+      title: g.title,
+      description: g.description,
+      weight: Number(g.weight),
+      target: g.target,
+      unit: g.unit,
+      actual: g.actual,
+    })),
+    totalGoalWeight,
+    isGoalComplete,
+  };
+}
+
+/**
+ * Mengambil daftar periode evaluasi yang diikuti oleh staf
+ */
+export async function getStaffPerformancePeriods(employeeId: string) {
+  const reviews = await prisma.performanceReview.findMany({
+    where: { employeeId },
+    include: {
+      period: {
+        select: {
+          id: true,
+          name: true,
+          startDate: true,
+          endDate: true,
+          status: true,
+        },
+      },
+    },
+    orderBy: { period: { startDate: "desc" } },
+  });
+
+  return reviews.map((r) => ({
+    id: r.period.id,
+    name: r.period.name,
+    startDate: r.period.startDate.toISOString().split("T")[0]!,
+    endDate: r.period.endDate.toISOString().split("T")[0]!,
+    status: r.period.status,
+    reviewStatus: r.status,
+    finalScore: r.finalScore ? Number(r.finalScore) : null,
+  }));
+}
+

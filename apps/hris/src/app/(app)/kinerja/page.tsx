@@ -1,16 +1,20 @@
 import React from "react";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getSession, getUserProfile } from "@pspk/auth";
+import { getSession, getUserProfile, getAuthContext } from "@pspk/auth";
 import {
   getPerformancePeriods,
   getActivePerformancePeriod,
   getPerformanceOverviewStats,
   getPerformanceReviewsByPeriod,
   getPerformanceDepartments,
+  getStaffPerformanceReview,
+  getStaffPerformancePeriods,
 } from "@/server/queries/performance.queries";
 import { PerformanceClientWrapper } from "@/components/kinerja/performance-client-wrapper";
+import { StaffPerformanceView } from "@/components/kinerja/staff-performance-view";
+import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee-notice";
 import { ShieldAlert, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -32,43 +36,65 @@ export default async function PerformancePage({ searchParams }: PageProps) {
     redirect("/login");
   }
 
-  const userProfile = await getUserProfile(session.user.id);
-  const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
+  const [ctx, userProfile] = await Promise.all([
+    getAuthContext(session.user.id),
+    getUserProfile(session.user.id),
+  ]);
 
+  if (!ctx) {
+    redirect("/login");
+  }
+
+  const roleKeys = ctx.roles;
   const isSuperAdmin = roleKeys.includes("super_admin");
   const isAdminHr = roleKeys.includes("admin_hr");
+  const isManager = roleKeys.includes("manager");
 
-  // Proteksi Akses Wewenang Admin HR & Super Admin
-  if (!isSuperAdmin && !isAdminHr) {
+  // Periksa preview cookie untuk Super Admin
+  const cookieStore = await cookies();
+  const rawPreviewCookie = cookieStore.get("pspk_role_view")?.value;
+  const activePreviewRole =
+    isSuperAdmin &&
+    (rawPreviewCookie === "admin_hr" || rawPreviewCookie === "manager" || rawPreviewCookie === "staff")
+      ? rawPreviewCookie
+      : null;
+
+  const resolvedParams = await searchParams;
+
+  // JALUR 1: ROLE STAF (atau Super Admin dalam mode preview Staf / Manajer personal view)
+  const isStaffView =
+    activePreviewRole === "staff" ||
+    (!isSuperAdmin && !isAdminHr);
+
+  if (isStaffView) {
+    if (!ctx.employeeId || !userProfile?.employee) {
+      return <UnlinkedEmployeeNotice roleName="Staff / Karyawan" />;
+    }
+
+    const [staffReview, staffPeriods] = await Promise.all([
+      getStaffPerformanceReview(ctx.employeeId, resolvedParams?.periodId),
+      getStaffPerformancePeriods(ctx.employeeId),
+    ]);
+
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-lg mx-auto shadow-sm mt-8">
-        <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-200">
-          <ShieldAlert className="w-6 h-6" />
-        </div>
-        <h2 className="text-lg font-bold text-slate-900 mb-2">
-          Hak Akses Terbatas (Separation of Duties)
-        </h2>
-        <p className="text-xs text-slate-500 leading-relaxed mb-6">
-          Manajemen siklus evaluasi kinerja dan rekapitulasi penilaian lembaga hanya dapat diakses
-          oleh Tim Administrator HR dan Pimpinan PSPK. Untuk melihat sasaran dan evaluasi diri Anda,
-          silakan akses menu Kinerja Saya.
-        </p>
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#102E50] text-white text-xs font-semibold rounded-xl hover:bg-[#1a4473] transition-colors"
-        >
-          Kembali ke Beranda
-        </Link>
-      </div>
+      <StaffPerformanceView
+        review={staffReview}
+        periods={staffPeriods}
+        employeeName={userProfile.employee.fullName}
+        positionTitle={userProfile.employee.currentPosition?.title}
+        departmentName={userProfile.employee.currentDepartment?.name}
+        employeeNo={userProfile.employee.employeeNo}
+        selectedPeriodId={resolvedParams?.periodId}
+      />
     );
   }
 
-  const resolvedParams = await searchParams;
+  // JALUR 2: ADMIN HR & SUPER ADMIN (Dashboard Evaluasi Organisasi)
   const periods = await getPerformancePeriods();
   const activePeriodRaw = await getActivePerformancePeriod(resolvedParams?.periodId);
   const departments = await getPerformanceDepartments();
 
-  // Jika belum ada periode sama sekali
+  // Jika belum ada periode sama sekali di level organisasi
   if (!activePeriodRaw) {
     return (
       <div className="space-y-6">

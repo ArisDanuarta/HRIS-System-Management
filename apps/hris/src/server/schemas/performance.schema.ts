@@ -73,3 +73,26 @@ export const savePerformanceGoalsSchema = z.object({
 });
 
 export type SavePerformanceGoalsInput = z.infer<typeof savePerformanceGoalsSchema>;
+
+export const submitStaffSelfReviewSchema = z.object({
+  reviewId: z.string().uuid("ID review tidak valid"),
+  selfScore: z
+    .number({ required_error: "Skor evaluasi mandiri wajib diisi" })
+    .min(0, "Skor minimal 0")
+    .max(100, "Skor maksimal 100"),
+  selfComment: z
+    .string({ required_error: "Refleksi capaian & kendala wajib diisi" })
+    .trim()
+    .min(10, "Refleksi capaian minimal 10 karakter"),
+  goalActuals: z
+    .array(
+      z.object({
+        goalId: z.string().uuid("ID target sasaran tidak valid"),
+        actual: z.string().trim().optional().nullable(),
+      })
+    )
+    .optional(),
+});
+
+export type SubmitStaffSelfReviewInput = z.infer<typeof submitStaffSelfReviewSchema>;
+

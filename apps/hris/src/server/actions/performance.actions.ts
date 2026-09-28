@@ -8,6 +8,7 @@ import {
   createPerformancePeriodSchema,
   updatePerformancePeriodStatusSchema,
   finalizePerformanceReviewSchema,
+  submitStaffSelfReviewSchema,
 } from "../schemas/performance.schema";
 import {
   createPerformancePeriod,
@@ -308,3 +309,153 @@ export async function exportPerformanceReportAction(periodId: string) {
     };
   }
 }
+
+/**
+ * Server Action: Submit Evaluasi Mandiri Pegawai (Staff Self-Review)
+ */
+export async function submitStaffSelfReviewAction(rawData: unknown) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    if (!authCtx) {
+      return { success: false, error: "Pengguna tidak aktif atau hak akses tidak valid." };
+    }
+
+    // Ambil data employee yang terhubung dengan akun ini
+    const currentEmployee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true, fullName: true, managerId: true },
+    });
+
+    if (!currentEmployee) {
+      return { success: false, error: "Profil pegawai tidak ditemukan untuk akun ini." };
+    }
+
+    const validated = submitStaffSelfReviewSchema.safeParse(rawData);
+    if (!validated.success) {
+      const firstError = validated.error.issues[0]?.message || "Input evaluasi mandiri tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    // Ambil review yang akan disubmit
+    const existingReview = await prisma.performanceReview.findUnique({
+      where: { id: validated.data.reviewId },
+      include: {
+        period: true,
+        reviewer: {
+          select: { id: true, userId: true, fullName: true },
+        },
+      },
+    });
+
+    if (!existingReview) {
+      return { success: false, error: "Data evaluasi kinerja tidak ditemukan." };
+    }
+
+    // OWNERSHIP CHECK: Pastikan review ini memang milik employee yang sedang login
+    if (existingReview.employeeId !== currentEmployee.id) {
+      return { success: false, error: "Anda hanya berwenang mengisi evaluasi mandiri untuk diri Anda sendiri." };
+    }
+
+    // Validasi status review (hanya boleh jika DRAFT)
+    if (existingReview.status !== "DRAFT") {
+      return {
+        success: false,
+        error: `Evaluasi tidak dapat diubah karena saat ini berstatus ${existingReview.status}.`,
+      };
+    }
+
+    // Validasi status periode (harus OPEN)
+    if (existingReview.period.status !== "OPEN") {
+      return { success: false, error: "Periode evaluasi kinerja ini telah ditutup." };
+    }
+
+    const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    // Update dalam transaksi database
+    const updatedReview = await prisma.$transaction(async (tx) => {
+      // 1. Update capaian aktual pada target sasaran riset jika ada
+      if (validated.data.goalActuals && validated.data.goalActuals.length > 0) {
+        for (const item of validated.data.goalActuals) {
+          await tx.performanceGoal.updateMany({
+            where: {
+              id: item.goalId,
+              employeeId: currentEmployee.id,
+              periodId: existingReview.periodId,
+            },
+            data: {
+              actual: item.actual || null,
+            },
+          });
+        }
+      }
+
+      // 2. Update PerformanceReview
+      return await tx.performanceReview.update({
+        where: { id: validated.data.reviewId },
+        data: {
+          selfScore: validated.data.selfScore,
+          selfComment: validated.data.selfComment,
+          status: "SELF_REVIEW",
+        },
+      });
+    });
+
+    // 3. Catat Audit Log
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "SUBMIT_SELF_REVIEW",
+      entityType: "PerformanceReview",
+      entityId: updatedReview.id,
+      before: {
+        status: existingReview.status,
+        selfScore: existingReview.selfScore ? Number(existingReview.selfScore) : null,
+      },
+      after: {
+        status: updatedReview.status,
+        selfScore: Number(updatedReview.selfScore),
+        employee: currentEmployee.fullName,
+      },
+      ip,
+      userAgent,
+    });
+
+    // 4. Kirim notifikasi in-app ke Atasan Penilai
+    try {
+      if (existingReview.reviewer?.userId) {
+        await prisma.notification.create({
+          data: {
+            userId: existingReview.reviewer.userId,
+            title: "Evaluasi Mandiri Tim Selesai",
+            message: `${currentEmployee.fullName} telah mengirimkan evaluasi mandiri kinerja untuk periode "${existingReview.period.name}". Silakan lakukan peninjauan dan penilaian.`,
+            type: "INFO",
+            category: "PERFORMANCE",
+            link: "/kinerja",
+            isRead: false,
+          },
+        });
+      }
+    } catch (notifErr) {
+      console.error("Gagal mengirim notifikasi self-review ke atasan:", notifErr);
+    }
+
+    revalidatePath("/kinerja");
+    return { success: true, data: updatedReview };
+  } catch (error) {
+    console.error("Gagal submit evaluasi mandiri:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan sistem saat mengirim evaluasi mandiri.",
+    };
+  }
+}
+
