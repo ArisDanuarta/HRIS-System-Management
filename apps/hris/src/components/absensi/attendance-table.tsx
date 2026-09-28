@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useSyncExternalStore } from "react";
 import { Clock } from "lucide-react";
+import { getTimezoneAbbr } from "@pspk/shared";
 
 interface AttendanceRecord {
   id: string;
@@ -17,6 +18,18 @@ interface AttendanceTableProps {
 }
 
 export function AttendanceTable({ attendances }: AttendanceTableProps) {
+  const tzAbbr = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return getTimezoneAbbr(Intl.DateTimeFormat().resolvedOptions().timeZone);
+      } catch {
+        return "WIB";
+      }
+    },
+    () => "WIB",
+  );
+
   const formatDate = (d: Date) => {
     const dateObj = typeof d === "string" ? new Date(d) : d;
     return dateObj.toLocaleDateString("id-ID", {
@@ -33,6 +46,7 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
     return dateObj.toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   };
 
@@ -106,8 +120,8 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
           <thead>
             <tr className="bg-[#eff4ff]/60 border-b border-[#dee9fc] text-[#5b6675] uppercase tracking-wider font-semibold">
               <th className="py-3.5 px-4">Tanggal</th>
-              <th className="py-3.5 px-4">Jam Masuk</th>
-              <th className="py-3.5 px-4">Jam Pulang</th>
+              <th className="py-3.5 px-4">Jam Masuk ({tzAbbr})</th>
+              <th className="py-3.5 px-4">Jam Pulang ({tzAbbr})</th>
               <th className="py-3.5 px-4">Durasi Kerja</th>
               <th className="py-3.5 px-4">Status Kehadiran</th>
               <th className="py-3.5 px-4">Sumber / Catatan</th>

@@ -1,8 +1,25 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
-import { LogIn, LogOut, CheckCircle2, AlertCircle, Calendar } from "lucide-react";
+import React, { useState, useEffect, useTransition, useRef, useSyncExternalStore } from "react";
+import {
+  LogIn,
+  LogOut,
+  CheckCircle2,
+  AlertCircle,
+  Calendar,
+  Globe,
+  Clock,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import { checkInAction, checkOutAction } from "@/server/actions/attendance.actions";
+import {
+  getTimezoneAbbr,
+  formatTimeInZone,
+  formatDateInZone,
+  convertTimeStringZone,
+  INDONESIA_TIMEZONES,
+} from "@pspk/shared";
 
 interface TodayAttendanceCardProps {
   todayAttendance: {
@@ -17,22 +34,94 @@ interface TodayAttendanceCardProps {
     workStartTime: string;
     workEndTime: string;
     gracePeriodMins: number;
+    name?: string;
   };
 }
+
+const STORAGE_KEY = "pspk_preferred_timezone";
 
 export function TodayAttendanceCard({
   todayAttendance,
   employeeName,
   workSchedule,
 }: TodayAttendanceCardProps) {
+  // Detected timezone from browser environment via useSyncExternalStore
+  const detectedTz = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jakarta";
+      } catch {
+        return "Asia/Jakarta";
+      }
+    },
+    () => "Asia/Jakarta",
+  );
+
+  // User selected timezone ("AUTO" or specific IANA string) synced with localStorage
+  const selectedTz = useSyncExternalStore(
+    (callback) => {
+      if (typeof window === "undefined") return () => {};
+      window.addEventListener("storage", callback);
+      return () => window.removeEventListener("storage", callback);
+    },
+    () => {
+      try {
+        return localStorage.getItem(STORAGE_KEY) || "AUTO";
+      } catch {
+        return "AUTO";
+      }
+    },
+    () => "AUTO",
+  );
+
+  const [showTzDropdown, setShowTzDropdown] = useState<boolean>(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Time & Date state
   const [time, setTime] = useState<string>("");
   const [dateStr, setDateStr] = useState<string>("");
+  const [secondaryTime, setSecondaryTime] = useState<string>("");
+
   const [notes, setNotes] = useState<string>("");
   const [showNotesInput, setShowNotesInput] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const cutoffTime = workSchedule
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowTzDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Effective timezone currently applied
+  const effectiveTz = selectedTz === "AUTO" ? detectedTz : selectedTz;
+  const effectiveAbbr = getTimezoneAbbr(effectiveTz);
+  const detectedAbbr = getTimezoneAbbr(detectedTz);
+  const isWib = effectiveTz === "Asia/Jakarta" || effectiveAbbr === "WIB";
+  const isShowingLocal = effectiveTz === detectedTz;
+
+  const handleSelectTimezone = (tz: string) => {
+    try {
+      if (tz === "AUTO") {
+        localStorage.removeItem(STORAGE_KEY);
+      } else {
+        localStorage.setItem(STORAGE_KEY, tz);
+      }
+      window.dispatchEvent(new Event("storage"));
+    } catch {
+      // Ignore storage errors
+    }
+    setShowTzDropdown(false);
+  };
+
+  // Cutoff calculation in head office time (WIB)
+  const cutoffTimeWib = workSchedule
     ? (() => {
         const [h, m] = workSchedule.workStartTime.split(":").map((v) => parseInt(v, 10));
         const total = (h || 9) * 60 + (m || 0) + workSchedule.gracePeriodMins;
@@ -42,41 +131,80 @@ export function TodayAttendanceCard({
       })()
     : null;
 
-  // Keep live digital clock updating every second
+  // Local converted schedule times (if user timezone differs from WIB)
+  const localWorkStart = workSchedule
+    ? convertTimeStringZone(workSchedule.workStartTime, "Asia/Jakarta", effectiveTz)
+    : null;
+  const localWorkEnd = workSchedule
+    ? convertTimeStringZone(workSchedule.workEndTime, "Asia/Jakarta", effectiveTz)
+    : null;
+  const localCutoffTime = cutoffTimeWib
+    ? convertTimeStringZone(cutoffTimeWib, "Asia/Jakarta", effectiveTz)
+    : null;
+
+  // Live Digital Clock updating every second
   useEffect(() => {
     function updateClock() {
       const now = new Date();
+
+      // Primary display in effective timezone
       setTime(
-        now.toLocaleTimeString("id-ID", {
+        formatTimeInZone(now, effectiveTz, {
           hour: "2-digit",
           minute: "2-digit",
           second: "2-digit",
           hour12: false,
         }),
       );
+
       setDateStr(
-        now.toLocaleDateString("id-ID", {
+        formatDateInZone(now, effectiveTz, {
           weekday: "long",
           day: "numeric",
           month: "long",
           year: "numeric",
         }),
       );
+
+      // Secondary reference clock:
+      // If effective zone is NOT WIB, show synchronous Jakarta (WIB) time
+      // If effective zone IS WIB but user local device is NOT WIB, show user local time
+      if (!isWib) {
+        const wib = formatTimeInZone(now, "Asia/Jakarta", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        setSecondaryTime(`${wib} WIB`);
+      } else if (detectedTz !== "Asia/Jakarta" && detectedAbbr !== "WIB") {
+        const local = formatTimeInZone(now, detectedTz, {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: false,
+        });
+        setSecondaryTime(`${local} ${detectedAbbr}`);
+      } else {
+        setSecondaryTime("");
+      }
     }
+
     updateClock();
     const interval = setInterval(updateClock, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [effectiveTz, detectedTz, isWib, detectedAbbr]);
 
   const hasCheckedIn = !!todayAttendance?.checkInAt;
   const hasCheckedOut = !!todayAttendance?.checkOutAt;
 
-  const formatTime = (d: Date | null | undefined) => {
+  // Time formatters for attendance logs
+  const formatAttendanceTime = (d: Date | null | undefined, tz: string = effectiveTz) => {
     if (!d) return "--:--";
-    const dateObj = typeof d === "string" ? new Date(d) : d;
-    return dateObj.toLocaleTimeString("id-ID", {
+    return formatTimeInZone(d, tz, {
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   };
 
@@ -109,26 +237,120 @@ export function TodayAttendanceCard({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#dee9fc] shadow-sm p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden relative">
-      {/* Left: Live Clock & Status */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#74777f]">
-          <Calendar className="w-4 h-4 text-[#f2af3e]" />
-          <span>{dateStr || "Memuat tanggal..."}</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#f2af3e]" />
-          <span className="text-[#102e50]">WIB (Jakarta)</span>
+    <div className="bg-white rounded-2xl border border-[#dee9fc] shadow-sm p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-visible relative">
+      {/* Left Column: Live Clock & Status */}
+      <div className="flex flex-col gap-2.5">
+        {/* Top Header: Date & Dynamic Timezone Picker */}
+        <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#74777f]">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-4 h-4 text-[#f2af3e]" />
+            <span>{dateStr || "Memuat tanggal..."}</span>
+          </div>
+
+          <span className="w-1.5 h-1.5 rounded-full bg-[#f2af3e] hidden sm:inline-block" />
+
+          {/* Timezone Selector Dropdown */}
+          <div className="relative inline-block" ref={dropdownRef}>
+            <button
+              type="button"
+              onClick={() => setShowTzDropdown(!showTzDropdown)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#eff4ff] hover:bg-[#dee9fc] text-[#102e50] border border-[#dee9fc] font-semibold text-[11px] transition-colors cursor-pointer"
+              title="Ubah tampilan zona waktu"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#f2af3e]" />
+              <span>
+                {effectiveAbbr}
+                {isShowingLocal ? " (Lokal)" : effectiveTz === "Asia/Jakarta" ? " (Pusat)" : ""}
+              </span>
+              <ChevronDown className="w-3 h-3 text-[#5b6675]" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showTzDropdown && (
+              <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-[#dee9fc] p-1.5 z-50 text-xs font-normal normal-case animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#74777f] border-b border-[#dee9fc]/60">
+                  Pilih Zona Waktu
+                </div>
+
+                <div className="flex flex-col gap-0.5 mt-1">
+                  {/* Option 1: Auto Browser Local */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTimezone("AUTO")}
+                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+                      selectedTz === "AUTO"
+                        ? "bg-[#eff4ff] text-[#102e50] font-bold"
+                        : "hover:bg-slate-50 text-slate-700"
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-semibold">Otomatis (Lokal Browser)</span>
+                      <span className="text-[11px] text-[#74777f]">
+                        {detectedAbbr} • {detectedTz}
+                      </span>
+                    </div>
+                    {selectedTz === "AUTO" && <Check className="w-4 h-4 text-[#102e50]" />}
+                  </button>
+
+                  {/* Standard Indonesian Timezones */}
+                  {INDONESIA_TIMEZONES.map((tz) => (
+                    <button
+                      key={tz.key}
+                      type="button"
+                      onClick={() => handleSelectTimezone(tz.key)}
+                      className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+                        selectedTz === tz.key
+                          ? "bg-[#eff4ff] text-[#102e50] font-bold"
+                          : "hover:bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span className="font-semibold">{tz.label}</span>
+                        <span className="text-[11px] text-[#74777f]">
+                          UTC+{tz.offsetHours} • {tz.abbr}
+                        </span>
+                      </div>
+                      {selectedTz === tz.key && <Check className="w-4 h-4 text-[#102e50]" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-baseline gap-3">
+        {/* Hero Clock & Zone Badges */}
+        <div className="flex flex-wrap items-baseline gap-3">
           <span className="text-4xl sm:text-5xl font-extrabold text-[#102e50] font-mono tracking-tight">
             {time || "--:--:--"}
           </span>
-          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#eff4ff] text-[#102e50] border border-[#dee9fc]">
-            Waktu Server
-          </span>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Primary Zone Badge */}
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#eff4ff] text-[#102e50] border border-[#dee9fc]">
+              {isShowingLocal
+                ? `Waktu Lokal (${effectiveAbbr})`
+                : effectiveTz === "Asia/Jakarta"
+                  ? "Waktu Kantor Pusat (WIB)"
+                  : `Zona ${effectiveAbbr}`}
+            </span>
+
+            {/* Synchronized Reference Clock (WIB Head Office or Local User) */}
+            {secondaryTime && (
+              <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200" title="Waktu tersinkronisasi kantor pusat Jakarta">
+                <Clock className="w-3.5 h-3.5 text-[#f2af3e]" />
+                <span>
+                  {!isWib
+                    ? `Kantor Pusat: ${secondaryTime}`
+                    : `Lokal Anda: ${secondaryTime}`}
+                </span>
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 mt-1">
+        {/* Attendance Status */}
+        <div className="flex flex-wrap items-center gap-2 mt-1">
           <span className="text-xs text-[#5b6675]">Status Presensi Hari Ini:</span>
           {!hasCheckedIn ? (
             <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
@@ -148,34 +370,55 @@ export function TodayAttendanceCard({
                   todayAttendance?.status === "LATE" ? "bg-amber-500" : "bg-emerald-500 animate-pulse"
                 }`}
               />
-              Hadir ({formatTime(todayAttendance?.checkInAt)} WIB)
+              <span>
+                Hadir ({formatAttendanceTime(todayAttendance?.checkInAt)} {effectiveAbbr}
+                {!isWib && (
+                  <span className="text-slate-500 font-normal">
+                    {" "}• {formatAttendanceTime(todayAttendance?.checkInAt, "Asia/Jakarta")} WIB
+                  </span>
+                )}
+                )
+              </span>
               {todayAttendance?.status === "LATE" && " • Terlambat"}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-300">
               <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-              Selesai Bekerja ({formatTime(todayAttendance?.checkInAt)} - {formatTime(todayAttendance?.checkOutAt)})
+              <span>
+                Selesai Bekerja ({formatAttendanceTime(todayAttendance?.checkInAt)} -{" "}
+                {formatAttendanceTime(todayAttendance?.checkOutAt)} {effectiveAbbr})
+              </span>
             </span>
           )}
         </div>
 
         {employeeName && (
-          <p className="text-xs text-[#74777f] mt-1">
+          <p className="text-xs text-[#74777f] mt-0.5">
             Presensi tercatat atas nama: <strong className="text-[#102e50]">{employeeName}</strong>
           </p>
         )}
 
+        {/* Dynamic Work Schedule with Timezone Conversion */}
         {workSchedule && (
-          <div className="flex items-center gap-1.5 text-[11px] text-[#5b6675] mt-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#5b6675] mt-1 bg-slate-50/80 p-2 rounded-xl border border-slate-200/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             <span>
-              Jadwal kantor: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong> (Tepat waktu s/d <strong>{cutoffTime} WIB</strong>)
+              Jadwal kantor: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong>
+              {!isWib && localWorkStart && localWorkEnd && (
+                <span className="text-[#102e50] font-semibold">
+                  {" "}(setara <strong>{localWorkStart} — {localWorkEnd} {effectiveAbbr}</strong> waktu Anda)
+                </span>
+              )}
+              {" "}• Tepat waktu s/d <strong>{cutoffTimeWib} WIB</strong>
+              {!isWib && localCutoffTime && (
+                <span> ({localCutoffTime} {effectiveAbbr})</span>
+              )}
             </span>
           </div>
         )}
       </div>
 
-      {/* Right: Action Buttons */}
+      {/* Right Column: Action Buttons */}
       <div className="flex flex-col items-stretch sm:items-end gap-3 w-full md:w-auto">
         {/* Feedback Message Alert */}
         {message && (

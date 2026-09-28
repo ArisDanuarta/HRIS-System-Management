@@ -1,5 +1,7 @@
 import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
+import { toDateString } from "@pspk/shared";
+import { getActiveWorkSchedule } from "../../services/work-schedule.service";
 
 export interface ManagerDashboardData {
   totalTeamMembers: number;
@@ -29,6 +31,12 @@ export interface ManagerDashboardData {
   }[];
   startOfWeek: Date;
   endOfWeek: Date;
+  workSchedule?: {
+    workStartTime: string;
+    workEndTime: string;
+    gracePeriodMins: number;
+    name: string;
+  };
   managerOwn: {
     todayAttendance: {
       id: string;
@@ -62,8 +70,8 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
   }
 
   const managerId = ctx.employeeId;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayDateStr = toDateString(new Date());
+  const today = new Date(todayDateStr);
   const currentYear = today.getFullYear();
 
   // Find direct subordinates
@@ -101,6 +109,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     weekTeamLeaves,
     managerAttendance,
     managerBalances,
+    workSchedule,
   ] = await Promise.all([
     // Today's attendance for team
     subordinateIds.length > 0
@@ -174,6 +183,8 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
       },
       orderBy: { quotaDays: "desc" },
     }),
+
+    getActiveWorkSchedule(),
   ]);
 
   const teamPresentCount = todayTeamAttendances.filter((a) =>
@@ -229,6 +240,12 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     })),
     startOfWeek,
     endOfWeek,
+    workSchedule: {
+      workStartTime: workSchedule.workStartTime,
+      workEndTime: workSchedule.workEndTime,
+      gracePeriodMins: workSchedule.gracePeriodMins,
+      name: workSchedule.name,
+    },
     managerOwn: {
       todayAttendance: managerAttendance
         ? {

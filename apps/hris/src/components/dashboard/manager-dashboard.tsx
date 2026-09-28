@@ -431,6 +431,7 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
         <TodayAttendanceCard
           todayAttendance={data.managerOwn.todayAttendance}
           employeeName={managerName}
+          workSchedule={data.workSchedule}
         />
 
         <LeaveBalanceCards balances={data.managerOwn.leaveBalances} />
