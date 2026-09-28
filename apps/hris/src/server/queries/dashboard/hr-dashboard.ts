@@ -1,5 +1,6 @@
 import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
+import { toDateString } from "@pspk/shared";
 
 export interface HrDashboardData {
   totalActiveEmployees: number;
@@ -55,16 +56,15 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
   assertCan(ctx, "hris.employee.read:all");
   assertCan(ctx, "hris.attendance.read:all");
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const todayStr = toDateString(new Date());
+  const today = new Date(todayStr);
 
   const thirtyDaysFromNow = new Date(today);
-  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setUTCDate(today.getUTCDate() + 30);
 
   // Past 7 working days range
   const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 6);
-  sevenDaysAgo.setHours(0, 0, 0, 0);
+  sevenDaysAgo.setUTCDate(today.getUTCDate() - 6);
 
   const [
     totalActiveEmployees,
@@ -203,12 +203,16 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
 
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateStr = d.toISOString().split("T")[0]!;
-    const dayLabel = d.toLocaleDateString("id-ID", { weekday: "short", day: "numeric" });
+    d.setUTCDate(today.getUTCDate() - i);
+    const dateStr = toDateString(d);
+    const dayLabel = d.toLocaleDateString("id-ID", {
+      weekday: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    });
 
     const dayRecords = last7DaysAttendances.filter((r) => {
-      const recDate = new Date(r.date).toISOString().split("T")[0];
+      const recDate = toDateString(r.date);
       return recDate === dateStr;
     });
 

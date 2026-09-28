@@ -558,9 +558,20 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - **Tampilan Waktu Ganda (*Dual-Time Display*) (`AttendanceTable`)**:
     - Kolom Jam Masuk dan Jam Pulang pada tabel riwayat absensi kini menampilkan waktu dalam zona lokal karyawan (`13:20 WITA`) dan di bawahnya menyertakan konversi waktu kantor pusat (`12:20 WIB`) jika staf berada di luar zona WIB.
     - Menghilangkan potensi salah paham (*dispute*) antara staf remote dan admin HR di kantor pusat Jakarta.
+  - **Refactoring Layout Kartu Presensi & Tombol (`TodayAttendanceCard` & `/absensi`)**:
+    - **Penyebab masalah sebelumnya**: Pada halaman `/absensi`, komponen `TodayAttendanceCard` ditempatkan dalam kolom sempit 5-span (`lg:col-span-5` ~400px), sehingga flex horizontal menyebabkan teks tombol `"Masuk Kerja (Check-In)"` patah menjadi 4 baris sempit dan tombol catatan tertekan.
+    - **Perubahan Arsitektur Tampilan (Sesuai Blueprint P-H9)**:
+      - Menjadikan `TodayAttendanceCard` sebagai kartu *Hero* mandiri satu layar penuh (`col-span-12`) di bagian paling atas.
+      - Bagian atas kartu memuat *Meta Bar* elegan: tanggal, pemilih zona waktu (*timezone dropdown*), serta lencana status kehadiran (*Status Pill*) di pojok kanan.
+      - Bagian tengah memisahkan secara proporsional antara panel jam digital tabular besar + konteks jadwal kantor di sebelah kiri, dan panel aksi presensi di sebelah kanan.
+      - Tombol aksi utama (*Check-In* / *Check-Out*) diberi aturan `whitespace-nowrap` dan `min-w-[210px]`, sehingga teks tidak akan pernah terpotong atau terlipat di layar mana pun.
+      - Tombol catatan (*+ Catatan*) ditingkatkan dari sekadar tautan teks tipis menjadi tombol sekunder berbentuk *pill* yang rapi dengan ikon `FileText` dan input terintegrasi yang bersih.
+      - Di bawah kartu utama, ringkasan statistik bulanan (4 kartu metrik) dan kartu ketentuan jam kerja disandingkan secara seimbang dalam grid 8-4.
+    - **Berlaku di Semua Peran**: Perbaikan ini otomatis mempercantik tampilan presensi untuk seluruh peran (Staff, Manajer pada *dashboard* mereka, HR Admin, dan Super Admin).
   - **Hasil Uji & Kualitas**:
-    - `pnpm typecheck`: 9/9 packages lolos.
+    - `pnpm typecheck`: 9/9 packages lolos (0 error).
     - `pnpm test`: 41 unit tests lolos (100%).
+    - `pnpm lint`: Lolos (0 error).
     - `pnpm build`: Standalone build berhasil.
 
 ---
