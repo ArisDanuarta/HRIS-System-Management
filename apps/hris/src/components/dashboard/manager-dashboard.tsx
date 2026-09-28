@@ -22,6 +22,7 @@ import {
   approveLeaveRequestAction,
   rejectLeaveRequestAction,
 } from "@/server/actions/leave.actions";
+import { toDateString } from "@pspk/shared";
 
 interface ManagerDashboardProps {
   data: ManagerDashboardData;
@@ -90,16 +91,18 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
     });
   };
 
+  const todayDateStr = toDateString(new Date());
   // Generate 5 days of current week (Monday to Friday)
   const weekDays = [0, 1, 2, 3, 4].map((offset) => {
     const d = new Date(data.startOfWeek);
-    d.setDate(d.getDate() + offset);
+    d.setUTCDate(d.getUTCDate() + offset);
+    const dateStr = toDateString(d);
     return {
       date: d,
-      dateStr: d.toISOString().split("T")[0]!,
-      dayName: d.toLocaleDateString("id-ID", { weekday: "short" }),
-      dayNumber: d.getDate(),
-      isToday: d.toISOString().split("T")[0] === new Date().toISOString().split("T")[0],
+      dateStr,
+      dayName: d.toLocaleDateString("id-ID", { weekday: "short", timeZone: "UTC" }),
+      dayNumber: d.getUTCDate(),
+      isToday: dateStr === todayDateStr,
     };
   });
 

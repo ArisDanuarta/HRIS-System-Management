@@ -45,21 +45,14 @@ export async function recordCheckIn(
   const schedule = await getActiveWorkSchedule(employee?.currentDepartmentId);
 
   // Extract current time in operational timezone
-  const hour = parseInt(
-    now.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      hour12: false,
-      timeZone: process.env.APP_TIMEZONE || "Asia/Jakarta",
-    }),
-    10,
-  );
-  const minute = parseInt(
-    now.toLocaleTimeString("id-ID", {
-      minute: "2-digit",
-      timeZone: process.env.APP_TIMEZONE || "Asia/Jakarta",
-    }),
-    10,
-  );
+  const timeParts = new Intl.DateTimeFormat("en-US", {
+    timeZone: opTimezone,
+    hour: "numeric",
+    minute: "numeric",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const hour = parseInt(timeParts.find((p) => p.type === "hour")?.value ?? "0", 10);
+  const minute = parseInt(timeParts.find((p) => p.type === "minute")?.value ?? "0", 10);
 
   // Calculate dynamic cutoff: workStartTime + gracePeriodMins
   const [startHourStr, startMinStr] = (schedule.workStartTime || "09:00").split(":");

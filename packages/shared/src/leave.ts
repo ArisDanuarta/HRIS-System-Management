@@ -51,7 +51,7 @@ export function calculateWorkingDays(
   const current = new Date(start);
 
   while (current <= end) {
-    const dayOfWeek = current.getDay();
+    const dayOfWeek = current.getUTCDay();
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
     const isHoliday = holidaySet.has(toDateString(current));
 
@@ -59,8 +59,8 @@ export function calculateWorkingDays(
       workingDays++;
     }
 
-    // Advance 1 day
-    current.setDate(current.getDate() + 1);
+    // Advance 1 day in UTC
+    current.setUTCDate(current.getUTCDate() + 1);
   }
 
   return workingDays;

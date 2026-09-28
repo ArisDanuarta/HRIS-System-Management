@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from "react";
 import { X, Calendar, Plus, RefreshCw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { createPerformancePeriodAction } from "@/server/actions/performance.actions";
+import { toDateString } from "@pspk/shared";
 
 interface PerformancePeriodModalProps {
   isOpen: boolean;
@@ -16,11 +17,11 @@ export function PerformancePeriodModal({
   onSuccess,
 }: PerformancePeriodModalProps) {
   const [name, setName] = useState("");
-  const [startDate, setStartDate] = useState(() => new Date().toISOString().split("T")[0]!);
+  const [startDate, setStartDate] = useState(() => toDateString(new Date()));
   const [endDate, setEndDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 180);
-    return d.toISOString().split("T")[0]!;
+    return toDateString(d);
   });
   const [status, setStatus] = useState<"OPEN" | "CLOSED">("OPEN");
 

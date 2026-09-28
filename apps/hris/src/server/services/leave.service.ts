@@ -27,8 +27,8 @@ export async function submitLeaveRequest(
   const holidays = await prisma.holiday.findMany({
     where: {
       date: {
-        gte: new Date(year, 0, 1),
-        lte: new Date(year, 11, 31),
+        gte: new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)),
+        lte: new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)),
       },
     },
     select: { date: true },
@@ -180,8 +180,8 @@ export async function approveLeaveRequest(
   const holidays = await prisma.holiday.findMany({
     where: {
       date: {
-        gte: new Date(year, 0, 1),
-        lte: new Date(year, 11, 31),
+        gte: new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)),
+        lte: new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)),
       },
     },
     select: { date: true },
@@ -226,17 +226,18 @@ export async function approveLeaveRequest(
     // 3. Mark Attendance records as LEAVE for all working days in range
     const current = new Date(startDate);
     while (current <= endDate) {
-      const dayOfWeek = current.getDay();
+      const dayOfWeek = current.getUTCDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      const isHoliday = holidaySet.has(toDateString(current));
+      const curDateStr = toDateString(current);
+      const isHoliday = holidaySet.has(curDateStr);
 
       if (!isWeekend && !isHoliday) {
-        const dateCopy = new Date(current);
+        const attendanceDate = new Date(curDateStr);
         await tx.attendance.upsert({
           where: {
             employeeId_date: {
               employeeId: request.employeeId,
-              date: dateCopy,
+              date: attendanceDate,
             },
           },
           update: {
@@ -245,7 +246,7 @@ export async function approveLeaveRequest(
           },
           create: {
             employeeId: request.employeeId,
-            date: dateCopy,
+            date: attendanceDate,
             status: "LEAVE",
             source: "WEB",
             notes: `Cuti Disetujui: ${request.leaveType.name}`,
@@ -253,7 +254,7 @@ export async function approveLeaveRequest(
         });
       }
 
-      current.setDate(current.getDate() + 1);
+      current.setUTCDate(current.getUTCDate() + 1);
     }
 
     // 4. Log Audit Event

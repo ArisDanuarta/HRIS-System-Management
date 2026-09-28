@@ -1,8 +1,14 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { X, ShieldAlert, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, ShieldAlert, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { correctAttendanceAction } from "@/server/actions/attendance.actions";
+import {
+  toDateString,
+  getTimezoneAbbr,
+  getTimezoneOffsetString,
+  INDONESIA_TIMEZONES,
+} from "@pspk/shared";
 
 interface AttendanceCorrectionModalProps {
   isOpen: boolean;
@@ -21,9 +27,16 @@ export function AttendanceCorrectionModal({
   employee,
   initialDate,
 }: AttendanceCorrectionModalProps) {
-  const [date, setDate] = useState(
-    initialDate || new Date().toISOString().split("T")[0]!,
-  );
+  const [date, setDate] = useState(initialDate || toDateString(new Date()));
+  const [selectedTz, setSelectedTz] = useState(() => {
+    try {
+      const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const match = INDONESIA_TIMEZONES.find((z) => z.key === detected);
+      return match ? match.key : "Asia/Jakarta";
+    } catch {
+      return "Asia/Jakarta";
+    }
+  });
   const [inTime, setInTime] = useState("08:30");
   const [outTime, setOutTime] = useState("17:30");
   const [status, setStatus] = useState<"PRESENT" | "LATE" | "ABSENT" | "LEAVE" | "WFH">("PRESENT");
@@ -45,9 +58,12 @@ export function AttendanceCorrectionModal({
     }
 
     startTransition(async () => {
-      // Form ISO strings for times
-      const checkInISO = inTime ? `${date}T${inTime}:00+07:00` : null;
-      const checkOutISO = outTime ? `${date}T${outTime}:00+07:00` : null;
+      // Form ISO strings for times using dynamic timezone offset
+      const offset = getTimezoneOffsetString(selectedTz);
+      const checkInISO = inTime ? `${date}T${inTime}:00${offset}` : null;
+      const checkOutISO = outTime ? `${date}T${outTime}:00${offset}` : null;
+      const tzAbbr = getTimezoneAbbr(selectedTz);
+      const auditReason = `[Zona: ${tzAbbr}] ${reason.trim()}`;
 
       const res = await correctAttendanceAction({
         employeeId: employee.id,
@@ -55,7 +71,7 @@ export function AttendanceCorrectionModal({
         checkInAt: checkInISO,
         checkOutAt: checkOutISO,
         status,
-        correctionReason: reason,
+        correctionReason: auditReason,
       });
 
       if (res.success) {
@@ -126,10 +142,36 @@ export function AttendanceCorrectionModal({
             />
           </div>
 
+          {/* Timezone Selector */}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between">
+              <label className="font-semibold text-slate-700 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-[#102e50]" />
+                <span>Zona Waktu Input *</span>
+              </label>
+              <span className="text-[10px] text-slate-500 font-mono">
+                Offset: {getTimezoneOffsetString(selectedTz)}
+              </span>
+            </div>
+            <select
+              value={selectedTz}
+              onChange={(e) => setSelectedTz(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs font-medium focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
+            >
+              {INDONESIA_TIMEZONES.map((tz) => (
+                <option key={tz.key} value={tz.key}>
+                  {tz.label} ({tz.abbr})
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Times: Check-in & Check-out */}
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1">
-              <label className="font-semibold text-slate-700">Jam Masuk</label>
+              <label className="font-semibold text-slate-700">
+                Jam Masuk ({getTimezoneAbbr(selectedTz)})
+              </label>
               <input
                 type="time"
                 value={inTime}
@@ -138,7 +180,9 @@ export function AttendanceCorrectionModal({
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="font-semibold text-slate-700">Jam Pulang</label>
+              <label className="font-semibold text-slate-700">
+                Jam Pulang ({getTimezoneAbbr(selectedTz)})
+              </label>
               <input
                 type="time"
                 value={outTime}

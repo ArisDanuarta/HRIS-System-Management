@@ -106,6 +106,13 @@ describe("Timezone Utilities", () => {
     expect(formatTimeInZone(d, "Asia/Makassar", opt)).toBe("13.20.00");
     expect(formatTimeInZone(d, "Asia/Jayapura", opt)).toBe("14.20.00");
   });
+
+  it("calculates ISO timezone offsets properly", async () => {
+    const { getTimezoneOffsetString } = await import("./formatters");
+    expect(getTimezoneOffsetString("Asia/Jakarta")).toBe("+07:00");
+    expect(getTimezoneOffsetString("Asia/Makassar")).toBe("+08:00");
+    expect(getTimezoneOffsetString("Asia/Jayapura")).toBe("+09:00");
+  });
 });
 
 

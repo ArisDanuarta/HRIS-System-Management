@@ -131,6 +131,31 @@ export function getTimezoneLabel(timeZone: string): string {
 }
 
 /**
+ * Returns ISO offset string for target timezone (e.g. "+07:00", "+08:00", "+09:00").
+ */
+export function getTimezoneOffsetString(
+  timeZone: string = process.env.APP_TIMEZONE || "Asia/Jakarta",
+  date = new Date(),
+): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "longOffset",
+    }).formatToParts(date);
+    const tzPart = parts.find((p) => p.type === "timeZoneName")?.value;
+    if (tzPart && tzPart.startsWith("GMT")) {
+      return tzPart.replace("GMT", "");
+    }
+  } catch {
+    // fallback
+  }
+
+  if (timeZone === "Asia/Makassar" || timeZone === "Asia/Denpasar") return "+08:00";
+  if (timeZone === "Asia/Jayapura") return "+09:00";
+  return "+07:00";
+}
+
+/**
  * Returns standard ISO YYYY-MM-DD date in target timezone.
  * Avoids UTC host offset bugs on early morning check-ins.
  */
