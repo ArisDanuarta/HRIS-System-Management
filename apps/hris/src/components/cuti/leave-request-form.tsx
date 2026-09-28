@@ -16,7 +16,7 @@ import {
   Paperclip,
   Loader2,
 } from "lucide-react";
-import { calculateWorkingDays } from "@pspk/shared";
+import { calculateWorkingDays, toDateString } from "@pspk/shared";
 import {
   submitLeaveRequestAction,
   uploadLeaveAttachmentAction,
@@ -85,7 +85,7 @@ export function LeaveRequestForm({
 
   // Extract holiday date strings
   const holidayDates = useMemo(
-    () => holidays.map((h) => (typeof h.date === "string" ? h.date : h.date.toISOString())),
+    () => holidays.map((h) => toDateString(h.date)),
     [holidays],
   );
 

@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { transferEmployeePositionAction } from "@/server/actions/organization.actions";
+import { toDateString } from "@pspk/shared";
 
 interface TransferPositionModalProps {
   isOpen: boolean;
@@ -57,7 +58,7 @@ export function TransferPositionModal({
   const [positionId, setPositionId] = useState<string>(employee.currentPositionId || "");
   const [managerId, setManagerId] = useState<string>(employee.managerId || "");
   const [effectiveDate, setEffectiveDate] = useState<string>(
-    new Date().toISOString().slice(0, 10),
+    toDateString(new Date()),
   );
   const [skNumber, setSkNumber] = useState<string>("");
   const [notes, setNotes] = useState<string>("");

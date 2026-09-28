@@ -14,6 +14,7 @@ import {
   importEmployeesBatchAction,
   ImportEmployeeRow,
 } from "@/server/actions/employee.actions";
+import { toDateString } from "@pspk/shared";
 
 export function ExcelImporter() {
   const router = useRouter();
@@ -87,7 +88,7 @@ export function ExcelImporter() {
                 ? "PART_TIME_PROJECT"
                 : "PERMANENT";
           const baseSalary = cols[7] ? Number(cols[7].replace(/[^0-9]/g, "")) : 10000000;
-          const joinDate = cols[8] || new Date().toISOString().split("T")[0];
+          const joinDate = cols[8] || toDateString(new Date());
 
           if (fullName && employeeNo && workEmail) {
             rows.push({
@@ -99,7 +100,7 @@ export function ExcelImporter() {
               positionTitle,
               employmentType,
               baseSalary,
-              joinDate: joinDate || new Date().toISOString().slice(0, 10),
+              joinDate: joinDate || toDateString(new Date()),
             });
           }
         }

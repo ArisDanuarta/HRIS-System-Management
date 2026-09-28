@@ -28,7 +28,7 @@ export function AttendanceCorrectionModal({
   initialDate,
 }: AttendanceCorrectionModalProps) {
   const [date, setDate] = useState(initialDate || toDateString(new Date()));
-  const [selectedTz, setSelectedTz] = useState(() => {
+  const [selectedTz, setSelectedTz] = useState<string>(() => {
     try {
       const detected = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const match = INDONESIA_TIMEZONES.find((z) => z.key === detected);

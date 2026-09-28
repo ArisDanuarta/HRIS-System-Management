@@ -31,6 +31,7 @@ import {
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
 import { EmployeeStatus, EmploymentType, Gender, MaritalStatus } from "@pspk/db";
+import { toDateString } from "@pspk/shared";
 
 interface DepartmentOption {
   id: string;
@@ -153,7 +154,7 @@ export function WizardEmployeeForm({
     personalEmail: initialData?.personalEmail || "",
     phone: initialData?.phone || "",
     birthDate: initialData?.birthDate
-      ? new Date(initialData.birthDate).toISOString().split("T")[0]
+      ? toDateString(initialData.birthDate)
       : "",
     birthPlace: initialData?.birthPlace || "",
     gender: initialData?.gender || "MALE",
@@ -168,8 +169,8 @@ export function WizardEmployeeForm({
     currentPositionId: initialData?.currentPositionId || "",
     managerId: initialData?.managerId || "",
     joinDate: initialData?.joinDate
-      ? new Date(initialData.joinDate).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
+      ? toDateString(initialData.joinDate)
+      : toDateString(new Date()),
     status: initialData?.status || "ACTIVE",
 
     // Step 3: Contract
@@ -178,10 +179,10 @@ export function WizardEmployeeForm({
     wageType: "MONTHLY" as "MONTHLY" | "HOURLY",
     hourlyRate: 0,
     contractStartDate: initialData?.contracts?.[0]?.startDate
-      ? new Date(initialData.contracts[0].startDate).toISOString().split("T")[0]
-      : new Date().toISOString().split("T")[0],
+      ? toDateString(initialData.contracts[0].startDate)
+      : toDateString(new Date()),
     contractEndDate: initialData?.contracts?.[0]?.endDate
-      ? new Date(initialData.contracts[0].endDate).toISOString().split("T")[0]
+      ? toDateString(initialData.contracts[0].endDate)
       : "",
     baseSalary: initialData?.contracts?.[0]?.baseSalary || 10000000,
     contractNotes: initialData?.contracts?.[0]?.notes || "",
@@ -371,7 +372,7 @@ export function WizardEmployeeForm({
     setIsSubmitting(true);
     setServerError(null);
 
-    const baseJoinDate = formData.joinDate || new Date().toISOString().slice(0, 10);
+    const baseJoinDate = formData.joinDate || toDateString(new Date());
     const baseContractStart = formData.contractStartDate || baseJoinDate;
 
     if (mode === "create") {
