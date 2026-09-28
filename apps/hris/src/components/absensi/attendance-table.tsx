@@ -2,7 +2,7 @@
 
 import React, { useSyncExternalStore } from "react";
 import { Clock } from "lucide-react";
-import { getTimezoneAbbr } from "@pspk/shared";
+import { getTimezoneAbbr, formatTimeInZone } from "@pspk/shared";
 
 interface AttendanceRecord {
   id: string;
@@ -136,10 +136,30 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
                   {formatDate(a.date)}
                 </td>
                 <td className="py-3.5 px-4 font-mono">
-                  {formatTime(a.checkInAt)}
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-[#102e50]">
+                      {formatTime(a.checkInAt)}
+                      {a.checkInAt && <span className="text-[10px] text-slate-500 font-sans ml-1">{tzAbbr}</span>}
+                    </span>
+                    {tzAbbr !== "WIB" && a.checkInAt && (
+                      <span className="text-[10px] text-slate-400 font-sans">
+                        {formatTimeInZone(a.checkInAt, "Asia/Jakarta")} WIB
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="py-3.5 px-4 font-mono">
-                  {formatTime(a.checkOutAt)}
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-[#102e50]">
+                      {formatTime(a.checkOutAt)}
+                      {a.checkOutAt && <span className="text-[10px] text-slate-500 font-sans ml-1">{tzAbbr}</span>}
+                    </span>
+                    {tzAbbr !== "WIB" && a.checkOutAt && (
+                      <span className="text-[10px] text-slate-400 font-sans">
+                        {formatTimeInZone(a.checkOutAt, "Asia/Jakarta")} WIB
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="py-3.5 px-4 font-medium text-slate-600">
                   {calculateHours(a.checkInAt, a.checkOutAt)}

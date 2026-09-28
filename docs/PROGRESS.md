@@ -544,12 +544,24 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
       - *Live Simulator & Timeline*: Menghitung otomatis batas tepat waktu, total durasi kerja harian, dan simulator uji coba jam check-in interaktif.
   - **Sinkronisasi Antarmuka Karyawan (`/absensi`)**:
     - Kartu `TodayAttendanceCard` dan ringkasan bulanan di `apps/hris/src/app/(app)/absensi/page.tsx` menampilkan jadwal kerja kantor dan batas toleransi tepat waktu secara dinamis dari database.
-  - **Hasil Uji & Kualitas (Quality Gate)**:
-    - `pnpm typecheck`: 9/9 packages lolos (0 error).
-    - `pnpm lint`: Lolos (0 error).
-    - `pnpm test`: Lolos (37 unit tests passing).
-    - `pnpm build`: Standalone Next.js build sukses 100% untuk `@pspk/hris` dan `@pspk/sysmgmt`.
-    - Health check `/api/health`: HTTP 200 `{"status":"ok"}`.
+
+---
+
+## Peningkatan Multi-Zona Waktu (WIB, WITA, WIT) & Presensi Terdistribusi
+- **Status:** Selesai (Completed)
+- **Implementasi:**
+  - **Perbaikan Format Jam Dinamis (`@pspk/shared/formatters.ts`)**:
+    - Memperbaiki bug pada `formatTimeInZone` dan `formatDateInZone` di mana `timeZone` tertimpa jika `options` dikirim, menyebabkan jam digital tetap membaca waktu lokal browser alih-alih zona yang dipilih pada *dropdown*.
+    - Menambahkan unit test di `formatters.test.ts` memverifikasi ketepatan perbedaan jam WIB, WITA, dan WIT. Total 41 unit tests lulus 100%.
+  - **Tagging Metadata Zona Presensi (`TodayAttendanceCard`)**:
+    - Tombol *Masuk Kerja (Check-In)* dan *Pulang Kerja (Check-Out)* otomatis menyematkan metadata zona waktu asal (mis. `[WITA]`) ke dalam `Attendance.notes` dan `core.audit_logs`.
+  - **Tampilan Waktu Ganda (*Dual-Time Display*) (`AttendanceTable`)**:
+    - Kolom Jam Masuk dan Jam Pulang pada tabel riwayat absensi kini menampilkan waktu dalam zona lokal karyawan (`13:20 WITA`) dan di bawahnya menyertakan konversi waktu kantor pusat (`12:20 WIB`) jika staf berada di luar zona WIB.
+    - Menghilangkan potensi salah paham (*dispute*) antara staf remote dan admin HR di kantor pusat Jakarta.
+  - **Hasil Uji & Kualitas**:
+    - `pnpm typecheck`: 9/9 packages lolos.
+    - `pnpm test`: 41 unit tests lolos (100%).
+    - `pnpm build`: Standalone build berhasil.
 
 ---
 
@@ -565,10 +577,11 @@ pnpm dev
 # System Management: http://localhost:3002
 
 # 3. Jalankan pengujian
-pnpm test          # Menjalankan 37 unit test (Vitest)
+pnpm test          # Menjalankan 41 unit test (Vitest)
 pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
 ```
+
 
 

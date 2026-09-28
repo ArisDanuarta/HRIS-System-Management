@@ -33,9 +33,10 @@ export function formatDate(
     month: "long",
     year: "numeric",
     timeZone: process.env.APP_TIMEZONE || "Asia/Jakarta",
+    ...options,
   };
 
-  return new Intl.DateTimeFormat("id-ID", options || defaultOptions).format(d);
+  return new Intl.DateTimeFormat("id-ID", defaultOptions).format(d);
 }
 
 export function formatDateTime(date: Date | string | number | null | undefined): string {
@@ -161,14 +162,15 @@ export function formatTimeInZone(
   const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "--:--";
 
-  const defaultOptions: Intl.DateTimeFormatOptions = {
+  const mergedOptions: Intl.DateTimeFormatOptions = {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone,
+    ...options,
+    timeZone: options?.timeZone || timeZone,
   };
 
-  return new Intl.DateTimeFormat("id-ID", options || defaultOptions).format(d);
+  return new Intl.DateTimeFormat("id-ID", mergedOptions).format(d);
 }
 
 /**
@@ -183,15 +185,16 @@ export function formatDateInZone(
   const d = typeof date === "string" || typeof date === "number" ? new Date(date) : date;
   if (isNaN(d.getTime())) return "-";
 
-  const defaultOptions: Intl.DateTimeFormatOptions = {
+  const mergedOptions: Intl.DateTimeFormatOptions = {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone,
+    ...options,
+    timeZone: options?.timeZone || timeZone,
   };
 
-  return new Intl.DateTimeFormat("id-ID", options || defaultOptions).format(d);
+  return new Intl.DateTimeFormat("id-ID", mergedOptions).format(d);
 }
 
 /**

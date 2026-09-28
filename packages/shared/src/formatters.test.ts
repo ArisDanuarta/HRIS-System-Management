@@ -94,6 +94,19 @@ describe("Timezone Utilities", () => {
     // Same zone returns identical string
     expect(convertTimeStringZone("09:00", "Asia/Jakarta", "Asia/Jakarta")).toBe("09:00");
   });
+
+  it("formats time with custom options across different timezones", async () => {
+    const { formatTimeInZone } = await import("./formatters");
+    const d = new Date("2026-09-28T05:20:00.000Z"); // 05:20 UTC
+    // WIB (UTC+7): 12:20:00
+    // WITA (UTC+8): 13:20:00
+    // WIT (UTC+9): 14:20:00
+    const opt = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false } as const;
+    expect(formatTimeInZone(d, "Asia/Jakarta", opt)).toBe("12.20.00");
+    expect(formatTimeInZone(d, "Asia/Makassar", opt)).toBe("13.20.00");
+    expect(formatTimeInZone(d, "Asia/Jayapura", opt)).toBe("14.20.00");
+  });
 });
+
 
 

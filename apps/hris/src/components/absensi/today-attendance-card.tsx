@@ -211,7 +211,9 @@ export function TodayAttendanceCard({
   const handleCheckIn = () => {
     setMessage(null);
     startTransition(async () => {
-      const res = await checkInAction({ notes: notes || undefined });
+      const tzTag = `[${effectiveAbbr}]`;
+      const combinedNotes = notes ? `${notes} ${tzTag}` : tzTag;
+      const res = await checkInAction({ notes: combinedNotes });
       if (res.success) {
         setMessage({ type: "success", text: res.message });
         setShowNotesInput(false);
@@ -225,7 +227,9 @@ export function TodayAttendanceCard({
   const handleCheckOut = () => {
     setMessage(null);
     startTransition(async () => {
-      const res = await checkOutAction({ notes: notes || undefined });
+      const tzTag = `[${effectiveAbbr}]`;
+      const combinedNotes = notes ? `${notes} ${tzTag}` : tzTag;
+      const res = await checkOutAction({ notes: combinedNotes });
       if (res.success) {
         setMessage({ type: "success", text: res.message });
         setShowNotesInput(false);
