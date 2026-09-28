@@ -99,99 +99,101 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
         pendingLeavesCount={pendingLeavesCount}
       />
 
-      {/* Main Grid: Today Check-In Card & Monthly Summary */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Live Check-in / Check-out Card */}
-        <div className="lg:col-span-5">
-          <TodayAttendanceCard
-            todayAttendance={todayAttendance}
-            employeeName={employee.fullName}
-            workSchedule={workSchedule}
-          />
-        </div>
+      {/* 1. Hero: Today Check-In Card across full width */}
+      <TodayAttendanceCard
+        todayAttendance={todayAttendance}
+        employeeName={employee.fullName}
+        workSchedule={workSchedule}
+      />
 
-        {/* Right Column: Month Statistics & Quick Information */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-xs p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-gray-100">
-              <div>
-                <h3 className="text-base font-bold text-[#102e50]">
-                  Ringkasan Bulan {monthNames[currentMonth - 1]} {currentYear}
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Akumulasi kehadiran Anda pada periode berjalan
-                </p>
-              </div>
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                {monthlyData.stats.recordedDays} Hari Terekam
-              </span>
+      {/* 2. Monthly Summary Statistics & Policy Guidance */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left: 4 Statistics Cards */}
+        <div className="lg:col-span-8 bg-white rounded-xl border border-gray-200/80 shadow-xs p-6 flex flex-col justify-between">
+          <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+            <div>
+              <h3 className="text-base font-bold text-[#102e50] font-heading">
+                Ringkasan Bulan {monthNames[currentMonth - 1]} {currentYear}
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Akumulasi kehadiran Anda pada periode berjalan
+              </p>
             </div>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+              {monthlyData.stats.recordedDays} Hari Terekam
+            </span>
+          </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5">
-              <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl p-3.5">
-                <div className="flex items-center gap-2 text-emerald-700 mb-1">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-xs font-semibold">Tepat Waktu</span>
-                </div>
-                <div className="text-2xl font-bold text-emerald-800">
-                  {monthlyData.stats.presentCount}
-                  <span className="text-xs font-normal text-emerald-600 ml-1">Hari</span>
-                </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 my-5">
+            <div className="bg-emerald-50/60 border border-emerald-100/80 rounded-xl p-3.5">
+              <div className="flex items-center gap-2 text-emerald-700 mb-1">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="text-xs font-semibold">Tepat Waktu</span>
               </div>
-
-              <div className="bg-amber-50/60 border border-amber-100/80 rounded-xl p-3.5">
-                <div className="flex items-center gap-2 text-amber-700 mb-1">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span className="text-xs font-semibold">Terlambat</span>
-                </div>
-                <div className="text-2xl font-bold text-amber-800">
-                  {monthlyData.stats.lateCount}
-                  <span className="text-xs font-normal text-amber-600 ml-1">Hari</span>
-                </div>
-              </div>
-
-              <div className="bg-blue-50/60 border border-blue-100/80 rounded-xl p-3.5">
-                <div className="flex items-center gap-2 text-blue-700 mb-1">
-                  <Calendar className="w-4 h-4" />
-                  <span className="text-xs font-semibold">Izin / Cuti</span>
-                </div>
-                <div className="text-2xl font-bold text-blue-800">
-                  {monthlyData.stats.leaveCount}
-                  <span className="text-xs font-normal text-blue-600 ml-1">Hari</span>
-                </div>
-              </div>
-
-              <div className="bg-indigo-50/60 border border-indigo-100/80 rounded-xl p-3.5">
-                <div className="flex items-center gap-2 text-indigo-700 mb-1">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-xs font-semibold">Total Jam</span>
-                </div>
-                <div className="text-2xl font-bold text-indigo-900">
-                  {monthlyData.stats.totalWorkHours}
-                  <span className="text-xs font-normal text-indigo-600 ml-1">Jam</span>
-                </div>
+              <div className="text-2xl font-bold text-emerald-800">
+                {monthlyData.stats.presentCount}
+                <span className="text-xs font-normal text-emerald-600 ml-1">Hari</span>
               </div>
             </div>
 
-            <div className="mt-5 pt-4 border-t border-gray-100 text-xs text-gray-500 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
-              <span>
-                Jam kerja normal lembaga: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong>
-              </span>
-              <span className="text-[#a8281c] font-medium">
-                Batas tepat waktu: <strong>{cutoffTime} WIB</strong> (Toleransi {workSchedule.gracePeriodMins} mnt)
-              </span>
+            <div className="bg-amber-50/60 border border-amber-100/80 rounded-xl p-3.5">
+              <div className="flex items-center gap-2 text-amber-700 mb-1">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="text-xs font-semibold">Terlambat</span>
+              </div>
+              <div className="text-2xl font-bold text-amber-800">
+                {monthlyData.stats.lateCount}
+                <span className="text-xs font-normal text-amber-600 ml-1">Hari</span>
+              </div>
+            </div>
+
+            <div className="bg-blue-50/60 border border-blue-100/80 rounded-xl p-3.5">
+              <div className="flex items-center gap-2 text-blue-700 mb-1">
+                <Calendar className="w-4 h-4" />
+                <span className="text-xs font-semibold">Izin / Cuti</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-800">
+                {monthlyData.stats.leaveCount}
+                <span className="text-xs font-normal text-blue-600 ml-1">Hari</span>
+              </div>
+            </div>
+
+            <div className="bg-indigo-50/60 border border-indigo-100/80 rounded-xl p-3.5">
+              <div className="flex items-center gap-2 text-indigo-700 mb-1">
+                <Clock className="w-4 h-4" />
+                <span className="text-xs font-semibold">Total Jam</span>
+              </div>
+              <div className="text-2xl font-bold text-indigo-900">
+                {monthlyData.stats.totalWorkHours}
+                <span className="text-xs font-normal text-indigo-600 ml-1">Jam</span>
+              </div>
             </div>
           </div>
 
-          {/* Quick Notice Card */}
-          <div className="bg-[#eff4ff] border border-[#adc8f2]/60 rounded-xl p-4 flex items-start gap-3 text-xs text-[#102e50]">
+          <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+            <span>
+              Jam kerja normal lembaga: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong>
+            </span>
+            <span className="text-[#a8281c] font-medium">
+              Batas tepat waktu: <strong>{cutoffTime} WIB</strong> (Toleransi {workSchedule.gracePeriodMins} mnt)
+            </span>
+          </div>
+        </div>
+
+        {/* Right: Policy Guidance */}
+        <div className="lg:col-span-4 bg-[#eff4ff] border border-[#adc8f2]/60 rounded-xl p-6 flex flex-col justify-between text-xs text-[#102e50]">
+          <div className="flex items-start gap-3">
             <CalendarCheck className="w-5 h-5 text-[#102e50] shrink-0 mt-0.5" />
             <div>
-              <p className="font-semibold text-sm">Ketentuan Kehadiran Kerja — {workSchedule.name}</p>
-              <p className="mt-0.5 text-gray-600 leading-relaxed">
-                Check-in sebelum pukul <strong>{cutoffTime} WIB</strong> diakui hadir <strong>Tepat Waktu</strong>. Check-in setelah waktu tersebut tercatat otomatis sebagai keterlambatan. Pastikan melakukan check-out saat menyelesaikan hari kerja untuk perhitungan akurat.
+              <p className="font-bold text-sm font-heading">Ketentuan Kehadiran Kerja</p>
+              <p className="text-xs font-semibold text-[#5b6675] mt-0.5">{workSchedule.name}</p>
+              <p className="mt-2.5 text-gray-600 leading-relaxed text-xs">
+                Check-in sebelum pukul <strong>{cutoffTime} WIB</strong> diakui hadir <strong>Tepat Waktu</strong>. Check-in setelah waktu tersebut tercatat otomatis sebagai keterlambatan. Pastikan melakukan check-out saat menyelesaikan hari kerja untuk perhitungan akurat durasi kerja.
               </p>
             </div>
+          </div>
+          <div className="pt-3 border-t border-blue-200/50 mt-4 text-[11px] text-blue-900/80 font-medium">
+            Sistem tersinkronisasi otomatis dengan zona waktu Anda.
           </div>
         </div>
       </div>
