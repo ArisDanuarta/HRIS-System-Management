@@ -1287,7 +1287,7 @@ export function WizardEmployeeForm({
                           <span className="text-slate-400 block text-[10px] uppercase font-bold">Kata Sandi Awal</span>
                           <span className="text-slate-700 font-semibold text-xs flex items-center gap-1">
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            Auto-generated aman (≥ 12 karakter)
+                            Auto-generated aman (≥ 6 karakter)
                           </span>
                         </div>
                         <div>

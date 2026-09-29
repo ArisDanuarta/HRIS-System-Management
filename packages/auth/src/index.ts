@@ -8,6 +8,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: 6,
   },
   secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
   baseURL: process.env.HRIS_URL || "http://localhost:3001",

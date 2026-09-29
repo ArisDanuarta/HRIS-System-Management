@@ -714,7 +714,7 @@ Enum `hris`: `EmployeeStatus` (`ACTIVE`, `PROBATION`, `ON_LEAVE`, `RESIGNED`, `T
 - Metode awal: **email + password**. Sesi disimpan di database (`core.Session`), cookie `httpOnly`, `secure` di produksi, `sameSite=lax`.
 - Konfigurasi di `@pspk/auth`: adapter Prisma, `secret` dari `AUTH_SECRET`, `baseURL` sesuai app. Untuk Next.js App Router, ikuti panduan integrasi (handler `api/auth/[...all]`, plugin cookie untuk server action).
 - **Satu login untuk dua app.** Produksi: kedua app berada di subdomain yang sama induknya (mis. `hris.<domain>` dan `sistem.<domain>`) dan cookie sesi memakai domain induk lewat `AUTH_COOKIE_DOMAIN` (aktifkan opsi cross-subdomain cookies sesuai dokumentasi). Kedua app memakai `AUTH_SECRET` dan database yang sama.
-- Kebijakan: password minimum 12 karakter, rate limit login, sesi kedaluwarsa (mis. 8 jam idle / 7 hari absolut, dapat dikonfigurasi), `isActive=false` langsung memutus akses, halaman "ganti password", dan "lupa password" hanya diaktifkan setelah email (SMTP) siap.
+- Kebijakan: password minimum 6 karakter, rate limit login, sesi kedaluwarsa (mis. 8 jam idle / 7 hari absolut, dapat dikonfigurasi), `isActive=false` langsung memutus akses, halaman "ganti password", dan "lupa password" hanya diaktifkan setelah email (SMTP) siap.
 - Opsi lanjutan (bukan Fase 1): 2FA untuk peran admin, SSO Google/Microsoft jika PSPK memakai salah satunya (Bagian 16).
 
 ### 7.3 Desain `@pspk/rbac`

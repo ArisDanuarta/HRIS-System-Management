@@ -10,13 +10,7 @@ import { getStorageProvider } from "@pspk/storage";
 const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, "Kata sandi saat ini wajib diisi"),
-    newPassword: z
-      .string()
-      .min(12, "Kata sandi baru minimal 12 karakter")
-      .regex(/[a-z]/, "Harus memuat huruf kecil (a-z)")
-      .regex(/[A-Z]/, "Harus memuat huruf besar (A-Z)")
-      .regex(/[0-9]/, "Harus memuat angka (0-9)")
-      .regex(/[^a-zA-Z0-9]/, "Harus memuat karakter simbol/khusus (!@#$%^&*)"),
+    newPassword: z.string().min(6, "Kata sandi baru minimal 6 karakter"),
     confirmPassword: z.string().min(1, "Konfirmasi kata sandi wajib diisi"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {

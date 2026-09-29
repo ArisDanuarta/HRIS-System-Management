@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 
 /**
  * Generate password sementara acak yang aman dan memenuhi standar kompleksitas
- * (Minimal 12 karakter, huruf besar, huruf kecil, angka, simbol)
+ * (Standar minimal ≥ 6 karakter, huruf besar, huruf kecil, angka, simbol)
  */
 export function generateSecureTemporaryPassword(): string {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";

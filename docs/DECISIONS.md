@@ -34,3 +34,11 @@ Dokumen ini mencatat keputusan penting, arsitektur, dan versi dependensi proyek.
   7. Metadata zona waktu asal disematkan otomatis ke catatan absensi (misal `[WITA]`) saat tombol check-in/out ditekan. Pada tabel riwayat kehadiran, waktu ditampilkan secara dual-time (waktu lokal + padanan WIB di kantor pusat) agar admin/HR di Jakarta tidak salah paham mengenai ketepatan waktu staf remote.
 - **Alasan:** Menyelesaikan masalah ambiguitas waktu di mana staf di luar pulau Jawa (seperti Bali, Makassar, Papua) melihat jam lokal mereka namun sebelumnya secara keliru diberi label 'WIB (Jakarta)' dan 'Waktu Server'. Dengan pendekatan ini, baik staf lokal maupun manajemen HR di kantor pusat Jakarta memiliki transparansi waktu 100% akurat tanpa kebingungan.
 
+## 7. Penyesuaian Kebijakan Panjang Minimal Kata Sandi (Password Minimum Length)
+- **Keputusan:** Mengubah batas minimal panjang kata sandi dari 12 karakter menjadi 6 karakter di seluruh sistem:
+  1. Konfigurasi Better Auth (`@pspk/auth`): menetapkan `minPasswordLength: 6` pada modul `emailAndPassword`.
+  2. Skema Validasi Server (`changePasswordSchema` di `profile.actions.ts`): menetapkan `.min(6, "Kata sandi baru minimal 6 karakter")`.
+  3. Formulir Ganti Kata Sandi (`change-password-tab.tsx`): memperbarui checklist validasi dan placeholder ke minimal 6 karakter, dengan tombol simpan aktif saat panjang ≥ 6 dan konfirmasi cocok. Kriteria tambahan (huruf besar/kecil, angka, simbol) dijadikan panduan/rekomendasi visual pada pengukur kekuatan (*strength meter*).
+  4. Dokumen Kebijakan (`AGENTS.md`): menyelaraskan batas minimal sandi menjadi 6 karakter.
+- **Alasan:** Penyesuaian berdasarkan instruksi langsung dari pengguna/pengelola sistem karena batas 12 karakter dirasa terlalu panjang dan membebani pengguna sehari-hari, sementara batas 6 karakter tetap memberikan fleksibilitas dan keamanan yang memadai untuk operasional internal.
+

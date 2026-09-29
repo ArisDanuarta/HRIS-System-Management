@@ -19,7 +19,7 @@ export function generateSecureTemporaryPassword(): string {
 
   const pick = (chars: string) => chars[Math.floor(Math.random() * chars.length)];
 
-  // Minimum 12 karakter: 'Pspk' + 1 simbol + 3 huruf besar + 3 huruf kecil + 2 angka (Total 13 karakter)
+  // Password acak aman: 'Pspk' + 1 simbol + 3 huruf besar + 3 huruf kecil + 2 angka (Total 13 karakter, >= 6 karakter)
   let pwd = "Pspk" + pick(symbols);
   for (let i = 0; i < 3; i++) pwd += pick(uppers);
   for (let i = 0; i < 3; i++) pwd += pick(letters);

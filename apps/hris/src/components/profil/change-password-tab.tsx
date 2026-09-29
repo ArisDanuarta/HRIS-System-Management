@@ -31,7 +31,7 @@ export function ChangePasswordTab() {
   // Requirements checklist validation
   const criteria = useMemo(() => {
     return {
-      minLength: newPassword.length >= 12,
+      minLength: newPassword.length >= 6,
       hasUpperLower: /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword),
       hasNumber: /[0-9]/.test(newPassword),
       hasSymbol: /[^a-zA-Z0-9]/.test(newPassword),
@@ -50,13 +50,13 @@ export function ChangePasswordTab() {
     if (criteria.hasSymbol) passedCount++;
 
     if (passedCount <= 1) {
-      return { score: 1, label: "Lemah", color: "bg-rose-500", text: "text-rose-600" };
+      return { score: 1, label: "Cukup", color: "bg-amber-500", text: "text-amber-600" };
     }
     if (passedCount === 2) {
-      return { score: 2, label: "Cukup", color: "bg-amber-500", text: "text-amber-600" };
+      return { score: 2, label: "Baik", color: "bg-blue-500", text: "text-blue-600" };
     }
     if (passedCount === 3) {
-      return { score: 3, label: "Kuat", color: "bg-blue-600", text: "text-blue-600" };
+      return { score: 3, label: "Kuat", color: "bg-indigo-600", text: "text-indigo-600" };
     }
     return { score: 4, label: "Sangat Kuat", color: "bg-emerald-600", text: "text-emerald-600" };
   }, [newPassword, criteria]);
@@ -64,9 +64,6 @@ export function ChangePasswordTab() {
   const isFormValid =
     currentPassword.length > 0 &&
     criteria.minLength &&
-    criteria.hasUpperLower &&
-    criteria.hasNumber &&
-    criteria.hasSymbol &&
     criteria.matchConfirm;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -179,7 +176,7 @@ export function ChangePasswordTab() {
               type={showNew ? "text" : "password"}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Minimal 12 karakter kombinasi"
+              placeholder="Minimal 6 karakter kombinasi"
               required
               className="w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
             />
@@ -257,7 +254,7 @@ export function ChangePasswordTab() {
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-1 mr-1 shrink-0" />
               )}
               <span className={criteria.minLength ? "text-slate-800 font-semibold" : "text-slate-500"}>
-                Minimal 12 karakter
+                Minimal 6 karakter (Wajib)
               </span>
             </div>
 
@@ -279,7 +276,7 @@ export function ChangePasswordTab() {
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-1 mr-1 shrink-0" />
               )}
               <span className={criteria.hasNumber ? "text-slate-800 font-semibold" : "text-slate-500"}>
-                Memuat minimal satu angka (0-9)
+                Memuat angka (0-9)
               </span>
             </div>
 
