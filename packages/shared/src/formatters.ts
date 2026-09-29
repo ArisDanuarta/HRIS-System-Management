@@ -262,4 +262,98 @@ export function convertTimeStringZone(
   }
 }
 
+/**
+ * Membersihkan format IP dari format tidak baku (mapping IPv6 `::ffff:`, IPv6 loopback `::1`, Better Auth subnet mask all zeroes, dll.)
+ */
+export function cleanIpAddress(ip: string | null | undefined): string {
+  if (!ip) return "127.0.0.1";
+  let cleaned = ip.trim();
+
+  // Hapus kurung siku jika ada, misal "[::1]"
+  cleaned = cleaned.replace(/^\[|\]$/g, "");
+
+  // Deteksi loopback IPv6 atau Better Auth subnet masking (all zeroes)
+  if (
+    cleaned === "::1" ||
+    cleaned === "::" ||
+    cleaned === "0:0:0:0:0:0:0:1" ||
+    cleaned === "0000:0000:0000:0000:0000:0000:0000:0000" ||
+    cleaned === "0000:0000:0000:0000:0000:0000:0000:0001" ||
+    cleaned.toLowerCase() === "localhost"
+  ) {
+    return "127.0.0.1";
+  }
+
+  // IPv4-mapped IPv6 (contoh: "::ffff:192.168.1.1" atau "::ffff:127.0.0.1")
+  if (cleaned.toLowerCase().startsWith("::ffff:")) {
+    const v4 = cleaned.substring(7);
+    if (/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v4)) {
+      return v4;
+    }
+  }
+
+  return cleaned;
+}
+
+/**
+ * Mengekstrak IP client secara bersih dari request headers (NextRequest/IncomingHttpHeaders).
+ * Memprioritaskan header proxy terpercaya (Cloudflare, Caddy, Nginx, AWS, Docker).
+ */
+export function extractClientIp(
+  headers: Headers | Record<string, string | string[] | undefined> | null | undefined,
+): string {
+  if (!headers) return "127.0.0.1";
+
+  const getHeader = (key: string): string | null => {
+    if (typeof (headers as Headers).get === "function") {
+      return (headers as Headers).get(key);
+    }
+    const val = (headers as Record<string, string | string[] | undefined>)[key.toLowerCase()];
+    if (Array.isArray(val)) return val[0] ?? null;
+    return val ?? null;
+  };
+
+  // Prioritas header: Cloudflare -> Nginx/Caddy real-ip -> Forwarded-For -> standar fallback
+  const rawIp =
+    getHeader("cf-connecting-ip") ||
+    getHeader("x-real-ip") ||
+    getHeader("true-client-ip") ||
+    getHeader("x-client-ip") ||
+    getHeader("x-forwarded-for");
+
+  if (!rawIp) return "127.0.0.1";
+
+  // Jika x-forwarded-for berisi rantai multi-hop (misal "203.0.113.195, 172.18.0.1"), ambil client IP pertama
+  const candidate = rawIp.split(",")[0]?.trim() || "127.0.0.1";
+
+  return cleanIpAddress(candidate);
+}
+
+/**
+ * Memformat IP address untuk tampilan antarmuka (UI) pengguna agar informatif dan manusiawi.
+ */
+export function formatIpAddress(ip: string | null | undefined): string {
+  if (!ip || ip.trim() === "" || ip === "unknown") {
+    return "127.0.0.1 (Lokal)";
+  }
+
+  const cleaned = cleanIpAddress(ip);
+
+  // Jika localhost / loopback
+  if (cleaned === "127.0.0.1" || cleaned === "localhost") {
+    return "127.0.0.1 (Lokal)";
+  }
+
+  // Jika private network (RFC 1918)
+  if (
+    cleaned.startsWith("10.") ||
+    cleaned.startsWith("192.168.") ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(cleaned)
+  ) {
+    return `${cleaned} (Jaringan Privat)`;
+  }
+
+  return cleaned;
+}
+
 
