@@ -443,16 +443,18 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
       }
 
       // 3. Sinkronkan reviewerId pada evaluasi kinerja (PerformanceReview) yang masih berjalan (DRAFT / SELF_REVIEW pada periode OPEN)
-      await tx.performanceReview.updateMany({
-        where: {
-          employeeId: updated.id,
-          status: { in: ["DRAFT", "SELF_REVIEW"] },
-          period: { status: "OPEN" },
-        },
-        data: {
-          reviewerId: normalizedNewManagerId,
-        },
-      });
+      if (normalizedNewManagerId) {
+        await tx.performanceReview.updateMany({
+          where: {
+            employeeId: updated.id,
+            status: { in: ["DRAFT", "SELF_REVIEW"] },
+            period: { status: "OPEN" },
+          },
+          data: {
+            reviewerId: normalizedNewManagerId,
+          },
+        });
+      }
     }
 
     // Write audit log

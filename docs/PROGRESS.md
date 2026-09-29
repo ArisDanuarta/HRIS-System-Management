@@ -653,6 +653,30 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Penyesuaian Dinamis Atasan Langsung & Notifikasi Staf
+- **Status:** Selesai (Completed)
+- **Konteks:** Perubahan atasan langsung (*manager*) di tengah kontrak kerja yang sedang berjalan oleh Admin HR melalui form ubah pegawai (`/karyawan/[id]/ubah`).
+- **Rincian Implementasi:**
+  1. **Sinkronisasi Dinamis & Notifikasi Otomatis (`employee.service.ts`)**:
+     - Deteksi otomatis perubahan atasan (`isManagerChanged` antara `data.managerId` dan `current.managerId`).
+     - Notifikasi in-app otomatis dikirim ke akun staf bersangkutan (`core.Notification`):
+       *"Pembaruan Atasan Langsung: Atasan langsung Anda telah diperbarui menjadi [Nama Atasan] ([Jabatan]). Seluruh koordinasi dan proses evaluasi kinerja kini terhubung ke atasan baru."*
+     - Notifikasi in-app otomatis dikirim ke atasan baru:
+       *"Penetapan Anggota Tim Baru: [Nama Pegawai] kini telah ditetapkan berada di bawah supervisi/koordinasi Anda."*
+     - Sinkronisasi instan penilai evaluasi kinerja (`PerformanceReview`): mereassign `reviewerId` ke atasan baru untuk evaluasi aktif yang belum difinalisasi (`DRAFT` / `SELF_REVIEW` pada periode `OPEN`).
+     - Audit log mencatat riwayat perubahan `managerId` pada field `before` dan `after`.
+  2. **Invalidasi Cache Instan (`employee.actions.ts`)**:
+     - `revalidatePath` dipanggil untuk rute `/profil`, `/dashboard`, `/kinerja`, `/notifikasi`, `/karyawan`, dan `/karyawan/[id]`, memastikan akun staf langsung melihat data teranyar tanpa harus relogin.
+  3. **Tampilan Dinamis di Seluruh Sisi Akun Staf**:
+     - **Profil Karyawan (`profile-info-tab.tsx` & `profile.queries.ts`)**: Kartu resmi menampilkan atasan langsung lengkap dengan nama, jabatan, dan NIP.
+     - **Dashboard Staf (`staff-dashboard.tsx` & `staff-dashboard.ts`)**: Widget info atasan langsung dengan ikon `UserCheck` dan tautan cepat ke profil.
+     - **Modul Kinerja (`performance.queries.ts`)**: Penilai aktif otomatis mencerminkan atasan baru, baik saat evaluasi dibuat maupun sinkronisasi dinamis runtime.
+- **Hasil Verifikasi:**
+  - `pnpm typecheck`: 9/9 packages lolos tanpa error.
+  - `pnpm test`: 42/42 unit test lulus.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
