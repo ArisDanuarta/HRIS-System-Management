@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma, writeAudit } from "@pspk/db";
 import { getSession, getAuthContext, hashPassword } from "@pspk/auth";
+import { extractClientIp } from "@pspk/shared";
 import { generateSecureTemporaryPassword } from "../services/employee.service";
 import { sendEmployeeCredentialsEmail } from "../services/email.service";
 
@@ -24,7 +25,7 @@ async function getActorInfo() {
   const isAdminIt = authCtx.roles.includes("admin_it");
   const isAdminHr = authCtx.roles.includes("admin_hr");
 
-  const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+  const ip = extractClientIp(reqHeaders);
   const userAgent = reqHeaders.get("user-agent") || "unknown";
 
   return {

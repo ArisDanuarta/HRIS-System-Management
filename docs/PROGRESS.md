@@ -706,6 +706,39 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Perbaikan Penanganan & Tampilan IP Address Client (Riwayat Sesi & Audit Log)
+- **Status:** Selesai (Completed)
+- **Akar Masalah (Root Cause):**
+  1. Pada lingkungan lokal Next.js, header `x-forwarded-for` mengirimkan `::1` (IPv6 loopback).
+  2. Better Auth secara bawaan menerapkan `normalizeIPv6(ip, 64)`. Karena bit `::1` berada di grup paling akhir (bit 127), pemotongan subnet `/64` mengubah `::1` menjadi `0000:0000:0000:0000:0000:0000:0000:0000`. Nilai ini yang tersimpan di kolom `core.sessions.ip_address`.
+  3. Pada lingkungan multi-hop proxy (Caddy / Cloudflare / Docker), tanpa daftar `trustedProxies`, fungsi bawaan `getIPFromHeader` mengembalikan `null` jika terdapat lebih dari satu hop IP di header `x-forwarded-for`.
+  4. Komponen UI (`session-history-tab.tsx`) dan query `getUserSessions` menampilkan IP mentah tanpa sanitasi dan penamaan yang informatif.
+- **Implementasi Solusi:**
+  1. **Helper IP di `@pspk/shared` (`formatters.ts`)**:
+     - `cleanIpAddress(ip)`: Mendeteksi dan menormalkan loopback IPv6 (`::1`, `::`, `0000:...`), `localhost`, serta menghapus prefix IPv4-mapped (`::ffff:`). Menghasilkan `127.0.0.1` untuk loopback lokal.
+     - `extractClientIp(headers)`: Mengekstrak IP klien asli dari header proxy dengan urutan prioritas terpercaya (`cf-connecting-ip` -> `x-real-ip` -> `true-client-ip` -> hop pertama `x-forwarded-for`), dan membersihkan hasilnya.
+     - `formatIpAddress(ip)`: Menghasilkan label ramah pengguna untuk UI (misal: `127.0.0.1 (Lokal)` atau `192.168.x.x (Jaringan Privat)`).
+  2. **Konfigurasi Better Auth (`packages/auth/src/index.ts`)**:
+     - Menambahkan konfigurasi `advanced.ipAddress`:
+       - `ipAddressHeaders`: `["cf-connecting-ip", "x-real-ip", "true-client-ip", "x-client-ip", "x-forwarded-for"]`
+       - `trustedProxies`: `["127.0.0.1", "::1", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]`
+       - `ipv6Subnet: 128` (mencegah pemotongan grup bit IPv6 menjadi all-zeros).
+     - Menambahkan `databaseHooks.session.create.before` untuk memastikan `ipAddress` selalu disanitasi sebelum disimpan ke PostgreSQL.
+  3. **Pembersihan Log Audit (`packages/db/src/audit.ts`)**:
+     - `writeAudit` otomatis menormalkan IP klien melalui `cleanIpAddress` sebelum disimpan ke `core.audit_logs`.
+  4. **Pembaruan Seluruh Server Actions**:
+     - Server Actions di `employee.actions.ts`, `payroll.actions.ts`, `performance.actions.ts`, `organization.actions.ts`, `employment-type.actions.ts`, `user-role.actions.ts`, dan `apps/sysmgmt/src/server/actions/user.actions.ts` kini memanggil `extractClientIp(reqHeaders)`.
+  5. **Tampilan UI Profil (`session-history-tab.tsx` & `profile.queries.ts`)**:
+     - Menggunakan `formatIpAddress(s.ipAddress)` sehingga tidak lagi menampilkan `0000:0000:...`, melainkan `127.0.0.1 (Lokal)`.
+  6. **Migrasi Data Legacy**:
+     - Rekord legacy sesi dan audit log di database yang sebelumnya berisi `0000:...` atau `::1` telah diperbarui ke `127.0.0.1`.
+- **Hasil Verifikasi:**
+  - `pnpm typecheck`: 9/9 package lolos tanpa error.
+  - `pnpm lint`: lolos dengan 0 error (hanya peringatan styling lama).
+  - `pnpm test`: 45/45 unit test lulus (termasuk 16 unit test di `formatters.test.ts`).
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
@@ -718,11 +751,12 @@ pnpm dev
 # System Management: http://localhost:3002
 
 # 3. Jalankan pengujian
-pnpm test          # Menjalankan 42 unit test (Vitest)
+pnpm test          # Menjalankan 45 unit test (Vitest)
 pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
 ```
+
 
 
 

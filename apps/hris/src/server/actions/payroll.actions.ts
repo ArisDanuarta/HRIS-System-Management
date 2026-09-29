@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma, writeAudit } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { getStorageProvider } from "@pspk/storage";
+import { extractClientIp } from "@pspk/shared";
 import {
   calculatePeriodPayroll,
   approvePeriodPayroll,
@@ -30,7 +31,7 @@ async function getActorInfo() {
   const isSuperAdmin = authCtx.roles.includes("super_admin");
   const isAdminHr = authCtx.roles.includes("admin_hr");
 
-  const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+  const ip = extractClientIp(reqHeaders);
   const userAgent = reqHeaders.get("user-agent") || "unknown";
 
   return {

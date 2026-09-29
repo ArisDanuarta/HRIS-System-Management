@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, AuthContext } from "@pspk/rbac";
 import { getStorageProvider } from "@pspk/storage";
+import { extractClientIp } from "@pspk/shared";
 import {
   createDepartmentSchema,
   updateDepartmentSchema,
@@ -40,7 +41,7 @@ async function getAuthenticatedActor(): Promise<{ actor: ActorContext; authCtx: 
     throw new Error("Pengguna tidak aktif atau hak akses tidak valid.");
   }
 
-  const clientIp = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || null;
+  const clientIp = extractClientIp(reqHeaders);
   const userAgent = reqHeaders.get("user-agent") || null;
 
   return {

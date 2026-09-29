@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma, writeAudit } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
+import { extractClientIp } from "@pspk/shared";
 import {
   createPerformancePeriodSchema,
   updatePerformancePeriodStatusSchema,
@@ -35,7 +36,7 @@ async function getActorInfo() {
   const isSuperAdmin = authCtx.roles.includes("super_admin");
   const isAdminHr = authCtx.roles.includes("admin_hr");
 
-  const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+  const ip = extractClientIp(reqHeaders);
   const userAgent = reqHeaders.get("user-agent") || "unknown";
 
   return {
@@ -406,7 +407,7 @@ export async function submitStaffSelfReviewAction(rawData: unknown) {
       return { success: false, error: "Periode evaluasi kinerja ini telah ditutup." };
     }
 
-    const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+    const ip = extractClientIp(reqHeaders);
     const userAgent = reqHeaders.get("user-agent") || "unknown";
 
     // Update dalam transaksi database
@@ -597,7 +598,7 @@ export async function createGoalAction(rawData: unknown) {
       },
     });
 
-    const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+    const ip = extractClientIp(reqHeaders);
     const userAgent = reqHeaders.get("user-agent") || "unknown";
 
     await writeAudit({
@@ -711,7 +712,7 @@ export async function deleteGoalAction(rawData: unknown) {
       where: { id: validated.data.goalId },
     });
 
-    const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+    const ip = extractClientIp(reqHeaders);
     const userAgent = reqHeaders.get("user-agent") || "unknown";
 
     await writeAudit({

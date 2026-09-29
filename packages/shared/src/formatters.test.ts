@@ -115,5 +115,70 @@ describe("Timezone Utilities", () => {
   });
 });
 
+describe("IP Address Utilities", () => {
+  it("cleans IP addresses correctly from loopback, all-zeros, and ipv4-mapped formats", async () => {
+    const { cleanIpAddress } = await import("./formatters");
+    expect(cleanIpAddress("::1")).toBe("127.0.0.1");
+    expect(cleanIpAddress("[::1]")).toBe("127.0.0.1");
+    expect(cleanIpAddress("::")).toBe("127.0.0.1");
+    expect(cleanIpAddress("0000:0000:0000:0000:0000:0000:0000:0000")).toBe("127.0.0.1");
+    expect(cleanIpAddress("0000:0000:0000:0000:0000:0000:0000:0001")).toBe("127.0.0.1");
+    expect(cleanIpAddress("localhost")).toBe("127.0.0.1");
+    expect(cleanIpAddress("::ffff:192.168.1.42")).toBe("192.168.1.42");
+    expect(cleanIpAddress("::ffff:127.0.0.1")).toBe("127.0.0.1");
+    expect(cleanIpAddress("103.144.20.5")).toBe("103.144.20.5");
+    expect(cleanIpAddress(null)).toBe("127.0.0.1");
+    expect(cleanIpAddress(undefined)).toBe("127.0.0.1");
+  });
 
+  it("extracts client IP from proxy headers with correct precedence", async () => {
+    const { extractClientIp } = await import("./formatters");
+    // Cloudflare header has top priority
+    const cfHeaders = new Headers({
+      "cf-connecting-ip": "114.122.50.1",
+      "x-forwarded-for": "172.18.0.1",
+    });
+    expect(extractClientIp(cfHeaders)).toBe("114.122.50.1");
 
+    // X-Real-IP
+    const realIpHeaders = new Headers({
+      "x-real-ip": "103.20.10.4",
+      "x-forwarded-for": "172.18.0.1",
+    });
+    expect(extractClientIp(realIpHeaders)).toBe("103.20.10.4");
+
+    // Multi-hop x-forwarded-for: client IP is first hop
+    const proxyChain = new Headers({
+      "x-forwarded-for": "180.252.10.5, 172.18.0.1, 10.0.0.1",
+    });
+    expect(extractClientIp(proxyChain)).toBe("180.252.10.5");
+
+    // Local dev Next.js ::1 in x-forwarded-for
+    const localHeaders = new Headers({
+      "x-forwarded-for": "::1",
+    });
+    expect(extractClientIp(localHeaders)).toBe("127.0.0.1");
+
+    // Plain record headers
+    expect(extractClientIp({ "x-real-ip": "103.20.10.4" })).toBe("103.20.10.4");
+    expect(extractClientIp(null)).toBe("127.0.0.1");
+  });
+
+  it("formats IP address nicely for user interface", async () => {
+    const { formatIpAddress } = await import("./formatters");
+    expect(formatIpAddress("127.0.0.1")).toBe("127.0.0.1 (Lokal)");
+    expect(formatIpAddress("::1")).toBe("127.0.0.1 (Lokal)");
+    expect(formatIpAddress("0000:0000:0000:0000:0000:0000:0000:0000")).toBe("127.0.0.1 (Lokal)");
+    expect(formatIpAddress("localhost")).toBe("127.0.0.1 (Lokal)");
+    expect(formatIpAddress(null)).toBe("127.0.0.1 (Lokal)");
+    expect(formatIpAddress("")).toBe("127.0.0.1 (Lokal)");
+
+    // Private networks
+    expect(formatIpAddress("192.168.1.100")).toBe("192.168.1.100 (Jaringan Privat)");
+    expect(formatIpAddress("10.0.1.5")).toBe("10.0.1.5 (Jaringan Privat)");
+    expect(formatIpAddress("172.20.1.5")).toBe("172.20.1.5 (Jaringan Privat)");
+
+    // Public IP
+    expect(formatIpAddress("203.0.113.195")).toBe("203.0.113.195");
+  });
+});

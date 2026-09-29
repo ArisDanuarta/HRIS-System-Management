@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
+import { extractClientIp } from "@pspk/shared";
 import {
   createEmploymentType,
   updateEmploymentType,
@@ -32,7 +33,7 @@ async function getActorInfo() {
     throw new Error("Hanya Admin HR atau Super Admin yang berwenang mengelola data ikatan kerja.");
   }
 
-  const ip = reqHeaders.get("x-forwarded-for") || reqHeaders.get("x-real-ip") || "127.0.0.1";
+  const ip = extractClientIp(reqHeaders);
   const userAgent = reqHeaders.get("user-agent") || "unknown";
 
   return {
