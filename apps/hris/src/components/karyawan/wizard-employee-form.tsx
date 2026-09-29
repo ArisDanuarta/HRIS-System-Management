@@ -90,6 +90,9 @@ export interface InitialEmployeeData {
   hasBankAccount?: boolean;
   contracts?: {
     type: EmploymentType;
+    employmentTypeId?: string | null;
+    wageType?: "MONTHLY" | "HOURLY";
+    hourlyRate?: number | null;
     startDate: Date | string;
     endDate?: Date | string | null;
     baseSalary?: number | null;
@@ -175,9 +178,9 @@ export function WizardEmployeeForm({
 
     // Step 3: Contract
     employmentType: initialData?.contracts?.[0]?.type || "PERMANENT",
-    employmentTypeId: "",
-    wageType: "MONTHLY" as "MONTHLY" | "HOURLY",
-    hourlyRate: 0,
+    employmentTypeId: initialData?.contracts?.[0]?.employmentTypeId || "",
+    wageType: (initialData?.contracts?.[0]?.wageType as "MONTHLY" | "HOURLY") || "MONTHLY",
+    hourlyRate: initialData?.contracts?.[0]?.hourlyRate || 0,
     contractStartDate: initialData?.contracts?.[0]?.startDate
       ? toDateString(initialData.contracts[0].startDate)
       : toDateString(new Date()),

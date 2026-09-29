@@ -261,6 +261,7 @@ export async function getEmployeeById(id: string) {
     contracts: emp.contracts.map((c) => ({
       ...c,
       baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
+      hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
     })),
   };
 }
