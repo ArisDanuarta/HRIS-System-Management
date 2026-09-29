@@ -122,7 +122,16 @@ export async function createPerformancePeriodAction(rawData: unknown) {
     }
 
     revalidatePath("/kinerja");
-    return { success: true, data: period };
+    return {
+      success: true,
+      data: {
+        id: period.id,
+        name: period.name,
+        startDate: period.startDate.toISOString().split("T")[0]!,
+        endDate: period.endDate.toISOString().split("T")[0]!,
+        status: period.status,
+      },
+    };
   } catch (error) {
     console.error("Gagal membuat periode kinerja:", error);
     return {
@@ -176,7 +185,16 @@ export async function updatePerformancePeriodStatusAction(rawData: unknown) {
     });
 
     revalidatePath("/kinerja");
-    return { success: true, data: updated };
+    return {
+      success: true,
+      data: {
+        id: updated.id,
+        name: updated.name,
+        startDate: updated.startDate.toISOString().split("T")[0]!,
+        endDate: updated.endDate.toISOString().split("T")[0]!,
+        status: updated.status,
+      },
+    };
   } catch (error) {
     console.error("Gagal mengubah status periode:", error);
     return {
@@ -264,7 +282,17 @@ export async function finalizePerformanceReviewAction(rawData: unknown) {
     }
 
     revalidatePath("/kinerja");
-    return { success: true, data: updated };
+    return {
+      success: true,
+      data: {
+        id: updated.id,
+        status: updated.status,
+        finalScore: updated.finalScore ? Number(updated.finalScore) : null,
+        selfScore: updated.selfScore ? Number(updated.selfScore) : null,
+        managerScore: updated.managerScore ? Number(updated.managerScore) : null,
+        managerComment: updated.managerComment,
+      },
+    };
   } catch (error) {
     console.error("Gagal memfinalisasi review:", error);
     return {
@@ -451,7 +479,16 @@ export async function submitStaffSelfReviewAction(rawData: unknown) {
     }
 
     revalidatePath("/kinerja");
-    return { success: true, data: updatedReview };
+    return {
+      success: true,
+      data: {
+        id: updatedReview.id,
+        status: updatedReview.status,
+        selfScore: updatedReview.selfScore ? Number(updatedReview.selfScore) : null,
+        managerScore: updatedReview.managerScore ? Number(updatedReview.managerScore) : null,
+        finalScore: updatedReview.finalScore ? Number(updatedReview.finalScore) : null,
+      },
+    };
   } catch (error) {
     console.error("Gagal submit evaluasi mandiri:", error);
     return {
@@ -581,7 +618,22 @@ export async function createGoalAction(rawData: unknown) {
     });
 
     revalidatePath("/kinerja");
-    return { success: true, data: newGoal };
+    return {
+      success: true,
+      data: {
+        id: newGoal.id,
+        employeeId: newGoal.employeeId,
+        periodId: newGoal.periodId,
+        title: newGoal.title,
+        description: newGoal.description,
+        weight: Number(newGoal.weight),
+        target: newGoal.target,
+        unit: newGoal.unit,
+        actual: newGoal.actual,
+        createdAt: newGoal.createdAt.toISOString(),
+        updatedAt: newGoal.updatedAt.toISOString(),
+      },
+    };
   } catch (error) {
     console.error("Gagal menambahkan sasaran riset:", error);
     return {

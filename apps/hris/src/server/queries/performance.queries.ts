@@ -355,14 +355,37 @@ export async function getPerformanceReviewDetail(reviewId: string) {
   const totalGoalWeight = goals.reduce((sum, g) => sum + Number(g.weight), 0);
 
   return {
-    ...review,
+    id: review.id,
+    employeeId: review.employeeId,
+    periodId: review.periodId,
+    status: review.status,
     selfScore: review.selfScore ? Number(review.selfScore) : null,
     managerScore: review.managerScore ? Number(review.managerScore) : null,
     finalScore: review.finalScore ? Number(review.finalScore) : null,
+    selfComment: review.selfComment,
+    managerComment: review.managerComment,
+    createdAt: review.createdAt.toISOString(),
+    updatedAt: review.updatedAt.toISOString(),
+    employee: review.employee,
+    reviewer: review.reviewer,
+    period: {
+      id: review.period.id,
+      name: review.period.name,
+      startDate: review.period.startDate.toISOString().split("T")[0]!,
+      endDate: review.period.endDate.toISOString().split("T")[0]!,
+      status: review.period.status,
+    },
     totalGoalWeight,
     goals: goals.map((g) => ({
-      ...g,
+      id: g.id,
+      title: g.title,
+      description: g.description,
       weight: Number(g.weight),
+      target: g.target,
+      unit: g.unit,
+      actual: g.actual,
+      createdAt: g.createdAt.toISOString(),
+      updatedAt: g.updatedAt.toISOString(),
     })),
   };
 }

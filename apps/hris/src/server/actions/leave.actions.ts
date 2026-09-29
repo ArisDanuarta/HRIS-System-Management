@@ -122,7 +122,11 @@ export async function submitLeaveRequestAction(input: CreateLeaveRequestInput) {
     return {
       success: true,
       message: "Permohonan cuti berhasil diajukan dan sedang menunggu persetujuan!",
-      data: request,
+      data: {
+        id: request.id,
+        days: Number(request.days),
+        status: request.status,
+      },
     };
   } catch (err) {
     return {
@@ -188,7 +192,11 @@ export async function approveLeaveRequestAction(input: ApproveLeaveRequestInput)
     return {
       success: true,
       message: "Permohonan cuti telah disetujui, saldo dipotong, dan presensi dicatat.",
-      data: approved,
+      data: {
+        id: approved.id,
+        days: Number(approved.days),
+        status: approved.status,
+      },
     };
   } catch (err) {
     return {
@@ -251,7 +259,11 @@ export async function rejectLeaveRequestAction(input: RejectLeaveRequestInput) {
     return {
       success: true,
       message: "Permohonan cuti telah ditolak.",
-      data: rejected,
+      data: {
+        id: rejected.id,
+        days: Number(rejected.days),
+        status: rejected.status,
+      },
     };
   } catch (err) {
     return {
@@ -287,7 +299,11 @@ export async function cancelLeaveRequestAction(input: CancelLeaveRequestInput) {
     return {
       success: true,
       message: "Permohonan cuti berhasil dibatalkan.",
-      data: cancelled,
+      data: {
+        id: cancelled.id,
+        days: Number(cancelled.days),
+        status: cancelled.status,
+      },
     };
   } catch (err) {
     return {
@@ -328,7 +344,11 @@ export async function createHolidayAction(input: CreateHolidayInput) {
     return {
       success: true,
       message: "Hari libur berhasil ditambahkan ke kalender!",
-      data: holiday,
+      data: {
+        id: holiday.id,
+        date: holiday.date.toISOString().split("T")[0]!,
+        name: holiday.name,
+      },
     };
   } catch (err) {
     return {
