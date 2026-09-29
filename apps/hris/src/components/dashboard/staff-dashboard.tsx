@@ -14,6 +14,7 @@ import {
   CalendarCheck,
   ShieldCheck,
   Plus,
+  UserCheck,
 } from "lucide-react";
 import { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
@@ -66,6 +67,33 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
           </Link>
         </div>
       </div>
+
+      {/* Atasan Langsung Info Card */}
+      {data.manager && (
+        <div className="flex items-center justify-between px-4 py-3 bg-[#f0f4fd] border border-[#d6e3f8] rounded-xl text-xs sm:text-sm">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-full bg-[#102e50] text-[#ffddb0] flex items-center justify-center font-bold text-xs shrink-0">
+              <UserCheck className="w-4 h-4" />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2">
+              <span className="text-slate-500 font-medium">Atasan Langsung:</span>
+              <span className="font-bold text-[#102e50]">{data.manager.fullName}</span>
+              {data.manager.position && (
+                <span className="text-xs px-2 py-0.5 rounded bg-white text-slate-600 border border-slate-200">
+                  {data.manager.position}
+                </span>
+              )}
+            </div>
+          </div>
+          <Link
+            href="/profil"
+            className="text-xs font-semibold text-[#102e50] hover:underline flex items-center gap-1 shrink-0 ml-2"
+          >
+            <span>Lihat Profil</span>
+            <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
 
       {/* Widget 1: Kartu Absensi Hari Ini (Interactive check-in/out) */}
       <TodayAttendanceCard

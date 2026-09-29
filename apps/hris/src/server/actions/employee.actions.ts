@@ -193,6 +193,11 @@ export async function updateEmployeeAction(input: UpdateEmployeeInput) {
     const updated = await updateEmployee(parsed.data, actor);
     revalidatePath("/karyawan");
     revalidatePath(`/karyawan/${updated.id}`);
+    revalidatePath(`/karyawan/${updated.id}/ubah`);
+    revalidatePath("/profil");
+    revalidatePath("/dashboard");
+    revalidatePath("/kinerja");
+    revalidatePath("/notifikasi");
 
     return {
       ok: true as const,

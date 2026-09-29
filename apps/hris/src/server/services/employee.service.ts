@@ -320,6 +320,29 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
     bankAccountEnc = encryptField(data.bankAccount.trim());
   }
 
+  // Check if manager changed
+  const normalizedNewManagerId = data.managerId?.trim() ? data.managerId.trim() : null;
+  const isManagerChanged = normalizedNewManagerId !== (current.managerId || null);
+
+  let newManager: {
+    id: string;
+    userId: string | null;
+    fullName: string;
+    currentPosition: { title: string } | null;
+  } | null = null;
+
+  if (isManagerChanged && normalizedNewManagerId) {
+    newManager = await prisma.employee.findUnique({
+      where: { id: normalizedNewManagerId },
+      select: {
+        id: true,
+        userId: true,
+        fullName: true,
+        currentPosition: { select: { title: true } },
+      },
+    });
+  }
+
   const result = await prisma.$transaction(async (tx) => {
     // Check if position or department changed to log history
     const isTransferred =
@@ -375,11 +398,62 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         bankAccountName: data.bankAccountName?.trim() || null,
         endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
         status: data.status,
-        managerId: data.managerId || null,
+        managerId: normalizedNewManagerId,
         currentDepartmentId: data.currentDepartmentId,
         currentPositionId: data.currentPositionId,
       },
     });
+
+    // Jika atasan langsung berubah:
+    if (isManagerChanged) {
+      // 1. Notifikasi in-app langsung ke staf bersangkutan
+      if (current.userId) {
+        const managerTitle = newManager
+          ? `${newManager.fullName}${newManager.currentPosition?.title ? ` (${newManager.currentPosition.title})` : ""}`
+          : "belum ditentukan";
+
+        await tx.notification.create({
+          data: {
+            userId: current.userId,
+            title: "Pembaruan Atasan Langsung",
+            message: newManager
+              ? `Atasan langsung Anda telah diperbarui menjadi ${managerTitle}. Seluruh koordinasi dan proses evaluasi kinerja kini terhubung ke atasan baru.`
+              : "Atasan langsung Anda telah dinonaktifkan/dikosongkan oleh tim HR.",
+            type: "INFO",
+            category: "EMPLOYEE",
+            link: "/profil",
+            isRead: false,
+          },
+        });
+      }
+
+      // 2. Notifikasi in-app ke atasan baru (jika memiliki akun login aktif)
+      if (newManager?.userId) {
+        await tx.notification.create({
+          data: {
+            userId: newManager.userId,
+            title: "Penetapan Anggota Tim Baru",
+            message: `${updated.fullName} kini telah ditetapkan berada di bawah supervisi/koordinasi Anda.`,
+            type: "INFO",
+            category: "EMPLOYEE",
+            link: `/karyawan/${updated.id}`,
+            isRead: false,
+          },
+        });
+      }
+
+      // 3. Sinkronkan reviewerId pada evaluasi kinerja (PerformanceReview) yang masih berjalan (DRAFT / SELF_REVIEW pada periode OPEN)
+      await tx.performanceReview.updateMany({
+        where: {
+          employeeId: updated.id,
+          status: { in: ["DRAFT", "SELF_REVIEW"] },
+          period: { status: "OPEN" },
+        },
+        data: {
+          reviewerId: normalizedNewManagerId,
+        },
+      });
+    }
 
     // Write audit log
     await writeAudit(
@@ -396,6 +470,7 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
           status: current.status,
           departmentId: current.currentDepartmentId,
           positionId: current.currentPositionId,
+          managerId: current.managerId,
         },
         after: {
           fullName: updated.fullName,
@@ -403,6 +478,7 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
           status: updated.status,
           departmentId: updated.currentDepartmentId,
           positionId: updated.currentPositionId,
+          managerId: updated.managerId,
         },
         ip: actor.ip,
         userAgent: actor.userAgent,

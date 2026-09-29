@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   BadgeCheck,
   Award,
+  UserCheck,
 } from "lucide-react";
 import { formatDate } from "@pspk/shared";
 import type { UserProfileData } from "@/server/queries/profile.queries";
@@ -181,6 +182,26 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
                 </span>
                 <div className="px-3.5 py-2.5 rounded-xl bg-[#f8fafd] border border-[#dee9fc]/60 text-sm font-semibold text-[#121c2a]">
                   {employee.position || "Belum Ditetapkan"}
+                </div>
+              </div>
+
+              {/* Atasan Langsung */}
+              <div className="space-y-1.5">
+                <span className="text-xs font-semibold text-[#74777f] uppercase tracking-wider flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-[#102e50]" />
+                  Atasan Langsung
+                </span>
+                <div className="px-3.5 py-2.5 rounded-xl bg-[#f8fafd] border border-[#dee9fc]/60 text-sm font-semibold text-[#121c2a]">
+                  {employee.manager ? (
+                    <div>
+                      <span className="text-[#102e50] font-bold block">{employee.manager.fullName}</span>
+                      <span className="text-xs text-slate-500 font-normal">
+                        {employee.manager.position || "Atasan Langsung"} {employee.manager.employeeNo ? `(${employee.manager.employeeNo})` : ""}
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-[#74777f] italic font-normal">Belum Ditetapkan</span>
+                  )}
                 </div>
               </div>
 

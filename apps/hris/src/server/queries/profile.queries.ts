@@ -34,6 +34,12 @@ export interface UserProfileData {
     joinDate: string | null;
     department: string | null;
     position: string | null;
+    manager: {
+      id: string;
+      fullName: string;
+      employeeNo: string;
+      position: string | null;
+    } | null;
   } | null;
   sessions: UserSessionItem[];
 }
@@ -65,6 +71,16 @@ export async function getCurrentUserProfile(
           },
           currentPosition: {
             select: { title: true },
+          },
+          manager: {
+            select: {
+              id: true,
+              fullName: true,
+              employeeNo: true,
+              currentPosition: {
+                select: { title: true },
+              },
+            },
           },
           contracts: {
             where: { status: "ACTIVE" },
@@ -126,6 +142,14 @@ export async function getCurrentUserProfile(
           joinDate: user.employee.joinDate ? user.employee.joinDate.toISOString() : null,
           department: user.employee.currentDepartment?.name ?? null,
           position: user.employee.currentPosition?.title ?? null,
+          manager: user.employee.manager
+            ? {
+                id: user.employee.manager.id,
+                fullName: user.employee.manager.fullName,
+                employeeNo: user.employee.manager.employeeNo,
+                position: user.employee.manager.currentPosition?.title ?? "Manajer",
+              }
+            : null,
         }
       : null,
     sessions: user.sessions.map((s) => ({

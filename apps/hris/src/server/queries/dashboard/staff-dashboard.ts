@@ -52,6 +52,12 @@ export interface StaffDashboardData {
     netAmount: number;
     publishedAt: Date | null;
   } | null;
+  manager?: {
+    id: string;
+    fullName: string;
+    employeeNo: string;
+    position: string | null;
+  } | null;
 }
 
 export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboardData> {
@@ -75,6 +81,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
     recentLeaves,
     latestPayslip,
     workSchedule,
+    employeeInfo,
   ] = await Promise.all([
     prisma.attendance.findFirst({
       where: {
@@ -119,6 +126,21 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
       orderBy: { createdAt: "desc" },
     }),
     getActiveWorkSchedule(),
+    prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: {
+        manager: {
+          select: {
+            id: true,
+            fullName: true,
+            employeeNo: true,
+            currentPosition: {
+              select: { title: true },
+            },
+          },
+        },
+      },
+    }),
   ]);
 
   // Format balances for UI
@@ -183,5 +205,13 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
       gracePeriodMins: workSchedule.gracePeriodMins,
       name: workSchedule.name,
     },
+    manager: employeeInfo?.manager
+      ? {
+          id: employeeInfo.manager.id,
+          fullName: employeeInfo.manager.fullName,
+          employeeNo: employeeInfo.manager.employeeNo,
+          position: employeeInfo.manager.currentPosition?.title ?? null,
+        }
+      : null,
   };
 }

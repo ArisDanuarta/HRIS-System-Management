@@ -499,6 +499,35 @@ export async function getStaffPerformanceReview(
     });
   }
 
+  // Jika review sudah ada tapi atasan langsung berubah saat review belum difinalisasi, sinkronkan reviewerId
+  if (
+    review &&
+    (review.status === "DRAFT" || review.status === "SELF_REVIEW") &&
+    activePeriod.status === "OPEN"
+  ) {
+    const currentEmp = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { managerId: true },
+    });
+
+    if (currentEmp?.managerId && currentEmp.managerId !== review.reviewerId) {
+      review = await prisma.performanceReview.update({
+        where: { id: review.id },
+        data: { reviewerId: currentEmp.managerId },
+        include: {
+          period: true,
+          reviewer: {
+            select: {
+              id: true,
+              fullName: true,
+              currentPosition: { select: { title: true } },
+            },
+          },
+        },
+      });
+    }
+  }
+
   if (!review) return null;
 
   const goals = await prisma.performanceGoal.findMany({
