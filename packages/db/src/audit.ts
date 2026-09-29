@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
+import { cleanIpAddress } from "@pspk/shared";
 import { prisma } from "./index";
 
 export type AuditLogInput = {
@@ -47,7 +48,7 @@ export async function writeAudit(
         entityId: data.entityId ?? null,
         before: data.before ?? Prisma.DbNull,
         after: data.after ?? Prisma.DbNull,
-        ip: data.ip ?? null,
+        ip: data.ip ? cleanIpAddress(data.ip) : null,
         userAgent: data.userAgent ?? null,
         requestId: data.requestId ?? null,
       },
