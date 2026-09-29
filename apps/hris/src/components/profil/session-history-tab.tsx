@@ -11,7 +11,7 @@ import {
   Calendar,
   Layers,
 } from "lucide-react";
-import { formatDateTime, formatRelativeTime } from "@pspk/shared";
+import { formatDateTime, formatRelativeTime, formatIpAddress } from "@pspk/shared";
 import type { UserSessionItem } from "@/server/queries/profile.queries";
 
 interface SessionHistoryTabProps {
@@ -149,7 +149,7 @@ export function SessionHistoryTab({ sessions }: SessionHistoryTabProps) {
 
                       <div className="flex items-center gap-3 text-xs text-[#74777f] flex-wrap">
                         <span className="font-mono text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-700">
-                          IP: {session.ipAddress || "Lokal / Akses Internal"}
+                          IP: {formatIpAddress(session.ipAddress)}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />

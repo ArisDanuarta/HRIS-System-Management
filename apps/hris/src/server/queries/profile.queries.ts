@@ -1,4 +1,5 @@
 import { prisma } from "@pspk/db";
+import { formatIpAddress } from "@pspk/shared";
 
 export interface UserSessionItem {
   id: string;
@@ -156,7 +157,7 @@ export async function getCurrentUserProfile(
       id: s.id,
       token: s.token,
       userAgent: s.userAgent,
-      ipAddress: s.ipAddress,
+      ipAddress: formatIpAddress(s.ipAddress),
       createdAt: s.createdAt.toISOString(),
       expiresAt: s.expiresAt.toISOString(),
       isCurrent: currentToken ? s.token === currentToken : false,
