@@ -4,17 +4,14 @@ import React, { useEffect } from "react";
 import {
   X,
   Calendar,
-  Clock,
   CheckCircle2,
   FileText,
-  User,
   Building2,
   Briefcase,
   Paperclip,
   ExternalLink,
   HeartPulse,
   CalendarCheck,
-  ShieldCheck,
 } from "lucide-react";
 
 export interface CalendarLeaveDetail {

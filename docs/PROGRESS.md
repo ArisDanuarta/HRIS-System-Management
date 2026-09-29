@@ -673,7 +673,36 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - **Modul Kinerja (`performance.queries.ts`)**: Penilai aktif otomatis mencerminkan atasan baru, baik saat evaluasi dibuat maupun sinkronisasi dinamis runtime.
 - **Hasil Verifikasi:**
   - `pnpm typecheck`: 9/9 packages lolos tanpa error.
-  - `pnpm test`: 42/42 unit test lulus.
+---
+
+## Modul Kalender — Penanda Hari Ini & Modal Rincian Ketidakhadiran (Cuti/Izin/Sakit)
+- **Status:** Selesai (Completed)
+- **Tujuan:** Menyediakan penanda visual yang tegas untuk tanggal hari ini, mempermudah navigasi kalender, memperbaiki pemotongan nama pegawai pada badge kalender, serta menampilkan dialog rincian lengkap saat entri izin/sakit/cuti diklik.
+- **Rincian Implementasi:**
+  1. **Penyelarasan Kueri & Serialization Data (`leave.queries.ts`)**:
+     - `getLeaveCalendarEvents` diperkaya dengan field detail permohonan: `reason`, `attachmentKey`, `status`, `decisionNote`, `decidedAt`, nama jabatan & divisi pemohon (`currentDepartment`, `currentPosition`), dan status berbayar (`leaveType.isPaid`).
+     - Seluruh data dikonversi secara aman ke *plain serializable object* (termasuk `Number(l.days)`) bebas error serialization Next.js.
+  2. **Komponen Modal Detail Cuti (`leave-detail-modal.tsx`)**:
+     - Komponen modal baru dengan animasi fade-in & backdrop blur, penutup via tombol Esc atau klik backdrop.
+     - Menampilkan identitas pemohon (Avatar inisial, Nama Lengkap, NIP, Departemen, Posisi/Jabatan).
+     - Rincian izin/cuti: Badge tipe berbayar/tanpa gaji, durasi hari kerja, rentang tanggal (mulai s/d selesai).
+     - Alasan tertulis pemohon dalam format kutipan rapi.
+     - Berkas lampiran / surat keterangan dokter (jika tersedia) lengkap dengan tombol langsung buka berkas (`/api/documents/${attachmentKey}`).
+     - Status persetujuan resmi dan catatan persetujuan dari atasan/HR jika ada.
+  3. **Penyempurnaan Tampilan Kalender (`leave-calendar-view.tsx`)**:
+     - **Penanda Hari Ini (Today Indicator)**:
+       - Border tebal navy khas brand PSPK (`border-2 border-[#102e50]`), background gradient halus, dan ring highlight.
+       - Angka tanggal dilingkari kontras warna navy dan teks gold PSPK (`#f2af3e`), disertai badge penanda `"Hari Ini"`.
+     - **Tombol Pintas "Hari Ini"**: Tombol shortcut di header kalender untuk langsung melompat kembali ke bulan dan hari berjalan.
+     - **Perbaikan Label Nama & Warna Pill**:
+       - Mengatasi pemotongan nama satu huruf (mis. *"I Made"* bukan hanya *"I"*).
+       - Diferensiasi warna tematik: 🩺 Rose untuk Sakit, 🏖️ Biru untuk Cuti Tahunan, 📋 Ungu/Kuning untuk Izin/Penting.
+       - Pill interaktif dengan cursor pointer dan trigger untuk membuka `LeaveDetailModal`.
+     - **Penanganan Banyak Cuti**: Badge `+X lainnya` yang memunculkan daftar lengkap pegawai yang tidak hadir pada tanggal tersebut.
+- **Hasil Verifikasi:**
+  - `pnpm typecheck`: 9/9 packages lolos tanpa error.
+  - `pnpm lint`: lolos dengan 0 error.
+  - `pnpm test`: 42/42 unit test lulus (100%).
 
 ---
 
