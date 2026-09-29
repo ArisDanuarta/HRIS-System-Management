@@ -177,7 +177,7 @@ export async function getLeaveCalendarEvents(year: number, month: number) {
             currentPosition: { select: { title: true } },
           },
         },
-        leaveType: { select: { name: true } },
+        leaveType: { select: { name: true, isPaid: true } },
       },
       orderBy: { startDate: "asc" },
     }),
@@ -194,8 +194,26 @@ export async function getLeaveCalendarEvents(year: number, month: number) {
 
   return {
     approvedLeaves: approvedLeaves.map((l) => ({
-      ...l,
+      id: l.id,
+      startDate: l.startDate,
+      endDate: l.endDate,
       days: Number(l.days),
+      reason: l.reason,
+      attachmentKey: l.attachmentKey,
+      status: l.status,
+      decisionNote: l.decisionNote,
+      decidedAt: l.decidedAt,
+      employee: {
+        id: l.employee.id,
+        fullName: l.employee.fullName,
+        employeeNo: l.employee.employeeNo,
+        department: l.employee.currentDepartment?.name ?? null,
+        position: l.employee.currentPosition?.title ?? null,
+      },
+      leaveType: {
+        name: l.leaveType.name,
+        isPaid: l.leaveType.isPaid,
+      },
     })),
     holidays,
     period: { year, month, startDate, endDate },
