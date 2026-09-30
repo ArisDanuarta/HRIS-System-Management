@@ -24,17 +24,59 @@ export interface PayrollSettingsData {
   updatedAt: string;
 }
 
+export type PayrollSettingRecord = {
+  id: string;
+  institutionName: string;
+  subHeader: string;
+  addressLine: string | null;
+  logoKey: string | null;
+  headerBannerKey: string | null;
+  borderStyle: string;
+  disclaimerText: string;
+  senderBankName: string;
+  senderBankAccountEnc: string | null;
+  senderAccountName: string;
+  senderBranch: string | null;
+  payrollTransferNote: string;
+  authorizedSignerName: string | null;
+  authorizedSignerTitle: string | null;
+  isDefault: boolean;
+  updatedByUserId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type DbWithPayrollSetting = {
+  payrollSetting: {
+    findFirst: (args?: { where?: { isDefault?: boolean } }) => Promise<PayrollSettingRecord | null>;
+    upsert: (args: {
+      where: { id: string };
+      update: Partial<PayrollSettingRecord>;
+      create: Partial<PayrollSettingRecord>;
+    }) => Promise<PayrollSettingRecord>;
+    update: (args: {
+      where: { id: string };
+      data: Partial<PayrollSettingRecord>;
+    }) => Promise<PayrollSettingRecord>;
+    create: (args: { data: Partial<PayrollSettingRecord> }) => Promise<PayrollSettingRecord>;
+  };
+};
+
+export const getPayrollDb = (): DbWithPayrollSetting =>
+  prisma as unknown as DbWithPayrollSetting;
+
 /**
  * Mengambil pengaturan penggajian & dokumen resmi aktif
  */
 export async function getPayrollSettings(): Promise<PayrollSettingsData> {
-  let setting = await prisma.payrollSetting.findFirst({
+  const db = getPayrollDb();
+  let setting = await db.payrollSetting.findFirst({
     where: { isDefault: true },
   });
 
   // Jika belum ada di database, buat pengaturan default secara otomatis
   if (!setting) {
-    setting = await prisma.payrollSetting.create({
+    setting = await db.payrollSetting.create({
       data: {
         institutionName: "Pusat Studi Pendidikan & Kebijakan",
         subHeader: "HR & Finance Division • Sistem Penggajian Elektronik",

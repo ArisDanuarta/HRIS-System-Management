@@ -4,11 +4,12 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession, getUserProfile } from "@pspk/auth";
-import { prisma, writeAudit } from "@pspk/db";
+import { writeAudit } from "@pspk/db";
 import { encryptField } from "@pspk/shared";
 import { getStorageProvider } from "@pspk/storage";
+import { getPayrollDb } from "@/server/queries/payroll-settings.queries";
 
-export const payrollSettingsSchema = z.object({
+const payrollSettingsSchema = z.object({
   institutionName: z.string().min(2, "Nama lembaga minimal 2 karakter"),
   subHeader: z.string().min(2, "Subjudul kop minimal 2 karakter"),
   addressLine: z.string().optional().nullable(),
@@ -66,8 +67,9 @@ export async function updatePayrollSettingsAction(
     }
 
     const data = validated.data;
+    const db = getPayrollDb();
 
-    const currentSetting = await prisma.payrollSetting.findFirst({
+    const currentSetting = await db.payrollSetting.findFirst({
       where: { isDefault: true },
     });
 
@@ -79,7 +81,7 @@ export async function updatePayrollSettingsAction(
       encryptedBankAcc = encryptField(rawAcc);
     }
 
-    const updatedSetting = await prisma.payrollSetting.upsert({
+    const updatedSetting = await db.payrollSetting.upsert({
       where: {
         id: currentSetting?.id || "00000000-0000-0000-0000-000000000000",
       },
@@ -231,7 +233,8 @@ export async function deletePayrollBrandingAction(
   try {
     const { session } = await assertHrAdmin();
 
-    const current = await prisma.payrollSetting.findFirst({
+    const db = getPayrollDb();
+    const current = await db.payrollSetting.findFirst({
       where: { isDefault: true },
     });
 
@@ -239,7 +242,7 @@ export async function deletePayrollBrandingAction(
       const dataToUpdate =
         target === "logo" ? { logoKey: null } : { headerBannerKey: null };
 
-      await prisma.payrollSetting.update({
+      await db.payrollSetting.update({
         where: { id: current.id },
         data: {
           ...dataToUpdate,
