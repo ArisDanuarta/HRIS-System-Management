@@ -17,6 +17,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
+import { formatRupiah } from "@pspk/shared";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { SupervisorProfileModal } from "./supervisor-profile-modal";
@@ -201,29 +202,41 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
               </span>
               <div className="mt-2">
                 {data.latestPayslip ? (
-                  <span className="text-sm font-bold text-slate-800">
-                    Periode {data.latestPayslip.month}/{data.latestPayslip.year}
-                  </span>
+                  <>
+                    <span className="text-2xl sm:text-3xl font-extrabold text-[#102e50] font-mono leading-none block">
+                      {formatRupiah(data.latestPayslip.netAmount)}
+                    </span>
+                    <span className="text-xs text-slate-600 font-medium mt-1 block">
+                      Periode {data.latestPayslip.month}/{data.latestPayslip.year}
+                    </span>
+                  </>
                 ) : (
-                  <span className="text-xs text-slate-400 italic">
-                    Belum ada slip terbit (Fase 4)
-                  </span>
+                  <>
+                    <span className="text-sm font-semibold text-slate-700 block">
+                      Belum Ada Slip
+                    </span>
+                    <span className="text-xs text-slate-400 mt-1 block">
+                      Menunggu publikasi resmi
+                    </span>
+                  </>
                 )}
               </div>
             </div>
-            <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center">
-              <Receipt className="w-5 h-5 text-slate-600" />
+            <div className="w-10 h-10 rounded-xl bg-[#eff4ff] text-[#102e50] flex items-center justify-center shrink-0">
+              <Receipt className="w-5 h-5 text-[#102e50]" />
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-400 text-[11px]">Dikelola oleh Keuangan</span>
-            {data.latestPayslip ? (
-              <Link href="/payroll" className="text-[#102e50] font-bold hover:underline">
-                Lihat Slip
-              </Link>
-            ) : (
-              <span className="text-slate-400 text-[11px]">Siap Fase 4</span>
-            )}
+            <span className="text-slate-500">
+              {data.latestPayslip ? "Siap cetak / unduh" : "Dikelola oleh Keuangan"}
+            </span>
+            <Link
+              href="/slip-gaji"
+              className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1"
+            >
+              <span>{data.latestPayslip ? "Lihat Slip" : "Buka Arsip"}</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
         </div>
       </div>
