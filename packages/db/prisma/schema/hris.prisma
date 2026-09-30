@@ -493,6 +493,38 @@ model PayslipLine {
   @@schema("hris")
 }
 
+model PayrollSetting {
+  id                    String   @id @default(uuid())
+
+  // A. Identitas Lembaga & Kop Dokumen
+  institutionName       String   @default("Pusat Studi Pendidikan dan Kebijakan") @map("institution_name")
+  subHeader             String   @default("HR & Finance Division • Sistem Penggajian Elektronik") @map("sub_header")
+  addressLine           String?  @map("address_line")
+  logoKey               String?  @map("logo_key")
+  headerBannerKey       String?  @map("header_banner_key")
+  borderStyle           String   @default("NAVY_SOLID") @map("border_style")
+  disclaimerText        String   @default("Dokumen ini diterbitkan secara elektronik oleh Divisi SDM & Keuangan Pusat Studi Pendidikan dan Kebijakan (PSPK). Sah tanpa tanda tangan basah.") @map("disclaimer_text")
+
+  // B. Rekening Bank Pengirim Penggajian PSPK
+  senderBankName        String   @default("Bank Central Asia (BCA)") @map("sender_bank_name")
+  senderBankAccountEnc  String?  @map("sender_bank_account_enc")
+  senderAccountName     String   @default("Pusat Studi Pendidikan dan Kebijakan") @map("sender_account_name")
+  senderBranch          String?  @map("sender_branch")
+  payrollTransferNote   String   @default("Payroll Gaji PSPK") @map("payroll_transfer_note")
+
+  // C. Penandatangan Resmi Dokumen (Authorized Signatory)
+  authorizedSignerName  String?  @map("authorized_signer_name")
+  authorizedSignerTitle String?  @map("authorized_signer_title")
+
+  isDefault             Boolean  @default(true) @map("is_default")
+  updatedByUserId       String?  @map("updated_by_user_id")
+  createdAt             DateTime @default(now())   @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt        @map("updated_at") @db.Timestamptz(6)
+
+  @@map("payroll_settings")
+  @@schema("hris")
+}
+
 model PerformancePeriod {
   id        String   @id @default(uuid())
   name      String

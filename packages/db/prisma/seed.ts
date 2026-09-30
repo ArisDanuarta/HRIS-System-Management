@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PERMISSIONS, SYSTEM_ROLES } from "@pspk/rbac";
 import { hashPassword } from "better-auth/crypto";
+import { encryptField } from "@pspk/shared";
 
 const prisma = new PrismaClient();
 
@@ -907,6 +908,35 @@ async function main() {
         gracePeriodMins: 15,
         workingDays: [1, 2, 3, 4, 5],
         isFlexible: false,
+        isDefault: true,
+      },
+    });
+  }
+
+  // 13. Seed PayrollSetting (Default PSPK Bank & Document Letterhead Settings)
+  console.log("🏛️ Seeding default payroll & document settings...");
+  const defaultPayrollSetting = await prisma.payrollSetting.findFirst({
+    where: { isDefault: true },
+  });
+  if (!defaultPayrollSetting) {
+    const sampleBankAccount = "5270123456"; // Rekening Giro Operasional BCA PSPK
+    const encryptedAccount = encryptField(sampleBankAccount);
+
+    await prisma.payrollSetting.create({
+      data: {
+        institutionName: "Pusat Studi Pendidikan & Kebijakan",
+        subHeader: "HR & Finance Division • Sistem Penggajian Elektronik",
+        addressLine: "Gedung Edukasi Lt. 3, Jl. Kebijakan No. 45, Jakarta Selatan",
+        borderStyle: "NAVY_SOLID",
+        disclaimerText:
+          "Dokumen ini diterbitkan secara elektronik oleh Divisi SDM & Keuangan Pusat Studi Pendidikan dan Kebijakan (PSPK). Sah tanpa tanda tangan basah.",
+        senderBankName: "Bank Central Asia (BCA)",
+        senderBankAccountEnc: encryptedAccount,
+        senderAccountName: "Pusat Studi Pendidikan dan Kebijakan",
+        senderBranch: "KCU Jakarta Rasuna Said",
+        payrollTransferNote: "Payroll Gaji Pegawai PSPK",
+        authorizedSignerName: "Dewi Permata, S.Psi.",
+        authorizedSignerTitle: "Staf Administrasi & HR Lead",
         isDefault: true,
       },
     });
