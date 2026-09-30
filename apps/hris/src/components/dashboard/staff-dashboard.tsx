@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -19,6 +19,7 @@ import {
 import { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
+import { SupervisorProfileModal } from "./supervisor-profile-modal";
 
 interface StaffDashboardProps {
   data: StaffDashboardData;
@@ -26,6 +27,8 @@ interface StaffDashboardProps {
 }
 
 export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
+  const [showSupervisorModal, setShowSupervisorModal] = useState(false);
+
   const formatDate = (d: Date) => {
     const dateObj = typeof d === "string" ? new Date(d) : d;
     return dateObj.toLocaleDateString("id-ID", {
@@ -70,29 +73,38 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
 
       {/* Atasan Langsung Info Card */}
       {data.manager && (
-        <div className="flex items-center justify-between px-4 py-3 bg-[#f0f4fd] border border-[#d6e3f8] rounded-xl text-xs sm:text-sm">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-[#102e50] text-[#ffddb0] flex items-center justify-center font-bold text-xs shrink-0">
-              <UserCheck className="w-4 h-4" />
+        <>
+          <div className="flex items-center justify-between px-4 py-3 bg-[#f0f4fd] border border-[#d6e3f8] rounded-xl text-xs sm:text-sm">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-[#102e50] text-[#ffddb0] flex items-center justify-center font-bold text-xs shrink-0">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2">
+                <span className="text-slate-500 font-medium">Atasan Langsung:</span>
+                <span className="font-bold text-[#102e50]">{data.manager.fullName}</span>
+                {data.manager.position && (
+                  <span className="text-xs px-2 py-0.5 rounded bg-white text-slate-600 border border-slate-200">
+                    {data.manager.position}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-x-2">
-              <span className="text-slate-500 font-medium">Atasan Langsung:</span>
-              <span className="font-bold text-[#102e50]">{data.manager.fullName}</span>
-              {data.manager.position && (
-                <span className="text-xs px-2 py-0.5 rounded bg-white text-slate-600 border border-slate-200">
-                  {data.manager.position}
-                </span>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowSupervisorModal(true)}
+              className="text-xs font-semibold text-[#102e50] hover:text-[#0c233d] flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-[#d6e3f8] shadow-2xs transition-all shrink-0 ml-2 cursor-pointer active:scale-[0.98]"
+            >
+              <span>Lihat Profil Atasan</span>
+              <ArrowRight className="w-3 h-3 text-[#102e50]" />
+            </button>
           </div>
-          <Link
-            href="/profil"
-            className="text-xs font-semibold text-[#102e50] hover:underline flex items-center gap-1 shrink-0 ml-2"
-          >
-            <span>Lihat Profil</span>
-            <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
+
+          <SupervisorProfileModal
+            isOpen={showSupervisorModal}
+            onClose={() => setShowSupervisorModal(false)}
+            supervisor={data.manager}
+          />
+        </>
       )}
 
       {/* Widget 1: Kartu Absensi Hari Ini (Interactive check-in/out) */}
