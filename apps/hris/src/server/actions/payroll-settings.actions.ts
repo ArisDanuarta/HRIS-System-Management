@@ -24,6 +24,8 @@ const payrollSettingsSchema = z.object({
   payrollTransferNote: z.string().min(2, "Catatan/berita transfer wajib diisi"),
   authorizedSignerName: z.string().optional().nullable(),
   authorizedSignerTitle: z.string().optional().nullable(),
+  signatureKey: z.string().optional().nullable(),
+  stampKey: z.string().optional().nullable(),
 });
 
 export type PayrollSettingsInput = z.infer<typeof payrollSettingsSchema>;
@@ -100,6 +102,8 @@ export async function updatePayrollSettingsAction(
         payrollTransferNote: data.payrollTransferNote,
         authorizedSignerName: data.authorizedSignerName || null,
         authorizedSignerTitle: data.authorizedSignerTitle || null,
+        signatureKey: data.signatureKey || null,
+        stampKey: data.stampKey || null,
         updatedByUserId: session.user.id,
       },
       create: {
@@ -117,6 +121,8 @@ export async function updatePayrollSettingsAction(
         payrollTransferNote: data.payrollTransferNote,
         authorizedSignerName: data.authorizedSignerName || null,
         authorizedSignerTitle: data.authorizedSignerTitle || null,
+        signatureKey: data.signatureKey || null,
+        stampKey: data.stampKey || null,
         isDefault: true,
         updatedByUserId: session.user.id,
       },
@@ -228,7 +234,7 @@ export async function uploadPayrollBrandingAction(
  * Server Action: Menghapus file logo atau banner kop surat dari pengaturan
  */
 export async function deletePayrollBrandingAction(
-  target: "logo" | "banner",
+  target: "logo" | "banner" | "signature" | "stamp",
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const { session } = await assertHrAdmin();
@@ -239,8 +245,11 @@ export async function deletePayrollBrandingAction(
     });
 
     if (current) {
-      const dataToUpdate =
-        target === "logo" ? { logoKey: null } : { headerBannerKey: null };
+      let dataToUpdate: Record<string, null> = {};
+      if (target === "logo") dataToUpdate = { logoKey: null };
+      else if (target === "banner") dataToUpdate = { headerBannerKey: null };
+      else if (target === "signature") dataToUpdate = { signatureKey: null };
+      else if (target === "stamp") dataToUpdate = { stampKey: null };
 
       await db.payrollSetting.update({
         where: { id: current.id },

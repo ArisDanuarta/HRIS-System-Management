@@ -9,6 +9,8 @@ interface PayrollDocumentPreviewProps {
   settings: PayrollSettingsInput & {
     logoUrl?: string | null;
     headerBannerUrl?: string | null;
+    signatureUrl?: string | null;
+    stampUrl?: string | null;
     senderAccountMasked?: string;
   };
 }
@@ -155,10 +157,35 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
               <span className="text-[9px] text-slate-400 block mb-1">
                 Disahkan Secara Elektronik:
               </span>
-              <div className="w-16 h-8 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50 mb-1">
-                <span className="text-[8px] font-serif italic text-slate-400">
-                  Digital Sign
-                </span>
+              <div className="relative min-w-[70px] min-h-[36px] flex items-center justify-center mb-1">
+                {/* Stempel Resmi jika ada */}
+                {settings.stampUrl && (
+                  <div className="absolute -left-2 -top-1 opacity-85 pointer-events-none select-none z-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={settings.stampUrl}
+                      alt="Stempel Lembaga"
+                      className="w-10 h-10 object-contain drop-shadow-sm"
+                    />
+                  </div>
+                )}
+                {/* Tanda Tangan jika ada */}
+                {settings.signatureUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={settings.signatureUrl}
+                    alt="Tanda Tangan"
+                    className="w-16 h-8 object-contain relative z-10"
+                  />
+                ) : !settings.stampUrl ? (
+                  <div className="w-16 h-8 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50">
+                    <span className="text-[8px] font-serif italic text-slate-400">
+                      Digital Sign
+                    </span>
+                  </div>
+                ) : (
+                  <div className="h-8 w-16" />
+                )}
               </div>
               <span className="font-bold text-[#102E50] text-[10px]">
                 {settings.authorizedSignerName}

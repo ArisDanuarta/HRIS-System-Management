@@ -826,6 +826,10 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Modal slip gaji staf membaca dan menerapkan logo kustom, banner kop jika ada, nama lembaga dinamis, gaya border kop yang dipilih HR, informasi bank penyalur resmi PSPK, penandatangan resmi, dan teks disclaimer.
   5. **Peningkatan Resiliensi Prisma Dev Mode (`@pspk/db`)**:
      - Menambahkan dynamic `Proxy` pada singleton `prisma` di mode development: jika model baru (seperti `payrollSetting`) diakses sebelum proses server di-restart, Proxy secara otomatis mendeteksi ketiadaan properti dan menginisialisasi ulang instance PrismaClient segar ke `globalThis.prisma`.
+  6. **Upload Tanda Tangan Digital & Stempel Resmi Lembaga**:
+     - Kolom `signature_key` dan `stamp_key` pada skema `hris.payroll_settings` via migrasi `20260930061010_add_signature_and_stamp_to_payroll_settings`.
+     - Fitur upload & hapus gambar tanda tangan (PNG transparan) dan stempel basah resmi lembaga di tab pengaturan HR.
+     - Tampilan terintegrasi dan live preview: stempel lembaga dan tanda tangan tampil berpadu secara proporsional dan elegan di atas nama pejabat penandatangan baik di layar web maupun pada cetak PDF/kertas A4.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 packages (0 error).
   - `pnpm lint` lolos dengan 0 error.

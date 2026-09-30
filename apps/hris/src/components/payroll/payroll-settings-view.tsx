@@ -108,13 +108,19 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
   const [senderBranch, setSenderBranch] = useState(initialSettings.senderBranch || "");
   const [payrollTransferNote, setPayrollTransferNote] = useState(initialSettings.payrollTransferNote);
 
-  // Signatory State
+  // Signatory & Stamp State
   const [authorizedSignerName, setAuthorizedSignerName] = useState(
     initialSettings.authorizedSignerName || "",
   );
   const [authorizedSignerTitle, setAuthorizedSignerTitle] = useState(
     initialSettings.authorizedSignerTitle || "",
   );
+  const [signatureKey, setSignatureKey] = useState<string | null>(initialSettings.signatureKey);
+  const [signatureUrl, setSignatureUrl] = useState<string | null>(initialSettings.signatureUrl);
+  const [stampKey, setStampKey] = useState<string | null>(initialSettings.stampKey);
+  const [stampUrl, setStampUrl] = useState<string | null>(initialSettings.stampUrl);
+  const [isUploadingSignature, setIsUploadingSignature] = useState(false);
+  const [isUploadingStamp, setIsUploadingStamp] = useState(false);
 
   // Handle Logo Upload
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -199,6 +205,88 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
     });
   };
 
+  // Handle Signature Upload
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingSignature(true);
+    setStatusMessage(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("target", "signature");
+
+    const res = await uploadPayrollBrandingAction(formData);
+    setIsUploadingSignature(false);
+
+    if (res.ok && res.key && res.url) {
+      setSignatureKey(res.key);
+      setSignatureUrl(res.url);
+      setStatusMessage({
+        type: "success",
+        text: "Tanda tangan digital berhasil diunggah. Klik 'Simpan Pengaturan' untuk menerapkan permanen.",
+      });
+    } else {
+      setStatusMessage({
+        type: "error",
+        text: res.error || "Gagal mengunggah tanda tangan.",
+      });
+    }
+  };
+
+  // Handle Delete Signature
+  const handleDeleteSignature = async () => {
+    setSignatureKey(null);
+    setSignatureUrl(null);
+    await deletePayrollBrandingAction("signature");
+    setStatusMessage({
+      type: "success",
+      text: "Tanda tangan dihapus. Beralih ke stempel teks digital bawaan.",
+    });
+  };
+
+  // Handle Stamp Upload
+  const handleStampUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingStamp(true);
+    setStatusMessage(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("target", "stamp");
+
+    const res = await uploadPayrollBrandingAction(formData);
+    setIsUploadingStamp(false);
+
+    if (res.ok && res.key && res.url) {
+      setStampKey(res.key);
+      setStampUrl(res.url);
+      setStatusMessage({
+        type: "success",
+        text: "Stempel lembaga resmi berhasil diunggah. Klik 'Simpan Pengaturan' untuk menerapkan permanen.",
+      });
+    } else {
+      setStatusMessage({
+        type: "error",
+        text: res.error || "Gagal mengunggah stempel.",
+      });
+    }
+  };
+
+  // Handle Delete Stamp
+  const handleDeleteStamp = async () => {
+    setStampKey(null);
+    setStampUrl(null);
+    await deletePayrollBrandingAction("stamp");
+    setStatusMessage({
+      type: "success",
+      text: "Stempel lembaga resmi dihapus dari pengesahan dokumen.",
+    });
+  };
+
   // Handle Save
   const handleSave = () => {
     setStatusMessage(null);
@@ -223,6 +311,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
       payrollTransferNote: payrollTransferNote.trim(),
       authorizedSignerName: authorizedSignerName.trim() || null,
       authorizedSignerTitle: authorizedSignerTitle.trim() || null,
+      signatureKey,
+      stampKey,
     };
 
     startTransition(async () => {
@@ -245,6 +335,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
   const previewSettings: PayrollSettingsInput & {
     logoUrl?: string | null;
     headerBannerUrl?: string | null;
+    signatureUrl?: string | null;
+    stampUrl?: string | null;
     senderAccountMasked?: string;
   } = {
     institutionName,
@@ -254,6 +346,10 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
     logoUrl,
     headerBannerKey,
     headerBannerUrl,
+    signatureKey,
+    signatureUrl,
+    stampKey,
+    stampUrl,
     borderStyle: borderStyle as "NAVY_SOLID" | "NAVY_GOLD" | "DOUBLE_LINE" | "MINIMALIST",
     disclaimerText,
     senderBankName:
@@ -738,6 +834,101 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
                       placeholder="Contoh: HR & Finance Lead"
                       className="w-full text-xs font-medium px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:ring-2 focus:ring-[#102E50]"
                     />
+                  </div>
+                </div>
+
+                {/* Upload Gambar Tanda Tangan & Stempel Resmi */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                  {/* Uploader Tanda Tangan */}
+                  <div className="space-y-1.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800">
+                        Gambar Tanda Tangan Digital
+                      </label>
+                      {signatureUrl && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteSignature}
+                          className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+                        >
+                          Hapus TTD
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500">
+                      Disarankan file PNG latar transparan (maks. 2 MB)
+                    </p>
+
+                    {signatureUrl ? (
+                      <div className="relative w-full h-16 rounded-lg border border-slate-200 bg-white flex items-center justify-center p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={signatureUrl}
+                          alt="Tanda Tangan Pejabat"
+                          className="max-h-12 max-w-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <label className="border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-lg p-3 flex flex-col items-center justify-center gap-1 cursor-pointer bg-white hover:bg-slate-50 transition-colors">
+                        <Upload className="w-4 h-4 text-slate-400" />
+                        <span className="text-[11px] font-semibold text-slate-700">
+                          {isUploadingSignature ? "Mengunggah..." : "Unggah Gambar TTD"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={handleSignatureUpload}
+                          disabled={isUploadingSignature}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
+                  </div>
+
+                  {/* Uploader Stempel Resmi Lembaga */}
+                  <div className="space-y-1.5 p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800">
+                        Gambar Stempel Lembaga Resmi
+                      </label>
+                      {stampUrl && (
+                        <button
+                          type="button"
+                          onClick={handleDeleteStamp}
+                          className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 hover:underline"
+                        >
+                          Hapus Stempel
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500">
+                      Cap basah / stempel resmi PSPK bulat/oval (PNG transparan)
+                    </p>
+
+                    {stampUrl ? (
+                      <div className="relative w-full h-16 rounded-lg border border-slate-200 bg-white flex items-center justify-center p-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={stampUrl}
+                          alt="Stempel Lembaga"
+                          className="max-h-12 max-w-full object-contain"
+                        />
+                      </div>
+                    ) : (
+                      <label className="border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-lg p-3 flex flex-col items-center justify-center gap-1 cursor-pointer bg-white hover:bg-slate-50 transition-colors">
+                        <Upload className="w-4 h-4 text-slate-400" />
+                        <span className="text-[11px] font-semibold text-slate-700">
+                          {isUploadingStamp ? "Mengunggah..." : "Unggah Gambar Stempel"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={handleStampUpload}
+                          disabled={isUploadingStamp}
+                          className="hidden"
+                        />
+                      </label>
+                    )}
                   </div>
                 </div>
               </div>

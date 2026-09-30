@@ -454,10 +454,35 @@ export function PayslipPrintableModal({
                 <span className="text-[10px] text-slate-400 block mb-1">
                   Disahkan Secara Elektronik:
                 </span>
-                <div className="w-20 h-10 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50 mb-1">
-                  <span className="text-[9px] font-serif italic text-slate-400">
-                    Tervalidasi Digital
-                  </span>
+                <div className="relative min-w-[100px] min-h-[48px] flex items-center justify-center mb-1">
+                  {/* Stempel Resmi Lembaga jika ada */}
+                  {settings.stampUrl && (
+                    <div className="absolute -left-4 -top-2 opacity-85 pointer-events-none select-none z-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={settings.stampUrl}
+                        alt="Stempel Lembaga"
+                        className="w-14 h-14 object-contain drop-shadow-sm"
+                      />
+                    </div>
+                  )}
+                  {/* Tanda Tangan jika ada */}
+                  {settings.signatureUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={settings.signatureUrl}
+                      alt="Tanda Tangan"
+                      className="w-24 h-12 object-contain relative z-10"
+                    />
+                  ) : !settings.stampUrl ? (
+                    <div className="w-20 h-10 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50">
+                      <span className="text-[9px] font-serif italic text-slate-400">
+                        Tervalidasi Digital
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="h-10 w-20" />
+                  )}
                 </div>
                 <span className="font-bold text-[#102E50] text-xs">
                   {settings.authorizedSignerName}
