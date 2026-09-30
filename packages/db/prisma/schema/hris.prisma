@@ -512,9 +512,11 @@ model PayrollSetting {
   senderBranch          String?  @map("sender_branch")
   payrollTransferNote   String   @default("Payroll Gaji PSPK") @map("payroll_transfer_note")
 
-  // C. Penandatangan Resmi Dokumen (Authorized Signatory)
+  // C. Penandatangan Resmi Dokumen & Stempel Lembaga
   authorizedSignerName  String?  @map("authorized_signer_name")
   authorizedSignerTitle String?  @map("authorized_signer_title")
+  signatureKey          String?  @map("signature_key")
+  stampKey              String?  @map("stamp_key")
 
   isDefault             Boolean  @default(true) @map("is_default")
   updatedByUserId       String?  @map("updated_by_user_id")

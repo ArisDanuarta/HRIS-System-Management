@@ -81,6 +81,8 @@ export interface MyPayslipDetail {
     senderAccountName: string;
     authorizedSignerName: string | null;
     authorizedSignerTitle: string | null;
+    signatureUrl: string | null;
+    stampUrl: string | null;
   };
 }
 
@@ -330,6 +332,8 @@ export async function getMyPayslipDetail(
       senderAccountMasked: setting?.senderAccountMasked || "-",
       authorizedSignerName: setting?.authorizedSignerName || null,
       authorizedSignerTitle: setting?.authorizedSignerTitle || null,
+      signatureUrl: setting?.signatureUrl || null,
+      stampUrl: setting?.stampUrl || null,
     },
   };
 }

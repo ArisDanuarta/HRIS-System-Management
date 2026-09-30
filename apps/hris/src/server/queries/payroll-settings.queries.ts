@@ -20,6 +20,10 @@ export interface PayrollSettingsData {
   payrollTransferNote: string;
   authorizedSignerName: string | null;
   authorizedSignerTitle: string | null;
+  signatureKey: string | null;
+  signatureUrl: string | null;
+  stampKey: string | null;
+  stampUrl: string | null;
   isDefault: boolean;
   updatedAt: string;
 }
@@ -40,6 +44,8 @@ export type PayrollSettingRecord = {
   payrollTransferNote: string;
   authorizedSignerName: string | null;
   authorizedSignerTitle: string | null;
+  signatureKey: string | null;
+  stampKey: string | null;
   isDefault: boolean;
   updatedByUserId: string | null;
   createdAt: Date;
@@ -117,6 +123,12 @@ export async function getPayrollSettings(): Promise<PayrollSettingsData> {
   const headerBannerUrl = setting.headerBannerKey
     ? `/api/documents/${setting.headerBannerKey}`
     : null;
+  const signatureUrl = setting.signatureKey
+    ? `/api/documents/${setting.signatureKey}`
+    : null;
+  const stampUrl = setting.stampKey
+    ? `/api/documents/${setting.stampKey}`
+    : null;
 
   return {
     id: setting.id,
@@ -137,6 +149,10 @@ export async function getPayrollSettings(): Promise<PayrollSettingsData> {
     payrollTransferNote: setting.payrollTransferNote,
     authorizedSignerName: setting.authorizedSignerName,
     authorizedSignerTitle: setting.authorizedSignerTitle,
+    signatureKey: setting.signatureKey,
+    signatureUrl,
+    stampKey: setting.stampKey,
+    stampUrl,
     isDefault: setting.isDefault,
     updatedAt: setting.updatedAt.toISOString(),
   };
