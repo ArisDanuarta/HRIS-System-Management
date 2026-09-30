@@ -3,23 +3,17 @@
 import React, { useState, useTransition } from "react";
 import {
   FileText,
-  Printer,
-  Calendar,
-  CreditCard,
   TrendingUp,
   Receipt,
   Eye,
   Filter,
   RefreshCw,
-  Search,
-  CheckCircle2,
   AlertCircle,
   HelpCircle,
 } from "lucide-react";
 import { formatRupiah, formatDate } from "@pspk/shared";
 import {
   MyPayslipsSummary,
-  MyPayslipListItem,
   MyPayslipDetail,
 } from "@/server/queries/payslip.queries";
 import { getMyPayslipDetailAction } from "@/server/actions/payslip.actions";
@@ -99,7 +93,7 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
             Slip Gaji Saya
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Arsip resmi bukti pembayaran gaji, tunjangan kerja, dan potongan yang telah diterbitkan oleh Divisi HR & Keuangan.
+            Arsip resmi bukti pembayaran gaji atas nama <strong className="text-slate-700">{employeeName}</strong>, tunjangan kerja, dan potongan yang telah diterbitkan oleh Divisi HR & Keuangan.
           </p>
         </div>
       </div>

@@ -6,11 +6,7 @@ import {
   Printer,
   FileText,
   Lock,
-  Building2,
-  Calendar,
-  CreditCard,
   CheckCircle2,
-  IdCard,
 } from "lucide-react";
 import { formatRupiah, formatDate, angkaTerbilang } from "@pspk/shared";
 import { MyPayslipDetail } from "@/server/queries/payslip.queries";
