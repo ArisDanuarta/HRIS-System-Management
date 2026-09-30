@@ -1,7 +1,7 @@
 import path from "node:path";
 import type { NextConfig } from "next";
 
-// Reload config for Prisma client update - 2026-09-24
+// Reload config for Prisma client update - 2026-09-30 13:55
 const config: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(process.cwd(), "../../"),

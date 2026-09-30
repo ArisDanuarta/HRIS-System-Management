@@ -7,20 +7,32 @@ const createPrismaClient = () =>
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 
+const rawPrisma = globalForPrisma.prisma ?? createPrismaClient();
+
 if (process.env.NODE_ENV !== "production") {
-  if (
-    !globalForPrisma.prisma ||
-    !("notification" in (globalForPrisma.prisma as object)) ||
-    !("workScheduleSetting" in (globalForPrisma.prisma as object)) ||
-    !("payrollSetting" in (globalForPrisma.prisma as object))
-  ) {
-    globalForPrisma.prisma = createPrismaClient();
-  }
+  globalForPrisma.prisma = rawPrisma;
 }
 
-export const prisma = globalForPrisma.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+export const prisma: PrismaClient =
+  process.env.NODE_ENV === "production"
+    ? rawPrisma
+    : new Proxy(rawPrisma, {
+        get(target, prop, receiver) {
+          const value = Reflect.get(target, prop, receiver);
+          if (
+            value === undefined &&
+            typeof prop === "string" &&
+            !prop.startsWith("$") &&
+            !prop.startsWith("_")
+          ) {
+            // Model baru mungkin baru digenerate saat dev server masih berjalan
+            const fresh = createPrismaClient();
+            globalForPrisma.prisma = fresh;
+            return Reflect.get(fresh, prop, receiver);
+          }
+          return value;
+        },
+      });
 
 export {
   PrismaClient,

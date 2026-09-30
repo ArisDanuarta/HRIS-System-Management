@@ -824,6 +824,8 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Tombol akses cepat *"Pengaturan Dokumen & Bank"* pada header utama `/payroll`.
   4. **Integrasi Dinamis ke Slip Gaji Karyawan (`PayslipPrintableModal`)**:
      - Modal slip gaji staf membaca dan menerapkan logo kustom, banner kop jika ada, nama lembaga dinamis, gaya border kop yang dipilih HR, informasi bank penyalur resmi PSPK, penandatangan resmi, dan teks disclaimer.
+  5. **Peningkatan Resiliensi Prisma Dev Mode (`@pspk/db`)**:
+     - Menambahkan dynamic `Proxy` pada singleton `prisma` di mode development: jika model baru (seperti `payrollSetting`) diakses sebelum proses server di-restart, Proxy secara otomatis mendeteksi ketiadaan properti dan menginisialisasi ulang instance PrismaClient segar ke `globalThis.prisma`.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 packages (0 error).
   - `pnpm lint` lolos dengan 0 error.
