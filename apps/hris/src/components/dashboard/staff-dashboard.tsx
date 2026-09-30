@@ -5,8 +5,6 @@ import Link from "next/link";
 import {
   Calendar,
   Clock,
-  CheckCircle2,
-  AlertCircle,
   FileText,
   Receipt,
   ArrowRight,
