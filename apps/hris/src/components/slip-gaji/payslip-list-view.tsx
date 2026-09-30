@@ -137,6 +137,11 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
                   </span>
                   <span className="text-xs text-slate-600 font-medium mt-1.5 block">
                     Periode {MONTH_NAMES[summary.latestPayslip.month]} {summary.latestPayslip.year} ({summary.latestPayslip.kind === "THR" ? "THR" : "Reguler"})
+                    {summary.latestPayslip.wageType === "HOURLY" && summary.latestPayslip.totalHours && (
+                      <span className="text-amber-800 font-semibold ml-1.5 inline-flex items-center gap-1">
+                        • <Clock className="w-3 h-3 text-amber-600 inline" /> {summary.latestPayslip.totalHours} Jam
+                      </span>
+                    )}
                   </span>
                 </>
               ) : (
@@ -313,15 +318,26 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
 
                       {/* Jenis Slip */}
                       <td className="py-3.5 px-4">
-                        {p.kind === "THR" ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            THR
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                            Gaji Reguler
-                          </span>
-                        )}
+                        <div className="flex flex-col gap-1 items-start">
+                          {p.kind === "THR" ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                              THR
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                              Gaji Reguler
+                            </span>
+                          )}
+                          {p.wageType === "HOURLY" && p.totalHours && (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200"
+                              title={`Tarif Kontrak: ${p.hourlyRate ? formatRupiah(p.hourlyRate) : "-"} / jam`}
+                            >
+                              <Clock className="w-2.5 h-2.5 text-amber-600" />
+                              {p.totalHours} Jam
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Tanggal Terbit */}
