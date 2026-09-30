@@ -739,6 +739,32 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Peningkatan UX & Keamanan: Profil Atasan Langsung & Breadcrumb Staf
+- **Tanggal Selesai**: 30 September 2026
+- **Status**: Selesai ✅
+- **Latar Belakang & Masalah**:
+  - Tombol pada kartu *Atasan Langsung* di dashboard staf sebelumnya mengarah ke `/profil` (profil sendiri), membingungkan karyawan. Di sisi lain, halaman `/karyawan/[id]` memuat data sensitif (gaji, rekening, NIK) yang tidak boleh diakses oleh staf.
+  - Teks breadcrumb topbar staf di `/dashboard` sebelumnya menampilkan `Profil Saya & Portofolio` padahal menu sidebar aktif adalah `Beranda`.
+- **Implementasi**:
+  1. **Prisma Safe DTO (`staff-dashboard.ts`)**:
+     - Memperluas query `manager` di `getStaffDashboard` hanya untuk field non-sensitif: `nickname`, `workEmail`, `phone`, `photoKey`, `status`, `currentDepartment.name`, `currentPosition.title`.
+     - Data sensitif (`nikEnc`, `bankAccountEnc`, `salaryComponents`, dll.) terproteksi di tingkat database query (zero-leakage).
+  2. **Komponen Modal Kontak Atasan (`supervisor-profile-modal.tsx`)**:
+     - Modal interaktif dengan identitas brand PSPK (Navy & Gold), menampilkan avatar, nama, NIP, status aktif, jabatan, divisi, dan saluran komunikasi resmi (email kerja dengan tombol salin & kirim, telepon/WA).
+     - Penjelasan peran atasan sebagai approver cuti & penilai kinerja.
+     - Proteksi keyboard ESC dan backdrop click.
+  3. **Integrasi Dashboard Staf (`staff-dashboard.tsx`)**:
+     - Mengubah tombol di kartu atasan menjadi `Lihat Profil Atasan` yang membuka modal interaktif secara mulus tanpa berpindah halaman.
+  4. **Penyelarasan Breadcrumb (`app-topbar.tsx`)**:
+     - Menyelaraskan breadcrumb staff di `/dashboard` menjadi `Beranda`.
+- **Hasil Verifikasi**:
+  - `pnpm typecheck` lolos 9/9 package.
+  - `pnpm lint` lolos dengan 0 error.
+  - `pnpm test` lolos 45/45 unit test.
+  - `pnpm build` sukses standalone build untuk `@pspk/hris` dan `@pspk/sysmgmt`.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

@@ -356,4 +356,62 @@ export function formatIpAddress(ip: string | null | undefined): string {
   return cleaned;
 }
 
+/**
+ * Mengonversi nominal angka ke kalimat terbilang bahasa Indonesia.
+ * Contoh: 14560000 -> "Empat Belas Juta Lima Ratus Enam Puluh Ribu Rupiah"
+ */
+export function angkaTerbilang(amount: number | bigint | string | null | undefined): string {
+  if (amount === null || amount === undefined || amount === "") {
+    return "Nol Rupiah";
+  }
+
+  const num = Math.floor(Math.abs(Number(amount)));
+  if (isNaN(num) || num === 0) {
+    return "Nol Rupiah";
+  }
+
+  const huruf = [
+    "",
+    "Satu",
+    "Dua",
+    "Tiga",
+    "Empat",
+    "Lima",
+    "Enam",
+    "Tujuh",
+    "Delapan",
+    "Sembilan",
+    "Sepuluh",
+    "Sebelas",
+  ];
+
+  function bilang(n: number): string {
+    if (n < 12) {
+      return huruf[n] || "";
+    } else if (n < 20) {
+      return bilang(n - 10) + " Belas";
+    } else if (n < 100) {
+      return bilang(Math.floor(n / 10)) + " Puluh " + bilang(n % 10);
+    } else if (n < 200) {
+      return "Seratus " + bilang(n - 100);
+    } else if (n < 1000) {
+      return bilang(Math.floor(n / 100)) + " Ratus " + bilang(n % 100);
+    } else if (n < 2000) {
+      return "Seribu " + bilang(n - 1000);
+    } else if (n < 1000000) {
+      return bilang(Math.floor(n / 1000)) + " Ribu " + bilang(n % 1000);
+    } else if (n < 1000000000) {
+      return bilang(Math.floor(n / 1000000)) + " Juta " + bilang(n % 1000000);
+    } else if (n < 1000000000000) {
+      return bilang(Math.floor(n / 1000000000)) + " Miliar " + bilang(n % 1000000000);
+    } else if (n < 1000000000000000) {
+      return bilang(Math.floor(n / 1000000000000)) + " Triliun " + bilang(n % 1000000000000);
+    }
+    return "";
+  }
+
+  const hasil = bilang(num).replace(/\s+/g, " ").trim();
+  return hasil ? `${hasil} Rupiah` : "Nol Rupiah";
+}
+
 

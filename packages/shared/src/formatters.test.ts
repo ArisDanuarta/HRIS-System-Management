@@ -182,3 +182,32 @@ describe("IP Address Utilities", () => {
     expect(formatIpAddress("203.0.113.195")).toBe("203.0.113.195");
   });
 });
+
+describe("angkaTerbilang", () => {
+  it("converts basic numbers correctly", async () => {
+    const { angkaTerbilang } = await import("./formatters");
+    expect(angkaTerbilang(0)).toBe("Nol Rupiah");
+    expect(angkaTerbilang(null)).toBe("Nol Rupiah");
+    expect(angkaTerbilang(1)).toBe("Satu Rupiah");
+    expect(angkaTerbilang(10)).toBe("Sepuluh Rupiah");
+    expect(angkaTerbilang(11)).toBe("Sebelas Rupiah");
+    expect(angkaTerbilang(15)).toBe("Lima Belas Rupiah");
+    expect(angkaTerbilang(20)).toBe("Dua Puluh Rupiah");
+    expect(angkaTerbilang(100)).toBe("Seratus Rupiah");
+    expect(angkaTerbilang(1000)).toBe("Seribu Rupiah");
+    expect(angkaTerbilang(1500)).toBe("Seribu Lima Ratus Rupiah");
+    expect(angkaTerbilang(10000)).toBe("Sepuluh Ribu Rupiah");
+  });
+
+  it("converts realistic salary numbers correctly", async () => {
+    const { angkaTerbilang } = await import("./formatters");
+    expect(angkaTerbilang(14560000)).toBe(
+      "Empat Belas Juta Lima Ratus Enam Puluh Ribu Rupiah",
+    );
+    expect(angkaTerbilang(8500000)).toBe("Delapan Juta Lima Ratus Ribu Rupiah");
+    expect(angkaTerbilang(28000000)).toBe("Dua Puluh Delapan Juta Rupiah");
+    expect(angkaTerbilang(37600000)).toBe(
+      "Tiga Puluh Tujuh Juta Enam Ratus Ribu Rupiah",
+    );
+  });
+});
