@@ -55,8 +55,14 @@ export interface StaffDashboardData {
   manager?: {
     id: string;
     fullName: string;
+    nickname?: string | null;
     employeeNo: string;
+    workEmail: string;
+    phone?: string | null;
+    photoKey?: string | null;
+    status: string;
     position: string | null;
+    department: string | null;
   } | null;
 }
 
@@ -133,9 +139,17 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           select: {
             id: true,
             fullName: true,
+            nickname: true,
             employeeNo: true,
+            workEmail: true,
+            phone: true,
+            photoKey: true,
+            status: true,
             currentPosition: {
               select: { title: true },
+            },
+            currentDepartment: {
+              select: { name: true },
             },
           },
         },
@@ -209,8 +223,14 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
       ? {
           id: employeeInfo.manager.id,
           fullName: employeeInfo.manager.fullName,
+          nickname: employeeInfo.manager.nickname ?? null,
           employeeNo: employeeInfo.manager.employeeNo,
+          workEmail: employeeInfo.manager.workEmail,
+          phone: employeeInfo.manager.phone ?? null,
+          photoKey: employeeInfo.manager.photoKey ?? null,
+          status: employeeInfo.manager.status,
           position: employeeInfo.manager.currentPosition?.title ?? null,
+          department: employeeInfo.manager.currentDepartment?.name ?? null,
         }
       : null,
   };
