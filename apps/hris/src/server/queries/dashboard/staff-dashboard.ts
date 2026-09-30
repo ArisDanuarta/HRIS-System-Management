@@ -51,6 +51,9 @@ export interface StaffDashboardData {
     kind: string;
     netAmount: number;
     publishedAt: Date | null;
+    wageType?: string | null;
+    totalHours?: number | null;
+    hourlyRate?: number | null;
   } | null;
   manager?: {
     id: string;
@@ -211,6 +214,9 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           kind: latestPayslip.period.kind,
           netAmount: Number(latestPayslip.netAmount),
           publishedAt: latestPayslip.publishedAt,
+          wageType: latestPayslip.wageType,
+          totalHours: latestPayslip.totalHours ? Number(latestPayslip.totalHours) : null,
+          hourlyRate: latestPayslip.hourlyRate ? Number(latestPayslip.hourlyRate) : null,
         }
       : null,
     workSchedule: {

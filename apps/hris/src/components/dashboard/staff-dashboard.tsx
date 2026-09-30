@@ -208,6 +208,11 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
                     </span>
                     <span className="text-xs text-slate-600 font-medium mt-1 block">
                       Periode {data.latestPayslip.month}/{data.latestPayslip.year}
+                      {data.latestPayslip.wageType === "HOURLY" && data.latestPayslip.totalHours && (
+                        <span className="text-amber-800 font-semibold ml-1.5">
+                          • {data.latestPayslip.totalHours} Jam
+                        </span>
+                      )}
                     </span>
                   </>
                 ) : (

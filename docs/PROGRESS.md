@@ -792,6 +792,10 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Terhubung dengan proteksi sesi Better Auth & permission `hris.payslip.read:own`.
   6. **Integrasi Widget Beranda Staf (`staff-dashboard.tsx`)**:
      - Kartu *Slip Gaji Terbaru* di dashboard staf kini dinamis menampilkan nominal *Take Home Pay* jika ada slip terbit dan tautan mulus ke `/slip-gaji`.
+  7. **Penyempurnaan Kontrak PKWT Per Jam (Timesheet)**:
+     - Menampilkan skema kontrak "PKWT Per Jam", total jam kerja disetujui HR (`totalHours`), dan tarif per jam (`hourlyRate`) pada grid data slip gaji.
+     - Menambahkan banner informatif *Dasar Perhitungan Timesheet HR* pada dokumen cetak slip gaji (`{totalHours} Jam × {hourlyRate}/jam = {subtotal}`).
+     - Menambahkan badge jam kerja pada tabel riwayat slip dan kartu ringkasan slip terbaru.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.
