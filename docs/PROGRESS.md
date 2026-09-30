@@ -765,6 +765,41 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Slip Gaji Mandiri Karyawan (Role Staf)
+- **Tanggal Selesai**: 30 September 2026
+- **Status**: Selesai ✅
+- **Fokus Prioritas**: Role Staf (Self-service Slip Gaji, Keamanan Data Finansial, Arsip Digital & Siap Cetak A4)
+- **Implementasi**:
+  1. **Helper Terbilang Angka Rupiah (`packages/shared/src/formatters.ts`)**:
+     - Fungsi `angkaTerbilang(amount)` mengonversi nominal gaji ke teks bahasa Indonesia resmi (misal: `"Tiga Juta Enam Ratus Ribu Rupiah"`).
+     - Teruji dengan 2 unit test baru di `formatters.test.ts` (total 47 unit test hijau).
+  2. **Query Server-Side Terisolasi (`payslip.queries.ts`)**:
+     - `getMyPayslips`: Membaca seluruh arsip slip gaji milik karyawan bersangkutan dengan batasan mutlak status `PUBLISHED` atau `LOCKED`. Slip yang masih berstatus `DRAFT`/`CALCULATED`/`APPROVED` di modul HR terisolasi dan tidak bocor ke staf.
+     - `getMyPayslipDetail`: Mengambil rincian pendapatan (*Earnings*) dan potongan (*Deductions*), serta menerapkan *masking* nomor rekening bank (misal: `BCA •••• 5678`).
+     - Server Action `getMyPayslipDetailAction` di `payslip.actions.ts`.
+  3. **Komponen Antarmuka Daftar Slip Gaji (`payslip-list-view.tsx`)**:
+     - 3 Kartu Metrik Utama (*Hero Cards*): Slip Gaji Terakhir, Akumulasi Bersih YTD, dan Total Dokumen Tersedia.
+     - Filter Bar interaktif: filter tahun dinamis dan filter jenis (*Gaji Reguler* / *THR*).
+     - Tabel arsip slip gaji dengan status badge, rincian bruto, potongan, dan nominal bersih (*Take Home Pay*).
+     - *Empty State* ramah jika belum ada slip yang dipublikasikan.
+  4. **Komponen Modal Slip Gaji Resmi & Siap Cetak (`payslip-printable-modal.tsx`)**:
+     - Standar format dokumen resmi berlogo & berkop surat PSPK (*Pusat Studi Pendidikan dan Kebijakan*).
+     - Badge kerahasiaan `RAHASIA / CONFIDENTIAL`.
+     - Tabel 2 kolom terstruktur: Penerimaan (*Earnings*) vs Potongan (*Deductions*).
+     - Kotak *Take Home Pay* tebal dengan kalimat terbilang rupiah.
+     - Fitur **Cetak / Unduh PDF** yang siap cetak selembar A4 (`@media print` CSS otomatis menyembunyikan sidebar dan backdrop modal).
+  5. **Rute Server Component (`apps/hris/src/app/(app)/slip-gaji/page.tsx`)**:
+     - Terhubung dengan proteksi sesi Better Auth & permission `hris.payslip.read:own`.
+  6. **Integrasi Widget Beranda Staf (`staff-dashboard.tsx`)**:
+     - Kartu *Slip Gaji Terbaru* di dashboard staf kini dinamis menampilkan nominal *Take Home Pay* jika ada slip terbit dan tautan mulus ke `/slip-gaji`.
+- **Hasil Verifikasi**:
+  - `pnpm typecheck` lolos 9/9 package (0 error).
+  - `pnpm lint` lolos dengan 0 error.
+  - `pnpm test` lolos 47/47 unit test (100%).
+  - `pnpm build` sukses mengompilasi rute `/slip-gaji` dalam mode Next.js standalone.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

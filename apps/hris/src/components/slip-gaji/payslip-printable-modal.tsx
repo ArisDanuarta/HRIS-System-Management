@@ -7,6 +7,7 @@ import {
   FileText,
   Lock,
   CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { formatRupiah, formatDate, angkaTerbilang } from "@pspk/shared";
 import { MyPayslipDetail } from "@/server/queries/payslip.queries";
@@ -205,6 +206,19 @@ export function PayslipPrintableModal({
                   {payslip.employee.departmentName}
                 </span>
               </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-medium">Skema Kontrak:</span>
+                <span className="font-semibold text-slate-700">
+                  {payslip.wageType === "HOURLY" ? (
+                    <span className="inline-flex items-center gap-1 text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-semibold text-[11px]">
+                      <Clock className="w-3 h-3 text-amber-600" />
+                      PKWT Per Jam
+                    </span>
+                  ) : (
+                    "Bulanan Tetap"
+                  )}
+                </span>
+              </div>
             </div>
 
             <div className="space-y-1.5 sm:border-l sm:border-slate-200 sm:pl-4">
@@ -226,15 +240,64 @@ export function PayslipPrintableModal({
                   {formatDate(payslip.publishedAt)}
                 </span>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Status Dokumen:</span>
-                <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Resmi Terbit (PUBLISHED)
-                </span>
-              </div>
+              {payslip.wageType === "HOURLY" ? (
+                <>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500 font-medium">Total Jam Disetujui:</span>
+                    <span className="font-mono font-bold text-[#102E50]">
+                      {payslip.totalHours ?? 0} Jam
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-500 font-medium">Tarif Satuan Kontrak:</span>
+                    <span className="font-mono font-semibold text-slate-700">
+                      {payslip.hourlyRate ? `${formatRupiah(payslip.hourlyRate)} / jam` : "-"}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-medium">Status Dokumen:</span>
+                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    Resmi Terbit (PUBLISHED)
+                  </span>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Timesheet Work Hours Callout (Khusus PKWT Per Jam) */}
+          {payslip.wageType === "HOURLY" && (
+            <div className="p-3.5 bg-amber-50/90 rounded-xl border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-start sm:items-center gap-2.5 text-amber-900">
+                <div className="w-6 h-6 rounded-lg bg-amber-200/70 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                  <Clock className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <span className="font-bold text-amber-950 block sm:inline mr-1">
+                    Dasar Perhitungan Timesheet HR:
+                  </span>
+                  <span className="text-amber-900">
+                    Total jam kerja disetujui sebanyak{" "}
+                    <strong className="font-mono text-[#102E50] font-bold">{payslip.totalHours ?? 0} Jam</strong>{" "}
+                    × tarif kontrak{" "}
+                    <strong className="font-mono text-[#102E50] font-bold">
+                      {payslip.hourlyRate ? `${formatRupiah(payslip.hourlyRate)}/jam` : "-"}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+              {payslip.totalHours && payslip.hourlyRate && (
+                <div className="text-right shrink-0 bg-white/80 px-2.5 py-1 rounded-md border border-amber-200">
+                  <span className="text-[10px] text-slate-500 block uppercase font-medium">Subtotal Jam</span>
+                  <span className="font-mono font-bold text-sm text-[#102E50]">
+                    {formatRupiah(payslip.totalHours * payslip.hourlyRate)}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Breakdown Table: Earnings vs Deductions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
