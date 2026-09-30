@@ -38,7 +38,7 @@ export function AppTopbar({
     if (pathname === "/" || pathname === "/dashboard") {
       if (currentRole === "admin_hr") return "Manajemen Karyawan";
       if (currentRole === "manager") return "Persetujuan Cuti Tim";
-      return "Profil Saya & Portofolio";
+      return "Beranda";
     }
     if (pathname.startsWith("/notifikasi")) return "Pusat Notifikasi";
     if (pathname.startsWith("/karyawan")) return "Manajemen Karyawan";
