@@ -1,6 +1,7 @@
 import { prisma, Prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
 import { decryptField } from "@pspk/shared";
+import { getPayrollSettings } from "./payroll-settings.queries";
 
 export interface MyPayslipsFilter {
   year?: number;
@@ -67,6 +68,20 @@ export interface MyPayslipDetail {
     label: string;
     amount: number;
   }[];
+  institutionSettings?: {
+    institutionName: string;
+    subHeader: string;
+    addressLine: string | null;
+    logoUrl: string | null;
+    headerBannerUrl: string | null;
+    borderStyle: string;
+    disclaimerText: string;
+    senderBankName: string;
+    senderAccountMasked: string;
+    senderAccountName: string;
+    authorizedSignerName: string | null;
+    authorizedSignerTitle: string | null;
+  };
 }
 
 /**
@@ -239,6 +254,8 @@ export async function getMyPayslipDetail(
 
   if (!p) return null;
 
+  const setting = await getPayrollSettings().catch(() => null);
+
   // Masking nomor rekening: tampilkan hanya 4 digit terakhir
   let bankAccountMasked = "-";
   if (p.employee.bankAccountEnc) {
@@ -298,5 +315,21 @@ export async function getMyPayslipDetail(
     },
     earnings,
     deductions,
+    institutionSettings: {
+      institutionName: setting?.institutionName || "Pusat Studi Pendidikan & Kebijakan",
+      subHeader: setting?.subHeader || "HR & Finance Division • Sistem Penggajian Elektronik",
+      addressLine: setting?.addressLine || null,
+      logoUrl: setting?.logoUrl || null,
+      headerBannerUrl: setting?.headerBannerUrl || null,
+      borderStyle: setting?.borderStyle || "NAVY_SOLID",
+      disclaimerText:
+        setting?.disclaimerText ||
+        "Dokumen ini diterbitkan secara elektronik oleh Divisi SDM & Keuangan Pusat Studi Pendidikan dan Kebijakan (PSPK). Sah tanpa tanda tangan basah.",
+      senderBankName: setting?.senderBankName || "Bank Central Asia (BCA)",
+      senderAccountName: setting?.senderAccountName || "Pusat Studi Pendidikan dan Kebijakan",
+      senderAccountMasked: setting?.senderAccountMasked || "-",
+      authorizedSignerName: setting?.authorizedSignerName || null,
+      authorizedSignerTitle: setting?.authorizedSignerTitle || null,
+    },
   };
 }

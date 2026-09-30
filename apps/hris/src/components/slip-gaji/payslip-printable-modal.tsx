@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import Image from "next/image";
 import {
   X,
   Printer,
@@ -8,6 +9,7 @@ import {
   Lock,
   CheckCircle2,
   Clock,
+  Building2,
 } from "lucide-react";
 import { formatRupiah, formatDate, angkaTerbilang } from "@pspk/shared";
 import { MyPayslipDetail } from "@/server/queries/payslip.queries";
@@ -57,6 +59,22 @@ export function PayslipPrintableModal({
     payslip.kind === "THR"
       ? "Tunjangan Hari Raya (THR)"
       : "Gaji Bulanan Reguler";
+
+  const settings = payslip.institutionSettings;
+
+  const getBorderClass = (style?: string) => {
+    switch (style) {
+      case "NAVY_GOLD":
+        return "border-b-2 border-[#102E50] pb-4 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#F2AF3E]";
+      case "DOUBLE_LINE":
+        return "border-b-4 border-double border-[#102E50] pb-4";
+      case "MINIMALIST":
+        return "border-b border-slate-200 pb-4";
+      case "NAVY_SOLID":
+      default:
+        return "border-b-2 border-[#102E50] pb-4";
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -142,32 +160,61 @@ export function PayslipPrintableModal({
           id="printable-payslip-sheet"
           className="p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)] bg-white text-slate-800 text-xs sm:text-sm"
         >
-          {/* PSPK Letterhead / Kop Surat */}
-          <div className="flex items-start justify-between border-b-2 border-[#102E50] pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[#102E50] text-[#F2AF3E] font-bold font-serif text-xl flex items-center justify-center shadow-xs shrink-0">
-                P
+          {/* PSPK Letterhead / Kop Surat Dinamis */}
+          {settings?.headerBannerUrl ? (
+            <div className="relative w-full h-20 sm:h-24 rounded-xl overflow-hidden border border-slate-200 mb-4">
+              <Image
+                src={settings.headerBannerUrl}
+                alt="Banner Kop Surat Lembaga"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className={`flex items-start justify-between ${getBorderClass(settings?.borderStyle)}`}>
+              <div className="flex items-center gap-3">
+                {settings?.logoUrl ? (
+                  <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-xs shrink-0 relative overflow-hidden">
+                    <Image
+                      src={settings.logoUrl}
+                      alt="Logo Lembaga"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-xl bg-[#102E50] text-[#F2AF3E] font-bold font-serif text-xl flex items-center justify-center shadow-xs shrink-0">
+                    P
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-base sm:text-lg font-bold text-[#102E50] font-serif tracking-tight leading-none uppercase">
+                    {settings?.institutionName || "Pusat Studi Pendidikan & Kebijakan"}
+                  </h1>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {settings?.subHeader || "HR & Finance Division • Sistem Penggajian Elektronik"}
+                  </p>
+                  {settings?.addressLine && (
+                    <p className="text-[10px] text-slate-400 mt-0.5">
+                      {settings.addressLine}
+                    </p>
+                  )}
+                </div>
               </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-bold text-[#102E50] font-serif tracking-tight leading-none uppercase">
-                  Pusat Studi Pendidikan & Kebijakan
-                </h1>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  HR & Finance Division • Sistem Penggajian Elektronik
+
+              <div className="text-right">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                  <Lock className="w-3 h-3 text-rose-600" />
+                  Rahasia / Confidential
+                </span>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Ref: #{payslip.id.slice(0, 8).toUpperCase()}
                 </p>
               </div>
             </div>
-
-            <div className="text-right">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
-                <Lock className="w-3 h-3 text-rose-600" />
-                Rahasia / Confidential
-              </span>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Ref: #{payslip.id.slice(0, 8).toUpperCase()}
-              </p>
-            </div>
-          </div>
+          )}
 
           {/* Title Banner */}
           <div className="text-center py-2 bg-slate-50 rounded-lg border border-slate-200">
@@ -261,6 +308,19 @@ export function PayslipPrintableModal({
                   <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                     Resmi Terbit (PUBLISHED)
+                  </span>
+                </div>
+              )}
+
+              {/* Info Bank Penyalur PSPK */}
+              {settings?.senderBankName && (
+                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200/60 text-slate-700">
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <Building2 className="w-3 h-3 text-emerald-600" />
+                    <span className="font-medium">Penyalur Resmi:</span>
+                  </div>
+                  <span className="font-semibold text-emerald-800 text-[11px]">
+                    {settings.senderBankName} ({settings.senderAccountMasked})
                   </span>
                 </div>
               )}
@@ -387,13 +447,36 @@ export function PayslipPrintableModal({
             </div>
           </div>
 
+          {/* Pejabat Penandatangan Resmi (Jika Ada) */}
+          {settings?.authorizedSignerName && (
+            <div className="flex justify-end pt-2 pb-1 text-right">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] text-slate-400 block mb-1">
+                  Disahkan Secara Elektronik:
+                </span>
+                <div className="w-20 h-10 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50 mb-1">
+                  <span className="text-[9px] font-serif italic text-slate-400">
+                    Tervalidasi Digital
+                  </span>
+                </div>
+                <span className="font-bold text-[#102E50] text-xs">
+                  {settings.authorizedSignerName}
+                </span>
+                <span className="text-[10px] text-slate-500">
+                  {settings.authorizedSignerTitle || "HR & Finance"}
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Legal / Institutional Disclaimer */}
           <div className="border-t border-slate-200 pt-4 text-center space-y-1">
             <p className="text-[11px] text-slate-500 font-medium">
-              Dokumen ini diterbitkan secara elektronik oleh Divisi SDM & Keuangan Pusat Studi Pendidikan dan Kebijakan (PSPK).
+              {settings?.disclaimerText ||
+                "Dokumen ini diterbitkan secara elektronik oleh Divisi SDM & Keuangan Pusat Studi Pendidikan dan Kebijakan (PSPK). Sah tanpa tanda tangan basah."}
             </p>
             <p className="text-[10px] text-slate-400">
-              Sah tanpa tanda tangan basah. Informasi slip gaji ini bersifat rahasia dan hanya ditujukan untuk pemilik akun kepegawaian bersangkutan.
+              Informasi slip gaji ini bersifat rahasia dan hanya ditujukan untuk pemilik akun kepegawaian bersangkutan.
             </p>
           </div>
         </div>

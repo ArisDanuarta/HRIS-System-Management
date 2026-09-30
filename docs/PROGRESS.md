@@ -804,6 +804,34 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Pengaturan Dokumen & Rekening Bank Operasional Penggajian PSPK
+- **Status:** Selesai (Completed)
+- **Implementasi:**
+  1. **Model Prisma & Migrasi (`hris.payroll_settings`)**:
+     - Model `PayrollSetting` menyimpan konfigurasi identitas dokumen lembaga (`institutionName`, `subHeader`, `addressLine`, `logoKey`, `headerBannerKey`, `borderStyle`, `disclaimerText`).
+     - Menyimpan konfigurasi rekening bank operasional penyalur gaji PSPK (`senderBankName`, `senderBankAccountEnc` dengan enkripsi AES-256-GCM, `senderAccountName`, `senderBranch`, `payrollTransferNote`).
+     - Pejabat penandatangan resmi dokumen (`authorizedSignerName`, `authorizedSignerTitle`).
+     - Migrasi Prisma `20260930053530_add_payroll_settings` diaplikasikan ke database lokal.
+     - Idempotent seed default PSPK (BCA Giro Operasional PSPK terenkripsi) di `packages/db/prisma/seed.ts`.
+  2. **Lapisan Server & Keamanan Finansial**:
+     - Query `getPayrollSettings()` dengan dekripsi aman dan masking digit rekening (`•••• 3456`).
+     - Server Actions `updatePayrollSettingsAction()` dengan validasi Zod, proteksi hak akses Admin HR & Super Admin, serta pencatatan audit trail ke `core.audit_logs`.
+     - Server Actions `uploadPayrollBrandingAction()` dan `deletePayrollBrandingAction()` untuk upload logo institusi & header banner kop surat via `@pspk/storage` (maks. 2 MB, validasi MIME gambar).
+  3. **Antarmuka Pengaturan HR (`/payroll/pengaturan`)**:
+     - Tab 1: **Rekening Bank Pengirim** — pemilih bank populer / kustom, nomor rekening dengan tombol toggle sembunyikan/lihat digit asli, atas nama lembaga, kantor cabang, dan catatan transfer default.
+     - Tab 2: **Kop & Desain Dokumen Resmi** — 4 preset garis border kop surat (*Navy Solid*, *Navy & Gold Accent*, *Double Line*, *Clean Minimalist*), upload logo PNG/JPG/WEBP, upload banner kop memanjang, nama lembaga, alamat kantor, pejabat penandatangan, dan disclaimer legalitas.
+     - **Live Preview Real-Time (`payroll-document-preview.tsx`)** — panel simulasi dokumen cetak A4 mini yang langsung merespons setiap perubahan form secara visual.
+     - Tombol akses cepat *"Pengaturan Dokumen & Bank"* pada header utama `/payroll`.
+  4. **Integrasi Dinamis ke Slip Gaji Karyawan (`PayslipPrintableModal`)**:
+     - Modal slip gaji staf membaca dan menerapkan logo kustom, banner kop jika ada, nama lembaga dinamis, gaya border kop yang dipilih HR, informasi bank penyalur resmi PSPK, penandatangan resmi, dan teks disclaimer.
+- **Hasil Verifikasi**:
+  - `pnpm typecheck` lolos 9/9 packages (0 error).
+  - `pnpm lint` lolos dengan 0 error.
+  - `pnpm test` lolos 47/47 unit test (100%).
+  - `pnpm build` sukses mengompilasi rute baru `/payroll/pengaturan` dan seluruh rute dalam mode Next.js standalone.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
