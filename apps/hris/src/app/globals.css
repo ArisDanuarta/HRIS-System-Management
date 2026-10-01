@@ -46,7 +46,7 @@ h1, h2, h3, h4, h5, h6 {
     display: none !important;
   }
 
-  /* Portal wrapper: flatten to standard block document flow */
+  /* Portal wrapper: flatten to standard block document flow (no flexbox centering) */
   #payslip-modal-portal {
     display: block !important;
     position: static !important;
@@ -110,9 +110,10 @@ h1, h2, h3, h4, h5, h6 {
     -webkit-print-color-adjust: exact !important;
   }
 
-  /* Neatly proportioned vertical rhythm */
-  #printable-payslip-sheet > div + div {
-    margin-top: 10px !important;
+  /* Tighten spacing between all direct blocks to guarantee single A4 page */
+  #printable-payslip-sheet > * + * {
+    margin-top: 8px !important;
+    margin-bottom: 0 !important;
   }
 
   /* Ensure colors, gradients, badges, and lines print accurately */

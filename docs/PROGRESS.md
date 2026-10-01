@@ -796,6 +796,14 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Menampilkan skema kontrak "PKWT Per Jam", total jam kerja disetujui HR (`totalHours`), dan tarif per jam (`hourlyRate`) pada grid data slip gaji.
      - Menambahkan banner informatif *Dasar Perhitungan Timesheet HR* pada dokumen cetak slip gaji (`{totalHours} Jam × {hourlyRate}/jam = {subtotal}`).
      - Menambahkan badge jam kerja pada tabel riwayat slip dan kartu ringkasan slip terbaru.
+  8. **Perbaikan Cetak / PDF Slip Gaji (Fix Blank White Page)**:
+     - **Akar Masalah:** Sebelumnya menggunakan `visibility: hidden` pada `body *` di dalam modal bersarang yang memiliki `position: fixed`, `overflow-y: auto`, `max-height`, dan `overflow: hidden`. Hal ini menyebabkan browser tetap menghitung dimensi konten halaman latar belakang (~2 lembar kosong) dan memotong (*clip*) elemen slip gaji menjadi kosong (blank putih).
+     - **Solusi Arsitektur:**
+       - Memindahkan rendering modal ke level `document.body` menggunakan React `createPortal` (`#payslip-modal-portal`) dengan proteksi hidrasi `useSyncExternalStore`.
+       - Menambahkan CSS `@media print` terpusat di `apps/hris/src/app/globals.css` dengan aturan `@page { size: A4 portrait; margin: 8mm 10mm; }`.
+       - Menggunakan `body.payslip-modal-open > *:not(#payslip-modal-portal) { display: none !important; }` sehingga seluruh shell aplikasi latar belakang benar-benar dihilangkan dari dokumen cetak (0 lembar tambahan).
+       - Menghilangkan pembatasan `overflow`, `max-height`, bayangan, dan transform dialog saat dicetak, serta mengaktifkan `print-color-adjust: exact !important` untuk menjaga akurasi warna brand, logo, kop, stempel, dan tanda tangan elektronik.
+       - Memastikan seluruh dokumen slip gaji pas secara rapi dalam **1 lembar kertas A4**.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.

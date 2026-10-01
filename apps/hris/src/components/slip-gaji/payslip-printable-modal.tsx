@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useSyncExternalStore } from "react";
+import React, { useEffect, useSyncExternalStore, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
@@ -50,11 +50,134 @@ export function PayslipPrintableModal({
     () => false,
   );
 
+  const handlePrint = useCallback(() => {
+    const sheetEl = document.getElementById("printable-payslip-sheet");
+    if (!sheetEl) {
+      window.print();
+      return;
+    }
+
+    // Hapus iframe cetak sebelumnya jika ada
+    const existingIframe = document.getElementById("payslip-print-iframe");
+    if (existingIframe) {
+      existingIframe.remove();
+    }
+
+    const iframe = document.createElement("iframe");
+    iframe.id = "payslip-print-iframe";
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    iframe.style.visibility = "hidden";
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentWindow?.document;
+    if (!iframeDoc) {
+      window.print();
+      return;
+    }
+
+    // Salin seluruh stylesheet dari dokumen utama agar Tailwind & brand font identik
+    const styles = Array.from(
+      document.querySelectorAll("link[rel='stylesheet'], style"),
+    )
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    const employeeName = payslip?.employee.fullName || "Karyawan";
+
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html lang="id">
+        <head>
+          <meta charset="utf-8" />
+          <title>Slip Gaji — ${employeeName}</title>
+          ${styles}
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 8mm 10mm;
+            }
+            *, *::before, *::after {
+              box-sizing: border-box;
+            }
+            html, body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              color: #121c2a !important;
+              width: 100% !important;
+              height: auto !important;
+              overflow: visible !important;
+              font-family: var(--font-rubik), ui-sans-serif, system-ui, sans-serif !important;
+            }
+            #print-container {
+              width: 100% !important;
+              max-width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+            }
+            #printable-payslip-sheet {
+              display: block !important;
+              position: static !important;
+              width: 100% !important;
+              max-width: 100% !important;
+              max-height: none !important;
+              height: auto !important;
+              overflow: visible !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              background: #ffffff !important;
+              color: #121c2a !important;
+              font-size: 11px !important;
+              line-height: 1.35 !important;
+              print-color-adjust: exact !important;
+              -webkit-print-color-adjust: exact !important;
+            }
+            #printable-payslip-sheet > * + * {
+              margin-top: 8px !important;
+              margin-bottom: 0 !important;
+            }
+            #printable-payslip-sheet * {
+              print-color-adjust: exact !important;
+              -webkit-print-color-adjust: exact !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="print-container">
+            ${sheetEl.outerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    }, 200);
+  }, [payslip]);
+
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("payslip-modal-open");
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") onClose();
+        if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "p") {
+          e.preventDefault();
+          handlePrint();
+        }
       };
       window.addEventListener("keydown", handleKeyDown);
       return () => {
@@ -64,38 +187,7 @@ export function PayslipPrintableModal({
     } else {
       document.body.classList.remove("payslip-modal-open");
     }
-  }, [isOpen, onClose]);
-
-  if (!isOpen || !payslip || !isMounted) return null;
-
-  const monthLabel = MONTH_NAMES[payslip.month] || `Bulan ${payslip.month}`;
-  const periodTitle = `${monthLabel} ${payslip.year}`;
-  const kindLabel =
-    payslip.kind === "THR"
-      ? "Tunjangan Hari Raya (THR)"
-      : "Gaji Bulanan Reguler";
-
-  const settings = payslip.institutionSettings;
-
-  const getBorderClass = (style?: string) => {
-    switch (style) {
-      case "NAVY_GOLD":
-        return "border-b-2 border-[#102E50] pb-4 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#F2AF3E]";
-      case "DOUBLE_LINE":
-        return "border-b-4 border-double border-[#102E50] pb-4";
-      case "MINIMALIST":
-        return "border-b border-slate-200 pb-4";
-      case "NAVY_SOLID":
-      default:
-        return "border-b-2 border-[#102E50] pb-4";
-    }
-  };
-
-  const handlePrint = () => {
-    requestAnimationFrame(() => {
-      window.print();
-    });
-  };
+  }, [isOpen, onClose, handlePrint]);
 
   return createPortal(
     <div id="payslip-modal-portal">
