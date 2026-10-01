@@ -65,6 +65,9 @@ export function AppSidebar({
         (pathname.startsWith("/cuti/") && !pathname.startsWith("/cuti/persetujuan"))
       );
     }
+    if (href === "/timesheet/persetujuan") {
+      return pathname.startsWith("/timesheet/persetujuan");
+    }
     if (href === "/timesheet") {
       return (
         pathname === "/timesheet" ||
@@ -171,6 +174,13 @@ export function AppSidebar({
                 isCollapsed={isCollapsed}
               />
               <NavItem
+                href="/timesheet/persetujuan"
+                label="Timesheet Freelance"
+                icon={<Clock className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/timesheet/persetujuan")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
                 href="/kinerja"
                 label="Kinerja & Riset"
                 icon={<TrendingUp className="w-5 h-5 shrink-0" />}
@@ -226,6 +236,13 @@ export function AppSidebar({
                 label="Absensi Tim"
                 icon={<CalendarClock className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/absensi/rekap")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
+                href="/timesheet/persetujuan"
+                label="Persetujuan Timesheet"
+                icon={<Clock className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/timesheet/persetujuan")}
                 isCollapsed={isCollapsed}
               />
               <NavItem

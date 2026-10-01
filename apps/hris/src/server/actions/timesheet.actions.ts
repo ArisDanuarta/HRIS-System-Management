@@ -247,3 +247,293 @@ export async function cancelTimesheetSubmissionAction(submissionId: string) {
     };
   }
 }
+
+/**
+ * Server Action: Atasan mulai mereview timesheet (mengubah status reviewer & submission menjadi IN_REVIEW)
+ */
+export async function startTimesheetReviewAction(submissionId: string) {
+  try {
+    const actor = await getActor();
+
+    // Pastikan actor adalah reviewer yang ditugaskan
+    const reviewerRecord = await prisma.timesheetReviewer.findFirst({
+      where: {
+        submissionId,
+        reviewerId: actor.employeeId,
+      },
+      include: {
+        submission: {
+          include: {
+            employee: {
+              select: {
+                id: true,
+                fullName: true,
+                userId: true,
+              },
+            },
+          },
+        },
+        reviewer: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
+    });
+
+    if (!reviewerRecord) {
+      return {
+        ok: false as const,
+        error: "Anda tidak terdaftar sebagai atasan penilai untuk pengajuan timesheet ini.",
+      };
+    }
+
+    if (reviewerRecord.status !== "PENDING") {
+      return {
+        ok: true as const,
+        message: "Status review Anda sudah berjalan atau telah diselesaikan.",
+      };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Update status reviewer menjadi IN_REVIEW
+      await tx.timesheetReviewer.update({
+        where: { id: reviewerRecord.id },
+        data: {
+          status: "IN_REVIEW",
+          actionAt: new Date(),
+        },
+      });
+
+      // Update parent submission menjadi IN_REVIEW jika sebelumnya PENDING
+      if (reviewerRecord.submission.status === "PENDING") {
+        await tx.timesheetSubmission.update({
+          where: { id: submissionId },
+          data: {
+            status: "IN_REVIEW",
+          },
+        });
+      }
+
+      await writeAudit({
+        actorUserId: actor.userId,
+        actorEmail: actor.email,
+        app: "hris",
+        action: "UPDATE",
+        entityType: "TimesheetReviewer",
+        entityId: reviewerRecord.id,
+        before: { status: reviewerRecord.status },
+        after: { status: "IN_REVIEW" },
+        ip: actor.ip,
+        userAgent: actor.userAgent,
+      });
+    });
+
+    // Kirim notifikasi ke karyawan pengaju
+    if (reviewerRecord.submission.employee.userId) {
+      await createNotification({
+        userId: reviewerRecord.submission.employee.userId,
+        title: "Timesheet Sedang Direview",
+        message: `Atasan ${reviewerRecord.reviewer.fullName} mulai memeriksa timesheet "${reviewerRecord.submission.title}".`,
+        type: "INFO",
+        category: "PAYROLL",
+        link: "/timesheet",
+      });
+    }
+
+    revalidatePath("/timesheet/persetujuan");
+    revalidatePath("/timesheet");
+
+    return { ok: true as const };
+  } catch (err: unknown) {
+    console.error("Gagal memulai review timesheet:", err);
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal memulai proses review timesheet.",
+    };
+  }
+}
+
+const SubmitReviewDecisionSchema = z.object({
+  submissionId: z.string().uuid("ID pengajuan tidak valid."),
+  decision: z.enum(["APPROVE", "REJECT"]),
+  notes: z.string().trim().max(1000, "Catatan maksimal 1000 karakter.").optional(),
+});
+
+export type SubmitReviewDecisionInput = z.infer<typeof SubmitReviewDecisionSchema>;
+
+/**
+ * Server Action: Atasan memberikan keputusan (ACC atau Tolak) atas timesheet staf
+ */
+export async function submitReviewDecisionAction(input: SubmitReviewDecisionInput) {
+  try {
+    const actor = await getActor();
+    const validated = SubmitReviewDecisionSchema.parse(input);
+
+    if (validated.decision === "REJECT" && (!validated.notes || validated.notes.trim().length < 5)) {
+      return {
+        ok: false as const,
+        error: "Mohon sertakan catatan alasan penolakan/revisi minimal 5 karakter.",
+      };
+    }
+
+    // Pastikan actor adalah reviewer yang ditugaskan
+    const reviewerRecord = await prisma.timesheetReviewer.findFirst({
+      where: {
+        submissionId: validated.submissionId,
+        reviewerId: actor.employeeId,
+      },
+      include: {
+        submission: {
+          include: {
+            employee: {
+              select: {
+                id: true,
+                fullName: true,
+                userId: true,
+              },
+            },
+          },
+        },
+        reviewer: {
+          select: {
+            fullName: true,
+          },
+        },
+      },
+    });
+
+    if (!reviewerRecord) {
+      return {
+        ok: false as const,
+        error: "Anda tidak terdaftar sebagai atasan penilai untuk pengajuan timesheet ini.",
+      };
+    }
+
+    const newReviewerStatus = validated.decision === "APPROVE" ? "APPROVED" : "REJECTED";
+    const now = new Date();
+
+    let finalSubmissionStatus: "APPROVED" | "REJECTED" | "IN_REVIEW" = "IN_REVIEW";
+    let isFullyApproved = false;
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update status reviewer aktif
+      await tx.timesheetReviewer.update({
+        where: { id: reviewerRecord.id },
+        data: {
+          status: newReviewerStatus,
+          notes: validated.notes?.trim() || null,
+          reviewedAt: now,
+          actionAt: now,
+        },
+      });
+
+      // 2. Ambil seluruh reviewer untuk evaluasi status konsolidasi
+      const allReviewers = await tx.timesheetReviewer.findMany({
+        where: { submissionId: validated.submissionId },
+      });
+
+      const hasRejection = allReviewers.some(
+        (r) => (r.id === reviewerRecord.id ? newReviewerStatus : r.status) === "REJECTED",
+      );
+
+      const allApproved = allReviewers.every(
+        (r) => (r.id === reviewerRecord.id ? newReviewerStatus : r.status) === "APPROVED",
+      );
+
+      if (hasRejection) {
+        finalSubmissionStatus = "REJECTED";
+      } else if (allApproved) {
+        finalSubmissionStatus = "APPROVED";
+        isFullyApproved = true;
+      } else {
+        finalSubmissionStatus = "IN_REVIEW";
+      }
+
+      await tx.timesheetSubmission.update({
+        where: { id: validated.submissionId },
+        data: {
+          status: finalSubmissionStatus,
+          approvedAt: isFullyApproved ? now : null,
+        },
+      });
+
+      await writeAudit({
+        actorUserId: actor.userId,
+        actorEmail: actor.email,
+        app: "hris",
+        action: "UPDATE",
+        entityType: "TimesheetSubmission",
+        entityId: validated.submissionId,
+        before: {
+          reviewerStatus: reviewerRecord.status,
+          submissionStatus: reviewerRecord.submission.status,
+        },
+        after: {
+          reviewerStatus: newReviewerStatus,
+          submissionStatus: finalSubmissionStatus,
+          notes: validated.notes,
+        },
+        ip: actor.ip,
+        userAgent: actor.userAgent,
+      });
+    });
+
+    // 3. Notifikasi ke staf pengaju
+    if (reviewerRecord.submission.employee.userId) {
+      if (validated.decision === "APPROVE") {
+        if (isFullyApproved) {
+          await createNotification({
+            userId: reviewerRecord.submission.employee.userId,
+            title: "Timesheet Disetujui Sepenuhnya (ACC)",
+            message: `Kabar baik! Timesheet "${reviewerRecord.submission.title}" telah disetujui oleh seluruh atasan penilai dan siap diproses ke payroll.`,
+            type: "SUCCESS",
+            category: "PAYROLL",
+            link: "/timesheet",
+          });
+        } else {
+          await createNotification({
+            userId: reviewerRecord.submission.employee.userId,
+            title: "Timesheet Disetujui (Menunggu Atasan Lain)",
+            message: `Atasan ${reviewerRecord.reviewer.fullName} telah menyetujui timesheet "${reviewerRecord.submission.title}". Masih menunggu atasan penilai lainnya.`,
+            type: "INFO",
+            category: "PAYROLL",
+            link: "/timesheet",
+          });
+        }
+      } else {
+        await createNotification({
+          userId: reviewerRecord.submission.employee.userId,
+          title: "Timesheet Ditolak / Perlu Perbaikan",
+          message: `Atasan ${reviewerRecord.reviewer.fullName} menolak timesheet "${reviewerRecord.submission.title}". Catatan: ${validated.notes || "-"}`,
+          type: "WARNING",
+          category: "PAYROLL",
+          link: "/timesheet",
+        });
+      }
+    }
+
+    revalidatePath("/timesheet/persetujuan");
+    revalidatePath("/timesheet");
+    revalidatePath("/payroll");
+
+    return {
+      ok: true as const,
+      data: {
+        reviewerStatus: newReviewerStatus,
+        submissionStatus: finalSubmissionStatus,
+        isFullyApproved,
+      },
+    };
+  } catch (err: unknown) {
+    console.error("Gagal memproses persetujuan timesheet:", err);
+    if (err instanceof z.ZodError) {
+      return { ok: false as const, error: err.issues[0]?.message || "Input tidak valid." };
+    }
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal memproses keputusan review.",
+    };
+  }
+}
+

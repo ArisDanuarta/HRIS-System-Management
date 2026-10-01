@@ -969,6 +969,93 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Timesheet Freelance — Tahap 2: Portal Staf & Formulir Pengajuan Jam Kerja Freelance
+- **Status:** Selesai (Completed)
+- **Capaian & Fitur yang Diterapkan**:
+  1. **Server Actions Terproteksi ([`timesheet.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/timesheet.actions.ts))**:
+     - `submitTimesheetAction`:
+       - Validasi skema input dengan Zod (bulan 1-12, tahun, judul min 5 karakter, valid URL Google Spreadsheet, total jam kerja > 0 & <= 744 jam, minimal memilih 1 atasan reviewer).
+       - Pencegahan *self-selection*: Pegawai dilarang memilih dirinya sendiri sebagai reviewer.
+       - Pencegahan duplikasi pengajuan: Memastikan belum ada timesheet berstatus `APPROVED` pada bulan dan tahun yang sama.
+       - Transaksi Prisma atomik: Menyimpan `TimesheetSubmission` dan seluruh entri `TimesheetReviewer`.
+       - Notifikasi In-App otomatis: Mengirim notifikasi ke seluruh lead/atasan terpilih bahwa ada pengajuan timesheet baru yang perlu di-review.
+       - Pencatatan Audit Trail lengkap (`core.audit_logs`).
+     - `cancelTimesheetSubmissionAction`:
+       - Memungkinkan staf membatalkan pengajuan yang masih berstatus `PENDING`.
+  2. **Komponen Antarmuka Portal Timesheet Staf**:
+     - **Kartu Statistik Ringkasan ([`timesheet-stats-cards.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-stats-cards.tsx))**: Menampilkan Jam Disetujui (ACC), Jam Menunggu Review, Total Pengajuan, dan Estimasi Honor ACC (dihitung otomatis dari `hourlyRate` pada kontrak PKWT aktif).
+     - **Formulir Pengajuan Modal ([`timesheet-submission-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-submission-modal.tsx))**:
+       - Input Bulan & Tahun periode kerja.
+       - Input Judul ringkas pekerjaan.
+       - Input URL Google Spreadsheet dilengkapi tombol helper *"Uji Buka Link"* (membuka tab baru untuk memastikan link spreadsheet dapat diakses/tidak restricted).
+       - Input Total Jam Kerja (angka desimal).
+       - Multi-Select Atasan Penilai / Lead Reviewer dengan pencarian instan (nama/NIP/divisi) dan lencana terpilih yang mudah dihapus/dipilih kembali.
+       - Catatan / Deskripsi pekerjaan.
+       - Tombol *"Kumpulkan Timesheet"* dan *"Batal"*.
+     - **Tabel Riwayat & Status Penilai ([`timesheet-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-table.tsx))**:
+       - Filter status & pencarian judul/keterangan.
+       - Tautan langsung ke Google Spreadsheet.
+       - Indikator status per reviewer (*pills* status masing-masing atasan penilai).
+       - Tombol aksi detail dan pembatalan (jika masih `PENDING`).
+     - **Modal Detail Status Multi-Reviewer ([`timesheet-detail-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-detail-modal.tsx))**: Memeriksa status transparansi proses review tiap atasan penilai lengkap beserta catatan evaluasi dan waktu ACC/review.
+     - **Halaman Utama ([`/timesheet/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/page.tsx))**: Server component memuat data pengajuan karyawan aktif, kontrak aktif (`wageType`, `hourlyRate`), dan daftar reviewer yang memenuhi syarat.
+  3. **Integrasi Navigasi App Shell ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx))**:
+     - Menambahkan rute dan ikon `Clock` untuk *"Timesheet Saya"* pada menu staf dan menu personal manajer.
+     - Memastikan `isNavActive` mengisolasi rute `/timesheet` agar tidak bentrok dengan `/timesheet/persetujuan`.
+- **Hasil Verifikasi**:
+  - `pnpm --filter @pspk/hris typecheck`: 0 error.
+  - `pnpm --filter @pspk/hris lint`: 0 error.
+  - `pnpm test`: 47/47 unit test lolos 100%.
+
+---
+
+## Modul Timesheet Freelance — Tahap 3: Portal Persetujuan Manajer / Lead (`/timesheet/persetujuan`)
+- **Status:** Selesai (Completed)
+- **Capaian & Fitur yang Diterapkan**:
+  1. **Server Actions Review & Konsolidasi Status Multi-Lead ([`timesheet.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/timesheet.actions.ts))**:
+     - `startTimesheetReviewAction`:
+       - Mengubah status reviewer dari `PENDING` $\to$ `IN_REVIEW`.
+       - Mengubah parent `TimesheetSubmission.status` menjadi `IN_REVIEW` (jika sebelumnya `PENDING`), sehingga staf langsung mengetahui lembar kerjanya sedang dicek.
+       - Mengirimkan In-App Notification kepada staf: *"Atasan [Nama] mulai memeriksa timesheet [Judul]"*.
+       - Pencatatan Audit Trail (`UPDATE TimesheetReviewer`).
+     - `submitReviewDecisionAction`:
+       - Mendukung keputusan `APPROVE` (ACC) atau `REJECT` (Tolak / Minta Revisi).
+       - Validasi alasan penolakan wajib minimal 5 karakter jika memilih opsi tolak.
+       - **Konsolidasi Status Induk Atomik**:
+         - Mengevaluasi seluruh status reviewer pada pengajuan tersebut.
+         - Jika ada salah satu atasan menolak (`REJECTED`), parent status menjadi `REJECTED`.
+         - Jika **SEMUA** atasan penilai telah memberikan ACC (`APPROVED`), parent status otomatis menjadi `APPROVED` dan tanggal `approvedAt` terkunci.
+         - Jika salah satu atasan telah ACC namun atasan lain masih belum mereview, parent status tetap `IN_REVIEW`.
+       - Mengirimkan In-App Notification berkategori `PAYROLL` kepada staf dengan pesan transparan mengenai status persetujuan atasan terkait.
+       - Pencatatan Audit Trail lengkap (`core.audit_logs`).
+  2. **Komponen Antarmuka Persetujuan Timesheet Atasan**:
+     - **Kartu Statistik Antrean Review ([`timesheet-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-view.tsx))**: Menampilkan jumlah antrean Menunggu Review (beserta total jam tertunda), Sudah Di-ACC (beserta total jam disetujui), Ditolak/Perlu Revisi, dan Total Tugas Review.
+     - **Tabel Daftar Tugas Review Tim ([`timesheet-approval-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-table.tsx))**:
+       - Filter Segmented Tabs: *"Butuh Review"* (default), *"Sudah Disetujui (ACC)"*, *"Ditolak"*, dan *"Semua"*.
+       - Fitur pencarian instan nama pegawai freelance, NIP, judul proyek, atau divisi.
+       - Kolom Status Review Saya vs Status Rekan Penilai Lainnya (menampilkan dots & status masing-masing reviewer).
+       - Tautan langsung ke Google Spreadsheet.
+       - Tombol aksi *"Review"* / *"Lihat"*.
+     - **Modal Interaktif Keputusan Review ([`timesheet-approval-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-modal.tsx))**:
+       - Ringkasan profil pegawai freelance, periode kerja, dan jam kerja.
+       - Banner interaktif Google Spreadsheet dengan tombol *"Buka Sheet"*.
+       - Tombol aksi *"Mulai Review"* bila status masih pending.
+       - Daftar status rekan atasan penilai lainnya (transparansi multi-lead).
+       - Field catatan evaluasi/apresiasi/alasan revisi.
+       - Tombol *"Setujui Timesheet (ACC)"* dan *"Tolak / Perlu Revisi"* (dengan konfirmasi modal aman).
+     - **Halaman Utama Rute ([`/timesheet/persetujuan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/persetujuan/page.tsx))**: Server component dengan proteksi otorisasi peran Manajer, Admin HR, atau Super Admin.
+  3. **Integrasi Navigasi App Shell ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx))**:
+     - Menambahkan NavItem *"Persetujuan Timesheet"* pada menu "Tim & Approval" milik Manajer.
+     - Menambahkan NavItem *"Timesheet Freelance"* pada menu navigasi Admin HR.
+     - Memperbarui `isNavActive` agar rute `/timesheet/persetujuan` tidak tertukar dengan `/timesheet`.
+- **Hasil Verifikasi**:
+  - `pnpm --filter @pspk/hris typecheck`: 0 error (TypeScript strict lolos).
+  - `pnpm --filter @pspk/hris lint`: 0 error.
+  - `pnpm test`: 47/47 unit test lolos 100%.
+  - `pnpm --filter @pspk/hris build`: Berhasil mengompilasi rute `/timesheet` dan `/timesheet/persetujuan` sebagai rute dinamis siap produksi.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

@@ -245,20 +245,31 @@ export async function getTimesheetSubmissionsForReviewer(
     };
   });
 
-  const pendingForThisReviewer = items.filter(
+  const needsReviewItems = items.filter(
     (i) => i.currentUserReviewerStatus === "PENDING" || i.currentUserReviewerStatus === "IN_REVIEW",
-  ).length;
+  );
 
-  const approvedByThisReviewer = items.filter(
+  const approvedItems = items.filter(
     (i) => i.currentUserReviewerStatus === "APPROVED",
-  ).length;
+  );
+
+  const rejectedItems = items.filter(
+    (i) => i.currentUserReviewerStatus === "REJECTED",
+  );
+
+  const totalHoursPending = needsReviewItems.reduce((sum, i) => sum + i.totalHours, 0);
+  const totalHoursApproved = approvedItems.reduce((sum, i) => sum + i.totalHours, 0);
 
   return {
     items,
     stats: {
       totalAssigned: items.length,
-      pendingCount: pendingForThisReviewer,
-      approvedCount: approvedByThisReviewer,
+      needsReviewCount: needsReviewItems.length,
+      pendingCount: needsReviewItems.length,
+      approvedCount: approvedItems.length,
+      rejectedCount: rejectedItems.length,
+      totalHoursPending: Math.round(totalHoursPending * 100) / 100,
+      totalHoursApproved: Math.round(totalHoursApproved * 100) / 100,
     },
   };
 }
