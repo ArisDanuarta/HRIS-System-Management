@@ -1,4 +1,4 @@
-import { prisma } from "@pspk/db";
+import { prisma, Prisma } from "@pspk/db";
 import { toDateString } from "@pspk/shared";
 
 /**
@@ -92,50 +92,86 @@ export async function getPersonalMonthlyAttendance(
 }
 
 /**
- * Retrieves attendance summary and records for HR Rekap view.
+ * Retrieves attendance summary and records for HR / Team Rekap view.
  */
 export async function getAttendanceRekap(options: {
   year: number;
   month: number;
   departmentId?: string;
   search?: string;
+  teamManagerId?: string;
+  managerDepartmentId?: string;
+  excludeEmployeeId?: string;
 }) {
-  const { year, month, departmentId, search } = options;
+  const {
+    year,
+    month,
+    departmentId,
+    search,
+    teamManagerId,
+    managerDepartmentId,
+    excludeEmployeeId,
+  } = options;
   const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
   const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
-  // Build employee filter
-  const employeeWhere: Record<string, unknown> = {
-    deletedAt: null,
-    status: { in: ["ACTIVE", "PROBATION"] },
-  };
+  // Build employee filter using AND array for clean composition
+  const andConditions: Prisma.EmployeeWhereInput[] = [
+    { deletedAt: null },
+    { status: { in: ["ACTIVE", "PROBATION"] } },
+  ];
 
-  if (departmentId && departmentId !== "ALL") {
-    employeeWhere.currentDepartmentId = departmentId;
+  if (excludeEmployeeId) {
+    andConditions.push({ id: { not: excludeEmployeeId } });
   }
 
-  if (search) {
-    employeeWhere.OR = [
-      { fullName: { contains: search, mode: "insensitive" } },
-      { employeeNo: { contains: search, mode: "insensitive" } },
-    ];
+  // Filter scope tim (karyawan bawahan langsung atasan ATAU yang berada di divisi yang dipimpin)
+  if (teamManagerId || managerDepartmentId) {
+    const teamOr: Prisma.EmployeeWhereInput[] = [];
+    if (teamManagerId) {
+      teamOr.push({ managerId: teamManagerId });
+    }
+    if (managerDepartmentId) {
+      teamOr.push({ currentDepartmentId: managerDepartmentId });
+    }
+    if (teamOr.length > 0) {
+      andConditions.push({ OR: teamOr });
+    }
+  } else if (departmentId && departmentId !== "ALL") {
+    andConditions.push({ currentDepartmentId: departmentId });
   }
 
-  const [employees, attendances, departments] = await Promise.all([
-    prisma.employee.findMany({
-      where: employeeWhere,
-      select: {
-        id: true,
-        employeeNo: true,
-        fullName: true,
-        status: true,
-        currentPosition: { select: { title: true } },
-        currentDepartment: { select: { id: true, name: true } },
-      },
-      orderBy: { fullName: "asc" },
-    }),
+  if (search && search.trim() !== "") {
+    const q = search.trim();
+    andConditions.push({
+      OR: [
+        { fullName: { contains: q, mode: "insensitive" } },
+        { employeeNo: { contains: q, mode: "insensitive" } },
+      ],
+    });
+  }
+
+  const employeeWhere: Prisma.EmployeeWhereInput = { AND: andConditions };
+
+  const employees = await prisma.employee.findMany({
+    where: employeeWhere,
+    select: {
+      id: true,
+      employeeNo: true,
+      fullName: true,
+      status: true,
+      currentPosition: { select: { title: true } },
+      currentDepartment: { select: { id: true, name: true } },
+    },
+    orderBy: { fullName: "asc" },
+  });
+
+  const employeeIds = employees.map((e) => e.id);
+
+  const [attendances, departments] = await Promise.all([
     prisma.attendance.findMany({
       where: {
+        employeeId: { in: employeeIds },
         date: {
           gte: startDate,
           lte: endDate,

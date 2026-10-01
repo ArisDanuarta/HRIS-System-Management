@@ -33,6 +33,9 @@ interface AttendanceRekapViewProps {
   currentMonth: number;
   selectedDeptId?: string;
   searchQuery?: string;
+  isHrOrAdmin?: boolean;
+  isTeamView?: boolean;
+  departmentName?: string;
 }
 
 export function AttendanceRekapView({
@@ -43,6 +46,9 @@ export function AttendanceRekapView({
   currentMonth,
   selectedDeptId = "ALL",
   searchQuery = "",
+  isHrOrAdmin = true,
+  isTeamView = false,
+  departmentName,
 }: AttendanceRekapViewProps) {
   const router = useRouter();
   const [search, setSearch] = useState(searchQuery);
@@ -112,7 +118,7 @@ export function AttendanceRekapView({
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari nama pegawai atau NIP..."
+            placeholder={isTeamView ? "Cari anggota tim atau NIP..." : "Cari nama pegawai atau NIP..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFilter()}
@@ -146,21 +152,28 @@ export function AttendanceRekapView({
             <option value="2025">2025</option>
           </select>
 
-          <div className="flex items-center gap-1.5">
-            <Building className="w-4 h-4 text-slate-400 shrink-0" />
-            <select
-              value={dept}
-              onChange={(e) => setDept(e.target.value)}
-              className="px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer max-w-[180px] truncate"
-            >
-              <option value="ALL">Semua Divisi</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {isTeamView ? (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-[#102E50]/5 border border-[#102E50]/15 text-xs text-[#102E50] font-semibold">
+              <Building className="w-3.5 h-3.5 text-[#F2AF3E]" />
+              <span>{departmentName || "Divisi Saya"}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <Building className="w-4 h-4 text-slate-400 shrink-0" />
+              <select
+                value={dept}
+                onChange={(e) => setDept(e.target.value)}
+                className="px-2.5 py-2 rounded-lg border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer max-w-[180px] truncate"
+              >
+                <option value="ALL">Semua Divisi</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <button
             type="button"
@@ -179,7 +192,7 @@ export function AttendanceRekapView({
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#102e50]" />
             <span className="font-bold text-xs text-[#102e50]">
-              Rekapitulasi Kehadiran: {employees.length} Pegawai Terdata
+              Rekapitulasi Kehadiran: {employees.length} {isTeamView ? "Anggota Tim" : "Pegawai"} Terdata
             </span>
           </div>
           <span className="text-[11px] text-[#5b6675]">
@@ -198,13 +211,13 @@ export function AttendanceRekapView({
                 <th className="py-3 px-4 text-center">Cuti</th>
                 <th className="py-3 px-4 text-center">Alpa</th>
                 <th className="py-3 px-4 text-center">Total Hari</th>
-                <th className="py-3 px-4 text-right">Aksi HR</th>
+                {isHrOrAdmin && <th className="py-3 px-4 text-right">Aksi HR</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-[#121c2a]">
               {employees.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-500">
+                  <td colSpan={isHrOrAdmin ? 8 : 7} className="py-8 text-center text-slate-500">
                     Tidak ada data pegawai yang sesuai dengan filter pencarian.
                   </td>
                 </tr>
@@ -255,20 +268,22 @@ export function AttendanceRekapView({
                       <td className="py-3.5 px-4 text-center font-bold text-slate-700">
                         {stat.totalDays} Hari
                       </td>
-                      <td className="py-3.5 px-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedForCorrection({
-                            id: emp.id,
-                            fullName: emp.fullName,
-                            employeeNo: emp.employeeNo,
-                          })}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-[#102e50] hover:bg-[#eff4ff] text-[#102e50] text-xs font-semibold transition-all cursor-pointer active:scale-[0.98]"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                          <span>Koreksi</span>
-                        </button>
-                      </td>
+                      {isHrOrAdmin && (
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedForCorrection({
+                              id: emp.id,
+                              fullName: emp.fullName,
+                              employeeNo: emp.employeeNo,
+                            })}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-[#102e50] hover:bg-[#eff4ff] text-[#102e50] text-xs font-semibold transition-all cursor-pointer active:scale-[0.98]"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                            <span>Koreksi</span>
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   );
                 })

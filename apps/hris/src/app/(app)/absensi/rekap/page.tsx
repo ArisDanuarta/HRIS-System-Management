@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { getAttendanceRekap } from "@/server/queries/attendance.queries";
+import { getManagerTeamInfo } from "@/server/queries/employee.queries";
 import { AttendanceRekapView } from "@/components/absensi/attendance-rekap-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import { prisma } from "@pspk/db";
@@ -15,6 +16,7 @@ interface RekapPageProps {
     month?: string;
     dept?: string;
     q?: string;
+    search?: string;
   }>;
 }
 
@@ -39,13 +41,18 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
 
   const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
   const isManager = roleKeys.includes("manager");
+  const isTeamView = isManager && !isHrOrAdmin;
+
+  const currentEmployee = userProfile?.employee || null;
+  const managerTeamInfo =
+    isTeamView && currentEmployee ? await getManagerTeamInfo(currentEmployee.id) : null;
 
   const resolvedParams = await searchParams;
   const now = new Date();
   const currentYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
   const currentMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
-  const selectedDeptId = resolvedParams.dept || "ALL";
-  const searchQuery = resolvedParams.q || "";
+  const selectedDeptId = isTeamView ? "ALL" : (resolvedParams.dept || "ALL");
+  const searchQuery = resolvedParams.q || resolvedParams.search || "";
 
   // Query real data from PostgreSQL
   const [rekapData, pendingLeavesCount] = await Promise.all([
@@ -54,8 +61,29 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
       month: currentMonth,
       departmentId: selectedDeptId,
       search: searchQuery,
+      teamManagerId: isTeamView && currentEmployee ? currentEmployee.id : undefined,
+      managerDepartmentId:
+        isTeamView && managerTeamInfo?.currentDepartmentId
+          ? managerTeamInfo.currentDepartmentId
+          : undefined,
+      excludeEmployeeId: isTeamView && currentEmployee ? currentEmployee.id : undefined,
     }),
-    prisma.leaveRequest.count({ where: { status: "PENDING" } }),
+    prisma.leaveRequest.count({
+      where: isTeamView && currentEmployee
+        ? {
+            status: "PENDING",
+            employee: {
+              OR: [
+                { managerId: currentEmployee.id },
+                ...(managerTeamInfo?.currentDepartmentId
+                  ? [{ currentDepartmentId: managerTeamInfo.currentDepartmentId }]
+                  : []),
+              ],
+              id: { not: currentEmployee.id },
+            },
+          }
+        : { status: "PENDING" },
+    }),
   ]);
 
   return (
@@ -63,11 +91,25 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
-            Rekap Kehadiran Karyawan
-          </h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Monitoring kehadiran seluruh pegawai, statistik absensi bulanan, dan koreksi manual HR.
+          <div className="flex items-center gap-2">
+            <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
+              {isTeamView ? "Rekap Kehadiran Tim" : "Rekap Kehadiran Karyawan"}
+            </h1>
+            {isTeamView ? (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#F2AF3E]"></span>
+                {managerTeamInfo?.currentDepartment?.name || "Divisi Saya"}
+              </span>
+            ) : (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#feba48]/20 text-[#805600] border border-[#feba48]/30">
+                Admin HR
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 mt-1">
+            {isTeamView
+              ? `Monitoring kehadiran anggota tim ${managerTeamInfo?.currentDepartment?.name ? `di ${managerTeamInfo.currentDepartment.name}` : ""} dan rekapitulasi bulanan.`
+              : "Monitoring kehadiran seluruh pegawai, statistik absensi bulanan, dan koreksi manual HR."}
           </p>
         </div>
 
@@ -90,7 +132,6 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
         pendingLeavesCount={pendingLeavesCount}
       />
 
-
       {/* Main Rekap Component with Filtering & Correction Modal */}
       <AttendanceRekapView
         employees={rekapData.employees}
@@ -100,6 +141,9 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
         currentMonth={currentMonth}
         selectedDeptId={selectedDeptId}
         searchQuery={searchQuery}
+        isHrOrAdmin={isHrOrAdmin}
+        isTeamView={isTeamView}
+        departmentName={managerTeamInfo?.currentDepartment?.name}
       />
     </div>
   );

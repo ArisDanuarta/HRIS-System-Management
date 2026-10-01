@@ -52,6 +52,18 @@ export function AppSidebar({
         (pathname.startsWith("/karyawan/") && !pathname.startsWith("/karyawan/organisasi"))
       );
     }
+    if (href === "/absensi") {
+      return (
+        pathname === "/absensi" ||
+        (pathname.startsWith("/absensi/") && !pathname.startsWith("/absensi/rekap"))
+      );
+    }
+    if (href === "/cuti") {
+      return (
+        pathname === "/cuti" ||
+        (pathname.startsWith("/cuti/") && !pathname.startsWith("/cuti/persetujuan"))
+      );
+    }
     return pathname.startsWith(href);
   };
 
@@ -246,7 +258,7 @@ export function AppSidebar({
                 href="/cuti"
                 label="Cuti Saya"
                 icon={<Calendar className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/cuti") && !isNavActive("/cuti/persetujuan")}
+                isActive={isNavActive("/cuti")}
                 isCollapsed={isCollapsed}
               />
               <NavItem

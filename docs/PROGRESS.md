@@ -875,6 +875,30 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Rekapitulasi Absensi Tim & Perbaikan Navigasi Sidebar (Manajer / Lead) — Tahap 1
+- **Status:** Selesai (Tahap 1 dari 2)
+- **Implementasi:**
+  1. **Perbaikan Status Aktif Ganda pada Sidebar (`AppSidebar`)**:
+     - Memperbaiki helper `isNavActive` di `apps/hris/src/components/shell/app-sidebar.tsx` untuk rute `/absensi` dan `/cuti`.
+     - Rute `/absensi` (Presensi Saya) kini mengecualikan prefix `/absensi/rekap` sehingga saat berada di halaman Rekap Absensi Tim (`/absensi/rekap`), hanya menu **"Absensi Tim"** yang aktif bersinar, dan **"Absensi Saya"** tetap netral.
+     - Penanganan serupa diselaraskan untuk `/cuti` yang mengecualikan `/cuti/persetujuan`.
+  2. **Isolasi Data Skop Tim pada Query Rekap Absensi (`getAttendanceRekap`)**:
+     - Menambahkan parameter `teamManagerId?: string`, `managerDepartmentId?: string`, dan `excludeEmployeeId?: string` pada `getAttendanceRekap` di `apps/hris/src/server/queries/attendance.queries.ts`.
+     - Menggunakan klausul Prisma `where.AND` yang menggabungkan batasan skop tim (karyawan bawahan via `managerId` atau divisi yang dipimpin `currentDepartmentId`), dan membatasi query catatan absensi hanya untuk ID anggota tim yang bersangkutan.
+  3. **Adaptasi Halaman UI & Keamanan Wewenang Koreksi (`/absensi/rekap`)**:
+     - Mengintegrasikan deteksi manajer (`isManager && !isHrOrAdmin`) pada `apps/hris/src/app/(app)/absensi/rekap/page.tsx`.
+     - Mengubah header halaman secara adaptif: judul menjadi **"Rekap Kehadiran Tim"** dengan badge dinamis nama Divisi Manajer serta deskripsi monitoring tim.
+     - Menyesuaikan komponen `AttendanceRekapView`:
+       - Menyembunyikan kolom dan tombol **"Aksi HR: Koreksi"** untuk peran Manajer (koreksi absensi manual hanya dapat dilakukan oleh Admin HR / Super Admin).
+       - Mengunci dropdown pilihan divisi menjadi badge divisi yang dipimpin manajer.
+       - Menampilkan label ringkasan tabel yang sesuai (mis. *"Rekapitulasi Kehadiran: X Anggota Tim Terdata"*).
+- **Hasil Verifikasi**:
+  - `pnpm typecheck` lolos 9/9 package (0 error).
+  - `pnpm lint` lolos dengan 0 error.
+  - `pnpm test` lolos 100%.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
