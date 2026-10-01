@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   X,
@@ -13,6 +14,8 @@ import {
 } from "lucide-react";
 import { formatRupiah, formatDate, angkaTerbilang } from "@pspk/shared";
 import { MyPayslipDetail } from "@/server/queries/payslip.queries";
+
+const emptySubscribe = () => () => {};
 
 const MONTH_NAMES = [
   "",
@@ -41,17 +44,29 @@ export function PayslipPrintableModal({
   onClose,
   payslip,
 }: PayslipPrintableModalProps) {
+  const isMounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
     if (isOpen) {
+      document.body.classList.add("payslip-modal-open");
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
       window.addEventListener("keydown", handleKeyDown);
+      return () => {
+        document.body.classList.remove("payslip-modal-open");
+        window.removeEventListener("keydown", handleKeyDown);
+      };
+    } else {
+      document.body.classList.remove("payslip-modal-open");
     }
-    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen || !payslip) return null;
+  if (!isOpen || !payslip || !isMounted) return null;
 
   const monthLabel = MONTH_NAMES[payslip.month] || `Bulan ${payslip.month}`;
   const periodTitle = `${monthLabel} ${payslip.year}`;
@@ -77,48 +92,23 @@ export function PayslipPrintableModal({
   };
 
   const handlePrint = () => {
-    window.print();
+    requestAnimationFrame(() => {
+      window.print();
+    });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
-      {/* Print stylesheet */}
-      <style jsx global>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-payslip-sheet,
-          #printable-payslip-sheet * {
-            visibility: visible;
-          }
-          #printable-payslip-sheet {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 24px;
-            box-shadow: none;
-            border: none;
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
+  return createPortal(
+    <div id="payslip-modal-portal">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
+        {/* Backdrop */}
+        <div
+          className="fixed inset-0 no-print"
+          onClick={onClose}
+          aria-hidden="true"
+        />
 
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 no-print"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
-      {/* Modal Dialog Card */}
-      <div className="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 flex flex-col overflow-hidden z-10 animate-in zoom-in-95 duration-200 my-8">
+        {/* Modal Dialog Card */}
+        <div className="relative bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 flex flex-col overflow-hidden z-10 animate-in zoom-in-95 duration-200 my-8 modal-card">
         {/* Top Action Bar (No-Print) */}
         <div className="px-6 py-4 bg-[#102E50] text-white flex items-center justify-between shrink-0 no-print">
           <div className="flex items-center gap-2.5">
@@ -531,5 +521,7 @@ export function PayslipPrintableModal({
         </div>
       </div>
     </div>
-  );
+  </div>,
+  document.body
+);
 }

@@ -12,3 +12,119 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-lora), ui-serif, Georgia, serif;
 }
+
+/* ==========================================================================
+   Print Stylesheet for Electronic Payslip & Documents
+   ========================================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  /* Reset document root when printing payslip */
+  body.payslip-modal-open,
+  body:has(#payslip-modal-portal) {
+    background: #ffffff !important;
+    color: #121c2a !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide entire application shell from print tree */
+  body.payslip-modal-open > *:not(#payslip-modal-portal),
+  body:has(#payslip-modal-portal) > *:not(#payslip-modal-portal) {
+    display: none !important;
+  }
+
+  /* Hide interactive controls, backdrops, close buttons, action bars */
+  .no-print,
+  #payslip-modal-portal .no-print {
+    display: none !important;
+  }
+
+  /* Portal wrapper: flatten to standard block document flow */
+  #payslip-modal-portal {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+  }
+
+  #payslip-modal-portal > div {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  #payslip-modal-portal .modal-card {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    animation: none !important;
+    background: transparent !important;
+  }
+
+  /* Printable sheet: clean layout optimized for single-sheet A4 */
+  #printable-payslip-sheet {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #121c2a !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Neatly proportioned vertical rhythm */
+  #printable-payslip-sheet > div + div {
+    margin-top: 10px !important;
+  }
+
+  /* Ensure colors, gradients, badges, and lines print accurately */
+  #printable-payslip-sheet * {
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+
+  /* Prevent page splitting within semantic sections */
+  #printable-payslip-sheet > div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
