@@ -2,7 +2,7 @@
 
 import React, { useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { Search, RotateCcw, Filter } from "lucide-react";
+import { Search, RotateCcw, Filter, Building2 } from "lucide-react";
 
 interface DepartmentOption {
   id: string;
@@ -15,6 +15,8 @@ interface EmployeeFilterBarProps {
   currentDepartmentId?: string;
   currentStatus?: string;
   currentType?: string;
+  isTeamView?: boolean;
+  departmentName?: string;
 }
 
 export function EmployeeFilterBar({
@@ -23,6 +25,8 @@ export function EmployeeFilterBar({
   currentDepartmentId = "ALL",
   currentStatus = "ALL",
   currentType = "ALL",
+  isTeamView = false,
+  departmentName,
 }: EmployeeFilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -57,8 +61,13 @@ export function EmployeeFilterBar({
 
   const handleReset = () => {
     setSearchTerm("");
+    const params = new URLSearchParams();
+    if (searchParams.get("view")) {
+      params.set("view", searchParams.get("view")!);
+    }
+    const query = params.toString() ? `?${params.toString()}` : "";
     startTransition(() => {
-      router.push(pathname);
+      router.push(`${pathname}${query}`);
     });
   };
 
@@ -79,7 +88,11 @@ export function EmployeeFilterBar({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Cari berdasarkan nama, NIP, atau email pegawai..."
+            placeholder={
+              isTeamView
+                ? "Cari anggota tim berdasarkan nama, NIP, atau email..."
+                : "Cari berdasarkan nama, NIP, atau email pegawai..."
+            }
             className="w-full pl-10 pr-20 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent transition-all"
           />
           <button
@@ -98,19 +111,26 @@ export function EmployeeFilterBar({
             <span>Filter:</span>
           </div>
 
-          {/* Department Filter */}
-          <select
-            value={currentDepartmentId || "ALL"}
-            onChange={(e) => applyFilters({ dept: e.target.value })}
-            className="text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
-          >
-            <option value="ALL">Semua Divisi / Departemen</option>
-            {departments.map((dept) => (
-              <option key={dept.id} value={dept.id}>
-                {dept.name}
-              </option>
-            ))}
-          </select>
+          {/* Department Filter: Tampilkan badge terkunci pada mode tim */}
+          {isTeamView ? (
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-[#102E50]/5 border border-[#102E50]/15 text-xs text-[#102E50] font-semibold">
+              <Building2 className="w-3.5 h-3.5 text-[#F2AF3E]" />
+              <span>{departmentName || "Divisi Saya"}</span>
+            </div>
+          ) : (
+            <select
+              value={currentDepartmentId || "ALL"}
+              onChange={(e) => applyFilters({ dept: e.target.value })}
+              className="text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+            >
+              <option value="ALL">Semua Divisi / Departemen</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* Status Filter */}
           <select

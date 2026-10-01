@@ -48,6 +48,7 @@ interface EmployeeTableProps {
   page: number;
   pageSize: number;
   totalPages: number;
+  canManageEmployees?: boolean;
 }
 
 export function EmployeeTable({
@@ -56,6 +57,7 @@ export function EmployeeTable({
   page,
   pageSize,
   totalPages,
+  canManageEmployees = true,
 }: EmployeeTableProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -229,21 +231,25 @@ export function EmployeeTable({
                           >
                             <Eye className="w-4 h-4" />
                           </Link>
-                          <Link
-                            href={`/karyawan/${emp.id}/ubah`}
-                            className="p-1.5 rounded-lg text-slate-600 hover:text-[#102E50] hover:bg-slate-100 transition-colors"
-                            title="Ubah Data Pegawai"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedForDelete(emp)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-[#A8281C] hover:bg-red-50 transition-colors cursor-pointer"
-                            title="Nonaktifkan Pegawai"
-                          >
-                            <UserX className="w-4 h-4" />
-                          </button>
+                          {canManageEmployees && (
+                            <>
+                              <Link
+                                href={`/karyawan/${emp.id}/ubah`}
+                                className="p-1.5 rounded-lg text-slate-600 hover:text-[#102E50] hover:bg-slate-100 transition-colors"
+                                title="Ubah Data Pegawai"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Link>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedForDelete(emp)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#A8281C] hover:bg-red-50 transition-colors cursor-pointer"
+                                title="Nonaktifkan Pegawai"
+                              >
+                                <UserX className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -853,6 +853,28 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Manajemen Anggota Tim Saya (Manajer / Lead Divisi) — Tahap 1 & 2
+- **Status:** Selesai (Tahap 1 & 2 dari 3)
+- **Implementasi:**
+  1. **Tahap 1 — Ekstensi Parameter Query `getEmployeesDirectory`**:
+     - Menambahkan parameter `teamManagerId?: string`, `managerDepartmentId?: string`, dan `excludeEmployeeId?: string` pada `GetEmployeesParams`.
+     - Menyusun klausul Prisma `where.AND` yang menggabungkan batasan skop tim (karyawan bawahan langsung via `managerId` ATAU yang berada di divisi yang dipimpin `currentDepartmentId`), sambil mengecualikan ID manajer itu sendiri agar tidak menjadi bawahan dirinya sendiri.
+     - Menyelaraskan query hitung statistik (`stats.totalActive`, `stats.totalProbation`, `stats.totalContractsExpiring`) agar menghitung berdasarkan skop tim aktif yang sama (bukan menghitung seluruh pegawai institusi).
+     - Menambahkan fungsi helper `getManagerTeamInfo(employeeId)` untuk memuat informasi divisi dan posisi manajer.
+  2. **Tahap 2 — Adaptasi Halaman UI & Pengkondisian Hak Akses (`/karyawan`)**:
+     - Mengintegrasikan deteksi sesi dan peran (`getSession` + `getUserProfile`) di `apps/hris/src/app/(app)/karyawan/page.tsx`.
+     - Mengaktifkan mode tim (`isTeamView`) secara otomatis ketika parameter `?view=team` aktif atau ketika pengguna adalah Manajer (non-HR).
+     - Menyesuaikan Header: Judul berubah menjadi **"Anggota Tim Saya"** dengan badge dinamis nama Divisi Manajer (mis. *Divisi Riset Kurikulum & Pembelajaran*).
+     - Menyembunyikan tombol wewenang administratif HR tingkat organisasi (**"Tambah Pegawai"** dan **"Impor Excel"**).
+     - Menyesuaikan `EmployeeFilterBar` dengan badge divisi yang terkunci pada mode tim dan menjaga parameter `?view=team` saat filter direset.
+     - Menyesuaikan `EmployeeTable`: Menyembunyikan tombol ubah data dan nonaktifkan pegawai untuk Manajer (hanya menampilkan tombol *"Lihat Detail Profil"*).
+- **Hasil Verifikasi**:
+  - `pnpm typecheck` lolos 9/9 package (0 error).
+  - `pnpm lint` lolos dengan 0 error.
+  - `pnpm test` lolos 47/47 unit test (100%).
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
