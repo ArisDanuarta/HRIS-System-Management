@@ -19,6 +19,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Building2,
+  Clock,
 } from "lucide-react";
 
 export type RoleViewType = "admin_hr" | "manager" | "staff";
@@ -62,6 +63,12 @@ export function AppSidebar({
       return (
         pathname === "/cuti" ||
         (pathname.startsWith("/cuti/") && !pathname.startsWith("/cuti/persetujuan"))
+      );
+    }
+    if (href === "/timesheet") {
+      return (
+        pathname === "/timesheet" ||
+        (pathname.startsWith("/timesheet/") && !pathname.startsWith("/timesheet/persetujuan"))
       );
     }
     return pathname.startsWith(href);
@@ -268,6 +275,13 @@ export function AppSidebar({
                 isActive={isNavActive("/slip-gaji")}
                 isCollapsed={isCollapsed}
               />
+              <NavItem
+                href="/timesheet"
+                label="Timesheet Saya"
+                icon={<Clock className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/timesheet")}
+                isCollapsed={isCollapsed}
+              />
             </nav>
           </div>
         )}
@@ -321,6 +335,13 @@ export function AppSidebar({
                 label="Slip Gaji"
                 icon={<Receipt className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/slip-gaji")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
+                href="/timesheet"
+                label="Timesheet Saya"
+                icon={<Clock className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/timesheet")}
                 isCollapsed={isCollapsed}
               />
               <NavItem
