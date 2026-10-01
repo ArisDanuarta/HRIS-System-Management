@@ -120,6 +120,25 @@ enum ReviewStatus {
   @@schema("hris")
 }
 
+enum TimesheetStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REVISION_REQUESTED
+  REJECTED
+
+  @@schema("hris")
+}
+
+enum ReviewerStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REJECTED
+
+  @@schema("hris")
+}
+
 enum ApplicationStage {
   APPLIED
   SCREENING
@@ -211,9 +230,11 @@ model Employee {
   performanceGoals  PerformanceGoal[]
   reviewsReceived   PerformanceReview[]        @relation("EmployeeReviews")
   reviewsGiven      PerformanceReview[]        @relation("ManagerReviews")
-  onboardingTasks   OnboardingTask[]
-  trainingRecords   TrainingRecord[]
-  assetAssignments  AssetAssignment[]
+  onboardingTasks     OnboardingTask[]
+  trainingRecords     TrainingRecord[]
+  assetAssignments    AssetAssignment[]
+  timesheetsSubmitted TimesheetSubmission[]
+  timesheetsAssigned  TimesheetReviewer[]
 
   @@index([status])
   @@index([managerId])
@@ -410,7 +431,8 @@ model PayrollPeriod {
   createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  payslips Payslip[]
+  payslips             Payslip[]
+  timesheetSubmissions TimesheetSubmission[]
 
   @@unique([year, month, kind])
   @@map("payroll_periods")
@@ -685,3 +707,50 @@ model TrainingRecord {
   @@map("training_records")
   @@schema("hris")
 }
+
+model TimesheetSubmission {
+  id              String          @id @default(uuid())
+  employeeId      String          @map("employee_id")
+  periodMonth     Int             @map("period_month")
+  periodYear      Int             @map("period_year")
+  title           String
+  spreadsheetUrl  String          @map("spreadsheet_url")
+  totalHours      Decimal         @map("total_hours") @db.Decimal(8, 2)
+  description     String?
+  status          TimesheetStatus @default(PENDING)
+  submittedAt     DateTime        @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  approvedAt      DateTime?       @map("approved_at") @db.Timestamptz(6)
+  payrollPeriodId String?         @map("payroll_period_id")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee      Employee            @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewers     TimesheetReviewer[]
+  payrollPeriod PayrollPeriod?      @relation(fields: [payrollPeriodId], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, periodYear, periodMonth])
+  @@index([status])
+  @@map("timesheet_submissions")
+  @@schema("hris")
+}
+
+model TimesheetReviewer {
+  id           String         @id @default(uuid())
+  submissionId String         @map("submission_id")
+  reviewerId   String         @map("reviewer_id")
+  status       ReviewerStatus @default(PENDING)
+  notes        String?
+  reviewedAt   DateTime?      @map("reviewed_at") @db.Timestamptz(6)
+  actionAt     DateTime?      @map("action_at") @db.Timestamptz(6)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  submission TimesheetSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewer   Employee            @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@unique([submissionId, reviewerId])
+  @@index([reviewerId, status])
+  @@map("timesheet_reviewers")
+  @@schema("hris")
+}
+

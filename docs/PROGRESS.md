@@ -942,8 +942,30 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Pada `PerformanceDetailModal`, form finalisasi skor resmi (*FinalizeReviewForm*) disembunyikan dari manajer dan digantikan indikator status progres yang informatif. Hak finalisasi dan penguncian nilai resmi tetap eksklusif di tangan Admin HR / Super Admin.
 - **Hasil Verifikasi**:
   - `pnpm typecheck`: 9/9 paket berhasil tanpa error.
+---
+
+## Modul Timesheet Freelance — Tahap 1: Desain Skema Database, Relasi Multi-Reviewer, RBAC, & Kueri Dasar
+- **Status:** Selesai (Completed)
+- **Capaian & Perubahan**:
+  1. **Desain Skema Database Prisma ([`hris.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/hris.prisma))**:
+     - Menambahkan enum `TimesheetStatus` (`PENDING`, `IN_REVIEW`, `APPROVED`, `REVISION_REQUESTED`, `REJECTED`) dan `ReviewerStatus` (`PENDING`, `IN_REVIEW`, `APPROVED`, `REJECTED`).
+     - Membuat model `TimesheetSubmission`: mencakup informasi periode bulan/tahun, judul tugas, URL Google Spreadsheet, total jam kerja, deskripsi, relasi ke karyawan pengaju, dan tautan periode payroll.
+     - Membuat model `TimesheetReviewer`: mendukung skenario **Multi-Lead / Multi-Reviewer** (1 pengajuan timesheet bisa meminta persetujuan dari $> 1$ atasan proyek yang berbeda). Menyimpan status review individual, catatan atasan, dan riwayat waktu aksi.
+     - Migrasi Prisma `20261001050248_add_timesheet_models` diaplikasikan ke database PostgreSQL lokal dan Prisma Client ter-regenerasi.
+  2. **RBAC & Matriks Peran ([`permissions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/permissions.ts) & [`roles.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/roles.ts))**:
+     - Mendaftarkan permission timesheet: `hris.timesheet.read:own`, `hris.timesheet.create:own`, `hris.timesheet.review:team`, `hris.timesheet.read:all`.
+     - Memetakan permission ke peran `staff` (pengajuan & riwayat mandiri), `manager` (review tim), `admin_hr` (rekap seluruh organisasi), dan `super_admin`.
+     - Seeding idempotent berhasil mengeksekusi 61 permission di PostgreSQL.
+  3. **Kueri Dasar & Validasi Payroll ([`timesheet.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/timesheet.queries.ts))**:
+     - `getTimesheetSubmissionsByEmployee`: riwayat & ringkasan jam kerja staf.
+     - `getTimesheetSubmissionsForReviewer`: antrean timesheet tim yang ditugaskan ke atasan tertentu.
+     - `getTimesheetSubmissionDetail`: detail pengajuan beserta daftar atasan dan status persetujuannya.
+     - `getEligibleReviewers`: daftar atasan/lead yang berhak dipilih sebagai reviewer.
+     - `getTimesheetValidationForPayroll`: validasi *strict blocker* sebelum kalkulasi payroll, mengidentifikasi pegawai PKWT per jam yang timesheet-nya belum di-ACC beserta daftar nama atasan penilai yang belum menyelesaikan proses.
+- **Hasil Verifikasi**:
+  - `pnpm typecheck`: 9/9 paket berhasil (0 error).
   - `pnpm --filter @pspk/hris lint`: 0 error.
-  - `pnpm test`: 47/47 pengujian lolos 100%.
+  - `pnpm test`: 47/47 unit test lolos 100%.
 
 ---
 

@@ -41,6 +41,12 @@ export const PERMISSIONS = [
   { key: "hris.payroll.read:all", module: "hris", description: "Melihat rekap payroll organisasi" },
   { key: "hris.payroll.manage:all", module: "hris", description: "Mengelola periode, perhitungan & publikasi payroll" },
 
+  // --- HRIS: Timesheet (Freelance / PKWT Per Jam) ---
+  { key: "hris.timesheet.read:own", module: "hris", description: "Melihat riwayat pengajuan timesheet sendiri" },
+  { key: "hris.timesheet.create:own", module: "hris", description: "Mengajukan timesheet jam kerja freelance" },
+  { key: "hris.timesheet.review:team", module: "hris", description: "Memeriksa dan menyetujui timesheet tim" },
+  { key: "hris.timesheet.read:all", module: "hris", description: "Melihat seluruh rekap pengajuan timesheet" },
+
   // --- HRIS: Performance ---
   { key: "hris.performance.read:own", module: "hris", description: "Melihat sasaran & hasil kinerja sendiri" },
   { key: "hris.performance.read:team", module: "hris", description: "Melihat sasaran & kinerja tim" },
