@@ -11,6 +11,10 @@ export type GetEmployeesParams = {
   pageSize?: number;
   sortField?: "fullName" | "employeeNo" | "joinDate" | "createdAt";
   sortOrder?: "asc" | "desc";
+  // Filter khusus skop tim (Manajer / Lead)
+  teamManagerId?: string;
+  managerDepartmentId?: string;
+  excludeEmployeeId?: string;
 };
 
 export async function getEmployeesDirectory(params: GetEmployeesParams) {
@@ -24,55 +28,82 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
     pageSize = 10,
     sortField = "createdAt",
     sortOrder = "desc",
+    teamManagerId,
+    managerDepartmentId,
+    excludeEmployeeId,
   } = params;
 
   const now = new Date();
   const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  // Build where clause
-  const where: Prisma.EmployeeWhereInput = {
-    deletedAt: null,
-  };
+  // Build where clause using AND array to avoid OR collisions
+  const andConditions: Prisma.EmployeeWhereInput[] = [{ deletedAt: null }];
+
+  if (excludeEmployeeId) {
+    andConditions.push({ id: { not: excludeEmployeeId } });
+  }
+
+  // Filter scope tim (karyawan bawahan langsung atasan ATAU yang berada di divisi yang dipimpin)
+  if (teamManagerId || managerDepartmentId) {
+    const teamOr: Prisma.EmployeeWhereInput[] = [];
+    if (teamManagerId) {
+      teamOr.push({ managerId: teamManagerId });
+    }
+    if (managerDepartmentId) {
+      teamOr.push({ currentDepartmentId: managerDepartmentId });
+    }
+    andConditions.push({ OR: teamOr });
+  }
 
   if (search && search.trim() !== "") {
     const q = search.trim();
-    where.OR = [
-      { fullName: { contains: q, mode: "insensitive" } },
-      { employeeNo: { contains: q, mode: "insensitive" } },
-      { workEmail: { contains: q, mode: "insensitive" } },
-      { nickname: { contains: q, mode: "insensitive" } },
-    ];
+    andConditions.push({
+      OR: [
+        { fullName: { contains: q, mode: "insensitive" } },
+        { employeeNo: { contains: q, mode: "insensitive" } },
+        { workEmail: { contains: q, mode: "insensitive" } },
+        { nickname: { contains: q, mode: "insensitive" } },
+      ],
+    });
   }
 
   if (departmentId && departmentId !== "ALL") {
-    where.currentDepartmentId = departmentId;
+    andConditions.push({ currentDepartmentId: departmentId });
   }
 
   if (status && status !== "ALL") {
-    where.status = status as EmployeeStatus;
+    andConditions.push({ status: status as EmployeeStatus });
   }
 
   if (type && type !== "ALL") {
-    where.contracts = {
-      some: {
-        type: type as EmploymentType,
-        status: "ACTIVE",
+    andConditions.push({
+      contracts: {
+        some: {
+          type: type as EmploymentType,
+          status: "ACTIVE",
+        },
       },
-    };
+    });
   }
 
   if (expiringSoonOnly) {
-    where.contracts = {
-      some: {
-        type: "FIXED_TERM",
-        status: "ACTIVE",
-        endDate: {
-          gte: now,
-          lte: thirtyDaysFromNow,
+    andConditions.push({
+      contracts: {
+        some: {
+          type: "FIXED_TERM",
+          status: "ACTIVE",
+          endDate: {
+            gte: now,
+            lte: thirtyDaysFromNow,
+          },
         },
       },
-    };
+    });
   }
+
+  const where: Prisma.EmployeeWhereInput = {
+    AND: andConditions,
+  };
 
   // Count total matching
   const total = await prisma.employee.count({ where });
@@ -105,10 +136,34 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
     },
   });
 
-  // Calculate stats
+  // Base scope conditions for statistics (scoped to team if manager, or all active)
+  const baseStatsAnd: Prisma.EmployeeWhereInput[] = [{ deletedAt: null }];
+  if (excludeEmployeeId) {
+    baseStatsAnd.push({ id: { not: excludeEmployeeId } });
+  }
+  if (teamManagerId || managerDepartmentId) {
+    const teamOr: Prisma.EmployeeWhereInput[] = [];
+    if (teamManagerId) teamOr.push({ managerId: teamManagerId });
+    if (managerDepartmentId) teamOr.push({ currentDepartmentId: managerDepartmentId });
+    baseStatsAnd.push({ OR: teamOr });
+  }
+
+  const baseStatsWhere: Prisma.EmployeeWhereInput = {
+    AND: baseStatsAnd,
+  };
+
+  // Calculate stats respecting the team scope
   const [totalActive, totalProbation, totalContractsExpiring] = await Promise.all([
-    prisma.employee.count({ where: { status: "ACTIVE", deletedAt: null } }),
-    prisma.employee.count({ where: { status: "PROBATION", deletedAt: null } }),
+    prisma.employee.count({
+      where: {
+        AND: [...baseStatsAnd, { status: "ACTIVE" }],
+      },
+    }),
+    prisma.employee.count({
+      where: {
+        AND: [...baseStatsAnd, { status: "PROBATION" }],
+      },
+    }),
     prisma.employmentContract.count({
       where: {
         type: "FIXED_TERM",
@@ -117,7 +172,7 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
           gte: now,
           lte: thirtyDaysFromNow,
         },
-        employee: { deletedAt: null },
+        employee: baseStatsWhere,
       },
     }),
   ]);
@@ -358,3 +413,17 @@ export async function getAssignableRoles() {
   return roles;
 }
 
+export async function getManagerTeamInfo(employeeId: string) {
+  const managerEmployee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: {
+      id: true,
+      fullName: true,
+      employeeNo: true,
+      currentDepartmentId: true,
+      currentDepartment: { select: { id: true, name: true } },
+      currentPosition: { select: { title: true } },
+    },
+  });
+  return managerEmployee;
+}
