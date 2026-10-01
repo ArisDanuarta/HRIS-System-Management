@@ -921,7 +921,29 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.
-  - `pnpm test` lolos 100%.
+---
+
+## Modul Kinerja — Tahap 1: Isolasi Skop Tim & Dasbor Kinerja Tim untuk Lead / Manajer
+- **Status:** Selesai (Completed)
+- **Capaian & Perubahan**:
+  1. **Ekstensi Query Backend Berbasis Skop Tim**:
+     - `getPerformanceOverviewStats` dan `getPerformanceReviewsByPeriod` pada [`performance.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/performance.queries.ts) kini mendukung parameter `teamManagerId`, `managerDepartmentId`, dan `excludeEmployeeId`.
+     - Statistik ringkasan (Total Pegawai, Sasaran 100%, Evaluasi Mandiri, Review Atasan, Selesai, Rata-rata Skor) serta daftar pegawai yang dievaluasi otomatis terisolasi hanya untuk anggota divisi yang dipimpin manajer.
+  2. **Resolusi Peran & Tab Navigasi Ganda di Server Component ([`/kinerja/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kinerja/page.tsx))**:
+     - Resolusi peran membedakan peran `admin`, `manager`, dan `staff` secara definitif, serta tetap mendukung pengujian peran melalui cookie preview Super Admin.
+     - Untuk peran Manajer:
+       - Default tampilan diarahkan ke **Kinerja Tim** (`?tab=team`), menampilkan dasbor monitoring dan tabel penilaian bawahan dalam divisinya.
+       - Tersedia navigasi tab **Kinerja Saya** (`?tab=mine`), memungkinkan manajer mengisi evaluasi mandiri pribadinya untuk dinilai oleh Direktur / atasan langsungnya.
+  3. **Adaptasi Header & Hak Akses Kontrol Periode**:
+     - Komponen `PerformanceHeader` menampilkan judul *"Kinerja Tim"* berserta lencana divisi manajer (mis. *Divisi Riset Kebijakan*).
+     - Tombol konfigurasi administratif tingkat organisasi (*"Buat Periode"* dan *"Tutup/Buka Periode"*) disembunyikan sepenuhnya dari pandangan manajer.
+     - Tombol *Ekspor Rekap* dan selektor periode tetap dapat digunakan oleh manajer.
+  4. **Proteksi Finalisasi & Penguncian Nilai di Detail Modal**:
+     - Pada `PerformanceDetailModal`, form finalisasi skor resmi (*FinalizeReviewForm*) disembunyikan dari manajer dan digantikan indikator status progres yang informatif. Hak finalisasi dan penguncian nilai resmi tetap eksklusif di tangan Admin HR / Super Admin.
+- **Hasil Verifikasi**:
+  - `pnpm typecheck`: 9/9 paket berhasil tanpa error.
+  - `pnpm --filter @pspk/hris lint`: 0 error.
+  - `pnpm test`: 47/47 pengujian lolos 100%.
 
 ---
 
