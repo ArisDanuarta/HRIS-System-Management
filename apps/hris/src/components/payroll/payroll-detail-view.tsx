@@ -18,6 +18,9 @@ import {
   RefreshCw,
   ChevronLeft,
   Clock,
+  FileSpreadsheet,
+  ExternalLink,
+  AlertTriangle,
 } from "lucide-react";
 import {
   calculatePayrollAction,
@@ -42,6 +45,21 @@ interface PeriodDetail {
   totalDeduction: number;
   totalNet: number;
   payslips: PayslipDetailData[];
+  timesheetValidation?: {
+    canProceed: boolean;
+    totalHourlyEmployees: number;
+    approvedTimesheetsCount: number;
+    blockers: Array<{
+      employeeId: string;
+      employeeName: string;
+      employeeNo: string;
+      submissionId?: string;
+      submissionTitle?: string;
+      totalHours?: number;
+      reason: "MISSING_TIMESHEET" | "PENDING_APPROVAL";
+      pendingReviewers: string[];
+    }>;
+  };
 }
 
 interface PayrollDetailViewProps {
@@ -345,6 +363,90 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
         </div>
       </div>
 
+      {/* Widget Validasi Timesheet Freelance */}
+      {period.timesheetValidation && period.timesheetValidation.totalHourlyEmployees > 0 && (
+        <div
+          className={`p-4 rounded-xl border ${
+            period.timesheetValidation.canProceed
+              ? "bg-emerald-50/70 border-emerald-200 text-emerald-900"
+              : "bg-amber-50/80 border-amber-200 text-amber-900"
+          }`}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${
+                  period.timesheetValidation.canProceed
+                    ? "bg-emerald-100 border-emerald-300 text-emerald-700"
+                    : "bg-amber-100 border-amber-300 text-amber-700"
+                }`}
+              >
+                {period.timesheetValidation.canProceed ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : (
+                  <AlertTriangle className="w-5 h-5" />
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold uppercase tracking-wider">
+                    {period.timesheetValidation.canProceed
+                      ? "Timesheet Freelance Terverifikasi (ACC Lengkap)"
+                      : "Peringatan Timesheet Freelance (Belum Selesai ACC)"}
+                  </h3>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      period.timesheetValidation.canProceed
+                        ? "bg-emerald-200 text-emerald-800"
+                        : "bg-amber-200 text-amber-900"
+                    }`}
+                  >
+                    {period.timesheetValidation.approvedTimesheetsCount} /{" "}
+                    {period.timesheetValidation.totalHourlyEmployees} ACC
+                  </span>
+                </div>
+                <p className="text-xs mt-0.5 text-slate-700">
+                  {period.timesheetValidation.canProceed
+                    ? `Seluruh ${period.timesheetValidation.totalHourlyEmployees} staf freelance per jam telah disetujui lembar waktunya oleh atasan proyek. Siap untuk kalkulasi payroll.`
+                    : `Terdapat ${period.timesheetValidation.blockers.length} staf freelance yang timesheet-nya belum disetujui oleh atasan proyek. Kalkulasi payroll massal akan ditahan sampai seluruh atasan memberikan ACC.`}
+                </p>
+
+                {/* Rincian Blocker jika belum selesai */}
+                {!period.timesheetValidation.canProceed && (
+                  <div className="mt-2.5 space-y-1">
+                    {period.timesheetValidation.blockers.map((b) => (
+                      <div
+                        key={b.employeeId}
+                        className="text-[11px] bg-white/80 border border-amber-200 px-2.5 py-1.5 rounded-lg flex items-center justify-between gap-2"
+                      >
+                        <span className="font-semibold text-slate-800">
+                          {b.employeeName} ({b.employeeNo})
+                        </span>
+                        <span className="text-amber-800">
+                          {b.reason === "MISSING_TIMESHEET"
+                            ? "Belum mengumpulkan timesheet bulan ini"
+                            : `Menunggu ACC: ${b.pendingReviewers.join(", ")}`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2">
+              <Link
+                href="/timesheet/persetujuan"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
+              >
+                <span>Halaman Persetujuan</span>
+                <ExternalLink className="w-3 h-3 text-slate-500" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Metrik Rekapitulasi Periode */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
@@ -483,16 +585,30 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                               {p.totalHours || 0} jam @ {formatRupiah(p.hourlyRate || p.contract?.hourlyRate || 30000)}
                             </span>
                             {p.timesheetKey && (
-                              <a
-                                href={`/api/documents/${p.timesheetKey}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                title="Unduh Berkas Bukti Timesheet Acc"
-                                className="inline-flex items-center gap-0.5 text-blue-600 hover:text-blue-800 font-semibold underline"
-                              >
-                                <Download className="w-2.5 h-2.5" />
-                                <span>File Timesheet</span>
-                              </a>
+                              p.timesheetKey.startsWith("http://") || p.timesheetKey.startsWith("https://") ? (
+                                <a
+                                  href={p.timesheetKey}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  title="Buka Dokumen Google Spreadsheet Timesheet"
+                                  className="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 font-semibold underline"
+                                >
+                                  <FileSpreadsheet className="w-2.5 h-2.5 text-emerald-600" />
+                                  <span>Google Sheet</span>
+                                  <ExternalLink className="w-2 h-2" />
+                                </a>
+                              ) : (
+                                <a
+                                  href={`/api/documents/${p.timesheetKey}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  title="Unduh Berkas Bukti Timesheet Acc"
+                                  className="inline-flex items-center gap-0.5 text-blue-600 hover:text-blue-800 font-semibold underline"
+                                >
+                                  <Download className="w-2.5 h-2.5" />
+                                  <span>File Timesheet</span>
+                                </a>
+                              )
                             )}
                           </div>
                         )}

@@ -1056,6 +1056,35 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Timesheet Freelance — Tahap 4: Integrasi Validasi Blocker Payroll HR & Injeksi Jam Kerja ke Payslip
+- **Status:** Selesai (Completed)
+- **Capaian & Fitur yang Diterapkan**:
+  1. **Strict Blocker Validasi Payroll ([`payroll.service.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/payroll.service.ts))**:
+     - Memanggil `getTimesheetValidationForPayroll` sebelum siklus kalkulasi dimulai.
+     - Jika terdapat staf freelance per jam (`wageType === "HOURLY"`) yang belum mengumpulkan timesheet atau timesheet-nya belum disetujui (ACC) oleh seluruh atasan proyeknya, kalkulasi otomatis ditangguhkan.
+     - Sistem melempar pesan error informatif yang merinci nama pegawai, NIP, serta daftar nama atasan penilai yang belum menyelesaikan proses ACC.
+  2. **Injeksi Jam Kerja & Tautan Periode Penggajian Atomik**:
+     - Sistem mengambil timesheet resmi berstatus `APPROVED` pada bulan dan tahun periode terkait.
+     - Nilai jam kerja (`totalHours`) otomatis diinjeksikan ke `Payslip.totalHours`.
+     - Tarif per jam (`hourlyRate`) diambil dari kontrak kerja aktif.
+     - Upah jam kerja dihitung secara presisi: `Math.round(totalHours * hourlyRate)` dan dimasukkan ke baris slip gaji (`PayslipLine`) bertipe `EARNING`: *"Upah Jam Kerja Timesheet (X jam @ Rp Y)"*.
+     - ID Periode Payroll otomatis ditautkan ke `TimesheetSubmission.payrollPeriodId`.
+     - Link dokumen Google Spreadsheet timesheet resmi disimpan pada kolom `Payslip.timesheetKey`.
+  3. **Antarmuka Detail Penggajian HR ([`payroll-detail-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/payroll-detail-view.tsx))**:
+     - Menambahkan **Widget Validasi Timesheet Freelance**:
+       - Status Terverifikasi (Hijau): Menampilkan lencana ACC lengkap jika seluruh staf freelance telah disetujui.
+       - Status Peringatan Blocker (Kuning/Amber): Menampilkan daftar staf yang belum mengumpulkan atau masih tertahan di atasan penilai tertentu, lengkap dengan tombol langsung ke *"Halaman Persetujuan"*.
+     - Pada baris slip gaji staf per jam, tautan `timesheetKey` kini mendeteksi tautan Google Spreadsheet eksternal dan menampilkan tombol langsung *"Buka Google Sheet"*.
+  4. **Slip Gaji Cetak & Resepsi Pegawai ([`payslip-printable-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/slip-gaji/payslip-printable-modal.tsx))**:
+     - Slip gaji resmi menampilkan rincian total jam disetujui, tarif kontrak per jam, dan komponen pendapatan berbasis timesheet.
+- **Hasil Verifikasi**:
+  - `pnpm --filter @pspk/hris typecheck`: 0 error.
+  - `pnpm --filter @pspk/hris lint`: 0 error.
+  - `pnpm test`: 47/47 unit test lolos 100%.
+  - `pnpm --filter @pspk/hris build`: Berhasil 100% tanpa error.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
