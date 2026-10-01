@@ -899,6 +899,32 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Proteksi Detail Karyawan & Kerahasiaan Finansial (`/karyawan/[id]`) — Tahap 2 (Opsional Selesai)
+- **Status:** Selesai (Completed ✅)
+- **Implementasi:**
+  1. **Proteksi Otorisasi Server di `/karyawan/[id]`**:
+     - Memverifikasi sesi dan hak akses di Server Component `EmployeeDetailPage`.
+     - Untuk peran Manajer: membatasi akses hanya untuk melihat profil dirinya sendiri (`isSelf`), bawahan langsung (`isDirectReport`), atau pegawai di divisi yang dipimpinnya (`isSameDepartment` via `managerTeamInfo.currentDepartmentId`).
+     - Jika Manajer mencoba mengakses ID pegawai di luar timnya melalui URL, server otomatis me-redirect ke `/karyawan?view=team`.
+     - Untuk peran Staff biasa: jika mencoba mengakses halaman kelola ID pegawai lain, otomatis dialihkan ke `/profil` atau `/dashboard`.
+  2. **Proteksi Tab Data Sensitif & Akun**:
+     - Tab **"Data Sensitif & Bank"** (NIK, NPWP, Nomor Rekening Bank) dan tab **"Akun & Hak Akses"** disembunyikan sepenuhnya dari navigasi tab Manajer.
+     - Server melakukan sanitasi query tab (`effectiveTab`): jika Manajer memaksakan parameter `?tab=sensitif` atau `?tab=akun` di URL, server otomatis mengalihkannya kembali ke tab `"biodata"`.
+  3. **Proteksi Nominal Gaji Pokok pada Tab Kontrak Kerja**:
+     - Kolom **"Gaji Pokok"** pada tabel riwayat kontrak kerja hanya dirender untuk Admin HR / Super Admin (`isHrOrAdmin`).
+     - Manajer tetap dapat melihat tipe kontrak (PKWT, PKWTT, dll), tanggal mulai, tanggal berakhir, dan status aktif, namun nominal kompensasi finansial tidak dikirim ke client HTML.
+  4. **Proteksi Aksi Administratif Organisasi**:
+     - Tombol **"Ubah Profil"** pada kartu profil utama disembunyikan untuk peran Manajer (hanya tampil untuk Admin HR / Super Admin).
+     - Rute formulir edit [`/karyawan/[id]/ubah`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/ubah/page.tsx) diproteksi di sisi server: pengguna non-HR/Admin otomatis di-redirect kembali ke profil pegawai.
+     - Tombol **"Mutasi / Promosi Jabatan"** pada kartu riwayat jabatan disembunyikan untuk peran Manajer (`CareerHistoryCard` menerima properti `isHrOrAdmin`).
+     - Tombol tautan kembali (*Back Link*) disesuaikan: untuk Manajer bertuliskan *"Kembali ke Tim Saya"* dan mengarah ke `/karyawan?view=team`.
+- **Hasil Verifikasi**:
+  - `pnpm typecheck` lolos 9/9 package (0 error).
+  - `pnpm lint` lolos dengan 0 error.
+  - `pnpm test` lolos 100%.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

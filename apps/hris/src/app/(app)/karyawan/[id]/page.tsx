@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { getSession, getUserProfile } from "@pspk/auth";
 import {
@@ -20,6 +20,7 @@ import {
   getEmployeeById,
   getOrgStructureData,
   getManagersList,
+  getManagerTeamInfo,
 } from "@/server/queries/employee.queries";
 import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-badge";
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
@@ -42,11 +43,21 @@ export default async function EmployeeDetailPage({
 
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
-  const actorProfile = session?.user?.id ? await getUserProfile(session.user.id) : null;
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+
+  const actorProfile = await getUserProfile(session.user.id);
   const actorRoleKeys = actorProfile?.roles.map((r) => r.role.key) || [];
   const isSuperAdmin = actorRoleKeys.includes("super_admin");
   const isAdminIt = actorRoleKeys.includes("admin_it");
   const isAdminHr = actorRoleKeys.includes("admin_hr");
+  const isManager = actorRoleKeys.includes("manager");
+  const isHrOrAdmin = isSuperAdmin || isAdminHr;
+
+  const currentActorEmployee = actorProfile?.employee || null;
+  const managerTeamInfo =
+    isManager && currentActorEmployee ? await getManagerTeamInfo(currentActorEmployee.id) : null;
 
   const [employee, departments, managers] = await Promise.all([
     getEmployeeById(id),
@@ -58,6 +69,32 @@ export default async function EmployeeDetailPage({
     notFound();
   }
 
+  // Proteksi Akses Berbasis Peran:
+  // 1. Super Admin, Admin HR, dan Admin IT memiliki akses institusi penuh
+  // 2. Manajer hanya boleh melihat profil dirinya sendiri, bawahan langsungnya, atau pegawai di divisi yang dipimpinnya
+  if (isManager && !isHrOrAdmin && !isAdminIt) {
+    const isSelf = currentActorEmployee?.id === employee.id;
+    const isDirectReport = employee.managerId === currentActorEmployee?.id;
+    const isSameDepartment =
+      Boolean(managerTeamInfo?.currentDepartmentId) &&
+      employee.currentDepartmentId === managerTeamInfo?.currentDepartmentId;
+
+    if (!isSelf && !isDirectReport && !isSameDepartment) {
+      redirect("/karyawan?view=team");
+    }
+  } else if (!isSuperAdmin && !isAdminHr && !isAdminIt && !isManager) {
+    // Pengguna Staff biasa diarahkan ke profil sendiri jika melihat diri sendiri, atau ke dashboard
+    if (currentActorEmployee?.id === employee.id) {
+      redirect("/profil");
+    } else {
+      redirect("/dashboard");
+    }
+  }
+
+  // Sanitasi Tab: Tab data sensitif dan akun hanya diizinkan untuk Admin HR / Super Admin
+  const effectiveTab =
+    !isHrOrAdmin && (tab === "sensitif" || tab === "akun") ? "biodata" : tab;
+
   const initial = employee.fullName.charAt(0).toUpperCase();
 
   const activeContract = employee.contracts.find((c) => c.status === "ACTIVE") || null;
@@ -66,11 +103,11 @@ export default async function EmployeeDetailPage({
     <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-16">
       {/* Back Link */}
       <Link
-        href="/karyawan"
+        href={isManager && !isHrOrAdmin ? "/karyawan?view=team" : "/karyawan"}
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors w-fit"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
-        <span>Kembali ke Direktori Pegawai</span>
+        <span>{isManager && !isHrOrAdmin ? "Kembali ke Tim Saya" : "Kembali ke Direktori Pegawai"}</span>
       </Link>
 
       {/* Profile Header Card */}
@@ -116,15 +153,17 @@ export default async function EmployeeDetailPage({
         </div>
 
         {/* Action Button */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href={`/karyawan/${employee.id}/ubah`}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
-          >
-            <Edit className="w-3.5 h-3.5" />
-            <span>Ubah Profil</span>
-          </Link>
-        </div>
+        {isHrOrAdmin && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Link
+              href={`/karyawan/${employee.id}/ubah`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
+            >
+              <Edit className="w-3.5 h-3.5" />
+              <span>Ubah Profil</span>
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Tabs Navigation */}
@@ -132,7 +171,7 @@ export default async function EmployeeDetailPage({
         <Link
           href={`/karyawan/${employee.id}?tab=biodata`}
           className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            tab === "biodata"
+            effectiveTab === "biodata"
               ? "border-[#102E50] text-[#102E50] bg-white"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
@@ -141,22 +180,24 @@ export default async function EmployeeDetailPage({
           <span>Biodata & Kontak</span>
         </Link>
 
-        <Link
-          href={`/karyawan/${employee.id}?tab=sensitif`}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            tab === "sensitif"
-              ? "border-[#102E50] text-[#102E50] bg-white"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          <Shield className="w-4 h-4 text-amber-600" />
-          <span>Data Sensitif & Bank</span>
-        </Link>
+        {isHrOrAdmin && (
+          <Link
+            href={`/karyawan/${employee.id}?tab=sensitif`}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+              effectiveTab === "sensitif"
+                ? "border-[#102E50] text-[#102E50] bg-white"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Shield className="w-4 h-4 text-amber-600" />
+            <span>Data Sensitif & Bank</span>
+          </Link>
+        )}
 
         <Link
           href={`/karyawan/${employee.id}?tab=kontrak`}
           className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            tab === "kontrak"
+            effectiveTab === "kontrak"
               ? "border-[#102E50] text-[#102E50] bg-white"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
@@ -168,7 +209,7 @@ export default async function EmployeeDetailPage({
         <Link
           href={`/karyawan/${employee.id}?tab=jabatan`}
           className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            tab === "jabatan"
+            effectiveTab === "jabatan"
               ? "border-[#102E50] text-[#102E50] bg-white"
               : "border-transparent text-slate-500 hover:text-slate-800"
           }`}
@@ -177,26 +218,28 @@ export default async function EmployeeDetailPage({
           <span>Jabatan & Tim</span>
         </Link>
 
-        <Link
-          href={`/karyawan/${employee.id}?tab=akun`}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-            tab === "akun"
-              ? "border-[#102E50] text-[#102E50] bg-white"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          <KeyRound className="w-4 h-4 text-[#F2AF3E]" />
-          <span>Akun & Hak Akses</span>
-          {employee.user ? (
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Akun aktif" />
-          ) : (
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Belum memiliki akun" />
-          )}
-        </Link>
+        {isHrOrAdmin && (
+          <Link
+            href={`/karyawan/${employee.id}?tab=akun`}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+              effectiveTab === "akun"
+                ? "border-[#102E50] text-[#102E50] bg-white"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <KeyRound className="w-4 h-4 text-[#F2AF3E]" />
+            <span>Akun & Hak Akses</span>
+            {employee.user ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Akun aktif" />
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Belum memiliki akun" />
+            )}
+          </Link>
+        )}
       </div>
 
       {/* TAB 1: BIODATA & KONTAK */}
-      {tab === "biodata" && (
+      {effectiveTab === "biodata" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card 1: Data Pribadi */}
           <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
@@ -306,7 +349,7 @@ export default async function EmployeeDetailPage({
       )}
 
       {/* TAB 2: DATA SENSITIF & BANK */}
-      {tab === "sensitif" && (
+      {isHrOrAdmin && effectiveTab === "sensitif" && (
         <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col gap-5">
           <div className="flex flex-col">
             <h3 className="font-bold text-base text-[#102E50] font-heading">
@@ -373,7 +416,7 @@ export default async function EmployeeDetailPage({
       )}
 
       {/* TAB 3: KONTRAK KERJA */}
-      {tab === "kontrak" && (
+      {effectiveTab === "kontrak" && (
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
           <div className="p-5 border-b border-slate-200 flex items-center justify-between">
             <div>
@@ -381,7 +424,9 @@ export default async function EmployeeDetailPage({
                 Riwayat Kontrak Kerja
               </h3>
               <p className="text-xs text-slate-500">
-                Daftar perjanjian ikatan kerja, masa berlaku, dan nilai kompensasi pokok
+                {isHrOrAdmin
+                  ? "Daftar perjanjian ikatan kerja, masa berlaku, dan nilai kompensasi pokok"
+                  : "Daftar perjanjian ikatan kerja dan masa berlaku kontrak"}
               </p>
             </div>
           </div>
@@ -393,7 +438,7 @@ export default async function EmployeeDetailPage({
                   <th className="py-3 px-4">Tipe Kontrak</th>
                   <th className="py-3 px-4">Tanggal Mulai</th>
                   <th className="py-3 px-4">Tanggal Berakhir</th>
-                  <th className="py-3 px-4">Gaji Pokok</th>
+                  {isHrOrAdmin && <th className="py-3 px-4">Gaji Pokok</th>}
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Catatan</th>
                 </tr>
@@ -401,7 +446,7 @@ export default async function EmployeeDetailPage({
               <tbody className="divide-y divide-slate-100">
                 {employee.contracts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 italic">
+                    <td colSpan={isHrOrAdmin ? 6 : 5} className="py-8 text-center text-slate-400 italic">
                       Belum ada riwayat kontrak kerja
                     </td>
                   </tr>
@@ -415,9 +460,11 @@ export default async function EmployeeDetailPage({
                       <td className="py-3 px-4 font-mono">
                         {contract.endDate ? formatDate(contract.endDate) : "Tidak Terbatas (Tetap)"}
                       </td>
-                      <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                        {contract.baseSalary ? formatRupiah(contract.baseSalary) : "-"}
-                      </td>
+                      {isHrOrAdmin && (
+                        <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                          {contract.baseSalary ? formatRupiah(contract.baseSalary) : "-"}
+                        </td>
+                      )}
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -442,7 +489,7 @@ export default async function EmployeeDetailPage({
       )}
 
       {/* TAB 4: JABATAN & TIM */}
-      {tab === "jabatan" && (
+      {effectiveTab === "jabatan" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Card Atasan & Bawahan */}
           <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
@@ -527,12 +574,13 @@ export default async function EmployeeDetailPage({
             histories={employee.histories}
             departments={departments}
             managers={managers}
+            isHrOrAdmin={isHrOrAdmin}
           />
         </div>
       )}
 
       {/* TAB 5: AKUN & HAK AKSES */}
-      {tab === "akun" && (
+      {isHrOrAdmin && effectiveTab === "akun" && (
         <EmployeeAccountRoleCard
           employeeId={employee.id}
           fullName={employee.fullName}

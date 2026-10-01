@@ -1,7 +1,9 @@
 import React from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Edit } from "lucide-react";
+import { getSession, getUserProfile } from "@pspk/auth";
 import {
   getEmployeeById,
   getOrgStructureData,
@@ -18,6 +20,20 @@ interface UbahKaryawanPageProps {
 
 export default async function UbahKaryawanPage({ params }: UbahKaryawanPageProps) {
   const { id } = await params;
+
+  const reqHeaders = await headers();
+  const session = await getSession(reqHeaders);
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+
+  const userProfile = await getUserProfile(session.user.id);
+  const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
+  const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
+
+  if (!isHrOrAdmin) {
+    redirect(`/karyawan/${id}`);
+  }
 
   const [employee, departments, managers, employmentTypes] = await Promise.all([
     getEmployeeById(id),

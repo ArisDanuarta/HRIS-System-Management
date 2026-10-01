@@ -47,6 +47,7 @@ interface CareerHistoryCardProps {
     currentPosition?: { title: string } | null;
     currentDepartment?: { name: string } | null;
   }>;
+  isHrOrAdmin?: boolean;
 }
 
 export function CareerHistoryCard({
@@ -54,6 +55,7 @@ export function CareerHistoryCard({
   histories,
   departments,
   managers,
+  isHrOrAdmin = true,
 }: CareerHistoryCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
@@ -69,14 +71,16 @@ export function CareerHistoryCard({
           </h3>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs active:scale-95"
-        >
-          <ArrowRightLeft className="w-3.5 h-3.5 text-[#F2AF3E]" />
-          <span>Mutasi / Promosi Jabatan</span>
-        </button>
+        {isHrOrAdmin && (
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs active:scale-95"
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5 text-[#F2AF3E]" />
+            <span>Mutasi / Promosi Jabatan</span>
+          </button>
+        )}
       </div>
 
       {/* Timeline List */}
