@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Calendar,
   CheckCircle2,
@@ -39,6 +40,7 @@ interface StaffPerformanceViewProps {
   departmentName?: string;
   employeeNo?: string;
   selectedPeriodId?: string;
+  isManager?: boolean;
 }
 
 export function StaffPerformanceView({
@@ -49,15 +51,17 @@ export function StaffPerformanceView({
   departmentName = "Pusat Studi Pendidikan dan Kebijakan",
   employeeNo = "-",
   selectedPeriodId,
+  isManager = false,
 }: StaffPerformanceViewProps) {
   const router = useRouter();
 
   const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const val = e.target.value;
+    const tabParam = isManager ? "&tab=mine" : "";
     if (val) {
-      router.push(`/kinerja?periodId=${val}`);
+      router.push(`/kinerja?periodId=${val}${tabParam}`);
     } else {
-      router.push("/kinerja");
+      router.push(isManager ? "/kinerja?tab=mine" : "/kinerja");
     }
   };
 
@@ -108,6 +112,42 @@ export function StaffPerformanceView({
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* Tab Navigation for Manager */}
+      {isManager && (
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-fit border border-slate-200/80">
+          <Link
+            href={`/kinerja?tab=team${selectedPeriodId ? `&periodId=${selectedPeriodId}` : ""}`}
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all"
+          >
+            Kinerja Tim
+          </Link>
+          <Link
+            href={`/kinerja?tab=mine${selectedPeriodId ? `&periodId=${selectedPeriodId}` : ""}`}
+            className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white text-[#102E50] shadow-xs transition-all"
+          >
+            Kinerja Saya
+          </Link>
+        </div>
+      )}
+
+      {/* Manager Personal Review Notice */}
+      {isManager && (
+        <div className="p-3.5 rounded-2xl bg-sky-50 border border-sky-200/80 text-xs text-sky-900 flex items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <UserCheck className="w-4 h-4 text-sky-600 shrink-0 mt-0.5 sm:mt-0" />
+            <span>
+              Ini adalah lembar evaluasi mandiri pribadi Anda sebagai Lead/Manajer. Evaluasi ini akan diteruskan ke Direktur/Atasan Anda.
+            </span>
+          </div>
+          <Link
+            href={`/kinerja?tab=team${selectedPeriodId ? `&periodId=${selectedPeriodId}` : ""}`}
+            className="shrink-0 font-semibold text-xs text-sky-700 hover:text-sky-900 underline"
+          >
+            Kembali ke Kinerja Tim &rarr;
+          </Link>
+        </div>
+      )}
+
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>

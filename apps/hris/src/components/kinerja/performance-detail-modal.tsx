@@ -63,6 +63,7 @@ interface PerformanceDetailModalProps {
   review: PerformanceReviewItem | null;
   onClose: () => void;
   onSuccess?: () => void;
+  isManager?: boolean;
 }
 
 interface FinalizeFormProps {
@@ -190,6 +191,7 @@ export function PerformanceDetailModal({
   review,
   onClose,
   onSuccess,
+  isManager = false,
 }: PerformanceDetailModalProps) {
   if (!isOpen || !review) return null;
 
@@ -388,11 +390,17 @@ export function PerformanceDetailModal({
               <div>
                 <h4 className="font-serif font-bold text-slate-900 text-sm flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Hasil Akhir & Penguncian Nilai (HR Lead)</span>
+                  <span>
+                    {isManager
+                      ? "Status & Validasi Nilai Kinerja"
+                      : "Hasil Akhir & Penguncian Nilai (HR Lead)"}
+                  </span>
                 </h4>
                 <p className="text-[11px] text-slate-500">
                   {isFinalized
                     ? "Nilai telah disahkan dan dikunci resmi ke dalam database kinerja organisasi."
+                    : isManager
+                    ? "Pengesahan resmi dan penguncian evaluasi akhir dilakukan oleh Divisi HR."
                     : "Admin HR dapat mengesahkan skor akhir berbobot untuk dimasukkan ke laporan resmi."}
                 </p>
               </div>
@@ -412,12 +420,25 @@ export function PerformanceDetailModal({
             </div>
 
             {!isFinalized && (
-              <FinalizeReviewForm
-                key={review.id}
-                review={review}
-                onClose={onClose}
-                onSuccess={onSuccess}
-              />
+              isManager ? (
+                <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-amber-900 text-xs flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>
+                    {review.status === "SELF_REVIEW"
+                      ? "Staf telah mengajukan evaluasi mandiri. Formulir penilaian atasan akan segera dapat diinput di tahap ini."
+                      : review.status === "MANAGER_REVIEW"
+                      ? "Penilaian atasan telah tercatat. Menunggu verifikasi komite dan pengesahan resmi oleh HR."
+                      : "Pegawai masih menyusun target dan sasaran kerja (DRAFT)."}
+                  </span>
+                </div>
+              ) : (
+                <FinalizeReviewForm
+                  key={review.id}
+                  review={review}
+                  onClose={onClose}
+                  onSuccess={onSuccess}
+                />
+              )
             )}
           </div>
         </div>

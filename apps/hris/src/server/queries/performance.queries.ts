@@ -18,6 +18,9 @@ export interface PerformanceFilter {
   departmentId?: string;
   status?: string;
   search?: string;
+  teamManagerId?: string;
+  managerDepartmentId?: string;
+  excludeEmployeeId?: string;
 }
 
 /**
@@ -103,11 +106,45 @@ export async function getActivePerformancePeriod(periodId?: string) {
 }
 
 /**
- * Menghitung ringkasan metrik statistik lembaga untuk periode tertentu
+ * Menghitung ringkasan metrik statistik lembaga atau tim untuk periode tertentu
  */
-export async function getPerformanceOverviewStats(periodId: string) {
+export async function getPerformanceOverviewStats(
+  periodId: string,
+  options?: {
+    teamManagerId?: string;
+    managerDepartmentId?: string;
+    excludeEmployeeId?: string;
+  }
+) {
+  const where: Prisma.PerformanceReviewWhereInput = {
+    periodId,
+  };
+
+  if (options?.teamManagerId || options?.managerDepartmentId || options?.excludeEmployeeId) {
+    const andConditions: Prisma.EmployeeWhereInput[] = [];
+
+    if (options.teamManagerId || options.managerDepartmentId) {
+      const teamOr: Prisma.EmployeeWhereInput[] = [];
+      if (options.teamManagerId) {
+        teamOr.push({ managerId: options.teamManagerId });
+      }
+      if (options.managerDepartmentId) {
+        teamOr.push({ currentDepartmentId: options.managerDepartmentId });
+      }
+      andConditions.push({ OR: teamOr });
+    }
+
+    if (options.excludeEmployeeId) {
+      andConditions.push({ id: { not: options.excludeEmployeeId } });
+    }
+
+    if (andConditions.length > 0) {
+      where.employee = andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
+    }
+  }
+
   const reviews = await prisma.performanceReview.findMany({
-    where: { periodId },
+    where,
     include: {
       employee: {
         select: {
@@ -158,21 +195,38 @@ export async function getPerformanceOverviewStats(periodId: string) {
  * Mengambil daftar seluruh review kinerja pegawai untuk periode tertentu
  */
 export async function getPerformanceReviewsByPeriod(periodId: string, filter?: PerformanceFilter) {
-  const { departmentId, status, search } = filter || {};
+  const { departmentId, status, search, teamManagerId, managerDepartmentId, excludeEmployeeId } = filter || {};
 
-  const employeeWhere: Prisma.EmployeeWhereInput = {};
+  const andConditions: Prisma.EmployeeWhereInput[] = [];
+
+  if (teamManagerId || managerDepartmentId) {
+    const teamOr: Prisma.EmployeeWhereInput[] = [];
+    if (teamManagerId) {
+      teamOr.push({ managerId: teamManagerId });
+    }
+    if (managerDepartmentId) {
+      teamOr.push({ currentDepartmentId: managerDepartmentId });
+    }
+    andConditions.push({ OR: teamOr });
+  }
+
+  if (excludeEmployeeId) {
+    andConditions.push({ id: { not: excludeEmployeeId } });
+  }
 
   if (departmentId && departmentId !== "ALL") {
-    employeeWhere.currentDepartmentId = departmentId;
+    andConditions.push({ currentDepartmentId: departmentId });
   }
 
   if (search && search.trim() !== "") {
     const q = search.trim();
-    employeeWhere.OR = [
-      { fullName: { contains: q, mode: "insensitive" } },
-      { employeeNo: { contains: q, mode: "insensitive" } },
-      { workEmail: { contains: q, mode: "insensitive" } },
-    ];
+    andConditions.push({
+      OR: [
+        { fullName: { contains: q, mode: "insensitive" } },
+        { employeeNo: { contains: q, mode: "insensitive" } },
+        { workEmail: { contains: q, mode: "insensitive" } },
+      ],
+    });
   }
 
   const where: Prisma.PerformanceReviewWhereInput = {
@@ -183,8 +237,8 @@ export async function getPerformanceReviewsByPeriod(periodId: string, filter?: P
     where.status = status as Prisma.EnumReviewStatusFilter;
   }
 
-  if (Object.keys(employeeWhere).length > 0) {
-    where.employee = { is: employeeWhere };
+  if (andConditions.length > 0) {
+    where.employee = andConditions.length === 1 ? andConditions[0] : { AND: andConditions };
   }
 
   const reviews = await prisma.performanceReview.findMany({

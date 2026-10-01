@@ -30,6 +30,9 @@ interface PerformanceClientWrapperProps {
   };
   reviews: PerformanceReviewItem[];
   departments: { id: string; name: string }[];
+  isManager?: boolean;
+  managerDepartmentName?: string;
+  activeTab?: "team" | "mine";
 }
 
 export function PerformanceClientWrapper({
@@ -38,11 +41,15 @@ export function PerformanceClientWrapper({
   stats,
   reviews,
   departments,
+  isManager = false,
+  managerDepartmentName,
+  activeTab = "team",
 }: PerformanceClientWrapperProps) {
   const router = useRouter();
 
   const handleSelectPeriod = (periodId: string) => {
-    router.push(`/kinerja?periodId=${periodId}`);
+    const tabParam = isManager ? `&tab=${activeTab}` : "";
+    router.push(`/kinerja?periodId=${periodId}${tabParam}`);
   };
 
   return (
@@ -52,13 +59,21 @@ export function PerformanceClientWrapper({
         periods={periods}
         activePeriod={activePeriod}
         onSelectPeriod={handleSelectPeriod}
+        isManager={isManager}
+        managerDepartmentName={managerDepartmentName}
+        activeTab={activeTab}
       />
 
       {/* Overview Stat Cards */}
       <PerformanceStatsCards stats={stats} />
 
       {/* Directory & Monitoring Table */}
-      <PerformanceTable reviews={reviews} departments={departments} />
+      <PerformanceTable
+        reviews={reviews}
+        departments={departments}
+        isManager={isManager}
+        managerDepartmentName={managerDepartmentName}
+      />
     </div>
   );
 }

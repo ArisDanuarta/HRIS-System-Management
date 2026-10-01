@@ -18,9 +18,16 @@ import {
 interface PerformanceTableProps {
   reviews: PerformanceReviewItem[];
   departments: { id: string; name: string }[];
+  isManager?: boolean;
+  managerDepartmentName?: string;
 }
 
-export function PerformanceTable({ reviews, departments }: PerformanceTableProps) {
+export function PerformanceTable({
+  reviews,
+  departments,
+  isManager = false,
+  managerDepartmentName,
+}: PerformanceTableProps) {
   const [search, setSearch] = useState("");
   const [departmentId, setDepartmentId] = useState("ALL");
   const [status, setStatus] = useState("ALL");
@@ -117,22 +124,29 @@ export function PerformanceTable({ reviews, departments }: PerformanceTableProps
         {/* Dropdown Filters */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Divisi */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              aria-label="Pilih Divisi"
-              value={departmentId}
-              onChange={(e) => setDepartmentId(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-slate-700 outline-hidden cursor-pointer"
-            >
-              <option value="ALL">Semua Divisi Riset</option>
-              {departments.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {isManager ? (
+            <div className="flex items-center gap-1.5 bg-[#102E50]/5 border border-[#102E50]/20 rounded-xl px-3 py-1.5 text-xs font-semibold text-[#102E50]">
+              <Filter className="w-3.5 h-3.5 text-[#102E50]" />
+              <span>{managerDepartmentName || "Divisi Tim"}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <Filter className="w-3.5 h-3.5 text-slate-400" />
+              <select
+                aria-label="Pilih Divisi"
+                value={departmentId}
+                onChange={(e) => setDepartmentId(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-slate-700 outline-hidden cursor-pointer"
+              >
+                <option value="ALL">Semua Divisi Riset</option>
+                {departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Status */}
           <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
@@ -294,6 +308,7 @@ export function PerformanceTable({ reviews, departments }: PerformanceTableProps
         isOpen={detailOpen}
         review={selectedReview}
         onClose={() => setDetailOpen(false)}
+        isManager={isManager}
       />
     </div>
   );
