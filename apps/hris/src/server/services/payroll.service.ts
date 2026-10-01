@@ -1,5 +1,6 @@
 import { prisma, writeAudit } from "@pspk/db";
 import { decryptField } from "@pspk/shared";
+import { getTimesheetValidationForPayroll } from "@/server/queries/timesheet.queries";
 
 export interface CalculatePayrollResult {
   totalProcessed: number;
@@ -12,7 +13,10 @@ export interface CalculatePayrollResult {
 /**
  * Logika Kalkulasi Payroll Massal untuk Satu Periode
  */
-export async function calculatePeriodPayroll(periodId: string): Promise<CalculatePayrollResult> {
+export async function calculatePeriodPayroll(
+  periodId: string,
+  options?: { allowUnapprovedTimesheet?: boolean },
+): Promise<CalculatePayrollResult> {
   const period = await prisma.payrollPeriod.findUnique({
     where: { id: periodId },
   });
@@ -25,7 +29,27 @@ export async function calculatePeriodPayroll(periodId: string): Promise<Calculat
     throw new Error("Periode penggajian telah dikunci (LOCKED) dan tidak dapat dihitung ulang.");
   }
 
-  // 1. Ambil seluruh pegawai aktif beserta kontrak dan komponen khususnya
+  // 1. Validasi Blocker Timesheet Freelance (PKWT Per Jam)
+  const timesheetValidation = await getTimesheetValidationForPayroll(period.year, period.month);
+  if (!options?.allowUnapprovedTimesheet && !timesheetValidation.canProceed) {
+    const missingList = timesheetValidation.blockers
+      .filter((b) => b.reason === "MISSING_TIMESHEET")
+      .map((b) => `${b.employeeName} (${b.employeeNo}) [Belum Mengumpulkan]`);
+
+    const pendingList = timesheetValidation.blockers
+      .filter((b) => b.reason === "PENDING_APPROVAL")
+      .map(
+        (b) =>
+          `${b.employeeName} (${b.employeeNo}) [Menunggu ACC: ${b.pendingReviewers.join(", ")}]`,
+      );
+
+    const details = [...missingList, ...pendingList].join("; ");
+    throw new Error(
+      `Kalkulasi payroll ditangguhkan: Terdapat ${timesheetValidation.blockers.length} pegawai freelance yang timesheet-nya belum di-ACC oleh atasan. Rincian: ${details}. Pastikan seluruh atasan telah menyetujui timesheet sebelum melakukan kalkulasi.`,
+    );
+  }
+
+  // 2. Ambil seluruh pegawai aktif beserta kontrak dan komponen khususnya
   const activeEmployees = await prisma.employee.findMany({
     where: {
       status: "ACTIVE",
@@ -47,7 +71,7 @@ export async function calculatePeriodPayroll(periodId: string): Promise<Calculat
     },
   });
 
-  // 2. Ambil master komponen organisasi yang aktif
+  // 3. Ambil master komponen organisasi yang aktif
   const masterComponents = await prisma.salaryComponent.findMany({
     where: { isActive: true },
   });
@@ -72,6 +96,16 @@ export async function calculatePeriodPayroll(periodId: string): Promise<Calculat
     });
     const existingTimesheetMap = new Map(existingPayslips.map((p) => [p.employeeId, p]));
 
+    // Ambil timesheet resmi berstatus APPROVED untuk bulan & tahun periode ini
+    const approvedTimesheets = await tx.timesheetSubmission.findMany({
+      where: {
+        periodYear: period.year,
+        periodMonth: period.month,
+        status: "APPROVED",
+      },
+    });
+    const approvedTimesheetMap = new Map(approvedTimesheets.map((ts) => [ts.employeeId, ts]));
+
     // Bersihkan slip lama pada periode ini
     await tx.payslip.deleteMany({
       where: {
@@ -86,12 +120,32 @@ export async function calculatePeriodPayroll(periodId: string): Promise<Calculat
       const contractHourlyRate = activeContract?.hourlyRate ? Number(activeContract.hourlyRate) : 0;
 
       const existingTimesheet = existingTimesheetMap.get(emp.id);
-      const totalHours = existingTimesheet?.totalHours ? Number(existingTimesheet.totalHours) : 0;
+      const approvedTs = approvedTimesheetMap.get(emp.id);
+
+      const totalHours = approvedTs
+        ? Number(approvedTs.totalHours)
+        : existingTimesheet?.totalHours
+        ? Number(existingTimesheet.totalHours)
+        : 0;
+
       const effectiveHourlyRate =
-        existingTimesheet?.hourlyRate && Number(existingTimesheet.hourlyRate) > 0
+        contractHourlyRate > 0
+          ? contractHourlyRate
+          : existingTimesheet?.hourlyRate && Number(existingTimesheet.hourlyRate) > 0
           ? Number(existingTimesheet.hourlyRate)
-          : contractHourlyRate;
-      const timesheetKey = existingTimesheet?.timesheetKey ?? null;
+          : 0;
+
+      const timesheetKey = approvedTs
+        ? approvedTs.spreadsheetUrl
+        : (existingTimesheet?.timesheetKey ?? null);
+
+      // Tautkan timesheet ke ID payroll period jika ada
+      if (approvedTs) {
+        await tx.timesheetSubmission.update({
+          where: { id: approvedTs.id },
+          data: { payrollPeriodId: period.id },
+        });
+      }
 
       // Kumpulkan komponen earnings & deductions
       const linesData: {

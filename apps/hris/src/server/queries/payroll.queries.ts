@@ -1,4 +1,5 @@
 import { prisma, Prisma } from "@pspk/db";
+import { getTimesheetValidationForPayroll } from "./timesheet.queries";
 
 export interface GetPayrollPeriodsFilter {
   year?: number;
@@ -168,6 +169,8 @@ export async function getPayrollPeriodById(periodId: string) {
     })),
   }));
 
+  const timesheetValidation = await getTimesheetValidationForPayroll(period.year, period.month);
+
   return {
     id: period.id,
     year: period.year,
@@ -183,6 +186,7 @@ export async function getPayrollPeriodById(periodId: string) {
     totalDeduction,
     totalNet,
     payslips: formattedPayslips,
+    timesheetValidation,
   };
 }
 

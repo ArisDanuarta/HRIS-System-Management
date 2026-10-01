@@ -141,7 +141,10 @@ export async function createPayrollPeriodAction(input: {
 /**
  * Jalankan Kalkulasi Payroll Massal
  */
-export async function calculatePayrollAction(input: { periodId: string }) {
+export async function calculatePayrollAction(input: {
+  periodId: string;
+  allowUnapprovedTimesheet?: boolean;
+}) {
   try {
     const actor = await getActorInfo();
 
@@ -152,7 +155,9 @@ export async function calculatePayrollAction(input: { periodId: string }) {
       };
     }
 
-    const result = await calculatePeriodPayroll(input.periodId);
+    const result = await calculatePeriodPayroll(input.periodId, {
+      allowUnapprovedTimesheet: input.allowUnapprovedTimesheet,
+    });
 
     // Audit Log
     await writeAudit({
