@@ -189,6 +189,31 @@ export function PayslipPrintableModal({
     }
   }, [isOpen, onClose, handlePrint]);
 
+  if (!isOpen || !payslip || !isMounted) return null;
+
+  const monthLabel = MONTH_NAMES[payslip.month] || `Bulan ${payslip.month}`;
+  const periodTitle = `${monthLabel} ${payslip.year}`;
+  const kindLabel =
+    payslip.kind === "THR"
+      ? "Tunjangan Hari Raya (THR)"
+      : "Gaji Bulanan Reguler";
+
+  const settings = payslip.institutionSettings;
+
+  const getBorderClass = (style?: string) => {
+    switch (style) {
+      case "NAVY_GOLD":
+        return "border-b-2 border-[#102E50] pb-4 relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:right-0 after:h-[2px] after:bg-[#F2AF3E]";
+      case "DOUBLE_LINE":
+        return "border-b-4 border-double border-[#102E50] pb-4";
+      case "MINIMALIST":
+        return "border-b border-slate-200 pb-4";
+      case "NAVY_SOLID":
+      default:
+        return "border-b-2 border-[#102E50] pb-4";
+    }
+  };
+
   return createPortal(
     <div id="payslip-modal-portal">
       <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
