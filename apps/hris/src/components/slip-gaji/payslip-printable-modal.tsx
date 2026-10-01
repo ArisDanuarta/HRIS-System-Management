@@ -51,127 +51,39 @@ export function PayslipPrintableModal({
   );
 
   const handlePrint = useCallback(() => {
+    // 1. Reset scroll on all containers in modal and window to prevent inverted page split
     const sheetEl = document.getElementById("printable-payslip-sheet");
-    if (!sheetEl) {
-      window.print();
-      return;
+    if (sheetEl) sheetEl.scrollTop = 0;
+    const portal = document.getElementById("payslip-modal-portal");
+    if (portal) {
+      portal.querySelectorAll<HTMLElement>("*").forEach((el) => {
+        if (el.scrollTop > 0) el.scrollTop = 0;
+      });
     }
+    window.scrollTo(0, 0);
 
-    // Hapus iframe cetak sebelumnya jika ada
-    const existingIframe = document.getElementById("payslip-print-iframe");
-    if (existingIframe) {
-      existingIframe.remove();
-    }
-
-    const iframe = document.createElement("iframe");
-    iframe.id = "payslip-print-iframe";
-    iframe.style.position = "fixed";
-    iframe.style.right = "0";
-    iframe.style.bottom = "0";
-    iframe.style.width = "0";
-    iframe.style.height = "0";
-    iframe.style.border = "none";
-    iframe.style.visibility = "hidden";
-    document.body.appendChild(iframe);
-
-    const iframeDoc = iframe.contentWindow?.document;
-    if (!iframeDoc) {
-      window.print();
-      return;
-    }
-
-    // Salin seluruh stylesheet dari dokumen utama agar Tailwind & brand font identik
-    const styles = Array.from(
-      document.querySelectorAll("link[rel='stylesheet'], style"),
-    )
-      .map((el) => el.outerHTML)
-      .join("\n");
-
-    const employeeName = payslip?.employee.fullName || "Karyawan";
-
-    iframeDoc.open();
-    iframeDoc.write(`
-      <!DOCTYPE html>
-      <html lang="id">
-        <head>
-          <meta charset="utf-8" />
-          <title>Slip Gaji — ${employeeName}</title>
-          ${styles}
-          <style>
-            @page {
-              size: A4 portrait;
-              margin: 8mm 10mm;
-            }
-            *, *::before, *::after {
-              box-sizing: border-box;
-            }
-            html, body {
-              margin: 0 !important;
-              padding: 0 !important;
-              background: #ffffff !important;
-              color: #121c2a !important;
-              width: 100% !important;
-              height: auto !important;
-              overflow: visible !important;
-              font-family: var(--font-rubik), ui-sans-serif, system-ui, sans-serif !important;
-            }
-            #print-container {
-              width: 100% !important;
-              max-width: 100% !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              background: #ffffff !important;
-            }
-            #printable-payslip-sheet {
-              display: block !important;
-              position: static !important;
-              width: 100% !important;
-              max-width: 100% !important;
-              max-height: none !important;
-              height: auto !important;
-              overflow: visible !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              border: none !important;
-              box-shadow: none !important;
-              background: #ffffff !important;
-              color: #121c2a !important;
-              font-size: 11px !important;
-              line-height: 1.35 !important;
-              print-color-adjust: exact !important;
-              -webkit-print-color-adjust: exact !important;
-            }
-            #printable-payslip-sheet > * + * {
-              margin-top: 8px !important;
-              margin-bottom: 0 !important;
-            }
-            #printable-payslip-sheet * {
-              print-color-adjust: exact !important;
-              -webkit-print-color-adjust: exact !important;
-            }
-            .no-print {
-              display: none !important;
-            }
-          </style>
-        </head>
-        <body>
-          <div id="print-container">
-            ${sheetEl.outerHTML}
-          </div>
-        </body>
-      </html>
-    `);
-    iframeDoc.close();
-
+    // 2. Trigger native window.print()
     setTimeout(() => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-    }, 200);
-  }, [payslip]);
+      window.print();
+    }, 50);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add("payslip-modal-open");
+
+      const handleBeforePrint = () => {
+        const sheetEl = document.getElementById("printable-payslip-sheet");
+        if (sheetEl) sheetEl.scrollTop = 0;
+        const portal = document.getElementById("payslip-modal-portal");
+        if (portal) {
+          portal.querySelectorAll<HTMLElement>("*").forEach((el) => {
+            if (el.scrollTop > 0) el.scrollTop = 0;
+          });
+        }
+        window.scrollTo(0, 0);
+      };
+
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === "Escape") onClose();
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "p") {
@@ -179,9 +91,13 @@ export function PayslipPrintableModal({
           handlePrint();
         }
       };
+
+      window.addEventListener("beforeprint", handleBeforePrint);
       window.addEventListener("keydown", handleKeyDown);
+
       return () => {
         document.body.classList.remove("payslip-modal-open");
+        window.removeEventListener("beforeprint", handleBeforePrint);
         window.removeEventListener("keydown", handleKeyDown);
       };
     } else {
@@ -269,7 +185,7 @@ export function PayslipPrintableModal({
         >
           {/* PSPK Letterhead / Kop Surat Dinamis */}
           {settings?.headerBannerUrl ? (
-            <div className="relative w-full h-20 sm:h-24 rounded-xl overflow-hidden border border-slate-200 mb-4">
+            <div className="payslip-header relative w-full h-20 sm:h-24 rounded-xl overflow-hidden border border-slate-200 mb-4">
               <Image
                 src={settings.headerBannerUrl}
                 alt="Banner Kop Surat Lembaga"
@@ -279,7 +195,7 @@ export function PayslipPrintableModal({
               />
             </div>
           ) : (
-            <div className={`flex items-start justify-between ${getBorderClass(settings?.borderStyle)}`}>
+            <div className={`payslip-header flex items-start justify-between ${getBorderClass(settings?.borderStyle)}`}>
               <div className="flex items-center gap-3">
                 {settings?.logoUrl ? (
                   <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shadow-xs shrink-0 relative overflow-hidden">
@@ -324,7 +240,7 @@ export function PayslipPrintableModal({
           )}
 
           {/* Title Banner */}
-          <div className="text-center py-2 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="payslip-title-banner text-center py-2 bg-slate-50 rounded-lg border border-slate-200">
             <h2 className="text-sm font-bold text-[#102E50] font-serif uppercase tracking-wider">
               Slip Gaji Karyawan — {periodTitle}
             </h2>
@@ -334,7 +250,7 @@ export function PayslipPrintableModal({
           </div>
 
           {/* Employee & Bank Info Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#f8fafd] p-4 rounded-xl border border-[#dee9fc]">
+          <div className="payslip-info-grid grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#f8fafd] p-4 rounded-xl border border-[#dee9fc]">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-slate-500 font-medium">Nama Karyawan:</span>
@@ -436,7 +352,7 @@ export function PayslipPrintableModal({
 
           {/* Timesheet Work Hours Callout (Khusus PKWT Per Jam) */}
           {payslip.wageType === "HOURLY" && (
-            <div className="p-3.5 bg-amber-50/90 rounded-xl border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="payslip-timesheet-callout p-3.5 bg-amber-50/90 rounded-xl border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-start sm:items-center gap-2.5 text-amber-900">
                 <div className="w-6 h-6 rounded-lg bg-amber-200/70 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
                   <Clock className="w-3.5 h-3.5" />
@@ -467,7 +383,7 @@ export function PayslipPrintableModal({
           )}
 
           {/* Breakdown Table: Earnings vs Deductions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="payslip-breakdown-grid grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Column 1: Penerimaan (Earnings) */}
             <div className="flex flex-col border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
               <div className="px-4 py-2.5 bg-emerald-50 border-b border-emerald-100 flex items-center justify-between">
@@ -538,7 +454,7 @@ export function PayslipPrintableModal({
           </div>
 
           {/* Grand Total Box: Take Home Pay */}
-          <div className="p-5 rounded-2xl bg-[#102E50] text-white shadow-md border border-[#1a4473] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="payslip-thp-box p-5 rounded-2xl bg-[#102E50] text-white shadow-md border border-[#1a4473] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-wider text-[#F2AF3E]">
                 Penghasilan Bersih Diterima (Take Home Pay)
@@ -556,7 +472,7 @@ export function PayslipPrintableModal({
 
           {/* Pejabat Penandatangan Resmi (Jika Ada) */}
           {settings?.authorizedSignerName && (
-            <div className="flex justify-end pt-2 pb-1 text-right">
+            <div className="payslip-signer-box flex justify-end pt-2 pb-1 text-right">
               <div className="flex flex-col items-center">
                 <span className="text-[10px] text-slate-400 block mb-1">
                   Disahkan Secara Elektronik:
@@ -602,7 +518,7 @@ export function PayslipPrintableModal({
           )}
 
           {/* Legal / Institutional Disclaimer */}
-          <div className="border-t border-slate-200 pt-4 text-center space-y-1">
+          <div className="payslip-disclaimer-box border-t border-slate-200 pt-4 text-center space-y-1">
             <p className="text-[11px] text-slate-500 font-medium">
               {settings?.disclaimerText ||
                 "Dokumen ini diterbitkan secara elektronik oleh Divisi SDM & Keuangan Pusat Studi Pendidikan dan Kebijakan (PSPK). Sah tanpa tanda tangan basah."}

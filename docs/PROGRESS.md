@@ -804,6 +804,13 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
        - Menggunakan `body.payslip-modal-open > *:not(#payslip-modal-portal) { display: none !important; }` sehingga seluruh shell aplikasi latar belakang benar-benar dihilangkan dari dokumen cetak (0 lembar tambahan).
        - Menghilangkan pembatasan `overflow`, `max-height`, bayangan, dan transform dialog saat dicetak, serta mengaktifkan `print-color-adjust: exact !important` untuk menjaga akurasi warna brand, logo, kop, stempel, dan tanda tangan elektronik.
        - Memastikan seluruh dokumen slip gaji pas secara rapi dalam **1 lembar kertas A4**.
+     - **Penyempurnaan 1 Halaman A4 & Solusi Urutan Terbalik (2 Halaman):**
+       - **Penyebab:** Pada browser Chromium/Chrome, saat pengguna men-scroll modal slip gaji ke bawah sebelum menekan tombol cetak, elemen `#printable-payslip-sheet` memiliki nilai `scrollTop > 0`. Saat dialog cetak aktif, browser mulai mencetak dari posisi scroll tersebut ke Halaman 1 (bagian bawah slip gaji), sementara sisa konten atas (Kop Surat & Header) berbalik (*wrap*) ke Halaman 2. Selain itu, lebar cetak A4 (~718px) berada di bawah breakpoint `md` (768px), menyebabkan tabel penerimaan dan potongan tertumpuk ke bawah menjadi 1 kolom.
+       - **Solusi & Perbaikan:**
+         - Menambahkan reset scroll otomatis (`scrollTop = 0`) pada container slip gaji dan seluruh elemen wrapper sebelum `window.print()` dijalankan dan pada event `beforeprint`.
+         - Mengunci tata letak 2 kolom berdampingan secara eksplisit pada `@media print` untuk rincian pendapatan & potongan (`.payslip-breakdown-grid`) serta ringkasan informasi karyawan (`.payslip-info-grid`).
+         - Merampingkan padding dan jarak vertikal (`margin-top: 5px !important`), serta menetapkan `break-inside: avoid !important; page-break-inside: avoid !important;` pada seluruh sheet dokumen.
+         - Total tinggi dokumen menjadi ~400px (jauh di bawah batas printable area A4 ~1060px), menjamin slip gaji tercetak utuh dalam **tepat 1 lembar A4**.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.
