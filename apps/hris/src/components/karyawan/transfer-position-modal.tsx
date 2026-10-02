@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { transferEmployeePositionAction } from "@/server/actions/organization.actions";
 import { toDateString } from "@pspk/shared";
+import { DEPT_TYPE_LABEL, DepartmentType } from "@/server/schemas/organization.schema";
 
 interface TransferPositionModalProps {
   isOpen: boolean;
@@ -29,6 +30,7 @@ interface TransferPositionModalProps {
   departments: Array<{
     id: string;
     name: string;
+    type?: DepartmentType;
     positions: Array<{ id: string; title: string }>;
   }>;
   managers: Array<{
@@ -261,7 +263,7 @@ export function TransferPositionModal({
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.name}
+                    {d.type ? `${DEPT_TYPE_LABEL[d.type]} — ` : ""}{d.name}
                   </option>
                 ))}
               </select>

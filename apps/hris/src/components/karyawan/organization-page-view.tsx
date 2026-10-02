@@ -18,6 +18,12 @@ interface OrganizationPageViewProps {
     totalDepartments: number;
     totalPositions: number;
     mappedEmployeesCount: number;
+    byType?: {
+      GOVERNANCE: number;
+      LEADERSHIP: number;
+      INITIATIVE: number;
+      SUPPORT: number;
+    };
   };
   employmentTypes: EmploymentTypeDetail[];
 }

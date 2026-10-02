@@ -36,6 +36,7 @@ import { toDateString } from "@pspk/shared";
 interface DepartmentOption {
   id: string;
   name: string;
+  type?: string;
   positions: { id: string; title: string }[];
 }
 

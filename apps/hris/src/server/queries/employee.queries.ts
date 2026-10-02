@@ -1,4 +1,4 @@
-import { prisma, EmployeeStatus, EmploymentType, Prisma } from "@pspk/db";
+import { prisma, EmployeeStatus, EmploymentType, Prisma, DepartmentType } from "@pspk/db";
 import { decryptField, maskSensitiveValue } from "@pspk/shared";
 
 export type GetEmployeesParams = {
@@ -321,6 +321,17 @@ export async function getEmployeeById(id: string) {
   };
 }
 
+const DEPT_TYPE_ORDER: DepartmentType[] = ["GOVERNANCE", "LEADERSHIP", "INITIATIVE", "SUPPORT"];
+
+function sortByTypeOrder<T extends { name: string; type: DepartmentType }>(list: T[]): T[] {
+  return [...list].sort((a, b) => {
+    const ai = DEPT_TYPE_ORDER.indexOf(a.type);
+    const bi = DEPT_TYPE_ORDER.indexOf(b.type);
+    if (ai !== bi) return ai - bi;
+    return a.name.localeCompare(b.name, "id-ID");
+  });
+}
+
 export async function getOrgStructureData() {
   const departments = await prisma.department.findMany({
     orderBy: { name: "asc" },
@@ -331,7 +342,7 @@ export async function getOrgStructureData() {
     },
   });
 
-  return departments;
+  return sortByTypeOrder(departments);
 }
 
 export async function getOrgStructureDetail() {
@@ -367,12 +378,26 @@ export async function getOrgStructureDetail() {
     }),
   ]);
 
+  const sortedDepartments = sortByTypeOrder(departments);
+
+  // Statistik per tipe
+  const countByType: Record<DepartmentType, number> = {
+    GOVERNANCE: 0,
+    LEADERSHIP: 0,
+    INITIATIVE: 0,
+    SUPPORT: 0,
+  };
+  for (const d of departments) {
+    countByType[d.type] = (countByType[d.type] ?? 0) + 1;
+  }
+
   return {
-    departments,
+    departments: sortedDepartments,
     stats: {
       totalDepartments,
       totalPositions,
       mappedEmployeesCount,
+      byType: countByType,
     },
   };
 }
