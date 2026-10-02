@@ -21,6 +21,7 @@ import {
 interface TimesheetApprovalTableProps {
   items: TimesheetApprovalItem[];
   currentEmployeeId: string;
+  initialSubmissionId?: string;
 }
 
 const MONTH_NAMES = [
@@ -42,10 +43,31 @@ const MONTH_NAMES = [
 export function TimesheetApprovalTable({
   items,
   currentEmployeeId,
+  initialSubmissionId,
 }: TimesheetApprovalTableProps) {
   const [search, setSearch] = useState("");
   const [filterTab, setFilterTab] = useState<"ALL" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED">("NEEDS_REVIEW");
-  const [selectedSubmission, setSelectedSubmission] = useState<TimesheetApprovalItem | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<TimesheetApprovalItem | null>(
+    () => (initialSubmissionId ? items.find((i) => i.id === initialSubmissionId) || null : null),
+  );
+
+  React.useEffect(() => {
+    if (initialSubmissionId && items.length > 0) {
+      const match = items.find((i) => i.id === initialSubmissionId);
+      if (match) {
+        setSelectedSubmission(match);
+      }
+    }
+  }, [initialSubmissionId, items]);
+
+  const handleCloseModal = () => {
+    setSelectedSubmission(null);
+    if (typeof window !== "undefined" && window.location.search.includes("submissionId")) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("submissionId");
+      window.history.replaceState(null, "", url.pathname + (url.search ? url.search : ""));
+    }
+  };
 
   // Filter items
   const filteredItems = items.filter((item) => {
@@ -195,16 +217,16 @@ export function TimesheetApprovalTable({
 
                       {/* Judul & Spreadsheet */}
                       <td className="py-3 px-4 max-w-xs">
-                        <div className="font-medium text-slate-800 line-clamp-1">{sub.title}</div>
+                        <div className="font-semibold text-slate-800 line-clamp-1">{sub.title}</div>
                         <a
                           href={sub.spreadsheetUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-[11px] text-emerald-700 hover:text-emerald-800 hover:underline mt-0.5"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-all text-[11px] font-medium mt-1.5 group cursor-pointer shadow-2xs"
                         >
-                          <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
-                          <span>Buka Google Sheet</span>
-                          <ExternalLink className="w-2.5 h-2.5" />
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Buka Spreadsheet</span>
+                          <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                         </a>
                       </td>
 
@@ -304,7 +326,7 @@ export function TimesheetApprovalTable({
           submission={selectedSubmission}
           currentEmployeeId={currentEmployeeId}
           isOpen={!!selectedSubmission}
-          onClose={() => setSelectedSubmission(null)}
+          onClose={handleCloseModal}
           onSuccess={() => {
             // Bisa reload atau trigger revalidate
           }}
