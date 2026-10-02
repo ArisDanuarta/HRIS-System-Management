@@ -240,113 +240,163 @@ export function PayslipPrintableModal({
           )}
 
           {/* Title Banner */}
-          <div className="payslip-title-banner text-center py-2 bg-slate-50 rounded-lg border border-slate-200">
-            <h2 className="text-sm font-bold text-[#102E50] font-serif uppercase tracking-wider">
+          <div className="payslip-title-banner text-center py-2.5 px-4 bg-slate-50/90 rounded-xl border border-slate-200/80">
+            <h2 className="text-sm sm:text-base font-bold text-[#102E50] font-serif uppercase tracking-wider">
               Slip Gaji Karyawan — {periodTitle}
             </h2>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-xs text-slate-600 font-medium mt-0.5">
               Jenis: {kindLabel}
             </p>
           </div>
 
-          {/* Employee & Bank Info Grid */}
-          <div className="payslip-info-grid grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#f8fafd] p-4 rounded-xl border border-[#dee9fc]">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Nama Karyawan:</span>
-                <span className="font-bold text-[#102E50]">
-                  {payslip.employee.fullName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">NIP:</span>
-                <span className="font-mono font-semibold text-slate-700">
-                  {payslip.employee.employeeNo}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Posisi / Jabatan:</span>
-                <span className="font-semibold text-slate-700">
-                  {payslip.employee.positionTitle}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Divisi Kerja:</span>
-                <span className="font-semibold text-slate-700">
-                  {payslip.employee.departmentName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Skema Kontrak:</span>
-                <span className="font-semibold text-slate-700">
-                  {payslip.wageType === "HOURLY" ? (
-                    <span className="inline-flex items-center gap-1 text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-semibold text-[11px]">
-                      <Clock className="w-3 h-3 text-amber-600" />
-                      PKWT Per Jam
-                    </span>
-                  ) : (
-                    "Bulanan Tetap"
-                  )}
-                </span>
-              </div>
+          {/* Employee & Bank Info Grid (Tabular Aligned Layout) */}
+          <div className="payslip-info-grid grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 bg-[#f8fafd] p-4 sm:p-5 rounded-xl border border-[#dee9fc]">
+            {/* Left Column: Data Karyawan */}
+            <div>
+              <table className="w-full text-xs border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      Nama Karyawan
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-bold text-[#102E50] align-top break-words">
+                      {payslip.employee.fullName}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      NIP
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-mono font-semibold text-slate-700 align-top break-words">
+                      {payslip.employee.employeeNo}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      Posisi / Jabatan
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-semibold text-slate-700 align-top break-words">
+                      {payslip.employee.positionTitle}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      Divisi Kerja
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-semibold text-slate-700 align-top break-words">
+                      {payslip.employee.departmentName}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      Skema Kontrak
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-semibold text-slate-700 align-top">
+                      {payslip.wageType === "HOURLY" ? (
+                        <span className="inline-flex items-center gap-1 text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-semibold text-[11px]">
+                          <Clock className="w-3 h-3 text-amber-600" />
+                          PKWT Per Jam
+                        </span>
+                      ) : (
+                        "Bulanan Tetap"
+                      )}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            <div className="space-y-1.5 sm:border-l sm:border-slate-200 sm:pl-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Bank Pembayaran:</span>
-                <span className="font-semibold text-slate-700">
-                  {payslip.employee.bankName}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">No. Rekening:</span>
-                <span className="font-mono font-semibold text-slate-700">
-                  {payslip.employee.bankAccountMasked}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-500 font-medium">Tanggal Terbit:</span>
-                <span className="font-semibold text-slate-700">
-                  {formatDate(payslip.publishedAt)}
-                </span>
-              </div>
-              {payslip.wageType === "HOURLY" ? (
-                <>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-medium">Total Jam Disetujui:</span>
-                    <span className="font-mono font-bold text-[#102E50]">
-                      {payslip.totalHours ?? 0} Jam
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500 font-medium">Tarif Satuan Kontrak:</span>
-                    <span className="font-mono font-semibold text-slate-700">
-                      {payslip.hourlyRate ? `${formatRupiah(payslip.hourlyRate)} / jam` : "-"}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Status Dokumen:</span>
-                  <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    Resmi Terbit (PUBLISHED)
-                  </span>
-                </div>
-              )}
+            {/* Right Column: Data Rekening & Penyalur */}
+            <div className="sm:border-l sm:border-slate-200/80 sm:pl-6">
+              <table className="w-full text-xs border-collapse">
+                <tbody>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      Bank Pembayaran
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-semibold text-slate-700 align-top break-words">
+                      {payslip.employee.bankName}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      No. Rekening
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-mono font-semibold text-slate-700 align-top break-words">
+                      {payslip.employee.bankAccountMasked}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                      Tanggal Terbit
+                    </td>
+                    <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                    <td className="py-1 font-semibold text-slate-700 align-top">
+                      {formatDate(payslip.publishedAt)}
+                    </td>
+                  </tr>
+                  {payslip.wageType === "HOURLY" ? (
+                    <>
+                      <tr>
+                        <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                          Total Jam Disetujui
+                        </td>
+                        <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                        <td className="py-1 font-mono font-bold text-[#102E50] align-top">
+                          {payslip.totalHours ?? 0} Jam
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                          Tarif Satuan Kontrak
+                        </td>
+                        <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                        <td className="py-1 font-mono font-semibold text-slate-700 align-top">
+                          {payslip.hourlyRate ? `${formatRupiah(payslip.hourlyRate)} / jam` : "-"}
+                        </td>
+                      </tr>
+                    </>
+                  ) : (
+                    <tr>
+                      <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                        Status Dokumen
+                      </td>
+                      <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                      <td className="py-1 font-semibold text-emerald-700 align-top">
+                        <span className="inline-flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Resmi Terbit (PUBLISHED)</span>
+                        </span>
+                      </td>
+                    </tr>
+                  )}
 
-              {/* Info Bank Penyalur PSPK */}
-              {settings?.senderBankName && (
-                <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200/60 text-slate-700">
-                  <div className="flex items-center gap-1 text-slate-500">
-                    <Building2 className="w-3 h-3 text-emerald-600" />
-                    <span className="font-medium">Penyalur Resmi:</span>
-                  </div>
-                  <span className="font-semibold text-emerald-800 text-[11px]">
-                    {settings.senderBankName} ({settings.senderAccountMasked})
-                  </span>
-                </div>
-              )}
+                  {/* Info Bank Penyalur PSPK */}
+                  {settings?.senderBankName && (
+                    <tr>
+                      <td className="pt-2 text-slate-500 font-medium whitespace-nowrap align-top border-t border-slate-200/60 mt-1">
+                        <span className="inline-flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>Penyalur Resmi</span>
+                        </span>
+                      </td>
+                      <td className="pt-2 px-2 text-slate-400 font-normal align-top border-t border-slate-200/60 mt-1">
+                        :
+                      </td>
+                      <td className="pt-2 font-semibold text-emerald-800 align-top break-words text-[11px] border-t border-slate-200/60 mt-1">
+                        {settings.senderBankName} ({settings.senderAccountMasked})
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 

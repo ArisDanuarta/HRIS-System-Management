@@ -152,13 +152,17 @@ h1, h2, h3, h4, h5, h6 {
   #printable-payslip-sheet .payslip-info-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
+    gap: 12px !important;
     padding: 6px 10px !important;
     border-radius: 8px !important;
   }
   #printable-payslip-sheet .payslip-info-grid .text-xs {
     font-size: 10px !important;
-    line-height: 1.25 !important;
+    line-height: 1.3 !important;
+  }
+  #printable-payslip-sheet .payslip-info-grid td {
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
   }
 
   /* Section: Timesheet Callout (PKWT Per Jam) */
