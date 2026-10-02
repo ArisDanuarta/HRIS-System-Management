@@ -1105,6 +1105,34 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Penggajian (Slip Gaji) — Perapian Tata Letak Identitas Pegawai & Rekening
+
+- **Masalah Visual**:
+  - Pada modal pratinjau dan cetak slip gaji ([`payslip-printable-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/slip-gaji/payslip-printable-modal.tsx)), baris identitas pegawai dan rekening menggunakan `flex justify-between` tanpa lebar label yang terkunci.
+  - Nilai yang panjang (misalnya jabatan *"Kepala Divisi Kebijakan Kurikulum"* atau divisi *"Divisi Lingkar Studi Kebijakan Pendidikan (LSKP)"*) menyebabkan label *"Posisi / Jabatan:"* dan *"Divisi Kerja:"* terhimpit serta terpotong patah menjadi 2 baris terpisah secara canggung. Posisi titik dua (`:`) juga melompat-lompat tidak lurus vertikal.
+- **Penyempurnaan**:
+  1. Mengubah struktur kartu data menjadi **tata letak tabel kunci-nilai murni** dengan sel label berkategori `whitespace-nowrap w-1` dan perataan `align-top`.
+  2. Seluruh tanda titik dua (`:`) kini sejajar lurus secara vertikal dalam satu kolom rapi.
+  3. Seluruh nilai teks rata kiri secara alami di kolom yang sama. Jika nilai teks panjang, baris tambahan akan terbungkus rapi di bawah nilai tanpa menggeser atau merusak posisi label.
+  4. Menyelaraskan CSS cetak pada [`globals.css`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/globals.css) agar proporsional dan presisi saat diunduh menjadi PDF atau dicetak ke kertas A4.
+
+---
+
+## Pembersihan Total Database untuk Pengujian Input Manual Awal
+
+- **Tindakan**:
+  - Berdasarkan konfirmasi pengguna, seluruh data operasional dan master data di PostgreSQL lokal telah dibersihkan secara total (`TRUNCATE TABLE ... CASCADE`).
+  - Data yang dikosongkan meliputi: Pegawai, Kontrak, Riwayat, Tipe Ikatan Kerja, Departemen, Jabatan, Absensi, Cuti & Kuota, Komponen Gaji, Payroll & Slip Gaji, Timesheet, Kinerja, Rekrutmen, Pelatihan, Aset & Lisensi, Dokumen SOP, Audit Log, Notifikasi, Sesi, dan seluruh Akun Pengguna Dummy.
+  - **Data yang Dipertahankan**:
+    1. Sistem Role & Permission RBAC (5 peran sistem: `super_admin`, `admin_hr`, `admin_it`, `manager`, `staff` serta 61 permission).
+    2. Akun tunggal **Super Administrator**:
+       - Email: `superadmin@pspk.id`
+       - Password: `Superadmin321!`
+       - Role: `super_admin`
+  - Sistem sekarang berada dalam kondisi *clean-slate* murni untuk pengujian input manual satu per satu dari antarmuka web.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
