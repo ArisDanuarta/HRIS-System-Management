@@ -27,6 +27,7 @@ import {
   approvePayrollAction,
   publishPayrollAction,
   lockPayrollAction,
+  revertPayrollAction,
   exportPayrollBankCsvAction,
 } from "@/server/actions/payroll.actions";
 import { PayslipDetailModal, PayslipDetailData } from "./payslip-detail-modal";
@@ -147,6 +148,13 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
     });
   };
 
+  const [showRevertConfirm, setShowRevertConfirm] = useState(false);
+  const isTimesheetBlocked = Boolean(
+    period.timesheetValidation &&
+      period.timesheetValidation.totalHourlyEmployees > 0 &&
+      !period.timesheetValidation.canProceed,
+  );
+
   const handleLock = () => {
     setActionError(null);
     setActionSuccess(null);
@@ -154,6 +162,20 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
       const res = await lockPayrollAction({ periodId: period.id });
       if (!res.ok) setActionError(res.error);
       else setActionSuccess(res.message);
+    });
+  };
+
+  const handleRevert = () => {
+    setActionError(null);
+    setActionSuccess(null);
+    startTransition(async () => {
+      const res = await revertPayrollAction({ periodId: period.id });
+      if (!res.ok) {
+        setActionError(res.error);
+      } else {
+        setShowRevertConfirm(false);
+        setActionSuccess(res.message);
+      }
     });
   };
 
@@ -238,9 +260,16 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             {(period.status === "DRAFT" || period.status === "CALCULATED") && (
               <button
                 type="button"
-                disabled={isPending}
+                disabled={isPending || isTimesheetBlocked}
                 onClick={handleCalculate}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] hover:bg-[#1a4473] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+                title={
+                  isTimesheetBlocked
+                    ? "Kalkulasi ditahan: Masih terdapat timesheet freelance yang belum di-ACC oleh atasan"
+                    : period.status === "DRAFT"
+                    ? "Kalkulasi Payroll Massal"
+                    : "Hitung Ulang"
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] hover:bg-[#1a4473] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isPending ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -257,9 +286,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             {period.status === "CALCULATED" && (
               <button
                 type="button"
-                disabled={isPending}
+                disabled={isPending || isTimesheetBlocked}
                 onClick={handleApprove}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+                title={
+                  isTimesheetBlocked
+                    ? "Persetujuan ditahan: Seluruh timesheet freelance wajib di-ACC terlebih dahulu"
+                    : "Setujui Payroll (Approve)"
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Setujui Payroll (Approve)</span>
@@ -270,9 +304,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             {period.status === "APPROVED" && (
               <button
                 type="button"
-                disabled={isPending}
+                disabled={isPending || isTimesheetBlocked}
                 onClick={handlePublish}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+                title={
+                  isTimesheetBlocked
+                    ? "Publikasi ditahan: Seluruh timesheet freelance wajib di-ACC terlebih dahulu"
+                    : "Publikasikan Slip Gaji (Publish)"
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Publikasikan Slip Gaji (Publish)</span>
@@ -283,13 +322,40 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             {period.status === "PUBLISHED" && (
               <button
                 type="button"
-                disabled={isPending}
+                disabled={isPending || isTimesheetBlocked}
                 onClick={handleLock}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50"
+                title={
+                  isTimesheetBlocked
+                    ? "Penguncian ditahan: Seluruh timesheet freelance wajib di-ACC terlebih dahulu"
+                    : "Kunci Periode Permanen (Lock)"
+                }
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>Kunci Periode Permanen (Lock)</span>
               </button>
+            )}
+
+            {/* Aksi Reset: Kembalikan ke Draf Awal (Saat bukan DRAFT dan bukan LOCKED) */}
+            {period.status !== "DRAFT" && period.status !== "LOCKED" && (
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => setShowRevertConfirm(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                title="Kembalikan status periode ke Draf Awal untuk perbaikan atau menunggu kelengkapan timesheet"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
+                <span>Kembalikan ke Draf</span>
+              </button>
+            )}
+
+            {/* Badge Peringatan Alur Ditahan */}
+            {isTimesheetBlocked && (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold shadow-2xs">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                <span>Alur Ditahan (Menunggu ACC Timesheet)</span>
+              </span>
             )}
 
             {period.status === "LOCKED" && (
@@ -686,6 +752,52 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
           periodTitle={periodTitle}
           onClose={() => setTimesheetPayslip(null)}
         />
+      )}
+
+      {/* Modal Konfirmasi Kembalikan ke Draf */}
+      {showRevertConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center gap-3 text-rose-700">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-slate-900 font-serif">
+                  Kembalikan ke Draf Awal?
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Reset alur siklus penggajian periode ini
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Tindakan ini akan mengembalikan status periode penggajian beserta seluruh slip gaji menjadi <strong>Draf Awal (DRAFT)</strong>.
+              Gunakan ini untuk menahan proses hingga seluruh jam kerja timesheet freelance resmi disetujui (ACC) oleh atasan proyek.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowRevertConfirm(false)}
+                disabled={isPending}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleRevert}
+                disabled={isPending}
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white rounded-xl text-xs font-bold shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
+              >
+                {isPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                <span>{isPending ? "Memproses..." : "Ya, Kembalikan ke Draf"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
