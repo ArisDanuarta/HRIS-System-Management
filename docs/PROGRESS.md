@@ -1133,6 +1133,31 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Organisasi — Perbaikan Tombol 'Tambah Jabatan' yang Terpotong / Lewat
+
+- **Masalah Visual**:
+  - Pada halaman Struktur Organisasi & Kepegawaian ([`organization-management.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/organization-management.tsx)), saat nama divisi panjang (contoh: `(KATALIS) Kemitraan Advokasi dan Tenaga Ahli untuk Akselerasi Kebijakan Strategis`), judul divisi mendominasi seluruh lebar kolom kanan tanpa batas penyusutan (`min-w-0`).
+  - Karena kontainer utama memiliki properti `overflow-hidden`, tombol **"+ Tambah Jabatan"** terdorong keluar batas kanan kartu sehingga terpotong dan hanya menyisakan teks `+ T`.
+- **Penyempurnaan**:
+  1. Menambahkan `min-w-0 flex-1` pada kontainer pembungkus judul divisi agar ruang teks dapat disesuaikan dan dibatasi secara proporsional.
+  2. Memberikan kelas `line-clamp-2 sm:line-clamp-1 break-words` pada elemen `<h2>` serta atribut `title` lengkap agar nama divisi panjang tetap dapat dibaca secara elegan tanpa merusak struktur visual.
+  3. Menambahkan properti `shrink-0 whitespace-nowrap` pada tombol **"+ Tambah Jabatan"** dan **"+ Tambah Divisi"** sehingga tombol terkunci kokoh pada posisinya, tidak dapat terhimpit, dan selalu terlihat utuh 100%.
+
+---
+
+## Pembersihan Kode Uji Coba, Skrip Scratch, dan Kode Seed Dummy
+
+- **Tindakan**:
+  - **Pembersihan `seed.ts` ([`seed.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed.ts))**:
+    - Menghapus lebih dari 800 baris kode data dummy (akun dummy `hr@pspk.id`, `manajer@pspk.id`, `aris@pspk.id`, divisi & jabatan dummy, pegawai dummy, kontrak, absensi, cuti, payroll dummy, review kinerja dummy, timesheet dummy, aset dummy, dan dokumen dummy).
+    - Mempertahankan hanya fondasi esensial sistem: 61 permissions, 5 system roles (`super_admin`, `admin_hr`, `admin_it`, `manager`, `staff`), akun utama Super Administrator (`superadmin@pspk.id`), master jenis cuti default, tipe ikatan kerja master default, serta konfigurasi standar jadwal kerja dan kop surat.
+  - **Pembersihan Skrip Uji Coba**:
+    - Menghapus skrip coba-coba di folder `scratch/` (`test-timesheet-payroll.ts`, `seed-performance.ts`, `test-organization-flow.ts`, `seed-notifications.ts`, `verify_dashboards.ts`).
+    - Menghapus skrip sementara `scripts/wipe-data.ts`.
+  - Repo kini berstatus *clean-slate*, rapi, dan siap untuk penginputan data produksi secara manual dari UI oleh administrator.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
@@ -1145,11 +1170,12 @@ pnpm dev
 # System Management: http://localhost:3002
 
 # 3. Jalankan pengujian
-pnpm test          # Menjalankan 45 unit test (Vitest)
+pnpm test          # Menjalankan 47 unit test (Vitest)
 pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
 ```
+
 
 
 
