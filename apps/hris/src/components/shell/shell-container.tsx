@@ -15,6 +15,8 @@ export interface ShellContainerProps {
   initialRole?: RoleViewType;
   employeeCount?: number;
   pendingLeavesCount?: number;
+  pendingTimesheetsCount?: number;
+  isHourlyEmployee?: boolean;
   isSuperAdmin?: boolean;
   canAccessSysmgmt?: boolean;
   children: React.ReactNode;
@@ -25,6 +27,8 @@ export function ShellContainer({
   initialRole = "admin_hr",
   employeeCount,
   pendingLeavesCount,
+  pendingTimesheetsCount = 0,
+  isHourlyEmployee = false,
   isSuperAdmin = false,
   canAccessSysmgmt = false,
   children,
@@ -59,6 +63,8 @@ export function ShellContainer({
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         employeeCount={employeeCount}
         pendingLeavesCount={pendingLeavesCount}
+        pendingTimesheetsCount={pendingTimesheetsCount}
+        isHourlyEmployee={isHourlyEmployee}
       />
 
       {/* Top Header with Superadmin Switcher */}

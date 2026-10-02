@@ -1085,6 +1085,26 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Modul Timesheet Freelance — Penyelarasan Peran & Alur Kerja Manajer vs Staf Lepas
+
+- **Latar Belakang & Masalah**:
+  - Pada pengujian sebagai akun Manajer/Atasan (`Dr. Budi Rahardjo`), di menu personal sidebar sebelumnya muncul tautan *"Timesheet Saya"*. Saat dibuka, manajer diarahkan ke halaman pengajuan timesheet kosong dengan tombol *"Ajukan Timesheet Baru"*.
+  - Sesuai regulasi ketenagakerjaan dan SOP PSPK, manajer dan pegawai bulanan tetap **tidak menyetor timesheet jam kerja**, melainkan bertindak sebagai **Reviewer / Approver** atas timesheet staf freelance bawahan/proyek.
+- **Penyempurnaan yang Diimplementasikan**:
+  1. **Penyelarasan Menu Navigasi Sidebar ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx))**:
+     - Menu *"Timesheet Saya"* disembunyikan dari Menu Personal Manajer dan Menu Karyawan Staf Bulanan Tetap. Menu ini sekarang **hanya tampil jika pegawai memiliki kontrak aktif bertipe PKWT Per Jam / Freelance (`wageType === "HOURLY"`)**.
+     - Menambahkan lencana (badge) indikator jumlah antrean pada menu *"Persetujuan Timesheet"* (Manajer) dan *"Timesheet Freelance"* (Admin HR) jika terdapat pengajuan yang berstatus `PENDING` atau `IN_REVIEW`.
+  2. **Smart Redirect & Proteksi Halaman ([`/timesheet/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/page.tsx))**:
+     - Jika pengguna dengan peran Manajer / Lead / Reviewer mengakses rute `/timesheet`, sistem secara otomatis me-redirect ke `/timesheet/persetujuan` (pusat tugas persetujuan atasan).
+     - Jika pegawai bulanan tetap non-reviewer mengakses rute `/timesheet`, sistem menampilkan kartu informasi edukatif bahwa pencatatan kehadiran mereka dilakukan melalui Absensi Harian (bukan timesheet).
+  3. **Integrasi Dashboard Tim Manajer ([`manager-dashboard.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/dashboard/manager-dashboard.tsx), [`manager-dashboard.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/dashboard/manager-dashboard.ts))**:
+     - Menambahkan kartu statistik ke-4: *"Antrean Timesheet Freelance"* yang menampilkan jumlah timesheet tim yang menunggu ACC manajer.
+     - Menambahkan banner/kartu peringatan aksi cepat jika terdapat timesheet staf freelance yang tertunda, lengkap dengan nama pegawai, total jam, judul tugas, dan tombol langsung *"Buka & Berikan ACC"*.
+  4. **Shell Props & Layout ([`layout.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/layout.tsx), [`shell-container.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/shell-container.tsx))**:
+     - Menghitung `pendingTimesheetsCount` dan `isHourlyEmployee` secara dinamis dari database untuk sesi aktif.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

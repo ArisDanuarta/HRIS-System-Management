@@ -7,6 +7,20 @@ export interface ManagerDashboardData {
   totalTeamMembers: number;
   teamPresentCount: number;
   pendingLeavesCount: number;
+  pendingTimesheetsCount: number;
+  pendingTimesheetReviews: {
+    id: string;
+    submissionId: string;
+    employeeName: string;
+    employeeNo: string;
+    positionTitle: string;
+    periodMonth: number;
+    periodYear: number;
+    title: string;
+    totalHours: number;
+    submittedAt: Date;
+    reviewerStatus: string;
+  }[];
   pendingLeaveRequests: {
     id: string;
     employeeId: string;
@@ -211,10 +225,49 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     };
   });
 
+  // Antrean Timesheet Staf Freelance yang ditugaskan ke manajer ini
+  const pendingTimesheetReviewsRaw = await prisma.timesheetReviewer.findMany({
+    where: {
+      reviewerId: managerId,
+      status: { in: ["PENDING", "IN_REVIEW"] },
+    },
+    include: {
+      submission: {
+        include: {
+          employee: {
+            select: {
+              fullName: true,
+              employeeNo: true,
+              currentPosition: { select: { title: true } },
+            },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  const pendingTimesheetReviews = pendingTimesheetReviewsRaw.map((r) => ({
+    id: r.id,
+    submissionId: r.submissionId,
+    employeeName: r.submission.employee.fullName,
+    employeeNo: r.submission.employee.employeeNo,
+    positionTitle: r.submission.employee.currentPosition?.title || "Staf Freelance",
+    periodMonth: r.submission.periodMonth,
+    periodYear: r.submission.periodYear,
+    title: r.submission.title,
+    totalHours: Number(r.submission.totalHours),
+    submittedAt: r.submission.submittedAt,
+    reviewerStatus: r.status,
+  }));
+
   return {
     totalTeamMembers: subordinates.length,
     teamPresentCount,
     pendingLeavesCount: pendingLeaveRequests.length,
+    pendingTimesheetsCount: pendingTimesheetReviews.length,
+    pendingTimesheetReviews,
     pendingLeaveRequests: pendingLeaveRequests.map((r) => ({
       id: r.id,
       employeeId: r.employeeId,

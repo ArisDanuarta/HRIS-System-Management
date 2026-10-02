@@ -6,7 +6,6 @@ import {
   Users,
   UserCheck,
   Clock,
-  Calendar,
   Check,
   X,
   ArrowRight,
@@ -153,8 +152,55 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
         </div>
       )}
 
-      {/* 3 Team Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Timesheet Freelance Actionable Banner */}
+      {data.pendingTimesheetsCount > 0 && (
+        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-150">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-100/90 text-amber-800 flex items-center justify-center shrink-0 mt-0.5 border border-amber-300/50">
+              <Clock className="w-5 h-5 text-amber-700" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-amber-950 font-serif">
+                  Antrean Timesheet Staf Freelance ({data.pendingTimesheetsCount} Menunggu ACC)
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/70 text-amber-900 border border-amber-300">
+                  Wajib ACC
+                </span>
+              </div>
+              <p className="text-xs text-amber-900/80 mt-1 max-w-2xl leading-relaxed">
+                Terdapat pengajuan jam kerja dari staf freelance yang memerlukan verifikasi dan persetujuan (ACC) Anda. Penggajian (payroll) periode berjalan akan tertahan sampai seluruh atasan memberikan persetujuan.
+              </p>
+              <div className="mt-2.5 flex flex-wrap gap-2">
+                {data.pendingTimesheetReviews.map((item) => (
+                  <div
+                    key={item.id}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/90 border border-amber-200 text-xs text-slate-800 shadow-2xs"
+                  >
+                    <span className="font-semibold text-slate-900">{item.employeeName}</span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-slate-600">{item.totalHours} Jam</span>
+                    <span className="text-slate-400">•</span>
+                    <span className="text-amber-800 font-medium">{item.title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="shrink-0 flex items-center">
+            <Link
+              href="/timesheet/persetujuan"
+              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#102e50] hover:bg-[#1a4473] text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer"
+            >
+              <span>Buka & Berikan ACC</span>
+              <ArrowRight className="w-4 h-4 text-[#f2af3e]" />
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* 4 Team Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Stat 1: Total Anggota Tim */}
         <div className="bg-white rounded-xl border border-[#dee9fc] p-5 shadow-xs flex items-center justify-between hover:shadow-md transition-shadow">
           <div className="flex flex-col">
@@ -233,6 +279,44 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
             <Clock className="w-5 h-5" />
           </div>
         </div>
+
+        {/* Stat 4: Antrean Timesheet Freelance */}
+        <Link
+          href="/timesheet/persetujuan"
+          className="bg-white rounded-xl border border-[#dee9fc] p-5 shadow-xs flex items-center justify-between hover:shadow-md hover:border-[#102e50]/20 transition-all cursor-pointer"
+        >
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+              Antrean Timesheet
+            </span>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span
+                className={`text-3xl sm:text-4xl font-extrabold font-heading leading-none ${
+                  data.pendingTimesheetsCount > 0 ? "text-amber-600" : "text-[#102e50]"
+                }`}
+              >
+                {data.pendingTimesheetsCount}
+              </span>
+              <span className="text-xs font-semibold text-slate-500">Freelance</span>
+            </div>
+            <span
+              className={`text-[11px] font-medium mt-1 ${
+                data.pendingTimesheetsCount > 0 ? "text-amber-600" : "text-slate-400"
+              }`}
+            >
+              {data.pendingTimesheetsCount > 0 ? "Perlu respon ACC" : "Semua bersih"}
+            </span>
+          </div>
+          <div
+            className={`w-11 h-11 rounded-xl flex items-center justify-center ${
+              data.pendingTimesheetsCount > 0
+                ? "bg-amber-50 text-amber-600"
+                : "bg-slate-50 text-slate-400"
+            }`}
+          >
+            <Clock className="w-5 h-5" />
+          </div>
+        </Link>
       </div>
 
       {/* Main Actionable Grid: Pending Approvals (Left 2 cols) & Weekly Team Calendar (Right 1 col) */}

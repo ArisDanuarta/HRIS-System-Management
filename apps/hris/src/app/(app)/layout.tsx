@@ -57,6 +57,38 @@ export default async function AppProtectedLayout({
     roleDisplayName = "Manajer";
   }
 
+  let isHourlyEmployee = false;
+  let pendingTimesheetsCount = 0;
+
+  if (userProfile?.employee?.id) {
+    const activeContract = await prisma.employmentContract.findFirst({
+      where: {
+        employeeId: userProfile.employee.id,
+        status: "ACTIVE",
+      },
+      select: { wageType: true },
+      orderBy: { startDate: "desc" },
+    });
+    isHourlyEmployee = activeContract?.wageType === "HOURLY";
+
+    if (initialRole === "manager") {
+      pendingTimesheetsCount = await prisma.timesheetReviewer.count({
+        where: {
+          reviewerId: userProfile.employee.id,
+          status: { in: ["PENDING", "IN_REVIEW"] },
+        },
+      });
+    }
+  }
+
+  if (initialRole === "admin_hr") {
+    pendingTimesheetsCount = await prisma.timesheetSubmission.count({
+      where: {
+        status: { in: ["PENDING", "IN_REVIEW"] },
+      },
+    });
+  }
+
   const userData = {
     id: session.user.id,
     name: userProfile?.employee?.fullName || session.user.name || "Pegawai PSPK",
@@ -71,6 +103,8 @@ export default async function AppProtectedLayout({
       initialRole={initialRole}
       employeeCount={activeEmployeeCount}
       pendingLeavesCount={pendingLeavesCount}
+      pendingTimesheetsCount={pendingTimesheetsCount}
+      isHourlyEmployee={isHourlyEmployee}
       isSuperAdmin={isSuperAdmin}
       canAccessSysmgmt={canAccessSysmgmt}
     >

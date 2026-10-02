@@ -31,6 +31,8 @@ export interface AppSidebarProps {
   employeeCount?: number;
   pendingLeavesCount?: number;
   remainingLeaveDays?: number;
+  pendingTimesheetsCount?: number;
+  isHourlyEmployee?: boolean;
 }
 
 export function AppSidebar({
@@ -38,8 +40,10 @@ export function AppSidebar({
   isCollapsed,
   onToggleCollapse,
   employeeCount = 148,
-  pendingLeavesCount = 3,
+  pendingLeavesCount = 0,
   remainingLeaveDays = 8,
+  pendingTimesheetsCount = 0,
+  isHourlyEmployee = false,
 }: AppSidebarProps) {
   const pathname = usePathname();
 
@@ -179,6 +183,13 @@ export function AppSidebar({
                 icon={<Clock className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/timesheet/persetujuan")}
                 isCollapsed={isCollapsed}
+                badge={
+                  pendingTimesheetsCount > 0 ? (
+                    <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
+                      {pendingTimesheetsCount}
+                    </span>
+                  ) : undefined
+                }
               />
               <NavItem
                 href="/kinerja"
@@ -244,6 +255,13 @@ export function AppSidebar({
                 icon={<Clock className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/timesheet/persetujuan")}
                 isCollapsed={isCollapsed}
+                badge={
+                  pendingTimesheetsCount > 0 ? (
+                    <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
+                      {pendingTimesheetsCount}
+                    </span>
+                  ) : undefined
+                }
               />
               <NavItem
                 href="/kinerja"
@@ -292,13 +310,15 @@ export function AppSidebar({
                 isActive={isNavActive("/slip-gaji")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/timesheet"
-                label="Timesheet Saya"
-                icon={<Clock className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/timesheet")}
-                isCollapsed={isCollapsed}
-              />
+              {isHourlyEmployee && (
+                <NavItem
+                  href="/timesheet"
+                  label="Timesheet Saya"
+                  icon={<Clock className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/timesheet")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
             </nav>
           </div>
         )}
@@ -354,13 +374,15 @@ export function AppSidebar({
                 isActive={isNavActive("/slip-gaji")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/timesheet"
-                label="Timesheet Saya"
-                icon={<Clock className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/timesheet")}
-                isCollapsed={isCollapsed}
-              />
+              {isHourlyEmployee && (
+                <NavItem
+                  href="/timesheet"
+                  label="Timesheet Saya"
+                  icon={<Clock className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/timesheet")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
               <NavItem
                 href="/kinerja"
                 label="Kinerja Saya"
