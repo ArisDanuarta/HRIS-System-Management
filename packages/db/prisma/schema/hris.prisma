@@ -150,12 +150,22 @@ enum ApplicationStage {
   @@schema("hris")
 }
 
+enum DepartmentType {
+  GOVERNANCE
+  LEADERSHIP
+  INITIATIVE
+  SUPPORT
+
+  @@schema("hris")
+}
+
 model Department {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   name      String
-  parentId  String?  @map("parent_id")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  type      DepartmentType @default(INITIATIVE)
+  parentId  String?        @map("parent_id")
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   parent        Department?           @relation("DepartmentHierarchy", fields: [parentId], references: [id])
   children      Department[]          @relation("DepartmentHierarchy")
@@ -172,6 +182,7 @@ model Position {
   id           String   @id @default(uuid())
   title        String
   departmentId String   @map("department_id")
+  isUnitHead   Boolean  @default(false) @map("is_unit_head")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
