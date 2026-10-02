@@ -50,15 +50,15 @@ export function TimesheetApprovalTable({
   const [selectedSubmission, setSelectedSubmission] = useState<TimesheetApprovalItem | null>(
     () => (initialSubmissionId ? items.find((i) => i.id === initialSubmissionId) || null : null),
   );
+  const [prevInitialId, setPrevInitialId] = useState(initialSubmissionId);
 
-  React.useEffect(() => {
-    if (initialSubmissionId && items.length > 0) {
+  if (initialSubmissionId !== prevInitialId) {
+    setPrevInitialId(initialSubmissionId);
+    if (initialSubmissionId) {
       const match = items.find((i) => i.id === initialSubmissionId);
-      if (match) {
-        setSelectedSubmission(match);
-      }
+      if (match) setSelectedSubmission(match);
     }
-  }, [initialSubmissionId, items]);
+  }
 
   const handleCloseModal = () => {
     setSelectedSubmission(null);

@@ -23,12 +23,14 @@ interface TimesheetApprovalViewProps {
   items: TimesheetApprovalItem[];
   stats: TimesheetApprovalStats;
   currentEmployeeId: string;
+  initialSubmissionId?: string;
 }
 
 export function TimesheetApprovalView({
   items,
   stats,
   currentEmployeeId,
+  initialSubmissionId,
 }: TimesheetApprovalViewProps) {
   return (
     <div className="space-y-6">
@@ -107,7 +109,11 @@ export function TimesheetApprovalView({
       </div>
 
       {/* Table */}
-      <TimesheetApprovalTable items={items} currentEmployeeId={currentEmployeeId} />
+      <TimesheetApprovalTable
+        items={items}
+        currentEmployeeId={currentEmployeeId}
+        initialSubmissionId={initialSubmissionId}
+      />
     </div>
   );
 }

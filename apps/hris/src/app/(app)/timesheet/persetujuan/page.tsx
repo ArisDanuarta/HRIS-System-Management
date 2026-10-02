@@ -14,13 +14,17 @@ export const metadata = {
   description: "Persetujuan lembar kerja jam kerja karyawan freelance PSPK",
 };
 
-export default async function TimesheetApprovalPage() {
+export default async function TimesheetApprovalPage(props: {
+  searchParams?: Promise<{ submissionId?: string }>;
+}) {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
 
   if (!session?.user) {
     redirect("/login");
   }
+
+  const searchParams = await props.searchParams;
 
   const [ctx, userProfile] = await Promise.all([
     getAuthContext(session.user.id),
@@ -49,6 +53,7 @@ export default async function TimesheetApprovalPage() {
       items={timesheetData.items}
       stats={timesheetData.stats}
       currentEmployeeId={ctx.employeeId}
+      initialSubmissionId={searchParams?.submissionId}
     />
   );
 }

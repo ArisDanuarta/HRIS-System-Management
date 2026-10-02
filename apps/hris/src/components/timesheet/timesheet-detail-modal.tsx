@@ -171,21 +171,28 @@ export function TimesheetDetailModal({
                 {submission.totalHours} <span className="text-xs font-normal text-slate-400">Jam</span>
               </span>
             </div>
-            <div className="p-3.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between">
-              <div>
-                <span className="text-[10px] text-slate-400 block mb-0.5">Tautan Spreadsheet</span>
-                <span className="text-xs font-semibold text-slate-700 block truncate max-w-[180px]">
-                  Google Spreadsheet
-                </span>
+            <div className="p-3.5 bg-gradient-to-br from-emerald-50/70 via-white to-slate-50/60 rounded-xl border border-emerald-200/80 flex items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <FileSpreadsheet className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                    Google Sheets
+                  </span>
+                  <span className="text-xs font-semibold text-slate-800 block truncate max-w-[170px]">
+                    Lembar Waktu Kerja
+                  </span>
+                </div>
               </div>
               <a
                 href={submission.spreadsheetUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-[#102E50]/10 hover:bg-[#102E50]/20 text-[#102E50] rounded-lg font-semibold flex items-center gap-1 transition-colors shrink-0"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-lg font-semibold text-xs inline-flex items-center gap-1.5 transition-all shrink-0 shadow-xs group cursor-pointer"
               >
                 <span>Buka</span>
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3 h-3 text-white/90 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </a>
             </div>
           </div>

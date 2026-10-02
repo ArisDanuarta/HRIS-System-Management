@@ -16,7 +16,6 @@ import {
   Copy,
   Check,
   Calendar,
-  User,
   Loader2,
 } from "lucide-react";
 import { formatDate } from "@pspk/shared";

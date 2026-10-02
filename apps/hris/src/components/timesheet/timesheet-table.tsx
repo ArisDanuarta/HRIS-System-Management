@@ -220,11 +220,11 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
                         href={s.spreadsheetUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors font-medium text-[11px]"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/80 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-all font-semibold text-[11px] group cursor-pointer shadow-2xs"
                       >
-                        <FileSpreadsheet className="w-3 h-3 text-emerald-600" />
-                        <span>Buka Sheet</span>
-                        <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Buka Spreadsheet</span>
+                        <ExternalLink className="w-2.5 h-2.5 opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                       </a>
                     </td>
 
