@@ -36,6 +36,7 @@ export async function createDepartment(data: CreateDepartmentInput, actor: Actor
   const department = await prisma.department.create({
     data: {
       name: trimmedName,
+      type: data.type ?? "INITIATIVE",
       parentId: data.parentId || null,
     },
   });
@@ -47,7 +48,7 @@ export async function createDepartment(data: CreateDepartmentInput, actor: Actor
     action: "CREATE",
     entityType: "Department",
     entityId: department.id,
-    after: { name: department.name, parentId: department.parentId },
+    after: { name: department.name, type: department.type, parentId: department.parentId },
     ip: actor.ip,
     userAgent: actor.userAgent,
   });
@@ -87,6 +88,7 @@ export async function updateDepartment(data: UpdateDepartmentInput, actor: Actor
     where: { id: data.id },
     data: {
       name: trimmedName,
+      type: data.type,
       parentId: data.parentId || null,
     },
   });
@@ -98,8 +100,8 @@ export async function updateDepartment(data: UpdateDepartmentInput, actor: Actor
     action: "UPDATE",
     entityType: "Department",
     entityId: updated.id,
-    before: { name: current.name, parentId: current.parentId },
-    after: { name: updated.name, parentId: updated.parentId },
+    before: { name: current.name, type: current.type, parentId: current.parentId },
+    after: { name: updated.name, type: updated.type, parentId: updated.parentId },
     ip: actor.ip,
     userAgent: actor.userAgent,
   });
@@ -211,6 +213,7 @@ export async function createPosition(data: CreatePositionInput, actor: ActorCont
     data: {
       title: trimmedTitle,
       departmentId: data.departmentId,
+      isUnitHead: data.isUnitHead ?? false,
     },
     include: {
       department: { select: { id: true, name: true } },
@@ -224,7 +227,7 @@ export async function createPosition(data: CreatePositionInput, actor: ActorCont
     action: "CREATE",
     entityType: "Position",
     entityId: position.id,
-    after: { title: position.title, departmentId: position.departmentId },
+    after: { title: position.title, departmentId: position.departmentId, isUnitHead: position.isUnitHead },
     ip: actor.ip,
     userAgent: actor.userAgent,
   });
@@ -261,6 +264,7 @@ export async function updatePosition(data: UpdatePositionInput, actor: ActorCont
     data: {
       title: trimmedTitle,
       departmentId: data.departmentId,
+      isUnitHead: data.isUnitHead ?? false,
     },
     include: {
       department: { select: { id: true, name: true } },
@@ -275,7 +279,7 @@ export async function updatePosition(data: UpdatePositionInput, actor: ActorCont
     entityType: "Position",
     entityId: updated.id,
     before: { title: current.title, departmentId: current.departmentId },
-    after: { title: updated.title, departmentId: updated.departmentId },
+    after: { title: updated.title, departmentId: updated.departmentId, isUnitHead: updated.isUnitHead },
     ip: actor.ip,
     userAgent: actor.userAgent,
   });

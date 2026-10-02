@@ -1,11 +1,29 @@
 import { z } from "zod";
 
+export const DepartmentTypeEnum = z.enum(["GOVERNANCE", "LEADERSHIP", "INITIATIVE", "SUPPORT"]);
+export type DepartmentType = z.infer<typeof DepartmentTypeEnum>;
+
+export const DEPT_TYPE_LABEL: Record<DepartmentType, string> = {
+  GOVERNANCE: "Tata Kelola",
+  LEADERSHIP: "Kepemimpinan",
+  INITIATIVE: "Inisiatif",
+  SUPPORT: "Fungsi Pendukung",
+};
+
+export const TYPE_ORDER: DepartmentType[] = [
+  "GOVERNANCE",
+  "LEADERSHIP",
+  "INITIATIVE",
+  "SUPPORT",
+];
+
 export const createDepartmentSchema = z.object({
   name: z
     .string({ required_error: "Nama divisi/departemen wajib diisi" })
     .trim()
     .min(3, "Nama divisi minimal 3 karakter")
     .max(100, "Nama divisi maksimal 100 karakter"),
+  type: DepartmentTypeEnum.default("INITIATIVE"),
   parentId: z.string().uuid("ID divisi induk tidak valid").optional().nullable(),
 });
 
@@ -18,6 +36,7 @@ export const updateDepartmentSchema = z.object({
     .trim()
     .min(3, "Nama divisi minimal 3 karakter")
     .max(100, "Nama divisi maksimal 100 karakter"),
+  type: DepartmentTypeEnum,
   parentId: z.string().uuid("ID divisi induk tidak valid").optional().nullable(),
 });
 
@@ -30,6 +49,7 @@ export const createPositionSchema = z.object({
     .min(3, "Judul jabatan minimal 3 karakter")
     .max(100, "Judul jabatan maksimal 100 karakter"),
   departmentId: z.string().uuid("Pilih divisi/departemen yang valid"),
+  isUnitHead: z.boolean().default(false),
 });
 
 export type CreatePositionInput = z.infer<typeof createPositionSchema>;
@@ -42,6 +62,7 @@ export const updatePositionSchema = z.object({
     .min(3, "Judul jabatan minimal 3 karakter")
     .max(100, "Judul jabatan maksimal 100 karakter"),
   departmentId: z.string().uuid("Pilih divisi/departemen yang valid"),
+  isUnitHead: z.boolean().default(false),
 });
 
 export type UpdatePositionInput = z.infer<typeof updatePositionSchema>;
