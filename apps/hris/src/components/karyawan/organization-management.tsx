@@ -328,17 +328,17 @@ export function OrganizationManagement({
         {/* KOLOM KIRI: DAFTAR DIVISI (4 Cols) */}
         <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/50">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-[#102E50]" />
-              <h2 className="font-bold text-sm text-[#102E50] font-heading">
+            <div className="flex items-center gap-2 min-w-0">
+              <Building2 className="w-4 h-4 text-[#102E50] shrink-0" />
+              <h2 className="font-bold text-sm text-[#102E50] font-heading truncate">
                 Divisi & Departemen ({departments.length})
               </h2>
             </div>
             <button
               onClick={handleOpenCreateDept}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs active:scale-95"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 whitespace-nowrap"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 shrink-0" />
               <span>Tambah Divisi</span>
             </button>
           </div>
@@ -437,23 +437,27 @@ export function OrganizationManagement({
             <>
               {/* Header Kolom Kanan */}
               <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-[#102E50]" />
-                    <h2 className="font-bold text-sm text-[#102E50] font-heading truncate">
+                <div className="flex flex-col min-w-0 flex-1">
+                  <div className="flex items-start sm:items-center gap-2 min-w-0">
+                    <Briefcase className="w-4 h-4 text-[#102E50] shrink-0 mt-0.5 sm:mt-0" />
+                    <h2
+                      className="font-bold text-sm text-[#102E50] font-heading line-clamp-2 sm:line-clamp-1 break-words"
+                      title={selectedDepartment.name}
+                    >
                       {selectedDepartment.name}
                     </h2>
                   </div>
-                  <span className="text-[11px] text-slate-500 mt-0.5">
+                  <span className="text-[11px] text-slate-500 mt-0.5 truncate">
                     Daftar formasi posisi & jabatan riset dalam divisi ini
                   </span>
                 </div>
 
                 <button
+                  type="button"
                   onClick={handleOpenCreatePos}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs active:scale-95 shrink-0 whitespace-nowrap self-start sm:self-center"
                 >
-                  <Plus className="w-3.5 h-3.5 text-[#F2AF3E]" />
+                  <Plus className="w-3.5 h-3.5 text-[#F2AF3E] shrink-0" />
                   <span>Tambah Jabatan</span>
                 </button>
               </div>
@@ -489,7 +493,7 @@ export function OrganizationManagement({
                       key={pos.id}
                       className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors"
                     >
-                      <div className="flex flex-col min-w-0">
+                      <div className="flex flex-col min-w-0 flex-1">
                         <span className="font-semibold text-xs text-slate-900 truncate">
                           {pos.title}
                         </span>
