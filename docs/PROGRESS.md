@@ -4,6 +4,23 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Task: Standarisasi Sidebar Navigasi 2-Tier (Opsi 1) — 2026-10-02
+
+- **Status:** Selesai
+- **Scope:** Menyeragamkan dan menata struktur sidebar navigasi di seluruh peran (`admin_hr`, `manager`, `staff`) menggunakan arsitektur 2-Tier yang konsisten: seksi atas untuk tugas operasional/manajerial dan seksi bawah untuk "Layanan Mandiri" (ESS - Employee Self-Service).
+- **Perubahan:**
+  - `apps/hris/src/components/shell/app-sidebar.tsx`:
+    - Mengelompokkan menu Admin HR ke dalam 2 seksi: **Manajemen Organisasi** (badge `HR ADMIN`) dan **Layanan Mandiri** (Profil Saya, Absensi Saya, Cuti Saya, Slip Gaji, Timesheet Saya).
+    - Menyeragamkan seksi Manajer: **Manajemen Tim** (badge `LEAD`) dan **Layanan Mandiri**.
+    - Merapikan seksi Staf: **Ringkasan** (badge `STAFF`, Beranda) dan **Layanan Mandiri** (termasuk Kinerja Saya).
+    - Memperbaiki ketepatan `isNavActive` agar rute `/absensi/rekap`, `/cuti/persetujuan`, `/cuti`, dan `/absensi` tidak tumpang tindih.
+  - `apps/hris/src/components/shell/shell-container.tsx`: Meneruskan prop `remainingLeaveDays` ke `AppSidebar`.
+  - `apps/hris/src/app/(app)/layout.tsx`: Mengambil sisa saldo cuti tahunan real dari `prisma.leaveBalance` untuk pegawai yang sedang aktif dan meneruskannya ke `ShellContainer`.
+  - `apps/hris/src/components/shell/app-topbar.tsx`: Menyelaraskan breadcrumb `getPageTitle()` dengan label menu dan peran aktif.
+- **Verifikasi:** `pnpm typecheck` ✅ 9/9 lulus · `pnpm lint` ✅ 0 errors
+
+---
+
 ## Task: Tambah `DepartmentType` & `isUnitHead` pada Divisi/Jabatan — 2026-10-02
 
 - **Status:** Selesai

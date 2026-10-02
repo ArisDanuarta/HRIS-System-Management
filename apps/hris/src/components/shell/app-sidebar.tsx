@@ -57,16 +57,31 @@ export function AppSidebar({
         (pathname.startsWith("/karyawan/") && !pathname.startsWith("/karyawan/organisasi"))
       );
     }
+    if (href === "/karyawan/organisasi") {
+      return pathname.startsWith("/karyawan/organisasi");
+    }
+    if (href === "/absensi/rekap") {
+      return (
+        pathname.startsWith("/absensi/rekap") ||
+        pathname.startsWith("/cuti/pengaturan") ||
+        pathname.startsWith("/cuti/kalender")
+      );
+    }
     if (href === "/absensi") {
       return (
         pathname === "/absensi" ||
         (pathname.startsWith("/absensi/") && !pathname.startsWith("/absensi/rekap"))
       );
     }
+    if (href === "/cuti/persetujuan") {
+      return pathname.startsWith("/cuti/persetujuan");
+    }
     if (href === "/cuti") {
       return (
-        pathname === "/cuti" ||
-        (pathname.startsWith("/cuti/") && !pathname.startsWith("/cuti/persetujuan"))
+        (pathname === "/cuti" || pathname.startsWith("/cuti/")) &&
+        !pathname.startsWith("/cuti/persetujuan") &&
+        !pathname.startsWith("/cuti/pengaturan") &&
+        !pathname.startsWith("/cuti/kalender")
       );
     }
     if (href === "/timesheet/persetujuan") {
@@ -80,6 +95,73 @@ export function AppSidebar({
     }
     return pathname.startsWith(href);
   };
+
+  const renderPersonalSection = (includeKinerja = false) => (
+    <>
+      <div className="my-3 mx-4 border-t border-white/10" />
+
+      {!isCollapsed && (
+        <div className="px-5 pb-1">
+          <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
+            Layanan Mandiri
+          </span>
+        </div>
+      )}
+      <nav className="flex flex-col gap-1 px-2.5">
+        <NavItem
+          href="/profil"
+          label="Profil Saya"
+          icon={<User className="w-5 h-5 shrink-0" />}
+          isActive={isNavActive("/profil")}
+          isCollapsed={isCollapsed}
+        />
+        <NavItem
+          href="/absensi"
+          label="Absensi Saya"
+          icon={<Fingerprint className="w-5 h-5 shrink-0" />}
+          isActive={isNavActive("/absensi")}
+          isCollapsed={isCollapsed}
+        />
+        <NavItem
+          href="/cuti"
+          label="Cuti Saya"
+          icon={<Calendar className="w-5 h-5 shrink-0" />}
+          isActive={isNavActive("/cuti")}
+          isCollapsed={isCollapsed}
+          badge={
+            <span className="bg-[#0c233d] text-[#ffddb0] text-[11px] px-2 py-0.5 rounded font-semibold">
+              {remainingLeaveDays} Hari
+            </span>
+          }
+        />
+        <NavItem
+          href="/slip-gaji"
+          label="Slip Gaji"
+          icon={<Receipt className="w-5 h-5 shrink-0" />}
+          isActive={isNavActive("/slip-gaji")}
+          isCollapsed={isCollapsed}
+        />
+        {isHourlyEmployee && (
+          <NavItem
+            href="/timesheet"
+            label="Timesheet Saya"
+            icon={<Clock className="w-5 h-5 shrink-0" />}
+            isActive={isNavActive("/timesheet")}
+            isCollapsed={isCollapsed}
+          />
+        )}
+        {includeKinerja && (
+          <NavItem
+            href="/kinerja"
+            label="Kinerja Saya"
+            icon={<LineChart className="w-5 h-5 shrink-0" />}
+            isActive={isNavActive("/kinerja")}
+            isCollapsed={isCollapsed}
+          />
+        )}
+      </nav>
+    </>
+  );
 
   return (
     <aside
@@ -123,9 +205,12 @@ export function AppSidebar({
         {currentRole === "admin_hr" && (
           <div className="py-3">
             {!isCollapsed && (
-              <div className="px-5 py-2">
+              <div className="px-5 py-2 flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
-                  Navigasi Utama
+                  Manajemen Organisasi
+                </span>
+                <span className="bg-[#feba48]/20 text-[#ffddb0] text-[10px] px-1.5 py-0.5 rounded font-bold">
+                  HR ADMIN
                 </span>
               </div>
             )}
@@ -158,9 +243,9 @@ export function AppSidebar({
               />
               <NavItem
                 href="/absensi/rekap"
-                label="Kehadiran & Cuti"
+                label="Kehadiran Organisasi"
                 icon={<CalendarCheck className="w-5 h-5 shrink-0" />}
-                isActive={pathname.startsWith("/cuti") || pathname.startsWith("/absensi")}
+                isActive={isNavActive("/absensi/rekap")}
                 isCollapsed={isCollapsed}
                 badge={
                   pendingLeavesCount > 0 ? (
@@ -193,12 +278,14 @@ export function AppSidebar({
               />
               <NavItem
                 href="/kinerja"
-                label="Kinerja & Riset"
+                label="Kinerja Organisasi"
                 icon={<TrendingUp className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/kinerja")}
                 isCollapsed={isCollapsed}
               />
             </nav>
+
+            {renderPersonalSection(false)}
           </div>
         )}
 
@@ -208,7 +295,7 @@ export function AppSidebar({
             {!isCollapsed && (
               <div className="px-5 py-2 flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
-                  Tim & Approval
+                  Manajemen Tim
                 </span>
                 <span className="bg-[#feba48]/20 text-[#ffddb0] text-[10px] px-1.5 py-0.5 rounded font-bold">
                   LEAD
@@ -237,16 +324,18 @@ export function AppSidebar({
                 isActive={isNavActive("/cuti/persetujuan")}
                 isCollapsed={isCollapsed}
                 badge={
-                  <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
-                    {pendingLeavesCount}
-                  </span>
+                  pendingLeavesCount > 0 ? (
+                    <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
+                      {pendingLeavesCount}
+                    </span>
+                  ) : undefined
                 }
               />
               <NavItem
                 href="/absensi/rekap"
                 label="Absensi Tim"
                 icon={<CalendarClock className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/absensi/rekap")}
+                isActive={pathname.startsWith("/absensi/rekap")}
                 isCollapsed={isCollapsed}
               />
               <NavItem
@@ -272,54 +361,7 @@ export function AppSidebar({
               />
             </nav>
 
-            <div className="my-3 mx-4 border-t border-white/10" />
-
-            {!isCollapsed && (
-              <div className="px-5 pb-1">
-                <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
-                  Menu Personal
-                </span>
-              </div>
-            )}
-            <nav className="flex flex-col gap-1 px-2.5">
-              <NavItem
-                href="/profil"
-                label="Profil Saya"
-                icon={<User className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/profil")}
-                isCollapsed={isCollapsed}
-              />
-              <NavItem
-                href="/absensi"
-                label="Absensi Saya"
-                icon={<Fingerprint className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/absensi")}
-                isCollapsed={isCollapsed}
-              />
-              <NavItem
-                href="/cuti"
-                label="Cuti Saya"
-                icon={<Calendar className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/cuti")}
-                isCollapsed={isCollapsed}
-              />
-              <NavItem
-                href="/slip-gaji"
-                label="Slip Gaji"
-                icon={<Receipt className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/slip-gaji")}
-                isCollapsed={isCollapsed}
-              />
-              {isHourlyEmployee && (
-                <NavItem
-                  href="/timesheet"
-                  label="Timesheet Saya"
-                  icon={<Clock className="w-5 h-5 shrink-0" />}
-                  isActive={isNavActive("/timesheet")}
-                  isCollapsed={isCollapsed}
-                />
-              )}
-            </nav>
+            {renderPersonalSection(false)}
           </div>
         )}
 
@@ -327,9 +369,12 @@ export function AppSidebar({
         {currentRole === "staff" && (
           <div className="py-3">
             {!isCollapsed && (
-              <div className="px-5 py-2">
+              <div className="px-5 py-2 flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
-                  Menu Karyawan
+                  Ringkasan
+                </span>
+                <span className="bg-[#feba48]/20 text-[#ffddb0] text-[10px] px-1.5 py-0.5 rounded font-bold">
+                  STAFF
                 </span>
               </div>
             )}
@@ -341,56 +386,9 @@ export function AppSidebar({
                 isActive={isNavActive("/dashboard")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/profil"
-                label="Profil Saya"
-                icon={<User className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/profil")}
-                isCollapsed={isCollapsed}
-              />
-              <NavItem
-                href="/absensi"
-                label="Absensi Saya"
-                icon={<Fingerprint className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/absensi")}
-                isCollapsed={isCollapsed}
-              />
-              <NavItem
-                href="/cuti"
-                label="Cuti Saya"
-                icon={<Calendar className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/cuti")}
-                isCollapsed={isCollapsed}
-                badge={
-                  <span className="bg-[#0c233d] text-[#ffddb0] text-[11px] px-2 py-0.5 rounded font-semibold">
-                    {remainingLeaveDays} Hari
-                  </span>
-                }
-              />
-              <NavItem
-                href="/slip-gaji"
-                label="Slip Gaji"
-                icon={<Receipt className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/slip-gaji")}
-                isCollapsed={isCollapsed}
-              />
-              {isHourlyEmployee && (
-                <NavItem
-                  href="/timesheet"
-                  label="Timesheet Saya"
-                  icon={<Clock className="w-5 h-5 shrink-0" />}
-                  isActive={isNavActive("/timesheet")}
-                  isCollapsed={isCollapsed}
-                />
-              )}
-              <NavItem
-                href="/kinerja"
-                label="Kinerja Saya"
-                icon={<LineChart className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/kinerja")}
-                isCollapsed={isCollapsed}
-              />
             </nav>
+
+            {renderPersonalSection(true)}
           </div>
         )}
       </div>

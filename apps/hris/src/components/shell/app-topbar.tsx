@@ -35,17 +35,31 @@ export function AppTopbar({
 
   // Derive breadcrumb page title from pathname
   const getPageTitle = () => {
-    if (pathname === "/" || pathname === "/dashboard") {
-      if (currentRole === "admin_hr") return "Manajemen Karyawan";
-      if (currentRole === "manager") return "Persetujuan Cuti Tim";
-      return "Beranda";
-    }
+    if (pathname === "/" || pathname === "/dashboard") return "Beranda";
     if (pathname.startsWith("/notifikasi")) return "Pusat Notifikasi";
-    if (pathname.startsWith("/karyawan")) return "Manajemen Karyawan";
-    if (pathname.startsWith("/cuti") || pathname.startsWith("/absensi")) return "Kehadiran & Cuti";
+    if (pathname.startsWith("/karyawan/organisasi")) return "Struktur Organisasi";
+    if (pathname.startsWith("/karyawan")) {
+      return currentRole === "manager" ? "Tim Saya" : "Manajemen Karyawan";
+    }
+    if (pathname.startsWith("/cuti/persetujuan")) return "Persetujuan Cuti";
+    if (pathname.startsWith("/absensi/rekap")) {
+      return currentRole === "manager" ? "Absensi Tim" : "Kehadiran Organisasi";
+    }
+    if (pathname.startsWith("/cuti")) return "Cuti Saya";
+    if (pathname.startsWith("/absensi")) return "Absensi Saya";
+    if (pathname.startsWith("/timesheet/persetujuan")) {
+      return currentRole === "manager" ? "Persetujuan Timesheet" : "Timesheet Freelance";
+    }
+    if (pathname.startsWith("/timesheet")) return "Timesheet Saya";
     if (pathname.startsWith("/payroll")) return "Penggajian (Payroll)";
     if (pathname.startsWith("/slip-gaji")) return "Slip Gaji";
-    if (pathname.startsWith("/kinerja")) return "Kinerja & Riset";
+    if (pathname.startsWith("/kinerja")) {
+      return currentRole === "staff"
+        ? "Kinerja Saya"
+        : currentRole === "manager"
+        ? "Kinerja Tim"
+        : "Kinerja Organisasi";
+    }
     if (pathname.startsWith("/profil")) return "Profil Saya";
     return "Portal HRIS";
   };
