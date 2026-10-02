@@ -305,6 +305,26 @@ export async function approvePeriodPayroll(periodId: string) {
     throw new Error("Hanya periode berstatus CALCULATED yang dapat disetujui (APPROVED).");
   }
 
+  // Validasi Blocker Timesheet Freelance: Seluruh timesheet wajib disetujui atasan
+  const timesheetValidation = await getTimesheetValidationForPayroll(period.year, period.month);
+  if (!timesheetValidation.canProceed) {
+    const missingList = timesheetValidation.blockers
+      .filter((b) => b.reason === "MISSING_TIMESHEET")
+      .map((b) => `${b.employeeName} (${b.employeeNo}) [Belum Mengumpulkan]`);
+
+    const pendingList = timesheetValidation.blockers
+      .filter((b) => b.reason === "PENDING_APPROVAL")
+      .map(
+        (b) =>
+          `${b.employeeName} (${b.employeeNo}) [Menunggu ACC: ${b.pendingReviewers.join(", ")}]`,
+      );
+
+    const details = [...missingList, ...pendingList].join("; ");
+    throw new Error(
+      `Persetujuan payroll ditolak: Terdapat ${timesheetValidation.blockers.length} pegawai freelance yang timesheet-nya belum selesai di-ACC oleh atasan proyek. Rincian: ${details}. Seluruh timesheet wajib disetujui sebelum periode disetujui HR.`,
+    );
+  }
+
   await prisma.$transaction([
     prisma.payrollPeriod.update({
       where: { id: period.id },
@@ -330,6 +350,26 @@ export async function publishPeriodPayroll(periodId: string) {
   if (!period) throw new Error("Periode tidak ditemukan.");
   if (period.status !== "APPROVED") {
     throw new Error("Hanya periode yang sudah disetujui (APPROVED) yang dapat dipublikasikan.");
+  }
+
+  // Validasi Blocker Timesheet Freelance: Pastikan tidak ada timesheet yang belum selesai
+  const timesheetValidation = await getTimesheetValidationForPayroll(period.year, period.month);
+  if (!timesheetValidation.canProceed) {
+    const missingList = timesheetValidation.blockers
+      .filter((b) => b.reason === "MISSING_TIMESHEET")
+      .map((b) => `${b.employeeName} (${b.employeeNo}) [Belum Mengumpulkan]`);
+
+    const pendingList = timesheetValidation.blockers
+      .filter((b) => b.reason === "PENDING_APPROVAL")
+      .map(
+        (b) =>
+          `${b.employeeName} (${b.employeeNo}) [Menunggu ACC: ${b.pendingReviewers.join(", ")}]`,
+      );
+
+    const details = [...missingList, ...pendingList].join("; ");
+    throw new Error(
+      `Publikasi slip gaji ditolak: Terdapat ${timesheetValidation.blockers.length} pegawai freelance yang timesheet-nya belum di-ACC oleh atasan. Rincian: ${details}. Slip gaji tidak dapat dipublikasikan sampai seluruh timesheet diverifikasi lengkap.`,
+    );
   }
 
   const now = new Date();
@@ -361,6 +401,13 @@ export async function lockPeriodPayroll(periodId: string) {
     throw new Error("Hanya periode berstatus PUBLISHED yang dapat dikunci (LOCKED).");
   }
 
+  const timesheetValidation = await getTimesheetValidationForPayroll(period.year, period.month);
+  if (!timesheetValidation.canProceed) {
+    throw new Error(
+      "Periode tidak dapat dikunci karena masih terdapat data timesheet freelance yang belum tuntas di-ACC.",
+    );
+  }
+
   const now = new Date();
 
   await prisma.$transaction([
@@ -371,6 +418,36 @@ export async function lockPeriodPayroll(periodId: string) {
     prisma.payslip.updateMany({
       where: { periodId: period.id },
       data: { status: "LOCKED" },
+    }),
+  ]);
+
+  return { ok: true };
+}
+
+/**
+ * Kembalikan Status Periode Payroll ke Draf Awal (REVERT TO DRAFT)
+ */
+export async function revertPayrollPeriod(periodId: string) {
+  const period = await prisma.payrollPeriod.findUnique({
+    where: { id: periodId },
+  });
+
+  if (!period) throw new Error("Periode penggajian tidak ditemukan.");
+  if (period.status === "LOCKED") {
+    throw new Error("Periode yang telah dikunci permanen (LOCKED) tidak dapat dikembalikan ke Draf.");
+  }
+  if (period.status === "DRAFT") {
+    throw new Error("Periode sudah berada pada status Draf Awal.");
+  }
+
+  await prisma.$transaction([
+    prisma.payrollPeriod.update({
+      where: { id: period.id },
+      data: { status: "DRAFT" },
+    }),
+    prisma.payslip.updateMany({
+      where: { periodId: period.id },
+      data: { status: "DRAFT", publishedAt: null },
     }),
   ]);
 
