@@ -15,6 +15,7 @@ export interface ShellContainerProps {
   initialRole?: RoleViewType;
   employeeCount?: number;
   pendingLeavesCount?: number;
+  remainingLeaveDays?: number;
   pendingTimesheetsCount?: number;
   isHourlyEmployee?: boolean;
   isSuperAdmin?: boolean;
@@ -27,6 +28,7 @@ export function ShellContainer({
   initialRole = "admin_hr",
   employeeCount,
   pendingLeavesCount,
+  remainingLeaveDays,
   pendingTimesheetsCount = 0,
   isHourlyEmployee = false,
   isSuperAdmin = false,
@@ -63,6 +65,7 @@ export function ShellContainer({
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         employeeCount={employeeCount}
         pendingLeavesCount={pendingLeavesCount}
+        remainingLeaveDays={remainingLeaveDays}
         pendingTimesheetsCount={pendingTimesheetsCount}
         isHourlyEmployee={isHourlyEmployee}
       />

@@ -4,6 +4,28 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Task: Tambah `DepartmentType` & `isUnitHead` pada Divisi/Jabatan — 2026-10-02
+
+- **Status:** Selesai
+- **Scope:** Menambahkan enum `DepartmentType` (`GOVERNANCE`, `LEADERSHIP`, `INITIATIVE`, `SUPPORT`) dan field `type` (default `INITIATIVE`) pada model `Department`, serta flag `isUnitHead` (default `false`) pada model `Position`.
+- **File yang diubah:**
+  - `packages/db/prisma/schema/hris.prisma` — tambah enum `DepartmentType`, field `type` di `Department`, field `isUnitHead` di `Position`
+  - `packages/db/prisma/migrations/20261002063827_add_department_type_and_unit_head/` — migration baru diaplikasikan
+  - `apps/hris/src/server/schemas/organization.schema.ts` — tambah `DepartmentTypeEnum`, `DEPT_TYPE_LABEL`, `TYPE_ORDER`, field `type` di create/update dept schema, `isUnitHead` di create/update pos schema
+  - `apps/hris/src/server/services/organization.service.ts` — teruskan `type` dan `isUnitHead` ke Prisma create/update
+  - `apps/hris/src/server/queries/employee.queries.ts` — tambah `sortByTypeOrder()`, sort dept, stats `byType`
+  - `apps/hris/src/components/karyawan/organization-management.tsx` — full update: badge tipe, filter tipe, modal dept dengan select tipe, modal jabatan dengan toggle `isUnitHead`, badge "Pimpinan Unit" di list jabatan
+  - `apps/hris/src/components/karyawan/organization-page-view.tsx` — tambah `byType?` ke stats interface
+  - `apps/hris/src/components/karyawan/transfer-position-modal.tsx` — tambah `type?` ke dept interface, tampilkan label tipe di dropdown
+- **Keputusan desain:**
+  - Data lama otomatis `INITIATIVE` (default Prisma)
+  - `parentId` di `Department` tidak diubah/dipakai
+  - Sorting divisi: GOVERNANCE → LEADERSHIP → INITIATIVE → SUPPORT, lalu A-Z nama
+  - `isUnitHead` di `Position` = Fase B, sudah diimplementasi karena tidak menambah complexity
+- **Verifikasi:** `typecheck` ✅ 0 errors · `lint` ✅ 0 errors
+
+---
+
 ## Fase 1 — Setup Awal Monorepo & Fondasi Sistem
 - **Status:** Selesai (Completed)
 - **Capaian:**

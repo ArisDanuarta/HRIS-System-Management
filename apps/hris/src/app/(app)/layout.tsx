@@ -59,17 +59,34 @@ export default async function AppProtectedLayout({
 
   let isHourlyEmployee = false;
   let pendingTimesheetsCount = 0;
+  let remainingLeaveDays = 12;
 
   if (userProfile?.employee?.id) {
-    const activeContract = await prisma.employmentContract.findFirst({
-      where: {
-        employeeId: userProfile.employee.id,
-        status: "ACTIVE",
-      },
-      select: { wageType: true },
-      orderBy: { startDate: "desc" },
-    });
+    const [activeContract, balances] = await Promise.all([
+      prisma.employmentContract.findFirst({
+        where: {
+          employeeId: userProfile.employee.id,
+          status: "ACTIVE",
+        },
+        select: { wageType: true },
+        orderBy: { startDate: "desc" },
+      }),
+      prisma.leaveBalance.findMany({
+        where: {
+          employeeId: userProfile.employee.id,
+          year: 2026,
+        },
+        include: { leaveType: true },
+      }),
+    ]);
+
     isHourlyEmployee = activeContract?.wageType === "HOURLY";
+
+    const annualBalance =
+      balances.find((b) => b.leaveType.name.toLowerCase().includes("tahunan")) || balances[0];
+    if (annualBalance) {
+      remainingLeaveDays = Math.max(0, annualBalance.quotaDays - Number(annualBalance.usedDays));
+    }
 
     if (initialRole === "manager") {
       pendingTimesheetsCount = await prisma.timesheetReviewer.count({
@@ -103,6 +120,7 @@ export default async function AppProtectedLayout({
       initialRole={initialRole}
       employeeCount={activeEmployeeCount}
       pendingLeavesCount={pendingLeavesCount}
+      remainingLeaveDays={remainingLeaveDays}
       pendingTimesheetsCount={pendingTimesheetsCount}
       isHourlyEmployee={isHourlyEmployee}
       isSuperAdmin={isSuperAdmin}
