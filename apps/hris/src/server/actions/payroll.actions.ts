@@ -11,6 +11,7 @@ import {
   approvePeriodPayroll,
   publishPeriodPayroll,
   lockPeriodPayroll,
+  revertPayrollPeriod,
   generatePayrollBankExport,
   updatePayslipTimesheet,
 } from "../services/payroll.service";
@@ -348,6 +349,50 @@ export async function lockPayrollAction(input: { periodId: string }) {
     return {
       ok: false as const,
       error: err instanceof Error ? err.message : "Gagal mengunci periode penggajian.",
+    };
+  }
+}
+
+/**
+ * Kembalikan Status Periode Payroll ke Draf Awal (REVERT TO DRAFT)
+ */
+export async function revertPayrollAction(input: { periodId: string }) {
+  try {
+    const actor = await getActorInfo();
+
+    if (!actor.isSuperAdmin && !actor.isAdminHr) {
+      return {
+        ok: false as const,
+        error: "Hanya Admin HR atau Super Admin yang berwenang mengembalikan status periode penggajian.",
+      };
+    }
+
+    await revertPayrollPeriod(input.periodId);
+
+    await writeAudit({
+      actorUserId: actor.userId,
+      actorEmail: actor.email,
+      app: "hris",
+      action: "UPDATE",
+      entityType: "PayrollPeriod",
+      entityId: input.periodId,
+      after: { status: "DRAFT" },
+      ip: actor.ip,
+      userAgent: actor.userAgent,
+    });
+
+    revalidatePath("/payroll");
+    revalidatePath(`/payroll/${input.periodId}`);
+
+    return {
+      ok: true as const,
+      message: "Periode penggajian berhasil dikembalikan ke status Draf Awal.",
+    };
+  } catch (err: unknown) {
+    console.error("revertPayrollAction error:", err);
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal mengembalikan status periode penggajian.",
     };
   }
 }
