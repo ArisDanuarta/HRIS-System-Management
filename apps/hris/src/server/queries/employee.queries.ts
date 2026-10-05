@@ -322,6 +322,16 @@ export async function getEmployeeById(id: string) {
       ...c,
       baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
       hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
+      employmentTypeMaster: c.employmentTypeMaster
+        ? {
+            ...c.employmentTypeMaster,
+            defaultHourlyRate: c.employmentTypeMaster.defaultHourlyRate
+              ? Number(c.employmentTypeMaster.defaultHourlyRate)
+              : null,
+            createdAt: c.employmentTypeMaster.createdAt.toISOString(),
+            updatedAt: c.employmentTypeMaster.updatedAt.toISOString(),
+          }
+        : null,
     })),
   };
 }

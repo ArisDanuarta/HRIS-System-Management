@@ -141,7 +141,12 @@ export default async function EmployeeDetailPage({
                 NIP: {employee.employeeNo}
               </span>
               <StatusBadge status={employee.status} size="sm" />
-              {activeContract && <ContractTypeBadge type={activeContract.type} />}
+              {activeContract && (
+                <ContractTypeBadge
+                  type={activeContract.type}
+                  label={activeContract.employmentTypeMaster?.name}
+                />
+              )}
               {employee.user?.roles && employee.user.roles.length > 0 && (
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
                   <KeyRound className="w-3 h-3 text-[#F2AF3E]" />
@@ -438,7 +443,7 @@ export default async function EmployeeDetailPage({
                   <th className="py-3 px-4">Tipe Kontrak</th>
                   <th className="py-3 px-4">Tanggal Mulai</th>
                   <th className="py-3 px-4">Tanggal Berakhir</th>
-                  {isHrOrAdmin && <th className="py-3 px-4">Gaji Pokok</th>}
+                  {isHrOrAdmin && <th className="py-3 px-4">Gaji Pokok / Tarif</th>}
                   <th className="py-3 px-4">Status</th>
                   <th className="py-3 px-4">Catatan</th>
                 </tr>
@@ -454,7 +459,10 @@ export default async function EmployeeDetailPage({
                   employee.contracts.map((contract) => (
                     <tr key={contract.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3 px-4 font-semibold">
-                        <ContractTypeBadge type={contract.type} />
+                        <ContractTypeBadge
+                          type={contract.type}
+                          label={contract.employmentTypeMaster?.name}
+                        />
                       </td>
                       <td className="py-3 px-4 font-mono">{formatDate(contract.startDate)}</td>
                       <td className="py-3 px-4 font-mono">
@@ -462,7 +470,11 @@ export default async function EmployeeDetailPage({
                       </td>
                       {isHrOrAdmin && (
                         <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                          {contract.baseSalary ? formatRupiah(contract.baseSalary) : "-"}
+                          {contract.wageType === "HOURLY" && contract.hourlyRate
+                            ? `${formatRupiah(contract.hourlyRate)} / jam`
+                            : contract.baseSalary
+                            ? formatRupiah(contract.baseSalary)
+                            : "-"}
                         </td>
                       )}
                       <td className="py-3 px-4">

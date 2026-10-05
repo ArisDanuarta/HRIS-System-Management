@@ -68,32 +68,43 @@ export function StatusBadge({ status, size = "md" }: StatusBadgeProps) {
 
 interface ContractTypeBadgeProps {
   type: EmploymentType | string;
+  label?: string | null;
 }
 
-export function ContractTypeBadge({ type }: ContractTypeBadgeProps) {
+export function ContractTypeBadge({ type, label }: ContractTypeBadgeProps) {
+  const displayLabel =
+    label ||
+    (type === "PERMANENT"
+      ? "Tetap"
+      : type === "FIXED_TERM"
+      ? "PKWT Riset"
+      : type === "PART_TIME_PROJECT"
+      ? "Proyek"
+      : type);
+
   switch (type) {
     case "PERMANENT":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
-          Tetap
+          {displayLabel}
         </span>
       );
     case "FIXED_TERM":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#feba48]/20 text-[#805600] border border-[#feba48]/40">
-          PKWT Riset
+          {displayLabel}
         </span>
       );
     case "PART_TIME_PROJECT":
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
-          Proyek
+          {displayLabel}
         </span>
       );
     default:
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-          {type}
+          {displayLabel}
         </span>
       );
   }

@@ -37,6 +37,7 @@ export interface EmployeeListItem {
     startDate: Date;
     endDate: Date | null;
     baseSalary: number | null;
+    employmentTypeMaster?: { id: string; name: string; code: string } | null;
   } | null;
   isExpiringSoon: boolean;
   daysUntilExpiry: number | null;
@@ -207,7 +208,10 @@ export function EmployeeTable({
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <StatusBadge status={emp.status} size="sm" />
                             {emp.activeContract && (
-                              <ContractTypeBadge type={emp.activeContract.type} />
+                              <ContractTypeBadge
+                                type={emp.activeContract.type}
+                                label={emp.activeContract.employmentTypeMaster?.name}
+                              />
                             )}
                           </div>
 

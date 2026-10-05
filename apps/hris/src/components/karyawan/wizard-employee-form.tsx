@@ -102,7 +102,9 @@ export interface InitialEmployeeData {
     startDate: Date | string;
     endDate?: Date | string | null;
     baseSalary?: number | null;
+    status?: string | null;
     notes?: string | null;
+    employmentTypeMaster?: { id: string; name: string; code: string } | null;
   }[];
 }
 
@@ -176,6 +178,10 @@ export function WizardEmployeeForm({
   const [quickCreateError, setQuickCreateError] = useState<string | null>(null);
   const [quickCreateSuccess, setQuickCreateSuccess] = useState<string | null>(null);
 
+  // Initial active contract resolution
+  const initialActiveContract =
+    initialData?.contracts?.find((c) => c.status === "ACTIVE") || initialData?.contracts?.[0];
+
   // Form State
   const [formData, setFormData] = useState({
     // Step 1: Personal
@@ -205,25 +211,26 @@ export function WizardEmployeeForm({
     status: initialData?.status || "ACTIVE",
 
     // Step 3: Contract
-    employmentType: initialData?.contracts?.[0]?.type || "PERMANENT",
+    employmentType: initialActiveContract?.type || "PERMANENT",
     employmentTypeId:
-      initialData?.contracts?.[0]?.employmentTypeId ||
+      initialActiveContract?.employmentTypeId ||
       employmentTypes?.find(
         (t) =>
-          t.category === (initialData?.contracts?.[0]?.type || "PERMANENT") &&
-          t.wageType === (initialData?.contracts?.[0]?.wageType || "MONTHLY"),
+          t.category === (initialActiveContract?.type || "PERMANENT") &&
+          t.wageType === (initialActiveContract?.wageType || "MONTHLY"),
       )?.id ||
+      employmentTypes?.[0]?.id ||
       "",
-    wageType: (initialData?.contracts?.[0]?.wageType as "MONTHLY" | "HOURLY") || "MONTHLY",
-    hourlyRate: initialData?.contracts?.[0]?.hourlyRate || 0,
-    contractStartDate: initialData?.contracts?.[0]?.startDate
-      ? toDateString(initialData.contracts[0].startDate)
+    wageType: (initialActiveContract?.wageType as "MONTHLY" | "HOURLY") || "MONTHLY",
+    hourlyRate: initialActiveContract?.hourlyRate || 0,
+    contractStartDate: initialActiveContract?.startDate
+      ? toDateString(initialActiveContract.startDate)
       : toDateString(new Date()),
-    contractEndDate: initialData?.contracts?.[0]?.endDate
-      ? toDateString(initialData.contracts[0].endDate)
+    contractEndDate: initialActiveContract?.endDate
+      ? toDateString(initialActiveContract.endDate)
       : "",
-    baseSalary: initialData?.contracts?.[0]?.baseSalary || 10000000,
-    contractNotes: initialData?.contracts?.[0]?.notes || "",
+    baseSalary: initialActiveContract?.baseSalary ?? 10000000,
+    contractNotes: initialActiveContract?.notes || "",
 
     // Step 4: Sensitive Data & Account
     nik: "",
@@ -1129,6 +1136,10 @@ export function WizardEmployeeForm({
                               et.wageType === "HOURLY"
                                 ? (et.defaultHourlyRate ?? 30000)
                                 : prev.hourlyRate,
+                            baseSalary:
+                              et.wageType === "MONTHLY" && (!prev.baseSalary || prev.baseSalary === 0)
+                                ? 10000000
+                                : prev.baseSalary,
                           }))
                         }
                         className={`text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
