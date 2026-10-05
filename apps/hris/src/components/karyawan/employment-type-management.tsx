@@ -135,8 +135,14 @@ export function EmploymentTypeManagement({ initialTypes }: EmploymentTypeManagem
               defaultHourlyRate: res.data.defaultHourlyRate ? Number(res.data.defaultHourlyRate) : null,
               description: res.data.description,
               isActive: res.data.isActive,
-              createdAt: res.data.createdAt.toISOString(),
-              updatedAt: res.data.updatedAt.toISOString(),
+              createdAt:
+                typeof res.data.createdAt === "string"
+                  ? res.data.createdAt
+                  : new Date(res.data.createdAt).toISOString(),
+              updatedAt:
+                typeof res.data.updatedAt === "string"
+                  ? res.data.updatedAt
+                  : new Date(res.data.updatedAt).toISOString(),
               _count: { contracts: 0 },
             },
           ]);

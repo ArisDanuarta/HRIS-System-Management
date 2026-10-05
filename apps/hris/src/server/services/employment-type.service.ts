@@ -30,6 +30,14 @@ export interface UpdateEmploymentTypeDTO {
 export async function createEmploymentType(dto: CreateEmploymentTypeDTO, actor: ActorInfo) {
   const normalizedCode = dto.code.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
 
+  if (!normalizedCode) {
+    throw new Error("Kode ikatan kerja wajib diisi.");
+  }
+
+  if (!dto.name || dto.name.trim() === "") {
+    throw new Error("Nama ikatan kerja wajib diisi.");
+  }
+
   const existing = await prisma.employmentTypeMaster.findUnique({
     where: { code: normalizedCode },
   });
@@ -72,6 +80,10 @@ export async function createEmploymentType(dto: CreateEmploymentTypeDTO, actor: 
 }
 
 export async function updateEmploymentType(dto: UpdateEmploymentTypeDTO, actor: ActorInfo) {
+  if (!dto.name || dto.name.trim() === "") {
+    throw new Error("Nama ikatan kerja wajib diisi.");
+  }
+
   const existing = await prisma.employmentTypeMaster.findUnique({
     where: { id: dto.id },
   });

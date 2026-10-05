@@ -49,12 +49,25 @@ export async function createEmploymentTypeAction(input: CreateEmploymentTypeDTO)
     const actor = await getActorInfo();
     const result = await createEmploymentType(input, actor);
 
+    revalidatePath("/karyawan/ikatan-kerja");
     revalidatePath("/karyawan/organisasi");
     revalidatePath("/karyawan/baru");
+    revalidatePath("/karyawan");
 
     return {
       ok: true as const,
-      data: result,
+      data: {
+        id: result.id,
+        code: result.code,
+        name: result.name,
+        category: result.category,
+        wageType: result.wageType,
+        defaultHourlyRate: result.defaultHourlyRate ? Number(result.defaultHourlyRate) : null,
+        description: result.description,
+        isActive: result.isActive,
+        createdAt: result.createdAt.toISOString(),
+        updatedAt: result.updatedAt.toISOString(),
+      },
       message: `Tipe ikatan kerja '${result.name}' berhasil ditambahkan.`,
     };
   } catch (err: unknown) {
@@ -71,12 +84,25 @@ export async function updateEmploymentTypeAction(input: UpdateEmploymentTypeDTO)
     const actor = await getActorInfo();
     const result = await updateEmploymentType(input, actor);
 
+    revalidatePath("/karyawan/ikatan-kerja");
     revalidatePath("/karyawan/organisasi");
     revalidatePath("/karyawan/baru");
+    revalidatePath("/karyawan");
 
     return {
       ok: true as const,
-      data: result,
+      data: {
+        id: result.id,
+        code: result.code,
+        name: result.name,
+        category: result.category,
+        wageType: result.wageType,
+        defaultHourlyRate: result.defaultHourlyRate ? Number(result.defaultHourlyRate) : null,
+        description: result.description,
+        isActive: result.isActive,
+        createdAt: result.createdAt.toISOString(),
+        updatedAt: result.updatedAt.toISOString(),
+      },
       message: `Tipe ikatan kerja '${result.name}' berhasil diperbarui.`,
     };
   } catch (err: unknown) {
@@ -93,8 +119,10 @@ export async function deleteEmploymentTypeAction(id: string) {
     const actor = await getActorInfo();
     const result = await deleteEmploymentType(id, actor);
 
+    revalidatePath("/karyawan/ikatan-kerja");
     revalidatePath("/karyawan/organisasi");
     revalidatePath("/karyawan/baru");
+    revalidatePath("/karyawan");
 
     return {
       ok: true as const,
@@ -115,11 +143,25 @@ export async function toggleEmploymentTypeStatusAction(id: string, isActive: boo
     const actor = await getActorInfo();
     const result = await toggleEmploymentTypeStatus(id, isActive, actor);
 
+    revalidatePath("/karyawan/ikatan-kerja");
     revalidatePath("/karyawan/organisasi");
     revalidatePath("/karyawan/baru");
+    revalidatePath("/karyawan");
 
     return {
       ok: true as const,
+      data: {
+        id: result.id,
+        code: result.code,
+        name: result.name,
+        category: result.category,
+        wageType: result.wageType,
+        defaultHourlyRate: result.defaultHourlyRate ? Number(result.defaultHourlyRate) : null,
+        description: result.description,
+        isActive: result.isActive,
+        createdAt: result.createdAt.toISOString(),
+        updatedAt: result.updatedAt.toISOString(),
+      },
       message: `Status tipe ikatan kerja '${result.name}' berhasil diubah menjadi ${
         isActive ? "Aktif" : "Nonaktif"
       }.`,
