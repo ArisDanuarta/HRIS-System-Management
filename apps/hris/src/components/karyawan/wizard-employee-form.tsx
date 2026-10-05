@@ -362,6 +362,10 @@ export function WizardEmployeeForm({
         return false;
       }
     } else if (step === 3) {
+      if (employmentTypesList.length > 0 && !formData.employmentTypeId) {
+        setServerError("Pilih salah satu tipe ikatan kerja terlebih dahulu.");
+        return false;
+      }
       if (!formData.contractStartDate) {
         setServerError("Tanggal mulai kontrak wajib diisi.");
         return false;
