@@ -4,6 +4,28 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Task: Migrasi Template Impor ke Format Excel Murni (.xlsx) & Panduan Operasional — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:** Menggantikan template impor berbasis `.csv` yang bermasalah (terpotong atau menggumpal dalam 1 kolom pada Excel regional Indonesia/Mac) dengan format resmi **Microsoft Excel Workbook (`.xlsx`)** multi-sheet. Menambahkan generator template dinamis dengan data master terkini (divisi, posisi, ikatan kerja), parser file `.xlsx` di browser menggunakan pustaka `xlsx`, pratinjau validasi baris sebelum transaksi, serta buku panduan resmi operasional di web dan dokumen markdown.
+- **Perubahan Utama:**
+  - Pustaka Excel: Mengintegrasikan `xlsx` (SheetJS) ke `@pspk/hris` untuk pembuatan dan pembacaan berkas Excel murni `.xlsx` dan `.xls`.
+  - Generator Template Multi-Sheet: Membuat [`apps/hris/src/lib/excel-templates.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/lib/excel-templates.ts) dengan 3 jenis template:
+    1. `template-impor-pegawai-pspk.xlsx` (Sheet: Data Pegawai, Panduan Pengisian, Referensi Master Data)
+    2. `template-impor-presensi-pspk.xlsx` (Sheet: Rekap Presensi, Panduan Presensi)
+    3. `template-impor-organisasi-pspk.xlsx` (Sheet: Struktur Divisi & Jabatan, Panduan Organisasi)
+  - Parser & Komponen Impor: Memperbarui [`apps/hris/src/components/karyawan/excel-importer.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/excel-importer.tsx) untuk membaca `.xlsx` biner, validasi kolom fleksibel, deteksi skema upah bulanan/per jam, dan kartu unduh template dengan dropdown.
+  - Buku Panduan Interaktif di Halaman: Menyediakan tab petunjuk 4 langkah, kamus data 18 kolom, dan referensi nama divisi/ikatan kerja interaktif dengan tombol salin (copy-to-clipboard).
+  - Ekstensi Aksi Server: Memperkaya [`importEmployeesBatchAction`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/employee.actions.ts) untuk mencocokkan master tipe ikatan kerja (`EmploymentTypeMaster`), tanggal berakhir kontrak PKWT, dan data akun perbankan.
+  - Dokumen Panduan: Menyusun panduan operasional komprehensif di [`docs/PANDUAN_IMPOR_DATA.md`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/docs/PANDUAN_IMPOR_DATA.md).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error
+  - `pnpm lint`: ✅ 0 error
+  - `pnpm test`: ✅ 47/47 test lolos (100%)
+  - `pnpm build`: ✅ Kompilasi Next.js production sukses (0 error)
+
+---
+
 ## Task: Pengelolaan Penuh CRUD Tipe Ikatan Kerja (Master Employment Types) — 2026-10-05
 
 - **Status:** Selesai

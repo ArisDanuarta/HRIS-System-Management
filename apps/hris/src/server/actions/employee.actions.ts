@@ -257,14 +257,24 @@ export async function unmaskSensitiveFieldAction(input: UnmaskFieldInput) {
 
 export type ImportEmployeeRow = {
   fullName: string;
+  nickname?: string;
   employeeNo: string;
   workEmail: string;
+  personalEmail?: string;
   phone?: string;
   departmentName: string;
   positionTitle: string;
-  employmentType: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+  employmentType?: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+  employmentTypeNameOrCode?: string;
+  wageType?: "MONTHLY" | "HOURLY";
   baseSalary?: number;
+  hourlyRate?: number;
   joinDate: string;
+  contractEndDate?: string;
+  gender?: "MALE" | "FEMALE";
+  maritalStatus?: "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED";
+  bankName?: string;
+  bankAccountName?: string;
 };
 
 export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
@@ -278,10 +288,13 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
 
     const { prisma, writeAudit } = await import("@pspk/db");
 
-    // Pre-fetch departments and positions
-    const departments = await prisma.department.findMany({
-      include: { positions: true },
-    });
+    // Pre-fetch departments and master employment types
+    const [departments, employmentTypes] = await Promise.all([
+      prisma.department.findMany({
+        include: { positions: true },
+      }),
+      prisma.employmentTypeMaster.findMany(),
+    ]);
 
     const results = await prisma.$transaction(async (tx) => {
       let importedCount = 0;
@@ -333,24 +346,65 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
           posId = newPos.id;
         }
 
+        // Match employment type master if given
+        let matchedType = null;
+        if (r.employmentTypeNameOrCode && r.employmentTypeNameOrCode.trim() !== "") {
+          const needle = r.employmentTypeNameOrCode.trim().toLowerCase();
+          matchedType = employmentTypes.find(
+            (et) =>
+              et.name.toLowerCase() === needle ||
+              et.code.toLowerCase() === needle ||
+              et.category.toLowerCase() === needle,
+          );
+        }
+
+        const contractType = matchedType ? matchedType.category : (r.employmentType || "PERMANENT");
+        const wageType = matchedType ? matchedType.wageType : (r.wageType || "MONTHLY");
+        const hourlyRate =
+          wageType === "HOURLY"
+            ? (r.hourlyRate ? Number(r.hourlyRate) : (matchedType?.defaultHourlyRate ? Number(matchedType.defaultHourlyRate) : 30000))
+            : null;
+        const baseSalary =
+          wageType === "HOURLY"
+            ? null
+            : (r.baseSalary ? Number(r.baseSalary) : 10000000);
+
+        let contractEndDate: Date | null = null;
+        if (r.contractEndDate && r.contractEndDate.trim() !== "") {
+          const parsedEnd = new Date(r.contractEndDate);
+          if (!isNaN(parsedEnd.getTime())) {
+            contractEndDate = parsedEnd;
+          }
+        }
+
         // Create employee
         await tx.employee.create({
           data: {
             employeeNo: r.employeeNo.trim(),
             fullName: r.fullName.trim(),
+            nickname: r.nickname?.trim() || null,
             workEmail: r.workEmail.toLowerCase().trim(),
+            personalEmail: r.personalEmail?.trim() || null,
             phone: r.phone?.trim() || null,
+            gender: r.gender || "MALE",
+            maritalStatus: r.maritalStatus || "SINGLE",
             joinDate: new Date(r.joinDate),
             status: "ACTIVE",
             currentDepartmentId: deptId,
             currentPositionId: posId,
+            bankName: r.bankName?.trim() || null,
+            bankAccountName: r.bankAccountName?.trim() || null,
             contracts: {
               create: {
-                type: r.employmentType || "PERMANENT",
+                type: contractType,
+                employmentTypeId: matchedType?.id || null,
+                wageType: wageType,
+                hourlyRate: hourlyRate,
                 startDate: new Date(r.joinDate),
-                baseSalary: r.baseSalary ? Number(r.baseSalary) : null,
+                endDate: contractEndDate,
+                baseSalary: baseSalary,
                 status: "ACTIVE",
-                notes: "Diimpor massal dari spreadsheet",
+                notes: "Diimpor massal dari spreadsheet Excel (.xlsx)",
               },
             },
             histories: {
