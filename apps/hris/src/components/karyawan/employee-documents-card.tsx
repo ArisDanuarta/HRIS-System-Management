@@ -39,6 +39,7 @@ interface EmployeeDocumentsCardProps {
   documents: EmployeeDocumentItem[];
   canUpload?: boolean;
   canDelete?: boolean;
+  isHrOrAdmin?: boolean;
 }
 
 const CATEGORY_META: Record<
@@ -88,6 +89,7 @@ export function EmployeeDocumentsCard({
   documents: initialDocuments,
   canUpload = true,
   canDelete = true,
+  isHrOrAdmin = false,
 }: EmployeeDocumentsCardProps) {
   const [documents, setDocuments] = useState<EmployeeDocumentItem[]>(initialDocuments);
   const [activeGroup, setActiveGroup] = useState<"ALL" | "identity" | "academic" | "contract" | "certificate" | "other">("ALL");
@@ -443,7 +445,7 @@ export function EmployeeDocumentsCard({
                     </a>
                   </div>
 
-                  {canDelete && (
+                  {canDelete && (isHrOrAdmin || doc.category !== "CONTRACT") && (
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(doc)}
@@ -452,6 +454,14 @@ export function EmployeeDocumentsCard({
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
+                  )}
+                  {doc.category === "CONTRACT" && !isHrOrAdmin && (
+                    <span
+                      className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium border border-amber-200"
+                      title="Dokumen resmi dikelola oleh Admin HR"
+                    >
+                      Resmi HR
+                    </span>
                   )}
                 </div>
               </div>
@@ -497,10 +507,17 @@ export function EmployeeDocumentsCard({
                   <option value="NPWP">NPWP (Nomor Pokok Wajib Pajak)</option>
                   <option value="DIPLOMA">Ijazah & Transkrip Akademik</option>
                   <option value="CV">Curriculum Vitae (CV) & Resume</option>
-                  <option value="CONTRACT">Salinan Kontrak Kerja Fisik (SK)</option>
+                  {isHrOrAdmin && (
+                    <option value="CONTRACT">Salinan Kontrak Kerja Fisik (SK)</option>
+                  )}
                   <option value="CERTIFICATE">Sertifikat Pelatihan / Lisensi Riset</option>
                   <option value="OTHER">Dokumen Pendukung Lainnya</option>
                 </select>
+                {!isHrOrAdmin && (
+                  <p className="text-[11px] text-slate-500 italic mt-0.5">
+                    * Dokumen Kontrak Kerja fisik dikelola dan diunggah secara resmi oleh Admin HR.
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-col gap-1">

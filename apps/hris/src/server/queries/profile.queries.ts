@@ -41,6 +41,17 @@ export interface UserProfileData {
       employeeNo: string;
       position: string | null;
     } | null;
+    documents: Array<{
+      id: string;
+      category: string;
+      title: string;
+      fileName: string;
+      fileKey: string;
+      fileSize: number;
+      mimeType: string;
+      uploadedById: string | null;
+      createdAt: string;
+    }>;
   } | null;
   sessions: UserSessionItem[];
 }
@@ -90,6 +101,11 @@ export async function getCurrentUserProfile(
               employmentTypeMaster: {
                 select: { name: true },
               },
+            },
+          },
+          documents: {
+            orderBy: {
+              createdAt: "desc",
             },
           },
         },
@@ -151,6 +167,17 @@ export async function getCurrentUserProfile(
                 position: user.employee.manager.currentPosition?.title ?? "Manajer",
               }
             : null,
+          documents: (user.employee.documents || []).map((d) => ({
+            id: d.id,
+            category: d.category,
+            title: d.title,
+            fileName: d.fileName,
+            fileKey: d.fileKey,
+            fileSize: d.fileSize,
+            mimeType: d.mimeType,
+            uploadedById: d.uploadedById,
+            createdAt: d.createdAt.toISOString(),
+          })),
         }
       : null,
     sessions: user.sessions.map((s) => ({

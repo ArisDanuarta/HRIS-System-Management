@@ -112,6 +112,14 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
       };
     }
 
+    // Business rule: Contract documents can ONLY be uploaded by Admin HR / Super Admin
+    if (category === "CONTRACT" && !isSuperOrHr) {
+      return {
+        success: false,
+        message: "Dokumen Kontrak Kerja hanya dapat diunggah dan dikelola oleh Admin HR.",
+      };
+    }
+
     // Verify employee exists
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
@@ -193,18 +201,11 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
  */
 export async function deleteEmployeeDocumentAction({ documentId }: { documentId: string }) {
   try {
-    const { userId, userEmail, authCtx } = await getAuthenticatedUser();
+    const { userId, userEmail, employeeId: actorEmployeeId, authCtx } = await getAuthenticatedUser();
 
     const isSuperOrHr =
       can(authCtx, "hris.employee.update:all") ||
       authCtx.roles.some((r) => r === "super_admin" || r === "admin_hr");
-
-    if (!isSuperOrHr) {
-      return {
-        success: false,
-        message: "Hanya Admin HR dan Super Admin yang berhak menghapus arsip dokumen resmi.",
-      };
-    }
 
     const doc = await prisma.employeeDocument.findUnique({
       where: { id: documentId },
@@ -215,6 +216,24 @@ export async function deleteEmployeeDocumentAction({ documentId }: { documentId:
 
     if (!doc) {
       return { success: false, message: "Dokumen tidak ditemukan atau sudah dihapus." };
+    }
+
+    const isSelf = actorEmployeeId === doc.employeeId;
+
+    // Dokumen Kontrak Kerja hanya dapat dihapus oleh Admin HR / Super Admin
+    if (doc.category === "CONTRACT" && !isSuperOrHr) {
+      return {
+        success: false,
+        message: "Dokumen Kontrak Kerja hanya dapat dikelola atau dihapus oleh Admin HR.",
+      };
+    }
+
+    // Dokumen selain kontrak dapat dihapus oleh Admin HR atau oleh pegawai itu sendiri
+    if (!isSuperOrHr && !isSelf) {
+      return {
+        success: false,
+        message: "Anda tidak memiliki izin untuk menghapus dokumen ini.",
+      };
     }
 
     // Delete from storage

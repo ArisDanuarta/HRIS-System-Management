@@ -626,7 +626,8 @@ export default async function EmployeeDetailPage({
           employeeName={employee.fullName}
           documents={employee.documents || []}
           canUpload={isHrOrAdmin || currentActorEmployee?.id === employee.id}
-          canDelete={isHrOrAdmin}
+          canDelete={isHrOrAdmin || currentActorEmployee?.id === employee.id}
+          isHrOrAdmin={isHrOrAdmin}
         />
       )}
     </div>

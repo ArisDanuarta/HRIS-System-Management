@@ -10,10 +10,12 @@ import {
   CheckCircle2,
   AlertCircle,
   Sparkles,
+  FolderArchive,
 } from "lucide-react";
 import { ProfileInfoTab } from "./profile-info-tab";
 import { ChangePasswordTab } from "./change-password-tab";
 import { SessionHistoryTab } from "./session-history-tab";
+import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
 import { uploadAvatarAction } from "@/server/actions/profile.actions";
 import type { UserProfileData } from "@/server/queries/profile.queries";
 
@@ -21,7 +23,7 @@ interface ProfileViewProps {
   profile: UserProfileData;
 }
 
-type TabType = "identitas" | "keamanan" | "sesi";
+type TabType = "identitas" | "dokumen" | "keamanan" | "sesi";
 
 export function ProfileView({ profile }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>("identitas");
@@ -44,6 +46,8 @@ export function ProfileView({ profile }: ProfileViewProps) {
         setActiveTab("keamanan");
       } else if (hash === "sesi") {
         setActiveTab("sesi");
+      } else if (hash === "dokumen") {
+        setActiveTab("dokumen");
       } else if (hash === "identitas") {
         setActiveTab("identitas");
       }
@@ -105,6 +109,9 @@ export function ProfileView({ profile }: ProfileViewProps) {
   const initial = displayName ? displayName.charAt(0).toUpperCase() : "U";
   const department = profile.employee?.department;
   const position = profile.employee?.position;
+  const isHrOrAdmin = profile.roles.some(
+    (r) => r.key === "super_admin" || r.key === "admin_hr",
+  );
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -280,7 +287,26 @@ export function ProfileView({ profile }: ProfileViewProps) {
             <span>Identitas & Kepegawaian</span>
           </button>
 
-          {/* Tab 2: Keamanan */}
+          {/* Tab 2: Dokumen & Berkas */}
+          <button
+            type="button"
+            onClick={() => handleTabChange("dokumen")}
+            className={`flex items-center gap-2.5 px-4 py-3.5 text-xs md:text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
+              activeTab === "dokumen"
+                ? "border-[#102e50] text-[#102e50] bg-white"
+                : "border-transparent text-[#74777f] hover:text-[#102e50] hover:bg-white/50"
+            }`}
+          >
+            <FolderArchive className="w-4 h-4 text-[#102e50]" />
+            <span>Dokumen & Berkas</span>
+            {profile.employee?.documents && (
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#dee9fc] text-[#102e50]">
+                {profile.employee.documents.length}
+              </span>
+            )}
+          </button>
+
+          {/* Tab 3: Keamanan */}
           <button
             type="button"
             onClick={() => handleTabChange("keamanan")}
@@ -294,7 +320,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
             <span>Keamanan & Kata Sandi</span>
           </button>
 
-          {/* Tab 3: Sesi */}
+          {/* Tab 4: Sesi */}
           <button
             type="button"
             onClick={() => handleTabChange("sesi")}
@@ -316,6 +342,24 @@ export function ProfileView({ profile }: ProfileViewProps) {
       {/* 2. TAB CONTENT VIEW */}
       <div>
         {activeTab === "identitas" && <ProfileInfoTab profile={profile} />}
+        {activeTab === "dokumen" && (
+          profile.employee ? (
+            <EmployeeDocumentsCard
+              employeeId={profile.employee.id}
+              employeeName={displayName}
+              documents={profile.employee.documents || []}
+              canUpload={true}
+              canDelete={true}
+              isHrOrAdmin={isHrOrAdmin}
+            />
+          ) : (
+            <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500">
+              <p className="text-sm">
+                Akun ini belum ditautkan ke profil kepegawaian resmi untuk membuka arsip berkas digital.
+              </p>
+            </div>
+          )
+        )}
         {activeTab === "keamanan" && <ChangePasswordTab />}
         {activeTab === "sesi" && <SessionHistoryTab sessions={profile.sessions} />}
       </div>
