@@ -21,6 +21,7 @@ import {
   Building2,
   Clock,
   Briefcase,
+  Network,
 } from "lucide-react";
 
 export type RoleViewType = "admin_hr" | "manager" | "staff";
@@ -57,8 +58,12 @@ export function AppSidebar({
         pathname === "/karyawan" ||
         (pathname.startsWith("/karyawan/") &&
           !pathname.startsWith("/karyawan/organisasi") &&
-          !pathname.startsWith("/karyawan/ikatan-kerja"))
+          !pathname.startsWith("/karyawan/ikatan-kerja") &&
+          !pathname.startsWith("/karyawan/struktur"))
       );
+    }
+    if (href === "/karyawan/struktur") {
+      return pathname.startsWith("/karyawan/struktur");
     }
     if (href === "/karyawan/organisasi") {
       return pathname.startsWith("/karyawan/organisasi");
@@ -241,6 +246,13 @@ export function AppSidebar({
                 }
               />
               <NavItem
+                href="/karyawan/struktur"
+                label="Bagan Organisasi"
+                icon={<Network className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/karyawan/struktur")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
                 href="/karyawan/organisasi"
                 label="Struktur Organisasi"
                 icon={<Building2 className="w-5 h-5 shrink-0" />}
@@ -331,6 +343,13 @@ export function AppSidebar({
                 isCollapsed={isCollapsed}
               />
               <NavItem
+                href="/karyawan/struktur"
+                label="Bagan Organisasi"
+                icon={<Network className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/karyawan/struktur")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
                 href="/cuti/persetujuan"
                 label="Persetujuan Cuti"
                 icon={<CheckSquare className="w-5 h-5 shrink-0" />}
@@ -397,6 +416,13 @@ export function AppSidebar({
                 label="Beranda"
                 icon={<LayoutDashboard className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/dashboard")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
+                href="/karyawan/struktur"
+                label="Bagan Organisasi"
+                icon={<Network className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/karyawan/struktur")}
                 isCollapsed={isCollapsed}
               />
             </nav>

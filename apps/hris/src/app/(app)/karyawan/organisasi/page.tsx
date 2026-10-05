@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Network } from "lucide-react";
 import { getOrgStructureDetail } from "@/server/queries/employee.queries";
 import { getEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { OrganizationPageView } from "@/components/karyawan/organization-page-view";
@@ -37,12 +37,22 @@ export default async function OrganisasiPage({ searchParams }: OrganisasiPagePro
           <span>Kembali ke Direktori Pegawai</span>
         </Link>
 
-        <Link
-          href="/karyawan/ikatan-kerja"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#102E50] bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs hover:bg-slate-50 transition-colors"
-        >
-          <span>Buka Master Ikatan Kerja Khusus ↗</span>
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Link
+            href="/karyawan/struktur"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102E50] bg-[#eff4ff] border border-[#dee9fc] px-3 py-1.5 rounded-lg shadow-2xs hover:bg-[#dee9fc] transition-colors"
+          >
+            <Network className="w-3.5 h-3.5 text-[#102E50]" />
+            <span>Visual Bagan Pohon Organisasi ↗</span>
+          </Link>
+
+          <Link
+            href="/karyawan/ikatan-kerja"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#102E50] bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs hover:bg-slate-50 transition-colors"
+          >
+            <span>Buka Master Ikatan Kerja Khusus ↗</span>
+          </Link>
+        </div>
       </div>
 
       {/* Header & Page Title */}

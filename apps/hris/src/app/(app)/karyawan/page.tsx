@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Plus, Upload, Users, UserCheck, Clock, Building2, Briefcase } from "lucide-react";
+import { Plus, Upload, Users, UserCheck, Clock, Building2, Briefcase, Network } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
 import {
   getEmployeesDirectory,
@@ -106,6 +106,14 @@ export default async function KaryawanPage({ searchParams }: KaryawanPageProps) 
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            href="/karyawan/struktur"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-[#eff4ff] text-[#102E50] border border-[#dee9fc] hover:bg-[#dee9fc] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
+          >
+            <Network className="w-4 h-4 text-[#102E50]" />
+            <span>Bagan Organisasi ↗</span>
+          </Link>
+
           <Link
             href="/karyawan/organisasi"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-all cursor-pointer active:scale-[0.98] shadow-xs"

@@ -4,6 +4,35 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 4: Bagan Hierarki Organisasi & Visual Interaktif Divisi/Manajer (Opsi A Core HRIS) — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:** 
+  1. Sub-tahap 4A: Engine Pembentukan Pohon Hierarki Organisasi ([`apps/hris/src/server/queries/org-chart.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/org-chart.queries.ts)):
+     - Query seluruh pegawai aktif beserta kontrak aktif, divisi, jabatan struktural, dan atasan langsung (`managerId`).
+     - Algoritma resolusi simpul pohon (`OrgChartNode`), identifikasi pimpinan puncak (`rootNodes`), komputasi kedalaman tingkat (`level` & `maxDepth`), kalkulasi rekursif jumlah bawahan langsung maupun bawahan tidak langsung (`totalSubordinatesCount`), pengelompokan ringkasan divisi, serta pelacakan pegawai aktif yang belum memiliki atasan atau atasan tidak ditemukan (`unassignedEmployees`).
+  2. Sub-tahap 4B: Komponen Visual Pohon Organisasi Interaktif ([`apps/hris/src/components/karyawan/org-chart-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/org-chart-view.tsx)):
+     - Dua Mode Tampilan:
+       - **Visual Tree**: Visualisasi bagan pohon bertingkat dengan garis konektor CSS rapi, kartu pegawai dengan foto profil/inisial brand PSPK, status keaktifan pegawai, badge divisi & ikatan kerja, jumlah bawahan, tombol buka/tutup cabang (*expand/collapse*), serta kontrol zoom (50% s.d. 150%) dan reset ukuran.
+       - **Hierarchical Accordion List**: Tampilan daftar berjenjang dengan indentasi hierarkis dinamis untuk navigasi cepat dan ramah perangkat layar kecil/mobile.
+     - Pencarian Instan Terarah: Mencari pegawai berdasarkan nama, nama panggilan, nomor pegawai (NIP), jabatan, atau divisi dengan otomatis membuka seluruh rantai atasan (*ancestor chain*) dan memberikan efek penyorotan visual (*amber border & pulse highlight*).
+     - Filter Divisi: Memfilter cabang bagan per unit kerja/divisi tertentu.
+     - Drawer Khusus "Pegawai Belum Terpetakan": Panel modal interaktif untuk mendeteksi pegawai aktif yang belum memiliki atasan langsung (`managerId === null`), dilengkapi indikator jabatan dan tombol tautan cepat khusus Admin HR untuk segera mengatur atasan di formulir profil.
+  3. Sub-tahap 4C: Halaman Bagan Struktur Organisasi & Integrasi Navigasi ([`apps/hris/src/app/(app)/karyawan/struktur/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/struktur/page.tsx)):
+     - Dapat diakses oleh **seluruh peran** (`admin_hr`, `manager`, `staff`) untuk menjaga transparansi koordinasi internal organisasi.
+     - Integrasi Menu Sidebar ([`apps/hris/src/components/shell/app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)) dengan ikon `Network` pada seluruh section peran dan penanda tautan aktif (`isNavActive`).
+     - Integrasi Breadcrumb Topbar ([`apps/hris/src/components/shell/app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx)).
+     - Tombol Cepat Aksi: Tautan langsung "Bagan Organisasi ↗" di halaman Direktori Pegawai ([`apps/hris/src/app/(app)/karyawan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/page.tsx)) dan "Visual Bagan Pohon Organisasi ↗" di halaman Kelola Organisasi ([`apps/hris/src/app/(app)/karyawan/organisasi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/organisasi/page.tsx)).
+- **Ketahanan Cache Prisma Development:**
+  - Menambahkan deteksi *outdated client* pada singleton Prisma ([`packages/db/src/index.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/src/index.ts)) menggunakan proxy trap agar saat model schema mengalami penambahan migrasi baru di sesi Turbopack dev, client langsung di-instansiasi ulang secara transparan tanpa terjadi `PrismaClientValidationError`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error (0 error)
+  - `pnpm lint`: ✅ 0 error
+  - `pnpm test`: ✅ 54/54 test lolos (100%)
+  - Endpoint dev server `/api/health`: ✅ status 200 OK (`{"status":"ok"}`)
+
+---
+
 ## Tahap 3: Vault Dokumen & Berkas Digital Pegawai (Opsi A Core HRIS) — 2026-10-05
 
 - **Status:** Selesai
