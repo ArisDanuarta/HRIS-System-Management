@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Plus, Upload, Users, UserCheck, Clock, Building2 } from "lucide-react";
+import { Plus, Upload, Users, UserCheck, Clock, Building2, Briefcase } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
 import {
   getEmployeesDirectory,
@@ -112,6 +112,14 @@ export default async function KaryawanPage({ searchParams }: KaryawanPageProps) 
           >
             <Building2 className="w-4 h-4 text-slate-500" />
             <span>Struktur Organisasi</span>
+          </Link>
+
+          <Link
+            href="/karyawan/ikatan-kerja"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-semibold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-all cursor-pointer active:scale-[0.98] shadow-xs"
+          >
+            <Briefcase className="w-4 h-4 text-slate-500" />
+            <span>Tipe Ikatan Kerja</span>
           </Link>
 
           {/* Tombol aksi eksklusif Admin HR: hanya muncul jika bukan mode tim */}

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   User,
@@ -21,6 +22,10 @@ import {
   Loader2,
   XCircle,
   CheckCircle2,
+  Plus,
+  ExternalLink,
+  Settings,
+  Clock,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -28,6 +33,7 @@ import {
   generateNextEmployeeNoAction,
   checkEmployeeNoAvailabilityAction,
 } from "@/server/actions/employee.actions";
+import { createEmploymentTypeAction } from "@/server/actions/employment-type.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
 import { EmployeeStatus, EmploymentType, Gender, MaritalStatus } from "@pspk/db";
@@ -149,6 +155,34 @@ export function WizardEmployeeForm({
     emailMessage?: string;
   } | null>(null);
 
+  // Employment Type Options State
+  const [employmentTypesList, setEmploymentTypesList] = useState(employmentTypes || []);
+  const [isQuickCreateModalOpen, setIsQuickCreateModalOpen] = useState(false);
+  const [quickCreateForm, setQuickCreateForm] = useState<{
+    code: string;
+    name: string;
+    category: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+    wageType: "MONTHLY" | "HOURLY";
+    defaultHourlyRate: string;
+    description: string;
+  }>({
+    code: "",
+    name: "",
+    category: "FIXED_TERM",
+    wageType: "MONTHLY",
+    defaultHourlyRate: "30000",
+    description: "",
+  });
+  const [quickCreatePending, setQuickCreatePending] = useState(false);
+  const [quickCreateError, setQuickCreateError] = useState<string | null>(null);
+  const [quickCreateSuccess, setQuickCreateSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (employmentTypes && employmentTypes.length > 0) {
+      setEmploymentTypesList(employmentTypes);
+    }
+  }, [employmentTypes]);
+
   // Form State
   const [formData, setFormData] = useState({
     // Step 1: Personal
@@ -179,7 +213,14 @@ export function WizardEmployeeForm({
 
     // Step 3: Contract
     employmentType: initialData?.contracts?.[0]?.type || "PERMANENT",
-    employmentTypeId: initialData?.contracts?.[0]?.employmentTypeId || "",
+    employmentTypeId:
+      initialData?.contracts?.[0]?.employmentTypeId ||
+      employmentTypes?.find(
+        (t) =>
+          t.category === (initialData?.contracts?.[0]?.type || "PERMANENT") &&
+          t.wageType === (initialData?.contracts?.[0]?.wageType || "MONTHLY"),
+      )?.id ||
+      "",
     wageType: (initialData?.contracts?.[0]?.wageType as "MONTHLY" | "HOURLY") || "MONTHLY",
     hourlyRate: initialData?.contracts?.[0]?.hourlyRate || 0,
     contractStartDate: initialData?.contracts?.[0]?.startDate
@@ -345,6 +386,71 @@ export function WizardEmployeeForm({
       }
     }
     return true;
+  };
+
+  const handleQuickCreateEmploymentType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickCreateError(null);
+    setQuickCreatePending(true);
+
+    try {
+      const parsedRate =
+        quickCreateForm.wageType === "HOURLY"
+          ? Math.max(0, parseFloat(quickCreateForm.defaultHourlyRate) || 0)
+          : null;
+
+      const res = await createEmploymentTypeAction({
+        code: quickCreateForm.code,
+        name: quickCreateForm.name,
+        category: quickCreateForm.category,
+        wageType: quickCreateForm.wageType,
+        defaultHourlyRate: parsedRate,
+        description: quickCreateForm.description,
+        isActive: true,
+      });
+
+      if (!res.ok) {
+        setQuickCreateError(res.error);
+      } else {
+        const newType = {
+          id: res.data.id,
+          code: res.data.code,
+          name: res.data.name,
+          category: res.data.category,
+          wageType: res.data.wageType,
+          defaultHourlyRate: res.data.defaultHourlyRate ? Number(res.data.defaultHourlyRate) : null,
+          description: res.data.description,
+        };
+
+        setEmploymentTypesList((prev) => [...prev, newType]);
+        setFormData((prev) => ({
+          ...prev,
+          employmentTypeId: newType.id,
+          employmentType: newType.category as EmploymentType,
+          wageType: newType.wageType,
+          hourlyRate:
+            newType.wageType === "HOURLY"
+              ? (newType.defaultHourlyRate ?? 30000)
+              : prev.hourlyRate,
+        }));
+
+        setIsQuickCreateModalOpen(false);
+        setQuickCreateSuccess(`Tipe ikatan kerja '${newType.name}' berhasil ditambahkan dan langsung dipilih.`);
+        setQuickCreateForm({
+          code: "",
+          name: "",
+          category: "FIXED_TERM",
+          wageType: "MONTHLY",
+          defaultHourlyRate: "30000",
+          description: "",
+        });
+        setTimeout(() => setQuickCreateSuccess(null), 5000);
+      }
+    } catch (err: unknown) {
+      setQuickCreateError(err instanceof Error ? err.message : "Gagal menambahkan tipe ikatan kerja.");
+    } finally {
+      setQuickCreatePending(false);
+    }
   };
 
   const handleNext = () => {
@@ -961,12 +1067,56 @@ export function WizardEmployeeForm({
 
             {/* Tipe Ikatan Kerja — dinamis dari EmploymentTypeMaster */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-2">
-                Tipe Ikatan Kerja <span className="text-[#A8281C]">*</span>
-              </label>
-              {employmentTypes.length > 0 ? (
+              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Tipe Ikatan Kerja <span className="text-[#A8281C]">*</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickCreateError(null);
+                      setIsQuickCreateModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-[#102E50]/10 text-[#102E50] hover:bg-[#102E50]/20 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#F2AF3E]" />
+                    <span>Tambah Tipe Baru</span>
+                  </button>
+                  <span className="text-slate-300 text-xs">|</span>
+                  <Link
+                    href="/karyawan/ikatan-kerja"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors"
+                    title="Buka Pengaturan Master Tipe Ikatan Kerja di Tab Baru"
+                  >
+                    <Settings className="w-3.5 h-3.5" />
+                    <span>Pengaturan Ikatan Kerja</span>
+                    <ExternalLink className="w-3 h-3 text-slate-400" />
+                  </Link>
+                </div>
+              </div>
+
+              {quickCreateSuccess && (
+                <div className="mb-3 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between animate-in fade-in duration-150">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>{quickCreateSuccess}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setQuickCreateSuccess(null)}
+                    className="text-slate-400 hover:text-slate-600 p-0.5"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
+              {employmentTypesList.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {employmentTypes.map((et) => {
+                  {employmentTypesList.map((et) => {
                     const isSelected = formData.employmentTypeId === et.id;
                     return (
                       <button
@@ -1036,7 +1186,7 @@ export function WizardEmployeeForm({
                   <option value="PART_TIME_PROJECT">Paruh Waktu / Proyek Ad-Hoc</option>
                 </select>
               )}
-              {!formData.employmentTypeId && employmentTypes.length > 0 && (
+              {!formData.employmentTypeId && employmentTypesList.length > 0 && (
                 <p className="text-[11px] text-[#A8281C] mt-1.5">Pilih tipe ikatan kerja terlebih dahulu</p>
               )}
             </div>
@@ -1479,6 +1629,195 @@ export function WizardEmployeeForm({
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Create Tipe Ikatan Kerja Modal */}
+      {isQuickCreateModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center font-bold">
+                  <Briefcase className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm leading-tight">
+                    Tambah Tipe Ikatan Kerja Baru
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Master data baru akan langsung dapat dipilih pada kontrak ini
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsQuickCreateModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-lg text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {quickCreateError && (
+              <div className="mb-3 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                <span>{quickCreateError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleQuickCreateEmploymentType} className="space-y-3.5">
+              {/* Kode */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Kode Ikatan Kerja <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={quickCreateForm.code}
+                  onChange={(e) =>
+                    setQuickCreateForm((prev) => ({
+                      ...prev,
+                      code: e.target.value.toUpperCase().replace(/\s+/g, "_"),
+                    }))
+                  }
+                  placeholder="Contoh: PKWT_KONSULTAN"
+                  className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
+                />
+                <span className="text-[10px] text-slate-400 mt-0.5 block">
+                  Identifikasi unik dalam sistem (otomatis kapital & underscore)
+                </span>
+              </div>
+
+              {/* Nama */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Nama Ikatan Kerja <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={quickCreateForm.name}
+                  onChange={(e) =>
+                    setQuickCreateForm((prev) => ({ ...prev, name: e.target.value }))
+                  }
+                  placeholder="Contoh: PKWT Konsultan Senior"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
+                />
+              </div>
+
+              {/* Kategori Sistem & Skema Upah */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Kategori Laporan <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={quickCreateForm.category}
+                    onChange={(e) =>
+                      setQuickCreateForm((prev) => ({
+                        ...prev,
+                        category: e.target.value as "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT",
+                      }))
+                    }
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white"
+                  >
+                    <option value="PERMANENT">Pegawai Tetap</option>
+                    <option value="FIXED_TERM">PKWT Berjangka</option>
+                    <option value="PART_TIME_PROJECT">Paruh Waktu</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Skema Upah <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={quickCreateForm.wageType}
+                    onChange={(e) =>
+                      setQuickCreateForm((prev) => ({
+                        ...prev,
+                        wageType: e.target.value as "MONTHLY" | "HOURLY",
+                      }))
+                    }
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-medium"
+                  >
+                    <option value="MONTHLY">Gaji Bulanan</option>
+                    <option value="HOURLY">Per Jam (Timesheet)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tarif Acuan Per Jam (Muncul jika HOURLY) */}
+              {quickCreateForm.wageType === "HOURLY" && (
+                <div className="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3 text-xs animate-in fade-in duration-150">
+                  <label className="block text-xs font-semibold text-amber-950 mb-1">
+                    Tarif Acuan Per Jam Bawaan (Rp) <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      required
+                      min="1000"
+                      step="1000"
+                      value={quickCreateForm.defaultHourlyRate}
+                      onChange={(e) =>
+                        setQuickCreateForm((prev) => ({
+                          ...prev,
+                          defaultHourlyRate: e.target.value,
+                        }))
+                      }
+                      placeholder="30000"
+                      className="w-full pl-3 pr-12 py-2 text-xs font-mono border border-amber-300 bg-white rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-amber-700 font-medium">
+                      / jam
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-amber-800/90 mt-1 block">
+                    Tarif default yang otomatis terisi saat memilih ikatan kerja ini.
+                  </span>
+                </div>
+              )}
+
+              {/* Deskripsi */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Deskripsi / Keterangan
+                </label>
+                <textarea
+                  rows={2}
+                  value={quickCreateForm.description}
+                  onChange={(e) =>
+                    setQuickCreateForm((prev) => ({ ...prev, description: e.target.value }))
+                  }
+                  placeholder="Keterangan peruntukan ikatan kerja..."
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
+                />
+              </div>
+
+              {/* Tombol Simpan */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsQuickCreateModalOpen(false)}
+                  disabled={quickCreatePending}
+                  className="px-3.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={quickCreatePending}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold bg-[#102E50] text-white hover:bg-[#102E50]/90 rounded-lg transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {quickCreatePending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Simpan & Pilih Tipe Ini</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

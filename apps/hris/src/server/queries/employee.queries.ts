@@ -127,6 +127,8 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
         select: {
           id: true,
           type: true,
+          employmentTypeId: true,
+          employmentTypeMaster: { select: { id: true, name: true, code: true } },
           startDate: true,
           endDate: true,
           baseSalary: true,
@@ -256,6 +258,9 @@ export async function getEmployeeById(id: string) {
       },
       contracts: {
         orderBy: { startDate: "desc" },
+        include: {
+          employmentTypeMaster: true,
+        },
       },
       histories: {
         orderBy: { startDate: "desc" },

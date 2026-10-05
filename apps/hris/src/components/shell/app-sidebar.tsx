@@ -55,11 +55,16 @@ export function AppSidebar({
     if (href === "/karyawan") {
       return (
         pathname === "/karyawan" ||
-        (pathname.startsWith("/karyawan/") && !pathname.startsWith("/karyawan/organisasi"))
+        (pathname.startsWith("/karyawan/") &&
+          !pathname.startsWith("/karyawan/organisasi") &&
+          !pathname.startsWith("/karyawan/ikatan-kerja"))
       );
     }
     if (href === "/karyawan/organisasi") {
       return pathname.startsWith("/karyawan/organisasi");
+    }
+    if (href === "/karyawan/ikatan-kerja") {
+      return pathname.startsWith("/karyawan/ikatan-kerja");
     }
     if (href === "/absensi/rekap") {
       return (
@@ -240,6 +245,13 @@ export function AppSidebar({
                 label="Struktur Organisasi"
                 icon={<Building2 className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/karyawan/organisasi")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
+                href="/karyawan/ikatan-kerja"
+                label="Tipe Ikatan Kerja"
+                icon={<Briefcase className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/karyawan/ikatan-kerja")}
                 isCollapsed={isCollapsed}
               />
               <NavItem

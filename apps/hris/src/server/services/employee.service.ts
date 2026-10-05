@@ -404,6 +404,59 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
       },
     });
 
+    // Sinkronisasi data kontrak aktif pegawai
+    const activeContract = await tx.employmentContract.findFirst({
+      where: { employeeId: data.id, status: "ACTIVE" },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (activeContract) {
+      await tx.employmentContract.update({
+        where: { id: activeContract.id },
+        data: {
+          type: data.employmentType,
+          employmentTypeId:
+            data.employmentTypeId && data.employmentTypeId.trim() !== ""
+              ? data.employmentTypeId
+              : null,
+          wageType: data.wageType || "MONTHLY",
+          hourlyRate: data.wageType === "HOURLY" && data.hourlyRate ? data.hourlyRate : null,
+          startDate: data.contractStartDate ? new Date(data.contractStartDate) : activeContract.startDate,
+          endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
+          baseSalary:
+            data.wageType === "HOURLY"
+              ? null
+              : data.baseSalary !== undefined && data.baseSalary !== null
+              ? data.baseSalary
+              : null,
+          notes: data.contractNotes?.trim() || activeContract.notes,
+        },
+      });
+    } else {
+      await tx.employmentContract.create({
+        data: {
+          employeeId: data.id,
+          type: data.employmentType,
+          employmentTypeId:
+            data.employmentTypeId && data.employmentTypeId.trim() !== ""
+              ? data.employmentTypeId
+              : null,
+          wageType: data.wageType || "MONTHLY",
+          hourlyRate: data.wageType === "HOURLY" && data.hourlyRate ? data.hourlyRate : null,
+          startDate: data.contractStartDate ? new Date(data.contractStartDate) : new Date(),
+          endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
+          baseSalary:
+            data.wageType === "HOURLY"
+              ? null
+              : data.baseSalary !== undefined && data.baseSalary !== null
+              ? data.baseSalary
+              : null,
+          status: "ACTIVE",
+          notes: data.contractNotes?.trim() || "Kontrak kerja diperbarui oleh HR",
+        },
+      });
+    }
+
     // Jika atasan langsung berubah:
     if (isManagerChanged) {
       // 1. Notifikasi in-app langsung ke staf bersangkutan
