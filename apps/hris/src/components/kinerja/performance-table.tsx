@@ -20,6 +20,9 @@ interface PerformanceTableProps {
   departments: { id: string; name: string }[];
   isManager?: boolean;
   managerDepartmentName?: string;
+  /** ID karyawan yang sedang login — untuk menentukan apakah bisa submit penilaian atasan */
+  currentEmployeeId?: string;
+  isHrOrAdmin?: boolean;
 }
 
 export function PerformanceTable({
@@ -27,6 +30,8 @@ export function PerformanceTable({
   departments,
   isManager = false,
   managerDepartmentName,
+  currentEmployeeId,
+  isHrOrAdmin = false,
 }: PerformanceTableProps) {
   const [search, setSearch] = useState("");
   const [departmentId, setDepartmentId] = useState("ALL");
@@ -309,6 +314,8 @@ export function PerformanceTable({
         review={selectedReview}
         onClose={() => setDetailOpen(false)}
         isManager={isManager}
+        currentEmployeeId={currentEmployeeId}
+        isHrOrAdmin={isHrOrAdmin}
       />
     </div>
   );

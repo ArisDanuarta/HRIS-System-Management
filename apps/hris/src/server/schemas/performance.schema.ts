@@ -121,4 +121,56 @@ export const deleteGoalSchema = z.object({
 
 export type DeleteGoalInput = z.infer<typeof deleteGoalSchema>;
 
+export const updateGoalSchema = z.object({
+  goalId: z.string().uuid("ID sasaran tidak valid"),
+  title: z
+    .string({ required_error: "Judul sasaran riset wajib diisi" })
+    .trim()
+    .min(3, "Judul sasaran minimal 3 karakter")
+    .max(200, "Judul sasaran maksimal 200 karakter"),
+  description: z.string().trim().optional().nullable(),
+  weight: z
+    .number({ required_error: "Bobot sasaran wajib diisi" })
+    .min(1, "Bobot minimal 1%")
+    .max(100, "Bobot maksimal 100%"),
+  target: z.string().trim().optional().nullable(),
+  unit: z.string().trim().optional().nullable(),
+});
+
+export type UpdateGoalInput = z.infer<typeof updateGoalSchema>;
+
+export const submitManagerReviewSchema = z.object({
+  reviewId: z.string().uuid("ID evaluasi kinerja tidak valid"),
+  managerScore: z
+    .number({ required_error: "Skor atasan langsung wajib diisi" })
+    .min(0, "Skor minimal 0")
+    .max(100, "Skor maksimal 100"),
+  managerComment: z
+    .string({ required_error: "Catatan evaluasi & pembinaan atasan wajib diisi" })
+    .trim()
+    .min(10, "Catatan evaluasi atasan minimal 10 karakter"),
+});
+
+export type SubmitManagerReviewInput = z.infer<typeof submitManagerReviewSchema>;
+
+export const requestReviewRevisionSchema = z.object({
+  reviewId: z.string().uuid("ID evaluasi kinerja tidak valid"),
+  reason: z
+    .string({ required_error: "Catatan alasan revisi wajib diisi" })
+    .trim()
+    .min(5, "Alasan permintaan revisi minimal 5 karakter"),
+});
+
+export type RequestReviewRevisionInput = z.infer<typeof requestReviewRevisionSchema>;
+
+export const unlockPerformanceReviewSchema = z.object({
+  reviewId: z.string().uuid("ID evaluasi kinerja tidak valid"),
+  reason: z
+    .string({ required_error: "Alasan pembukaan kunci evaluasi wajib diisi" })
+    .trim()
+    .min(5, "Alasan pembukaan kunci minimal 5 karakter"),
+});
+
+export type UnlockPerformanceReviewInput = z.infer<typeof unlockPerformanceReviewSchema>;
+
 

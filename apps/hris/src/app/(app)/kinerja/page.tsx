@@ -198,6 +198,8 @@ export default async function PerformancePage({ searchParams }: PageProps) {
         isManager={true}
         managerDepartmentName={managerTeamInfo?.currentDepartment?.name}
         activeTab="team"
+        currentEmployeeId={ctx.employeeId ?? undefined}
+        isHrOrAdmin={false}
       />
     );
   }
@@ -257,6 +259,8 @@ export default async function PerformancePage({ searchParams }: PageProps) {
       departments={departments}
       isManager={false}
       activeTab="team"
+      currentEmployeeId={ctx.employeeId ?? undefined}
+      isHrOrAdmin={isHrOrAdmin}
     />
   );
 }

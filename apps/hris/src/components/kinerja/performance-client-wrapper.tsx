@@ -33,6 +33,8 @@ interface PerformanceClientWrapperProps {
   isManager?: boolean;
   managerDepartmentName?: string;
   activeTab?: "team" | "mine";
+  currentEmployeeId?: string;
+  isHrOrAdmin?: boolean;
 }
 
 export function PerformanceClientWrapper({
@@ -44,6 +46,8 @@ export function PerformanceClientWrapper({
   isManager = false,
   managerDepartmentName,
   activeTab = "team",
+  currentEmployeeId,
+  isHrOrAdmin = false,
 }: PerformanceClientWrapperProps) {
   const router = useRouter();
 
@@ -73,6 +77,8 @@ export function PerformanceClientWrapper({
         departments={departments}
         isManager={isManager}
         managerDepartmentName={managerDepartmentName}
+        currentEmployeeId={currentEmployeeId}
+        isHrOrAdmin={isHrOrAdmin}
       />
     </div>
   );

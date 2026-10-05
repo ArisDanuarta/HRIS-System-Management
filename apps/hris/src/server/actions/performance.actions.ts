@@ -12,6 +12,10 @@ import {
   submitStaffSelfReviewSchema,
   createGoalSchema,
   deleteGoalSchema,
+  updateGoalSchema,
+  submitManagerReviewSchema,
+  requestReviewRevisionSchema,
+  unlockPerformanceReviewSchema,
 } from "../schemas/performance.schema";
 import {
   createPerformancePeriod,
@@ -743,3 +747,401 @@ export async function deleteGoalAction(rawData: unknown) {
 }
 
 
+/**
+ * Server Action: Perbarui butir Sasaran Riset / OKR yang sudah ada
+ * (diizinkan oleh pemilik staf, atasan langsung, dan admin_hr selama periode OPEN dan belum FINALIZED)
+ */
+export async function updateGoalAction(rawData: unknown) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    if (!authCtx) {
+      return { success: false, error: "Pengguna tidak aktif atau hak akses tidak valid." };
+    }
+
+    const validated = updateGoalSchema.safeParse(rawData);
+    if (!validated.success) {
+      const firstError = validated.error.issues[0]?.message || "Input sasaran tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    const goal = await prisma.performanceGoal.findUnique({
+      where: { id: validated.data.goalId },
+      include: { period: true },
+    });
+
+    if (!goal) {
+      return { success: false, error: "Data sasaran tidak ditemukan." };
+    }
+
+    if (goal.period.status !== "OPEN") {
+      return { success: false, error: "Sasaran tidak dapat diubah karena periode evaluasi telah ditutup." };
+    }
+
+    const review = await prisma.performanceReview.findUnique({
+      where: {
+        employeeId_periodId: {
+          employeeId: goal.employeeId,
+          periodId: goal.periodId,
+        },
+      },
+    });
+
+    if (review?.status === "FINALIZED") {
+      return { success: false, error: "Sasaran tidak dapat diubah karena evaluasi kinerja telah disahkan resmi." };
+    }
+
+    const currentEmployee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    const isSuperAdmin = authCtx.roles.includes("super_admin");
+    const isAdminHr = authCtx.roles.includes("admin_hr");
+    const isOwner = currentEmployee?.id === goal.employeeId;
+
+    let isManagerOfEmployee = false;
+    if (!isSuperAdmin && !isAdminHr && !isOwner && currentEmployee) {
+      const targetEmp = await prisma.employee.findUnique({
+        where: { id: goal.employeeId },
+        select: { managerId: true },
+      });
+      isManagerOfEmployee = targetEmp?.managerId === currentEmployee.id;
+    }
+
+    if (!isOwner && !isManagerOfEmployee && !isSuperAdmin && !isAdminHr) {
+      return { success: false, error: "Anda tidak memiliki wewenang untuk mengubah sasaran pada pegawai ini." };
+    }
+
+    // Cek total bobot baru tidak melebihi 100%
+    const otherGoals = await prisma.performanceGoal.findMany({
+      where: {
+        employeeId: goal.employeeId,
+        periodId: goal.periodId,
+        NOT: { id: goal.id },
+      },
+      select: { weight: true },
+    });
+
+    const otherTotal = otherGoals.reduce((sum, g) => sum + Number(g.weight), 0);
+    const newTotal = otherTotal + validated.data.weight;
+
+    if (newTotal > 100) {
+      return {
+        success: false,
+        error: `Total bobot melebihi 100%. Bobot sasaran lain sudah ${otherTotal}%, bobot ini maksimal ${Math.max(0, 100 - otherTotal)}%.`,
+      };
+    }
+
+    const ip = extractClientIp(reqHeaders);
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const updated = await prisma.performanceGoal.update({
+      where: { id: validated.data.goalId },
+      data: {
+        title: validated.data.title,
+        description: validated.data.description || null,
+        weight: validated.data.weight,
+        target: validated.data.target || null,
+        unit: validated.data.unit || null,
+      },
+    });
+
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "UPDATE",
+      entityType: "PerformanceGoal",
+      entityId: updated.id,
+      before: { title: goal.title, weight: Number(goal.weight), target: goal.target },
+      after: { title: updated.title, weight: Number(updated.weight), target: updated.target },
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/kinerja");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal memperbarui sasaran riset:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat memperbarui sasaran.",
+    };
+  }
+}
+
+/**
+ * Server Action: Submit Penilaian Atasan Langsung (Manager Review)
+ * Transisi status dari SELF_REVIEW → MANAGER_REVIEW
+ */
+export async function submitManagerReviewAction(rawData: unknown) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    if (!authCtx) {
+      return { success: false, error: "Pengguna tidak aktif atau hak akses tidak valid." };
+    }
+
+    const validated = submitManagerReviewSchema.safeParse(rawData);
+    if (!validated.success) {
+      const firstError = validated.error.issues[0]?.message || "Input penilaian atasan tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    const review = await prisma.performanceReview.findUnique({
+      where: { id: validated.data.reviewId },
+      include: { period: true, reviewer: { select: { id: true, userId: true, fullName: true } } },
+    });
+
+    if (!review) {
+      return { success: false, error: "Data evaluasi kinerja tidak ditemukan." };
+    }
+
+    const isSuperAdmin = authCtx.roles.includes("super_admin");
+    const isAdminHr = authCtx.roles.includes("admin_hr");
+
+    // Pastikan yang submit adalah atasan langsung dari pegawai atau admin_hr/super_admin
+    const actorEmployee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    const isReviewer = actorEmployee?.id === review.reviewerId;
+
+    if (!isReviewer && !isSuperAdmin && !isAdminHr) {
+      return {
+        success: false,
+        error: "Hanya atasan langsung, Admin HR, atau Super Admin yang dapat mengisi penilaian atasan.",
+      };
+    }
+
+    // Validasi status: harus SELF_REVIEW (staf sudah mengisi evaluasi mandiri)
+    if (review.status !== "SELF_REVIEW") {
+      return {
+        success: false,
+        error: `Penilaian atasan belum dapat diisi. Status evaluasi saat ini: ${review.status}. Staf harus menyelesaikan evaluasi mandiri terlebih dahulu.`,
+      };
+    }
+
+    if (review.period.status !== "OPEN") {
+      return { success: false, error: "Periode evaluasi kinerja ini telah ditutup." };
+    }
+
+    const ip = extractClientIp(reqHeaders);
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const updated = await prisma.performanceReview.update({
+      where: { id: validated.data.reviewId },
+      data: {
+        managerScore: validated.data.managerScore,
+        managerComment: validated.data.managerComment,
+        status: "MANAGER_REVIEW",
+      },
+    });
+
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "SUBMIT_MANAGER_REVIEW",
+      entityType: "PerformanceReview",
+      entityId: updated.id,
+      before: { status: review.status, managerScore: null },
+      after: {
+        status: updated.status,
+        managerScore: validated.data.managerScore,
+        managerComment: validated.data.managerComment,
+      },
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/kinerja");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal submit penilaian atasan:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan penilaian atasan.",
+    };
+  }
+}
+
+/**
+ * Server Action: Minta Revisi Evaluasi (Kembalikan ke DRAFT)
+ * Dapat dilakukan oleh: atasan langsung (reviewerId), admin_hr, atau super_admin
+ * Hanya boleh jika status SELF_REVIEW atau MANAGER_REVIEW
+ */
+export async function requestReviewRevisionAction(rawData: unknown) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    if (!authCtx) {
+      return { success: false, error: "Pengguna tidak aktif atau hak akses tidak valid." };
+    }
+
+    const validated = requestReviewRevisionSchema.safeParse(rawData);
+    if (!validated.success) {
+      const firstError = validated.error.issues[0]?.message || "Input permintaan revisi tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    const review = await prisma.performanceReview.findUnique({
+      where: { id: validated.data.reviewId },
+      include: { period: true },
+    });
+
+    if (!review) {
+      return { success: false, error: "Data evaluasi kinerja tidak ditemukan." };
+    }
+
+    if (review.status === "DRAFT") {
+      return { success: false, error: "Evaluasi sudah berstatus DRAFT, tidak perlu dikembalikan." };
+    }
+
+    if (review.status === "FINALIZED") {
+      return { success: false, error: "Evaluasi yang sudah disahkan resmi tidak dapat dikembalikan ke DRAFT. Gunakan fitur Buka Kunci (unlock) terlebih dahulu." };
+    }
+
+    if (review.period.status !== "OPEN") {
+      return { success: false, error: "Periode evaluasi kinerja ini telah ditutup." };
+    }
+
+    const isSuperAdmin = authCtx.roles.includes("super_admin");
+    const isAdminHr = authCtx.roles.includes("admin_hr");
+
+    const actorEmployee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+
+    const isReviewer = actorEmployee?.id === review.reviewerId;
+
+    if (!isReviewer && !isSuperAdmin && !isAdminHr) {
+      return {
+        success: false,
+        error: "Hanya atasan langsung, Admin HR, atau Super Admin yang dapat meminta revisi evaluasi.",
+      };
+    }
+
+    const ip = extractClientIp(reqHeaders);
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const updated = await prisma.performanceReview.update({
+      where: { id: validated.data.reviewId },
+      data: {
+        status: "DRAFT",
+        selfScore: null,
+        selfComment: null,
+        managerScore: null,
+        managerComment: null,
+      },
+    });
+
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "REQUEST_REVISION",
+      entityType: "PerformanceReview",
+      entityId: updated.id,
+      before: { status: review.status },
+      after: { status: "DRAFT", reason: validated.data.reason },
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/kinerja");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal meminta revisi evaluasi:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat meminta revisi evaluasi.",
+    };
+  }
+}
+
+/**
+ * Server Action: Buka Kunci Evaluasi yang sudah FINALIZED (hanya Super Admin / Admin HR)
+ * Transisi status dari FINALIZED → MANAGER_REVIEW
+ */
+export async function unlockPerformanceReviewAction(rawData: unknown) {
+  try {
+    const actor = await getActorInfo();
+
+    if (!actor.isSuperAdmin && !actor.isAdminHr) {
+      return {
+        success: false,
+        error: "Hanya Super Admin atau Admin HR yang dapat membuka kunci evaluasi yang sudah disahkan.",
+      };
+    }
+
+    const validated = unlockPerformanceReviewSchema.safeParse(rawData);
+    if (!validated.success) {
+      const firstError = validated.error.issues[0]?.message || "Input tidak valid";
+      return { success: false, error: firstError };
+    }
+
+    const review = await prisma.performanceReview.findUnique({
+      where: { id: validated.data.reviewId },
+    });
+
+    if (!review) {
+      return { success: false, error: "Data evaluasi kinerja tidak ditemukan." };
+    }
+
+    if (review.status !== "FINALIZED") {
+      return { success: false, error: `Evaluasi ini berstatus ${review.status}, bukan FINALIZED. Tidak perlu dibuka kunci.` };
+    }
+
+    const updated = await prisma.performanceReview.update({
+      where: { id: validated.data.reviewId },
+      data: {
+        status: "MANAGER_REVIEW",
+        finalScore: null,
+      },
+    });
+
+    await writeAudit({
+      actorUserId: actor.userId,
+      actorEmail: actor.email,
+      app: "hris",
+      action: "UNLOCK",
+      entityType: "PerformanceReview",
+      entityId: updated.id,
+      before: { status: "FINALIZED", finalScore: review.finalScore },
+      after: { status: "MANAGER_REVIEW", reason: validated.data.reason },
+      ip: actor.ip,
+      userAgent: actor.userAgent,
+    });
+
+    revalidatePath("/kinerja");
+    return { success: true };
+  } catch (error) {
+    console.error("Gagal membuka kunci evaluasi kinerja:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Terjadi kesalahan saat membuka kunci evaluasi.",
+    };
+  }
+}

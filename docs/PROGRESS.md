@@ -4,7 +4,49 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 5: Modul Evaluasi Kinerja & Riset (Full Workflow) — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:**
+  1. **Logika Bisnis Bersama (`@pspk/shared`):**
+     - [`packages/shared/src/performance.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/performance.ts): Fungsi murni `calculatePerformancePredicate()` (Grade A/B/C/D + kelas badge), `calculateRecommendedFinalScore()` (nilai atasan langsung = bobot utama), dan `validateGoalWeights()`.
+     - [`packages/shared/src/performance.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/performance.test.ts): Unit test lengkap untuk seluruh logika kinerja.
+
+  2. **Schema Validasi Zod (`performance.schema.ts`):**
+     - `updateGoalSchema`, `submitManagerReviewSchema`, `requestReviewRevisionSchema`, `unlockPerformanceReviewSchema` ditambahkan untuk mendukung semua transisi status evaluasi.
+
+  3. **Server Actions (`performance.actions.ts`) — Workflow Penuh:**
+     - `updateGoalAction`: Update sasaran OKR oleh staf/atasan/HR (validasi bobot total ≤ 100%).
+     - `submitManagerReviewAction`: Atasan langsung atau Admin HR mengisi nilai & catatan (SELF_REVIEW → MANAGER_REVIEW).
+     - `requestReviewRevisionAction`: Atasan/Admin HR mengembalikan evaluasi ke DRAFT dengan alasan (reset skor self & manager).
+     - `unlockPerformanceReviewAction`: Admin HR membuka kunci evaluasi yang sudah FINALIZED (→ MANAGER_REVIEW), khusus koreksi.
+     - Semua aksi dilengkapi: guard RBAC berlapis, validasi status enum, audit log lengkap.
+
+  4. **UI Modal Evaluasi ([`performance-detail-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kinerja/performance-detail-modal.tsx)) — Overhauled:**
+     - **Tab-panel aksi dinamis** berdasarkan peran dan status evaluasi saat ini:
+       - 📋 Detail Evaluasi (default semua role)
+       - ⭐ Isi Penilaian Atasan (muncul hanya untuk atasan/HR jika status SELF_REVIEW)
+       - 🔄 Minta Revisi (muncul untuk atasan/HR jika status SELF_REVIEW atau MANAGER_REVIEW)
+       - 🔒 Finalisasi Nilai (muncul di panel Detail untuk HR jika status MANAGER_REVIEW)
+       - 🔓 Buka Kunci (muncul untuk HR jika status FINALIZED)
+     - **Formulir Penilaian Atasan (`ManagerReviewForm`):** Input skor 0–100, predicate live preview, textarea catatan wajib (≥10 karakter).
+     - **Formulir Minta Revisi (`RequestRevisionForm`):** Warning box, textarea alasan, konfirmasi destruktif.
+     - **Panel Buka Kunci (`UnlockPanel`):** Warning risiko, catatan alasan wajib, confirm dialog.
+     - **Komparasi Self vs Manager Review:** Side-by-side card biru (staf) vs amber (atasan) dengan skor dan komentar masing-masing.
+     - **Finalisasi HR (`FinalizeReviewForm`):** Rekomendasi skor otomatis, preview predicate, input override skor final.
+
+  5. **Prop Threading untuk RBAC UI:**
+     - `currentEmployeeId` dan `isHrOrAdmin` diteruskan dari `page.tsx` → `PerformanceClientWrapper` → `PerformanceTable` → `PerformanceDetailModal` agar aksi kontekstual muncul sesuai hak akses pengguna yang login.
+
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos tanpa error
+  - `pnpm lint`: ✅ 0 error (15 warnings pre-existing — `<img>` tag di komponen profil, unused vars di file lama)
+  - `pnpm test (@pspk/shared)`: ✅ Semua unit test logika kinerja lolos
+
+---
+
 ## Tahap 4: Bagan Hierarki Organisasi & Visual Interaktif Divisi/Manajer (Opsi A Core HRIS) — 2026-10-05
+
 
 - **Status:** Selesai
 - **Scope:** 
