@@ -3,6 +3,7 @@ import {
   calculateWorkingDays,
   isDateOverlapping,
   hasSufficientLeaveBalance,
+  getLeaveOverrideImpact,
   toDateString,
 } from "@pspk/shared";
 import { CreateLeaveRequestInput } from "../schemas/leave.schema";
@@ -425,3 +426,247 @@ export async function cancelLeaveRequest(
 
   return result;
 }
+
+/**
+ * Overrides an existing leave request decision (Super Admin / Admin HR only).
+ * Handles quota refund or deduction, attendance synchronization, and audit logging.
+ */
+export async function overrideLeaveDecision({
+  leaveRequestId,
+  targetStatus,
+  overrideReason,
+  adminUserId,
+  adminEmail,
+  adminEmployeeId,
+}: {
+  leaveRequestId: string;
+  targetStatus: "APPROVED" | "REJECTED" | "CANCELLED";
+  overrideReason: string;
+  adminUserId: string;
+  adminEmail: string;
+  adminEmployeeId?: string;
+}) {
+  const request = await prisma.leaveRequest.findUnique({
+    where: { id: leaveRequestId },
+    include: {
+      employee: {
+        select: {
+          id: true,
+          fullName: true,
+          employeeNo: true,
+        },
+      },
+      leaveType: true,
+    },
+  });
+
+  if (!request) {
+    throw new Error("Permohonan cuti tidak ditemukan.");
+  }
+
+  if (request.status === targetStatus) {
+    throw new Error(`Permohonan cuti sudah berstatus ${targetStatus}.`);
+  }
+
+  if (!overrideReason || overrideReason.trim().length < 5) {
+    throw new Error("Alasan koreksi/override status wajib diisi minimal 5 karakter.");
+  }
+
+  const startDate = request.startDate;
+  const endDate = request.endDate;
+  const year = startDate.getFullYear();
+  const requestDays = Number(request.days);
+  const wasApproved = request.status === "APPROVED";
+  const willBeApproved = targetStatus === "APPROVED";
+
+  const impact = getLeaveOverrideImpact(request.status, targetStatus, requestDays);
+
+  // Pre-fetch holidays if approving
+  let holidaySet = new Set<string>();
+  if (willBeApproved) {
+    const holidays = await prisma.holiday.findMany({
+      where: {
+        date: {
+          gte: new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0)),
+          lte: new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999)),
+        },
+      },
+      select: { date: true },
+    });
+    holidaySet = new Set(holidays.map((h) => toDateString(h.date)));
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. If transitioning to APPROVED, validate balance & schedule overlap
+    if (willBeApproved) {
+      const balance = await tx.leaveBalance.findUnique({
+        where: {
+          employeeId_leaveTypeId_year: {
+            employeeId: request.employeeId,
+            leaveTypeId: request.leaveTypeId,
+            year,
+          },
+        },
+      });
+
+      const quotaDays = balance ? balance.quotaDays : request.leaveType.defaultQuotaDays;
+      const usedDays = balance ? Number(balance.usedDays) : 0;
+      const remainingDays = quotaDays - usedDays;
+
+      if (remainingDays < requestDays) {
+        throw new Error(
+          `Sisa kuota cuti pegawai (${remainingDays} hari) tidak mencukupi untuk durasi cuti ini (${requestDays} hari).`,
+        );
+      }
+
+      // Check overlap with another active approved leave request
+      const overlapping = await tx.leaveRequest.findFirst({
+        where: {
+          id: { not: request.id },
+          employeeId: request.employeeId,
+          status: "APPROVED",
+          startDate: { lte: endDate },
+          endDate: { gte: startDate },
+        },
+      });
+
+      if (overlapping) {
+        throw new Error("Terdapat pengajuan cuti lain yang sudah disetujui pada rentang tanggal yang sama.");
+      }
+
+      // Deduct quota
+      await tx.leaveBalance.upsert({
+        where: {
+          employeeId_leaveTypeId_year: {
+            employeeId: request.employeeId,
+            leaveTypeId: request.leaveTypeId,
+            year,
+          },
+        },
+        update: {
+          usedDays: {
+            increment: requestDays,
+          },
+        },
+        create: {
+          employeeId: request.employeeId,
+          leaveTypeId: request.leaveTypeId,
+          year,
+          quotaDays: request.leaveType.defaultQuotaDays,
+          usedDays: requestDays,
+        },
+      });
+
+      // Mark Attendance as LEAVE for working days
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        const dayOfWeek = current.getUTCDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const curDateStr = toDateString(current);
+        const isHoliday = holidaySet.has(curDateStr);
+
+        if (!isWeekend && !isHoliday) {
+          const attendanceDate = new Date(curDateStr);
+          await tx.attendance.upsert({
+            where: {
+              employeeId_date: {
+                employeeId: request.employeeId,
+                date: attendanceDate,
+              },
+            },
+            update: {
+              status: "LEAVE",
+              notes: `Cuti Disetujui (Override HR): ${request.leaveType.name}`,
+            },
+            create: {
+              employeeId: request.employeeId,
+              date: attendanceDate,
+              status: "LEAVE",
+              source: "WEB",
+              notes: `Cuti Disetujui (Override HR): ${request.leaveType.name}`,
+            },
+          });
+        }
+
+        current.setUTCDate(current.getUTCDate() + 1);
+      }
+    }
+
+    // 2. If previously APPROVED and transitioning away from APPROVED, refund balance and clear attendance
+    if (wasApproved && !willBeApproved) {
+      await tx.leaveBalance.updateMany({
+        where: {
+          employeeId: request.employeeId,
+          leaveTypeId: request.leaveTypeId,
+          year,
+        },
+        data: {
+          usedDays: {
+            decrement: requestDays,
+          },
+        },
+      });
+
+      // Delete attendance records marked as LEAVE for that period
+      await tx.attendance.deleteMany({
+        where: {
+          employeeId: request.employeeId,
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+          status: "LEAVE",
+        },
+      });
+    }
+
+    // 3. Update LeaveRequest status
+    const updatedRequest = await tx.leaveRequest.update({
+      where: { id: leaveRequestId },
+      data: {
+        status: targetStatus,
+        decidedAt: new Date(),
+        approverId: adminEmployeeId || adminUserId,
+        decisionNote: `[Override HR] ${overrideReason.trim()}`,
+      },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            fullName: true,
+            employeeNo: true,
+          },
+        },
+      },
+    });
+
+    // 4. Log Audit Event
+    await writeAudit(
+      {
+        actorUserId: adminUserId,
+        actorEmail: adminEmail,
+        app: "hris",
+        action: "OVERRIDE",
+        entityType: "LeaveRequest",
+        entityId: request.id,
+        before: {
+          status: request.status,
+          decisionNote: request.decisionNote,
+          approverId: request.approverId,
+        },
+        after: {
+          status: targetStatus,
+          overrideReason: overrideReason.trim(),
+          balanceDelta: impact.balanceDelta,
+          employeeName: request.employee.fullName,
+        },
+      },
+      tx,
+    );
+
+    return updatedRequest;
+  });
+
+  return result;
+}
+

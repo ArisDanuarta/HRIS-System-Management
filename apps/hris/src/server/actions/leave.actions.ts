@@ -14,18 +14,21 @@ import {
   cancelLeaveRequestSchema,
   createHolidaySchema,
   updateLeaveTypeSchema,
+  overrideLeaveDecisionSchema,
   CreateLeaveRequestInput,
   ApproveLeaveRequestInput,
   RejectLeaveRequestInput,
   CancelLeaveRequestInput,
   CreateHolidayInput,
   UpdateLeaveTypeInput,
+  OverrideLeaveDecisionInput,
 } from "../schemas/leave.schema";
 import {
   submitLeaveRequest,
   approveLeaveRequest,
   rejectLeaveRequest,
   cancelLeaveRequest,
+  overrideLeaveDecision,
 } from "../services/leave.service";
 import {
   createNotification,
@@ -570,4 +573,43 @@ export async function adjustEmployeeLeaveBalanceAction(input: {
     };
   }
 }
+
+/**
+ * Server Action: Override Leave Request Decision (Super Admin / Admin HR only)
+ */
+export async function overrideLeaveDecisionAction(input: OverrideLeaveDecisionInput) {
+  try {
+    const { userId, userEmail, employeeId, authCtx } = await getAuthenticatedUser();
+    assertCan(authCtx, "hris.leave.configure:all");
+
+    const validated = overrideLeaveDecisionSchema.parse(input);
+
+    const updated = await overrideLeaveDecision({
+      leaveRequestId: validated.leaveRequestId,
+      targetStatus: validated.targetStatus,
+      overrideReason: validated.overrideReason,
+      adminUserId: userId,
+      adminEmail: userEmail,
+      adminEmployeeId: employeeId,
+    });
+
+    revalidatePath("/cuti");
+    revalidatePath("/cuti/persetujuan");
+    revalidatePath("/cuti/pengaturan");
+    revalidatePath("/absensi");
+
+    return {
+      success: true,
+      message: `Status permohonan cuti ${updated.employee?.fullName || "pegawai"} berhasil diubah menjadi ${validated.targetStatus}.`,
+      data: updated,
+    };
+  } catch (err) {
+    console.error("overrideLeaveDecisionAction error:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "Gagal melakukan koreksi/override keputusan cuti.",
+    };
+  }
+}
+
 

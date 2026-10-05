@@ -123,3 +123,47 @@ export function calculateAdjustedLeaveQuota(
   return currentQuota;
 }
 
+/**
+ * Calculates the balance impact and description for an administrative leave override.
+ */
+export function getLeaveOverrideImpact(
+  currentStatus: string,
+  targetStatus: string,
+  days: number,
+): {
+  balanceDelta: number;
+  requiresAttendanceClear: boolean;
+  requiresAttendanceMark: boolean;
+  description: string;
+} {
+  const numDays = Math.max(0, days);
+  const wasApproved = currentStatus === "APPROVED";
+  const willBeApproved = targetStatus === "APPROVED";
+
+  if (wasApproved && !willBeApproved) {
+    return {
+      balanceDelta: numDays,
+      requiresAttendanceClear: true,
+      requiresAttendanceMark: false,
+      description: `Saldo cuti pegawai akan dikembalikan sebesar +${numDays} hari, dan catatan presensi cuti akan dihapus.`,
+    };
+  }
+
+  if (!wasApproved && willBeApproved) {
+    return {
+      balanceDelta: -numDays,
+      requiresAttendanceClear: false,
+      requiresAttendanceMark: true,
+      description: `Saldo cuti pegawai akan dipotong sebesar -${numDays} hari, dan jadwal kerja akan ditandai sebagai LEAVE.`,
+    };
+  }
+
+  return {
+    balanceDelta: 0,
+    requiresAttendanceClear: false,
+    requiresAttendanceMark: false,
+    description: "Perubahan status ini tidak memengaruhi saldo cuti pegawai.",
+  };
+}
+
+

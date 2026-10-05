@@ -4,6 +4,29 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 2: Koreksi & Override Keputusan Cuti oleh Admin HR (Opsi A Core HRIS) — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:** 
+  1. Sub-tahap 2A: Layanan & Server Action Koreksi/Override Keputusan Cuti (`overrideLeaveDecision` & `overrideLeaveDecisionAction`) dengan otorisasi khusus `super_admin` & `admin_hr` (`hris.leave.configure:all`). Menangani sinkronisasi kuota saldo cuti secara otomatis (pengembalian hari cuti bila status dibatalkan/ditolak dari disetujui, atau pemotongan kuota & validasi sisa saldo/jadwal bentrok bila status diubah menjadi disetujui), sinkronisasi log status presensi kerja/LEAVE, dan audit log mendalam `OVERRIDE` pada entitas `LeaveRequest`.
+  2. Sub-tahap 2B: Antarmuka Interaktif Override Keputusan Cuti pada tab riwayat persetujuan di [`apps/hris/src/app/(app)/cuti/persetujuan`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/persetujuan/page.tsx) dan [`leave-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-approval-view.tsx), dilengkapi tombol "Override" khusus Admin HR, modal interaktif, kartu pratinjau kalkulasi saldo otomatis, dan formulir alasan wajib (min. 5 karakter).
+- **Perubahan Utama:**
+  - Skema Validasi: Menambahkan [`overrideLeaveDecisionSchema`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/schemas/leave.schema.ts) dengan validasi Zod untuk ID permohonan cuti, enum status tujuan (`APPROVED`, `REJECTED`, `CANCELLED`), dan alasan koreksi tertulis.
+  - Helper & Unit Testing: Menambahkan fungsi murni [`getLeaveOverrideImpact`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.ts) dan rangkaian unit test di [`packages/shared/src/leave.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.test.ts) untuk menguji kalkulasi delta saldo (refund vs deduct) dan kebutuhan sinkronisasi presensi.
+  - Layanan Bisnis Transaksional: Mengembangkan [`overrideLeaveDecision`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/leave.service.ts) di dalam `prisma.$transaction`:
+    - Transisi ke `APPROVED`: Validasi kecukupan sisa kuota, cek bentrok jadwal (*overlap*) dengan cuti lain, potong `usedDays` di `LeaveBalance`, dan tandai presensi sebagai `LEAVE` pada hari kerja non-libur.
+    - Transisi keluar dari `APPROVED` (ke `REJECTED` atau `CANCELLED`): Kembalikan saldo cuti pegawai (`decrement usedDays`) dan bersihkan status presensi `LEAVE` pada rentang tanggal terkait.
+    - Pembaruan status permohonan dengan catatan `[Override HR] <alasan>` dan pencatatan audit log `OVERRIDE`.
+  - Aksi Server & Revalidasi: Menambahkan [`overrideLeaveDecisionAction`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/leave.actions.ts) dengan revalidasi path `/cuti`, `/cuti/persetujuan`, `/cuti/pengaturan`, dan `/absensi`.
+  - Komponen UI Persetujuan: Memperkaya [`LeaveApprovalView`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-approval-view.tsx) dengan tombol aksi koreksi serta modal override responsif.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error
+  - `pnpm lint`: ✅ 0 error
+  - `pnpm test`: ✅ 54/54 test lolos (100%)
+  - Endpoint dev server `/api/health`: ✅ status 200 OK (`{"status":"ok"}`)
+
+---
+
 ## Tahap 1: Penyempurnaan Modul Presensi & Saldo Cuti (Opsi A Core HRIS) — 2026-10-05
 
 - **Status:** Selesai

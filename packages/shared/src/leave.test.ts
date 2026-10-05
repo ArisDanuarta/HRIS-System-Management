@@ -4,6 +4,7 @@ import {
   isDateOverlapping,
   hasSufficientLeaveBalance,
   calculateAdjustedLeaveQuota,
+  getLeaveOverrideImpact,
   toDateString,
 } from "./leave";
 
@@ -122,6 +123,37 @@ describe("Leave Calculations (AGENTS.md Section 8.2)", () => {
     it("handles zero or negative adjustment safely", () => {
       expect(calculateAdjustedLeaveQuota(12, 1, "ADD", 0)).toBe(12);
       expect(calculateAdjustedLeaveQuota(12, 1, "DEDUCT", -2)).toBe(12);
+    });
+  });
+
+  describe("getLeaveOverrideImpact", () => {
+    it("returns positive delta (refund) when overriding from APPROVED to REJECTED or CANCELLED", () => {
+      const resReject = getLeaveOverrideImpact("APPROVED", "REJECTED", 3);
+      expect(resReject.balanceDelta).toBe(3);
+      expect(resReject.requiresAttendanceClear).toBe(true);
+      expect(resReject.requiresAttendanceMark).toBe(false);
+
+      const resCancel = getLeaveOverrideImpact("APPROVED", "CANCELLED", 2);
+      expect(resCancel.balanceDelta).toBe(2);
+      expect(resCancel.requiresAttendanceClear).toBe(true);
+    });
+
+    it("returns negative delta (deduction) when overriding from REJECTED or CANCELLED to APPROVED", () => {
+      const resApproveFromReject = getLeaveOverrideImpact("REJECTED", "APPROVED", 4);
+      expect(resApproveFromReject.balanceDelta).toBe(-4);
+      expect(resApproveFromReject.requiresAttendanceMark).toBe(true);
+      expect(resApproveFromReject.requiresAttendanceClear).toBe(false);
+
+      const resApproveFromPending = getLeaveOverrideImpact("PENDING", "APPROVED", 5);
+      expect(resApproveFromPending.balanceDelta).toBe(-5);
+      expect(resApproveFromPending.requiresAttendanceMark).toBe(true);
+    });
+
+    it("returns zero delta for neutral status changes", () => {
+      const res = getLeaveOverrideImpact("REJECTED", "CANCELLED", 3);
+      expect(res.balanceDelta).toBe(0);
+      expect(res.requiresAttendanceClear).toBe(false);
+      expect(res.requiresAttendanceMark).toBe(false);
     });
   });
 });

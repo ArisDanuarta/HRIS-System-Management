@@ -46,9 +46,21 @@ export const updateLeaveTypeSchema = z.object({
   isActive: z.boolean(),
 });
 
+export const overrideLeaveDecisionSchema = z.object({
+  leaveRequestId: z.string().uuid({ message: "ID Permohonan cuti tidak valid" }),
+  targetStatus: z.enum(["APPROVED", "REJECTED", "CANCELLED"], {
+    message: "Status tujuan harus APPROVED, REJECTED, atau CANCELLED",
+  }),
+  overrideReason: z
+    .string()
+    .min(5, { message: "Alasan koreksi/override status wajib diisi minimal 5 karakter" })
+    .max(500),
+});
+
 export type CreateLeaveRequestInput = z.infer<typeof createLeaveRequestSchema>;
 export type ApproveLeaveRequestInput = z.infer<typeof approveLeaveRequestSchema>;
 export type RejectLeaveRequestInput = z.infer<typeof rejectLeaveRequestSchema>;
 export type CancelLeaveRequestInput = z.infer<typeof cancelLeaveRequestSchema>;
+export type OverrideLeaveDecisionInput = z.infer<typeof overrideLeaveDecisionSchema>;
 export type CreateHolidayInput = z.infer<typeof createHolidaySchema>;
 export type UpdateLeaveTypeInput = z.infer<typeof updateLeaveTypeSchema>;
