@@ -265,14 +265,14 @@ export function ProfileView({ profile }: ProfileViewProps) {
         </div>
 
         {/* Navigation Tabs Bar */}
-        <div className="px-6 md:px-8 border-t border-[#dee9fc] bg-[#f8fafd] flex items-center gap-2 overflow-x-auto">
+        <div className="px-6 md:px-8 border-t border-[#dee9fc] bg-[#f8fafd] flex items-center gap-2 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Tab 1: Identitas */}
           <button
             type="button"
             onClick={() => handleTabChange("identitas")}
             className={`flex items-center gap-2.5 px-4 py-3.5 text-xs md:text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
               activeTab === "identitas"
-                ? "border-[#102e50] text-[#102e50] bg-white -mb-px"
+                ? "border-[#102e50] text-[#102e50] bg-white"
                 : "border-transparent text-[#74777f] hover:text-[#102e50] hover:bg-white/50"
             }`}
           >
@@ -286,7 +286,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
             onClick={() => handleTabChange("keamanan")}
             className={`flex items-center gap-2.5 px-4 py-3.5 text-xs md:text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
               activeTab === "keamanan"
-                ? "border-[#102e50] text-[#102e50] bg-white -mb-px"
+                ? "border-[#102e50] text-[#102e50] bg-white"
                 : "border-transparent text-[#74777f] hover:text-[#102e50] hover:bg-white/50"
             }`}
           >
@@ -300,7 +300,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
             onClick={() => handleTabChange("sesi")}
             className={`flex items-center gap-2.5 px-4 py-3.5 text-xs md:text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
               activeTab === "sesi"
-                ? "border-[#102e50] text-[#102e50] bg-white -mb-px"
+                ? "border-[#102e50] text-[#102e50] bg-white"
                 : "border-transparent text-[#74777f] hover:text-[#102e50] hover:bg-white/50"
             }`}
           >
