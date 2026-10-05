@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Filter, Edit3, Users, Building, Calendar } from "lucide-react";
+import { Search, Filter, Edit3, Users, Building, Calendar, FileSpreadsheet } from "lucide-react";
 import { AttendanceCorrectionModal } from "./attendance-correction-modal";
+import { exportAttendanceRekapXlsx } from "@/lib/attendance-export";
+import { logAttendanceExportAction } from "@/server/actions/attendance.actions";
 
 interface EmployeeRekapItem {
   id: string;
@@ -109,6 +111,33 @@ export function AttendanceRekapView({
     { value: "12", label: "Desember" },
   ];
 
+  const handleExportXlsx = () => {
+    const monthObj = months.find((m) => m.value === month);
+    const monthLabel = monthObj?.label || `Bulan-${month}`;
+    const selectedDeptName = isTeamView
+      ? departmentName || "Divisi Tim"
+      : dept === "ALL"
+      ? "Semua Divisi"
+      : departments.find((d) => d.id === dept)?.name || "Divisi";
+
+    exportAttendanceRekapXlsx({
+      employees,
+      statsMap,
+      year: Number(year),
+      month: Number(month),
+      monthLabel,
+      departmentName: selectedDeptName,
+    });
+
+    // Catat audit trail secara asynchronous
+    logAttendanceExportAction({
+      year: Number(year),
+      month: Number(month),
+      departmentId: dept !== "ALL" ? dept : undefined,
+      totalEmployees: employees.length,
+    }).catch(console.error);
+  };
+
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* Filter Toolbar */}
@@ -188,16 +217,30 @@ export function AttendanceRekapView({
 
       {/* Rekap Table */}
       <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs overflow-hidden">
-        <div className="p-4 border-b border-[#dee9fc] flex items-center justify-between bg-[#eff4ff]/40">
+        <div className="p-4 border-b border-[#dee9fc] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#eff4ff]/40">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#102e50]" />
             <span className="font-bold text-xs text-[#102e50]">
               Rekapitulasi Kehadiran: {employees.length} {isTeamView ? "Anggota Tim" : "Pegawai"} Terdata
             </span>
           </div>
-          <span className="text-[11px] text-[#5b6675]">
-            Periode: {months.find((m) => m.value === month)?.label} {year}
-          </span>
+
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] text-[#5b6675]">
+              Periode: {months.find((m) => m.value === month)?.label} {year}
+            </span>
+
+            <button
+              type="button"
+              onClick={handleExportXlsx}
+              disabled={employees.length === 0}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-700 text-white hover:bg-emerald-800 transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-[0.98]"
+              title="Unduh rekap presensi dalam format spreadsheet Excel resmi (.xlsx)"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-200" />
+              <span>Ekspor Rekap (.xlsx)</span>
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

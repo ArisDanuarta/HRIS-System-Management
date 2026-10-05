@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
-import { getLeaveTypes, getHolidays } from "@/server/queries/leave.queries";
+import { getLeaveTypes, getHolidays, getAllEmployeeLeaveBalances } from "@/server/queries/leave.queries";
 import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { LeaveSettingsView } from "@/components/cuti/leave-settings-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
@@ -25,12 +25,13 @@ export default async function PengaturanCutiPage() {
     redirect("/cuti");
   }
 
-  // Fetch real leave types, holiday list for 2026, and active work schedule
-  const [leaveTypes, holidays, pendingApprovalsCount, workSchedule] = await Promise.all([
+  // Fetch real leave types, holiday list for 2026, active work schedule, and employee balances
+  const [leaveTypes, holidays, pendingApprovalsCount, workSchedule, leaveBalanceData] = await Promise.all([
     getLeaveTypes(),
     getHolidays(2026),
     prisma.leaveRequest.count({ where: { status: "PENDING" } }),
     getActiveWorkSchedule(),
+    getAllEmployeeLeaveBalances(2026),
   ]);
 
   return (
@@ -58,6 +59,8 @@ export default async function PengaturanCutiPage() {
         leaveTypes={leaveTypes}
         holidays={holidays}
         workSchedule={workSchedule}
+        employeeBalances={leaveBalanceData.balances}
+        defaultLeaveType={leaveBalanceData.defaultLeaveType}
       />
     </div>
   );

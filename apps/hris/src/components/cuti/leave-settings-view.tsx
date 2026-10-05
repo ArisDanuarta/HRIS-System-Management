@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Plus, Edit2, CheckCircle2, AlertCircle, Clock } from "lucide-react";
+import { Plus, Edit2, CheckCircle2, AlertCircle, Clock, Users } from "lucide-react";
 import { createHolidayAction, updateLeaveTypeAction } from "@/server/actions/leave.actions";
 import { ActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { WorkScheduleSettingsView } from "./work-schedule-settings-view";
+import { EmployeeLeaveBalancesView } from "./employee-leave-balances-view";
+import { EmployeeLeaveBalanceOverview } from "@/server/queries/leave.queries";
 
 interface LeaveTypeItem {
   id: string;
@@ -26,10 +28,18 @@ interface LeaveSettingsViewProps {
   leaveTypes: LeaveTypeItem[];
   holidays: HolidayItem[];
   workSchedule?: ActiveWorkSchedule;
+  employeeBalances?: EmployeeLeaveBalanceOverview[];
+  defaultLeaveType?: { id: string; name: string } | null;
 }
 
-export function LeaveSettingsView({ leaveTypes, holidays, workSchedule }: LeaveSettingsViewProps) {
-  const [activeTab, setActiveTab] = useState<"schedule" | "types" | "holidays">("schedule");
+export function LeaveSettingsView({
+  leaveTypes,
+  holidays,
+  workSchedule,
+  employeeBalances = [],
+  defaultLeaveType,
+}: LeaveSettingsViewProps) {
+  const [activeTab, setActiveTab] = useState<"schedule" | "types" | "holidays" | "balances">("schedule");
 
   // Holiday Modal state
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
@@ -159,6 +169,18 @@ export function LeaveSettingsView({ leaveTypes, holidays, workSchedule }: LeaveS
             }`}
           >
             Kalender Hari Libur & Cuti Bersama ({holidays.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("balances")}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "balances"
+                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            <Users className="w-3.5 h-3.5" />
+            <span>Saldo Cuti Pegawai ({employeeBalances.length})</span>
           </button>
         </div>
 
@@ -293,6 +315,14 @@ export function LeaveSettingsView({ leaveTypes, holidays, workSchedule }: LeaveS
             </table>
           </div>
         </div>
+      )}
+
+      {/* TAB 3: SALDO CUTI PEGAWAI */}
+      {activeTab === "balances" && (
+        <EmployeeLeaveBalancesView
+          initialBalances={employeeBalances}
+          defaultLeaveType={defaultLeaveType}
+        />
       )}
 
       {/* Modal: Tambah Hari Libur */}

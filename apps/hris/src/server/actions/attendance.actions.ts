@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
-import { assertCan, AuthContext } from "@pspk/rbac";
+import { assertCan, can, AuthContext } from "@pspk/rbac";
 import { prisma } from "@pspk/db";
 import {
   checkInSchema,
@@ -21,6 +21,7 @@ import {
 
 async function getAuthenticatedUser(): Promise<{
   userId: string;
+  userEmail: string;
   employeeId: string;
   authCtx: AuthContext;
 }> {
@@ -57,6 +58,7 @@ async function getAuthenticatedUser(): Promise<{
 
   return {
     userId: session.user.id,
+    userEmail: session.user.email || "system@pspk.id",
     employeeId: employee.id,
     authCtx,
   };
@@ -143,5 +145,45 @@ export async function correctAttendanceAction(input: CorrectAttendanceInput) {
       success: false,
       message: err instanceof Error ? err.message : "Gagal menyimpan koreksi presensi.",
     };
+  }
+}
+
+/**
+ * Server Action: Log Attendance Rekap Export Audit
+ */
+export async function logAttendanceExportAction(params: {
+  year: number;
+  month: number;
+  departmentId?: string;
+  totalEmployees: number;
+}) {
+  try {
+    const { userId, userEmail, authCtx } = await getAuthenticatedUser();
+    const canViewAll = can(authCtx, "hris.attendance.read:all");
+    const canViewTeam = can(authCtx, "hris.attendance.read:team");
+
+    if (!canViewAll && !canViewTeam) {
+      throw new Error("Anda tidak memiliki izin untuk mengekspor data presensi.");
+    }
+
+    const { writeAudit } = await import("@pspk/db");
+    await writeAudit({
+      actorUserId: userId,
+      actorEmail: userEmail,
+      app: "hris",
+      action: "EXPORT",
+      entityType: "Attendance",
+      after: {
+        year: params.year,
+        month: params.month,
+        departmentId: params.departmentId || "ALL",
+        totalExported: params.totalEmployees,
+      },
+    });
+
+    return { success: true };
+  } catch (err) {
+    console.error("Gagal mencatat audit log ekspor presensi:", err);
+    return { success: false };
   }
 }

@@ -34,6 +34,7 @@ import {
 
 async function getAuthenticatedUser(): Promise<{
   userId: string;
+  userEmail: string;
   employeeId: string;
   authCtx: AuthContext;
 }> {
@@ -70,6 +71,7 @@ async function getAuthenticatedUser(): Promise<{
 
   return {
     userId: session.user.id,
+    userEmail: session.user.email || "system@pspk.id",
     employeeId: employee.id,
     authCtx,
   };
@@ -453,6 +455,120 @@ export async function uploadLeaveAttachmentAction(formData: FormData) {
     return {
       success: false,
       message: err instanceof Error ? err.message : "Gagal mengunggah berkas lampiran.",
+    };
+  }
+}
+
+/**
+ * Server Action: Adjust Employee Leave Balance (Admin HR / Super Admin)
+ */
+export async function adjustEmployeeLeaveBalanceAction(input: {
+  employeeId: string;
+  leaveTypeId: string;
+  year: number;
+  mode: "ADD" | "DEDUCT" | "SET";
+  amount: number;
+  reason: string;
+}) {
+  try {
+    const { userId, userEmail, authCtx } = await getAuthenticatedUser();
+    assertCan(authCtx, "hris.leave.configure:all");
+
+    if (!input.amount || input.amount <= 0) {
+      return { success: false, message: "Nominal hari harus berupa angka positif lebih dari 0." };
+    }
+
+    if (!input.reason || input.reason.trim().length < 5) {
+      return { success: false, message: "Alasan penyesuaian wajib diisi (minimal 5 karakter)." };
+    }
+
+    // Cari atau buat saldo cuti pegawai
+    const existing = await prisma.leaveBalance.findUnique({
+      where: {
+        employeeId_leaveTypeId_year: {
+          employeeId: input.employeeId,
+          leaveTypeId: input.leaveTypeId,
+          year: input.year,
+        },
+      },
+    });
+
+    const leaveType = await prisma.leaveType.findUnique({
+      where: { id: input.leaveTypeId },
+      select: { name: true, defaultQuotaDays: true },
+    });
+
+    const currentQuota = existing ? existing.quotaDays : (leaveType?.defaultQuotaDays || 12);
+    const currentUsed = existing ? Number(existing.usedDays) : 0;
+
+    let newQuota = currentQuota;
+    if (input.mode === "ADD") {
+      newQuota = currentQuota + Math.round(input.amount);
+    } else if (input.mode === "DEDUCT") {
+      // Kuota tidak boleh lebih rendah dari hari yang sudah terpakai
+      newQuota = Math.max(Math.ceil(currentUsed), currentQuota - Math.round(input.amount));
+    } else if (input.mode === "SET") {
+      newQuota = Math.max(Math.ceil(currentUsed), Math.round(input.amount));
+    }
+
+    const updated = await prisma.leaveBalance.upsert({
+      where: {
+        employeeId_leaveTypeId_year: {
+          employeeId: input.employeeId,
+          leaveTypeId: input.leaveTypeId,
+          year: input.year,
+        },
+      },
+      create: {
+        employeeId: input.employeeId,
+        leaveTypeId: input.leaveTypeId,
+        year: input.year,
+        quotaDays: newQuota,
+        usedDays: 0,
+      },
+      update: {
+        quotaDays: newQuota,
+      },
+      include: {
+        employee: { select: { fullName: true, employeeNo: true } },
+        leaveType: { select: { name: true } },
+      },
+    });
+
+    const { writeAudit } = await import("@pspk/db");
+    await writeAudit({
+      actorUserId: userId,
+      actorEmail: userEmail,
+      app: "hris",
+      action: "UPDATE",
+      entityType: "LeaveBalance",
+      entityId: updated.id,
+      before: {
+        quotaDays: currentQuota,
+        usedDays: currentUsed,
+      },
+      after: {
+        quotaDays: newQuota,
+        mode: input.mode,
+        amount: input.amount,
+        reason: input.reason.trim(),
+        employeeName: updated.employee.fullName,
+      },
+    });
+
+    revalidatePath("/cuti");
+    revalidatePath("/cuti/pengaturan");
+
+    return {
+      success: true,
+      message: `Berhasil menyesuaikan kuota cuti ${updated.employee.fullName} menjadi ${newQuota} hari.`,
+      data: updated,
+    };
+  } catch (err) {
+    console.error("adjustEmployeeLeaveBalanceAction error:", err);
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : "Gagal menyesuaikan saldo cuti.",
     };
   }
 }

@@ -246,3 +246,87 @@ export async function getHolidays(year: number = 2026) {
     orderBy: { date: "asc" },
   });
 }
+
+export interface EmployeeLeaveBalanceOverview {
+  employeeId: string;
+  employeeNo: string;
+  fullName: string;
+  departmentName: string;
+  positionTitle: string;
+  balanceId: string | null;
+  leaveTypeId: string;
+  leaveTypeName: string;
+  year: number;
+  quotaDays: number;
+  usedDays: number;
+  remainingDays: number;
+}
+
+/**
+ * Retrieves leave balances for all active employees for a given year.
+ */
+export async function getAllEmployeeLeaveBalances(year: number = 2026): Promise<{
+  balances: EmployeeLeaveBalanceOverview[];
+  defaultLeaveType: { id: string; name: string } | null;
+}> {
+  const annualLeaveType = (await prisma.leaveType.findFirst({
+    where: {
+      OR: [
+        { name: { contains: "Tahunan", mode: "insensitive" } },
+        { name: { contains: "Annual", mode: "insensitive" } },
+      ],
+      isActive: true,
+    },
+  })) || (await prisma.leaveType.findFirst({ where: { isActive: true } }));
+
+  const defaultLeaveTypeId = annualLeaveType?.id || "";
+  const defaultLeaveTypeName = annualLeaveType?.name || "Cuti Tahunan";
+  const defaultQuota = annualLeaveType?.defaultQuotaDays || 12;
+
+  const employees = await prisma.employee.findMany({
+    where: {
+      status: "ACTIVE",
+      deletedAt: null,
+    },
+    include: {
+      currentDepartment: { select: { name: true } },
+      currentPosition: { select: { title: true } },
+      leaveBalances: {
+        where: {
+          year,
+          leaveTypeId: defaultLeaveTypeId,
+        },
+      },
+    },
+    orderBy: { fullName: "asc" },
+  });
+
+  const balances: EmployeeLeaveBalanceOverview[] = employees.map((emp) => {
+    const b = emp.leaveBalances[0];
+    const quotaDays = b ? b.quotaDays : defaultQuota;
+    const usedDays = b ? Number(b.usedDays) : 0;
+    const remainingDays = Math.max(0, quotaDays - usedDays);
+
+    return {
+      employeeId: emp.id,
+      employeeNo: emp.employeeNo,
+      fullName: emp.fullName,
+      departmentName: emp.currentDepartment?.name || "Divisi Riset",
+      positionTitle: emp.currentPosition?.title || "Staf Riset",
+      balanceId: b?.id || null,
+      leaveTypeId: defaultLeaveTypeId,
+      leaveTypeName: defaultLeaveTypeName,
+      year,
+      quotaDays,
+      usedDays,
+      remainingDays,
+    };
+  });
+
+  return {
+    balances,
+    defaultLeaveType: annualLeaveType
+      ? { id: annualLeaveType.id, name: annualLeaveType.name }
+      : null,
+  };
+}
