@@ -15,6 +15,7 @@ import {
   Mail,
   UserCheck,
   KeyRound,
+  FolderArchive,
 } from "lucide-react";
 import {
   getEmployeeById,
@@ -26,6 +27,7 @@ import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-bad
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
 import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
 import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-role-card";
+import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
 
 export const dynamic = "force-dynamic";
 
@@ -221,6 +223,18 @@ export default async function EmployeeDetailPage({
         >
           <Briefcase className="w-4 h-4" />
           <span>Jabatan & Tim</span>
+        </Link>
+
+        <Link
+          href={`/karyawan/${employee.id}?tab=dokumen`}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            effectiveTab === "dokumen"
+              ? "border-[#102E50] text-[#102E50] bg-white"
+              : "border-transparent text-slate-500 hover:text-slate-800"
+          }`}
+        >
+          <FolderArchive className="w-4 h-4 text-[#102E50]" />
+          <span>Dokumen & Berkas ({employee.documents?.length || 0})</span>
         </Link>
 
         {isHrOrAdmin && (
@@ -604,6 +618,18 @@ export default async function EmployeeDetailPage({
           isAdminHr={isAdminHr}
         />
       )}
+
+      {/* TAB 6: DOKUMEN & BERKAS DIGITAL */}
+      {effectiveTab === "dokumen" && (
+        <EmployeeDocumentsCard
+          employeeId={employee.id}
+          employeeName={employee.fullName}
+          documents={employee.documents || []}
+          canUpload={isHrOrAdmin || currentActorEmployee?.id === employee.id}
+          canDelete={isHrOrAdmin}
+        />
+      )}
     </div>
   );
 }
+

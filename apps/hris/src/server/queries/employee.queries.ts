@@ -281,6 +281,9 @@ export async function getEmployeeById(id: string) {
           },
         },
       },
+      documents: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 

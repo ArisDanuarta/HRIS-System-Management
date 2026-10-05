@@ -246,6 +246,7 @@ model Employee {
   assetAssignments    AssetAssignment[]
   timesheetsSubmitted TimesheetSubmission[]
   timesheetsAssigned  TimesheetReviewer[]
+  documents           EmployeeDocument[]
 
   @@index([status])
   @@index([managerId])
@@ -273,6 +274,26 @@ model EmploymentHistory {
   @@index([positionId])
   @@index([departmentId])
   @@map("employment_histories")
+  @@schema("hris")
+}
+
+model EmployeeDocument {
+  id           String   @id @default(uuid())
+  employeeId   String   @map("employee_id")
+  category     String   // KTP, NPWP, DIPLOMA, CV, CONTRACT, CERTIFICATE, OTHER
+  title        String
+  fileName     String   @map("file_name")
+  fileKey      String   @map("file_key")
+  fileSize     Int      @map("file_size")
+  mimeType     String   @map("mime_type")
+  uploadedById String   @map("uploaded_by_id")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@index([category])
+  @@map("employee_documents")
   @@schema("hris")
 }
 

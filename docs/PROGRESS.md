@@ -4,6 +4,36 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 3: Vault Dokumen & Berkas Digital Pegawai (Opsi A Core HRIS) — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:** 
+  1. Sub-tahap 3A: Skema Database & Migrasi Prisma untuk Berkas Digital Pegawai (`EmployeeDocument` di skema `hris`).
+  2. Sub-tahap 3B: Server Actions Upload & Hapus Dokumen (`uploadEmployeeDocumentAction`, `deleteEmployeeDocumentAction`) dengan validasi MIME/ukuran file, penyimpanan aman ke `@pspk/storage`, otorisasi akses berjenjang (Admin HR / Super Admin dan pegawai pemilik profil), dan pencatatan audit log `UPLOAD_DOCUMENT` & `DELETE_DOCUMENT`.
+  3. Sub-tahap 3C: Komponen Vault Berkas Digital Interaktif ([`EmployeeDocumentsCard`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/employee-documents-card.tsx)) di halaman detail pegawai ([`apps/hris/src/app/(app)/karyawan/[id]`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/page.tsx)) yang dilengkapi filter kategori, modal unggah drag & drop, penampil/pratinjau inline dokumen (PDF iframe & gambar), tombol unduh langsung melalui streaming terotentikasi, dan modal konfirmasi hapus berkas.
+- **Perubahan Utama:**
+  - Skema & Relasi Database: Menambahkan model `EmployeeDocument` pada [`packages/db/prisma/schema/hris.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/hris.prisma) dengan atribut `id`, `employeeId`, `category` (KTP/KK, Ijazah & CV, Kontrak Fisik, Sertifikat, Lainnya), `title`, `fileName`, `fileKey`, `fileSize`, `mimeType`, `uploadedById`, dan `createdAt`. Migration `20261005071240_add_employee_documents` berhasil dieksekusi ke PostgreSQL.
+  - Query Data Pegawai: Memperbarui [`getEmployeeById`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/employee.queries.ts) untuk menyertakan relasi `documents` terurut tanggal unggah terbaru (`orderBy: { createdAt: "desc" }`).
+  - Aksi Server & Validasi: Mengembangkan [`apps/hris/src/server/actions/document.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/document.actions.ts) yang mengamankan proses unggah dan hapus file:
+    - Verifikasi otentikasi sesi dan otorisasi: Admin HR & Super Admin dapat mengunggah dan menghapus dokumen pegawai siapa pun; pegawai dapat mengunggah berkas miliknya sendiri.
+    - Pembatasan ukuran maksimum berkas sebesar 25MB serta validasi ketat tipe MIME berkas (`application/pdf`, `image/png`, `image/jpeg`, `image/webp`).
+    - Penyimpanan file fisik secara terisolasi ke volume lokal melalui abstraksi `StorageProvider` (`@pspk/storage`).
+    - Pencatatan jejak audit mendalam ke tabel `audit_logs` (`UPLOAD_DOCUMENT` dan `DELETE_DOCUMENT`).
+  - Komponen Vault Dokumen Interaktif: Membuat [`apps/hris/src/components/karyawan/employee-documents-card.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/employee-documents-card.tsx) dengan fitur:
+    - Tab penyaring berkas per kategori (Semua, Identitas, Ijazah & CV, Kontrak Fisik, Sertifikat, Dokumen Lainnya).
+    - Modal upload drag-and-drop dengan progress state, preview ukuran & nama file sebelum disimpan.
+    - Modal pratinjau berkas terintegrasi: rendering gambar dan iframe PDF tanpa perlu membuka tab luar secara manual.
+    - Tombol unduh file instan via streaming terproteksi `/api/documents/${fileKey}?download=true`.
+    - Dialog konfirmasi hapus berkas permanen khusus untuk Admin HR dan Super Admin.
+  - Integrasi Halaman Detail Pegawai: Memperkaya [`apps/hris/src/app/(app)/karyawan/[id]/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/page.tsx) dengan tab ke-6 "Dokumen & Berkas" lengkap dengan counter berkas aktif.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error (0 error)
+  - `pnpm lint`: ✅ 0 error
+  - `pnpm test`: ✅ 54/54 test lolos (100%)
+  - Endpoint dev server `/api/health`: ✅ status 200 OK (`{"status":"ok"}`)
+
+---
+
 ## Tahap 2: Koreksi & Override Keputusan Cuti oleh Admin HR (Opsi A Core HRIS) — 2026-10-05
 
 - **Status:** Selesai
