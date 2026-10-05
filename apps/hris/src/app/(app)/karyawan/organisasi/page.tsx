@@ -12,7 +12,14 @@ export const metadata = {
   description: "Kelola divisi, formasi jabatan, dan master tipe ikatan kerja",
 };
 
-export default async function OrganisasiPage() {
+interface OrganisasiPageProps {
+  searchParams?: Promise<{ tab?: string }>;
+}
+
+export default async function OrganisasiPage({ searchParams }: OrganisasiPageProps) {
+  const params = await searchParams;
+  const initialTab = params?.tab === "employmentTypes" ? "employmentTypes" : "structure";
+
   const [{ departments, stats }, employmentTypes] = await Promise.all([
     getOrgStructureDetail(),
     getEmploymentTypes(),
@@ -21,13 +28,22 @@ export default async function OrganisasiPage() {
   return (
     <div className="flex flex-col gap-6 max-w-[1400px] mx-auto pb-16">
       {/* Navigation Breadcrumb */}
-      <Link
-        href="/karyawan"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors w-fit"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        <span>Kembali ke Direktori Pegawai</span>
-      </Link>
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <Link
+          href="/karyawan"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors w-fit"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Kembali ke Direktori Pegawai</span>
+        </Link>
+
+        <Link
+          href="/karyawan/ikatan-kerja"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#102E50] bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-2xs hover:bg-slate-50 transition-colors"
+        >
+          <span>Buka Master Ikatan Kerja Khusus ↗</span>
+        </Link>
+      </div>
 
       {/* Header & Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
@@ -51,6 +67,7 @@ export default async function OrganisasiPage() {
         departments={departments}
         stats={stats}
         employmentTypes={employmentTypes}
+        initialTab={initialTab}
       />
     </div>
   );

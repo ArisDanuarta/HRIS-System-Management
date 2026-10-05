@@ -20,6 +20,7 @@ import {
   PanelLeftOpen,
   Building2,
   Clock,
+  Briefcase,
 } from "lucide-react";
 
 export type RoleViewType = "admin_hr" | "manager" | "staff";

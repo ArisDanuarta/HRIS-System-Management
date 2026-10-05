@@ -26,14 +26,16 @@ interface OrganizationPageViewProps {
     };
   };
   employmentTypes: EmploymentTypeDetail[];
+  initialTab?: "structure" | "employmentTypes";
 }
 
 export function OrganizationPageView({
   departments,
   stats,
   employmentTypes,
+  initialTab = "structure",
 }: OrganizationPageViewProps) {
-  const [activeTab, setActiveTab] = useState<"structure" | "employmentTypes">("structure");
+  const [activeTab, setActiveTab] = useState<"structure" | "employmentTypes">(initialTab);
 
   const hourlyTypesCount = employmentTypes.filter((t) => t.wageType === "HOURLY").length;
   const monthlyTypesCount = employmentTypes.filter((t) => t.wageType === "MONTHLY").length;
