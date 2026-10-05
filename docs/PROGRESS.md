@@ -1195,6 +1195,27 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Menghapus skrip sementara `scripts/wipe-data.ts`.
   - Repo kini berstatus *clean-slate*, rapi, dan siap untuk penginputan data produksi secara manual dari UI oleh administrator.
 
+## Modul Karyawan & Kontrak — Pengaturan Master Tipe Ikatan Kerja (CRUD)
+
+- **Latar Belakang**:
+  - Tim HR memerlukan fleksibilitas penuh untuk menyesuaikan skema ikatan kerja (Pegawai Tetap, PKWT Berjangka, Freelance Jam Kerja/Timesheet, Magang, atau skema baru lainnya) secara mandiri lewat antarmuka web tanpa bergantung pada pengembang teknis.
+- **Penyempurnaan & Fitur yang Diimplementasikan**:
+  1. **Halaman Master Khusus (`/karyawan/ikatan-kerja`)**:
+     - Menyediakan dasbor tersendiri ([`ikatan-kerja/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/ikatan-kerja/page.tsx)) yang dilengkapi kartu metrik (Total Ikatan Kerja, Skema Per Jam, Skema Bulanan Tetap) dan tabel interaktif CRUD lengkap.
+     - HR dapat mencari, menambah tipe baru (kode, nama, kategori, skema upah, tarif acuan per jam, deskripsi), mengubah data, mengaktifkan/menonaktifkan status (*toggle*), serta menghapus tipe ikatan kerja (dilengkapi proteksi otomatis: jika sudah memiliki kontrak aktif, sistem akan mengarsipkan/menonaktifkan tipe tersebut tanpa menghapus data historis pegawai).
+  2. **Aksesibilitas Menu & Navigasi**:
+     - **Sidebar HR Admin**: Ditambahkan menu **Tipe Ikatan Kerja** dengan ikon *Briefcase* di bawah kelompok *Manajemen Organisasi* ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)).
+     - **Direktori Pegawai (`/karyawan`)**: Ditambahkan tombol pintas **Tipe Ikatan Kerja** di bilah aksi atas berdampingan dengan Struktur Organisasi ([`karyawan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/page.tsx)).
+     - **Struktur Organisasi (`/karyawan/organisasi`)**: Mendukung *deep-link* `?tab=employmentTypes` untuk langsung membuka tab Master Ikatan Kerja ([`organisasi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/organisasi/page.tsx)).
+  3. **Integrasi Form Pendaftaran Pegawai (`/karyawan/baru` & `/karyawan/[id]/ubah`)**:
+     - Pada Langkah 3 (*Kontrak Kerja & Kompensasi*) di [`wizard-employee-form.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/wizard-employee-form.tsx):
+       - Ditambahkan tombol **"+ Tambah Tipe Baru"**: Membuka modal ringkas *in-place*. Setelah disimpan, tipe baru langsung muncul pada daftar pilihan kartu dan tercentang otomatis tanpa mereset atau kehilangan input form yang telah diisi sebelumnya.
+       - Ditambahkan tautan cepat **"Pengaturan Ikatan Kerja ↗"** ke tab baru agar HR dapat mengelola seluruh daftar master kapan saja.
+  4. **Penyempurnaan Backend & Relasi Data**:
+     - Memperbaiki sinkronisasi data kontrak aktif pegawai pada fungsi `updateEmployee` di [`employee.service.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/employee.service.ts) agar perubahan tipe ikatan kerja, tarif, dan gaji pada mode ubah pegawai langsung tersimpan ke tabel `employment_contracts`.
+     - Menyertakan relasi `employmentTypeMaster` pada query `getEmployeesDirectory` dan `getEmployeeById` di [`employee.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/employee.queries.ts).
+     - Menjamin serialisasi tanggal ISO aman lintas batasan *Server Action* di [`employment-type.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/employment-type.actions.ts).
+
 ---
 
 ## Cara Menjalankan Lingkungan Lokal

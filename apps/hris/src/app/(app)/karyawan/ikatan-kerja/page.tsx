@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, Briefcase, Building2, CheckCircle2, Clock, Plus } from "lucide-react";
+import { ArrowLeft, Briefcase, Building2, CheckCircle2, Clock } from "lucide-react";
 import { getEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { EmploymentTypeManagement } from "@/components/karyawan/employment-type-management";
 

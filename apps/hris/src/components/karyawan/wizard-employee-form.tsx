@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -25,7 +25,6 @@ import {
   Plus,
   ExternalLink,
   Settings,
-  Clock,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -176,12 +175,6 @@ export function WizardEmployeeForm({
   const [quickCreatePending, setQuickCreatePending] = useState(false);
   const [quickCreateError, setQuickCreateError] = useState<string | null>(null);
   const [quickCreateSuccess, setQuickCreateSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (employmentTypes && employmentTypes.length > 0) {
-      setEmploymentTypesList(employmentTypes);
-    }
-  }, [employmentTypes]);
 
   // Form State
   const [formData, setFormData] = useState({

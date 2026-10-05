@@ -148,7 +148,7 @@ export async function deleteEmploymentType(id: string, actor: ActorInfo) {
 
   // Jika ada kontrak yang terhubung, jangan hapus hard delete melainkan nonaktifkan
   if (existing._count.contracts > 0) {
-    const deactivated = await prisma.employmentTypeMaster.update({
+    await prisma.employmentTypeMaster.update({
       where: { id },
       data: { isActive: false },
     });

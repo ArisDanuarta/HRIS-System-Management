@@ -12,8 +12,6 @@ import {
   AlertCircle,
   Loader2,
   Clock,
-  HelpCircle,
-  ShieldCheck,
 } from "lucide-react";
 import { formatRupiah } from "@pspk/shared";
 import {
