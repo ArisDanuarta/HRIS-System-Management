@@ -4,6 +4,25 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Task: Pengelolaan Penuh CRUD Tipe Ikatan Kerja (Master Employment Types) — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:** Menyediakan modul master data dan antarmuka manajemen CRUD lengkap untuk Tipe Ikatan Kerja pegawai (Pegawai Tetap, PKWT Berjangka, Freelance Upah Per Jam, Magang, dll.) sehingga Admin HR dapat membuat, memperbarui, mengaktifkan/menonaktifkan, serta menghapus/mengarsipkan ikatan kerja secara fleksibel tanpa hardcoding. Terintegrasi penuh ke formulir pendaftaran/edit pegawai, tabel direktori, dan profil pegawai.
+- **Perubahan Utama:**
+  - Halaman Master Khusus: `/karyawan/ikatan-kerja` (`apps/hris/src/app/(app)/karyawan/ikatan-kerja/page.tsx`) dengan guard otorisasi server-side (`super_admin` & `admin_hr`), kartu ringkasan metrik (Total Ikatan Kerja, Skema Per Jam, Skema Bulanan), dan breadcrumb navigasi.
+  - Komponen Manajemen CRUD: `apps/hris/src/components/karyawan/employment-type-management.tsx` dengan fitur pencarian instan, modal tambah & edit tipe dengan validasi kode/nama unik, kategori sistem (`PERMANENT`, `FIXED_TERM`, `PART_TIME_PROJECT`), skema upah (`MONTHLY`, `HOURLY`), tarif acuan per jam, deskripsi, toggle status aktif/nonaktif, dan proteksi hapus (soft-deactivate bila sudah terhubung ke kontrak pegawai).
+  - Integrasi Formulir Pegawai (Wizard): `apps/hris/src/components/karyawan/wizard-employee-form.tsx` dilengkapi tombol `+ Tambah Tipe Baru` (modal quick-add in-place dengan auto-select), tautan ke pengaturan master, validasi langkah 3, dan penanganan sinkronisasi upah per jam vs gaji bulanan.
+  - Sinkronisasi Kontrak Pegawai: `employee.service.ts` disempurnakan untuk memperbarui/upsert `EmploymentContract` (termasuk `employmentTypeId`, `wageType`, `hourlyRate`) saat pegawai diedit.
+  - Penyempurnaan Tampilan Direktori & Profil: `apps/hris/src/components/karyawan/status-badge.tsx`, `employee-table.tsx`, dan `apps/hris/src/app/(app)/karyawan/[id]/page.tsx` diselaraskan agar menampilkan nama tipe ikatan kerja spesifik (`employmentTypeMaster.name`) dan mendukung tarif per jam di tabel riwayat kontrak.
+  - Navigasi & Shell: Menu navigasi "Tipe Ikatan Kerja" di `app-sidebar.tsx` dan `app-topbar.tsx`, serta tab switcher di `/karyawan/organisasi`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error
+  - `pnpm lint`: ✅ 0 error
+  - `pnpm test`: ✅ 47/47 test lolos (100%)
+  - `pnpm build`: ✅ Kompilasi Next.js production sukses (0 error)
+
+---
+
 ## Task: Standarisasi Sidebar Navigasi 2-Tier (Opsi 1) — 2026-10-02
 
 - **Status:** Selesai
