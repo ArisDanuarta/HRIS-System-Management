@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, AuthContext } from "@pspk/rbac";
-import { extractClientIp } from "@pspk/shared";
+import { extractClientIp, encryptField } from "@pspk/shared";
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
@@ -274,6 +274,7 @@ export type ImportEmployeeRow = {
   gender?: "MALE" | "FEMALE";
   maritalStatus?: "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED";
   bankName?: string;
+  bankAccount?: string;
   bankAccountName?: string;
 };
 
@@ -377,6 +378,12 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
           }
         }
 
+        // Enkripsi nomor rekening jika disediakan
+        const bankAccountEnc =
+          r.bankAccount && r.bankAccount.trim() !== ""
+            ? encryptField(r.bankAccount.trim())
+            : null;
+
         // Create employee
         await tx.employee.create({
           data: {
@@ -393,6 +400,7 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
             currentDepartmentId: deptId,
             currentPositionId: posId,
             bankName: r.bankName?.trim() || null,
+            bankAccountEnc,
             bankAccountName: r.bankAccountName?.trim() || null,
             contracts: {
               create: {

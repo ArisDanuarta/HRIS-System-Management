@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as XLSX from "xlsx";
@@ -61,6 +61,30 @@ export function ExcelImporter({
   // Active Guidance Tab
   const [activeGuideTab, setActiveGuideTab] = useState<"steps" | "dictionary" | "master">("steps");
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
+  const templateMenuRef = useRef<HTMLDivElement>(null);
+
+  // Tutup dropdown menu saat klik di luar atau menekan tombol Escape
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (templateMenuRef.current && !templateMenuRef.current.contains(event.target as Node)) {
+        setIsTemplateMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsTemplateMenuOpen(false);
+      }
+    };
+
+    if (isTemplateMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isTemplateMenuOpen]);
 
   // Result state
   const [importResult, setImportResult] = useState<{
@@ -147,6 +171,7 @@ export function ExcelImporter({
         const idxGender = getColIdx(["jenis kelamin", "gender"]);
         const idxMarital = getColIdx(["status pernikahan", "status nikah", "marital"]);
         const idxBankName = getColIdx(["nama bank", "bank"]);
+        const idxBankAccountNo = getColIdx(["nomor rekening", "no rekening", "rekening", "accountno", "bankaccount", "no rek"]);
         const idxBankAccountName = getColIdx(["nama pemilik rekening", "pemilik rekening"]);
 
         // Fallback urutan kolom jika header tidak terdeteksi spesifik (posisi 0 s.d 8)
@@ -170,6 +195,12 @@ export function ExcelImporter({
           const rawNickname = idxNickname !== -1 ? String(row[idxNickname] || "").trim() : "";
           const rawPersonalEmail = idxPersonalEmail !== -1 ? String(row[idxPersonalEmail] || "").trim() : "";
           const rawPhone = idxPhone !== -1 ? String(row[idxPhone] || "").trim() : "";
+          // Normalisasi nomor telepon jika terpotong angka 0 di depan oleh Excel
+          let cleanPhone = rawPhone;
+          if (cleanPhone && /^[8]\d{8,12}$/.test(cleanPhone)) {
+            cleanPhone = "0" + cleanPhone;
+          }
+
           const rawDept = idxDept !== -1 ? String(row[idxDept] || "").trim() : "Divisi Riset";
           const rawPos = idxPos !== -1 ? String(row[idxPos] || "").trim() : "Staf Teknis Riset";
           const rawContractType = idxContractType !== -1 ? String(row[idxContractType] || "").trim() : "";
@@ -180,6 +211,7 @@ export function ExcelImporter({
           const rawGender = idxGender !== -1 ? String(row[idxGender] || "").trim() : "";
           const rawMarital = idxMarital !== -1 ? String(row[idxMarital] || "").trim() : "";
           const rawBankName = idxBankName !== -1 ? String(row[idxBankName] || "").trim() : "";
+          const rawBankAccountNo = idxBankAccountNo !== -1 ? String(row[idxBankAccountNo] || "").trim() : "";
           const rawBankAccountName = idxBankAccountName !== -1 ? String(row[idxBankAccountName] || "").trim() : "";
 
           // Format Tanggal
@@ -243,7 +275,7 @@ export function ExcelImporter({
             employeeNo: rawNip,
             workEmail: rawWorkEmail,
             personalEmail: rawPersonalEmail || undefined,
-            phone: rawPhone || undefined,
+            phone: cleanPhone || undefined,
             departmentName: rawDept || "Divisi Operasional & Finansial",
             positionTitle: rawPos || "Staf Teknis Riset",
             employmentType,
@@ -253,9 +285,25 @@ export function ExcelImporter({
             hourlyRate: wageType === "HOURLY" ? salaryNum : undefined,
             joinDate,
             contractEndDate: contractEndDate || undefined,
-            gender: rawGender.toLowerCase().startsWith("p") ? "FEMALE" : "MALE",
-            maritalStatus: rawMarital.toLowerCase().includes("nikah") ? "MARRIED" : "SINGLE",
+            gender:
+              rawGender.toLowerCase().startsWith("p") ||
+              rawGender.toLowerCase().includes("wanita") ||
+              rawGender.toLowerCase().includes("female")
+                ? "FEMALE"
+                : "MALE",
+            maritalStatus:
+              rawMarital.toLowerCase().includes("nikah") ||
+              rawMarital.toLowerCase().includes("kawin") ||
+              rawMarital.toLowerCase().includes("married")
+                ? "MARRIED"
+                : rawMarital.toLowerCase().includes("cerai") ||
+                  rawMarital.toLowerCase().includes("divorce") ||
+                  rawMarital.toLowerCase().includes("janda") ||
+                  rawMarital.toLowerCase().includes("duda")
+                ? "DIVORCED"
+                : "SINGLE",
             bankName: rawBankName || "Bank Mandiri",
+            bankAccount: rawBankAccountNo || undefined,
             bankAccountName: rawBankAccountName || rawFullName,
             isValid: errors.length === 0,
             validationErrors: errors,
@@ -306,6 +354,7 @@ export function ExcelImporter({
       gender: r.gender,
       maritalStatus: r.maritalStatus,
       bankName: r.bankName,
+      bankAccount: r.bankAccount,
       bankAccountName: r.bankAccountName,
     }));
 
@@ -330,9 +379,11 @@ export function ExcelImporter({
       {/* -------------------------------------------------------------
           CARD 1: HUB PUSAT UNDUHAN TEMPLATE EXCEL (.XLSX)
       -------------------------------------------------------------- */}
-      <div className="bg-gradient-to-br from-slate-900 via-[#102E50] to-[#0c233d] text-white rounded-2xl p-6 shadow-md border border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden">
-        {/* Pattern Background Aksentuasi */}
-        <div className="absolute right-0 top-0 w-80 h-full bg-white/5 pointer-events-none transform -skew-x-12 translate-x-20"></div>
+      <div className="bg-gradient-to-br from-slate-900 via-[#102E50] to-[#0c233d] text-white rounded-2xl p-6 shadow-md border border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-20">
+        {/* Pattern Background Aksentuasi (diisolasi overflow-hidden agar dropdown tidak terpotong) */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+          <div className="absolute right-0 top-0 w-80 h-full bg-white/5 transform -skew-x-12 translate-x-20"></div>
+        </div>
 
         <div className="flex items-start gap-4 z-10">
           <div className="w-12 h-12 rounded-xl bg-white/10 text-[#F2AF3E] flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
@@ -370,49 +421,72 @@ export function ExcelImporter({
           </button>
 
           {/* Dropdown Menu Template Lainnya */}
-          <div className="relative">
+          <div className="relative" ref={templateMenuRef}>
             <button
               type="button"
               onClick={() => setIsTemplateMenuOpen((prev) => !prev)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white/10 text-white hover:bg-white/20 border border-white/20 transition-all cursor-pointer"
+              aria-expanded={isTemplateMenuOpen}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                isTemplateMenuOpen
+                  ? "bg-white text-[#102E50] shadow-md font-bold"
+                  : "bg-white/10 text-white hover:bg-white/20 border border-white/20"
+              }`}
             >
               <span>Template Lainnya</span>
-              <ChevronDown className="w-3.5 h-3.5" />
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isTemplateMenuOpen ? "rotate-180" : ""}`} />
             </button>
 
             {isTemplateMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white text-slate-800 rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                  Pilihan Template Excel
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white text-slate-800 rounded-2xl shadow-2xl border border-slate-200/90 py-2 z-50 animate-in fade-in zoom-in-95 duration-150 divide-y divide-slate-100">
+                <div className="px-4 py-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Pilihan Template Excel Lainnya
+                  </span>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Gunakan berkas .xlsx resmi untuk modul HRIS PSPK lainnya
+                  </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    downloadAttendanceTemplateXlsx();
-                    setIsTemplateMenuOpen(false);
-                  }}
-                  className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 flex items-center justify-between text-slate-700 hover:text-[#102E50]"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-semibold">Rekap Presensi (.xlsx)</span>
-                    <span className="text-[10px] text-slate-400">Timesheet & log absensi</span>
-                  </div>
-                  <Download className="w-3.5 h-3.5 text-slate-400" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    downloadOrganizationTemplateXlsx();
-                    setIsTemplateMenuOpen(false);
-                  }}
-                  className="w-full text-left px-3.5 py-2 text-xs hover:bg-slate-50 flex items-center justify-between text-slate-700 hover:text-[#102E50]"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-semibold">Struktur Organisasi (.xlsx)</span>
-                    <span className="text-[10px] text-slate-400">Divisi & formasi jabatan</span>
-                  </div>
-                  <Download className="w-3.5 h-3.5 text-slate-400" />
-                </button>
+                <div className="py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadAttendanceTemplateXlsx();
+                      setIsTemplateMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center justify-between text-slate-700 hover:text-[#102E50] transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 group-hover:bg-emerald-100">
+                        <FileSpreadsheet className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-xs text-slate-900 group-hover:text-[#102E50]">Template Rekap Presensi</span>
+                        <span className="text-[10px] text-slate-500">Timesheet jam kerja & status presensi</span>
+                      </div>
+                    </div>
+                    <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#102E50]" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      downloadOrganizationTemplateXlsx();
+                      setIsTemplateMenuOpen(false);
+                    }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center justify-between text-slate-700 hover:text-[#102E50] transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 group-hover:bg-blue-100">
+                        <FileSpreadsheet className="w-4 h-4" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-xs text-slate-900 group-hover:text-[#102E50]">Template Struktur Organisasi</span>
+                        <span className="text-[10px] text-slate-500">Daftar divisi & formasi jabatan</span>
+                      </div>
+                    </div>
+                    <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#102E50]" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
