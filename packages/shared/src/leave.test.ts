@@ -3,6 +3,7 @@ import {
   calculateWorkingDays,
   isDateOverlapping,
   hasSufficientLeaveBalance,
+  calculateAdjustedLeaveQuota,
   toDateString,
 } from "./leave";
 
@@ -96,6 +97,31 @@ describe("Leave Calculations (AGENTS.md Section 8.2)", () => {
     it("returns false for zero or negative requested days", () => {
       expect(hasSufficientLeaveBalance(12, 0, 0)).toBe(false);
       expect(hasSufficientLeaveBalance(12, 0, -1)).toBe(false);
+    });
+  });
+
+  describe("calculateAdjustedLeaveQuota", () => {
+    it("adds days correctly in ADD mode", () => {
+      expect(calculateAdjustedLeaveQuota(12, 2, "ADD", 3)).toBe(15);
+      expect(calculateAdjustedLeaveQuota(10, 0, "ADD", 5)).toBe(15);
+    });
+
+    it("deducts days correctly in DEDUCT mode without dropping below used days", () => {
+      expect(calculateAdjustedLeaveQuota(12, 3, "DEDUCT", 4)).toBe(8);
+      // Deduction requested 10, but used is 5 -> should floor at 5
+      expect(calculateAdjustedLeaveQuota(12, 5, "DEDUCT", 10)).toBe(5);
+    });
+
+    it("sets days correctly in SET mode with min floor of used days", () => {
+      expect(calculateAdjustedLeaveQuota(12, 2, "SET", 15)).toBe(15);
+      expect(calculateAdjustedLeaveQuota(12, 4, "SET", 8)).toBe(8);
+      // If set to 2 but employee already used 4 days, floor at 4
+      expect(calculateAdjustedLeaveQuota(12, 4, "SET", 2)).toBe(4);
+    });
+
+    it("handles zero or negative adjustment safely", () => {
+      expect(calculateAdjustedLeaveQuota(12, 1, "ADD", 0)).toBe(12);
+      expect(calculateAdjustedLeaveQuota(12, 1, "DEDUCT", -2)).toBe(12);
     });
   });
 });

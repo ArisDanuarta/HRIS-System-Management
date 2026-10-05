@@ -97,3 +97,29 @@ export function hasSufficientLeaveBalance(
   const remaining = quotaDays - usedDays;
   return remaining >= requestedDays;
 }
+
+/**
+ * Calculates new leave quota after administrative adjustment.
+ * Ensures quota never falls below days already used.
+ */
+export function calculateAdjustedLeaveQuota(
+  currentQuota: number,
+  currentUsed: number,
+  mode: "ADD" | "DEDUCT" | "SET",
+  amount: number,
+): number {
+  const roundedAmount = Math.max(0, Math.round(amount));
+  const minAllowed = Math.ceil(Math.max(0, currentUsed));
+
+  if (mode === "ADD") {
+    return currentQuota + roundedAmount;
+  }
+  if (mode === "DEDUCT") {
+    return Math.max(minAllowed, currentQuota - roundedAmount);
+  }
+  if (mode === "SET") {
+    return Math.max(minAllowed, roundedAmount);
+  }
+  return currentQuota;
+}
+

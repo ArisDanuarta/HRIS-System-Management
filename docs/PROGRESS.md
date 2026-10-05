@@ -4,6 +4,28 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 1: Penyempurnaan Modul Presensi & Saldo Cuti (Opsi A Core HRIS) — 2026-10-05
+
+- **Status:** Selesai
+- **Scope:** 
+  1. Sub-tahap 1A: Ekspor Rekap Presensi Bulanan ke Format Excel Resmi (`.xlsx`) dengan lembar kerja ganda (*Rekap Presensi* dengan 11 kolom pengukuran + lembar *Parameter & Ketentuan*), terintegrasi ke `/absensi/rekap`, tombol aksi download, dan pencatatan audit log `EXPORT` pada entitas `Attendance`.
+  2. Sub-tahap 1B: Manajemen & Penyesuaian Saldo Cuti Pegawai (`LeaveBalance`) di `/cuti/pengaturan` (Tab "Saldo Cuti Pegawai" dengan badge jumlah pegawai, kartu ringkasan kuota/terpakai, pencarian instan, filter divisi, modal interaktif penyesuaian kuota dengan mode `ADD`, `DEDUCT`, `SET`, validasi proteksi sisa cuti, audit log `UPDATE` lengkap dengan alasan wajib, serta unit test terisolasi).
+- **Perubahan Utama:**
+  - Pustaka Ekspor Excel Presensi: Membuat [`apps/hris/src/lib/attendance-export.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/lib/attendance-export.ts) yang mengonversi data presensi bulanan menjadi workbook Excel rapi dengan sheet ringkasan dan referensi aturan jam kerja.
+  - Aksi Server & Audit Ekspor: Menambahkan [`logAttendanceExportAction`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/attendance.actions.ts) untuk mencatat aktivitas ekspor presensi oleh admin/manajer ke tabel audit log.
+  - Integrasi UI Rekap Presensi: Menambahkan tombol "Ekspor Rekap (.xlsx)" pada [`apps/hris/src/components/absensi/attendance-rekap-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/absensi/attendance-rekap-view.tsx).
+  - Query Saldo Cuti Pegawai: Menambahkan [`getAllEmployeeLeaveBalances`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/leave.queries.ts) yang memuat seluruh saldo cuti tahun berjalan aktif per pegawai lengkap dengan kuota, terpakai, dan sisa.
+  - Fungsi Murni & Unit Test: Menambahkan fungsi murni [`calculateAdjustedLeaveQuota`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.ts) dan unit test di [`packages/shared/src/leave.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.test.ts) untuk memvalidasi seluruh mode kalkulasi kuota (`ADD`, `DEDUCT`, `SET`) dan mencegah kuota dipotong di bawah hari yang sudah terpakai.
+  - Aksi Server Penyesuaian Saldo: Membuat [`adjustEmployeeLeaveBalanceAction`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/leave.actions.ts) dengan validasi izin `hris.leave.configure:all`, input alasan minimal 5 karakter, upsert `LeaveBalance`, audit log perbandingan nilai sebelum/sesudah, dan revalidasi path `/cuti` & `/cuti/pengaturan`.
+  - Komponen UI Saldo Cuti: Membangun [`apps/hris/src/components/cuti/employee-leave-balances-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/employee-leave-balances-view.tsx) dan mengintegrasikannya ke tab "Saldo Cuti Pegawai" di [`LeaveSettingsView`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-settings-view.tsx) dan [`apps/hris/src/app/(app)/cuti/pengaturan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/pengaturan/page.tsx).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error
+  - `pnpm lint`: ✅ 0 error
+  - `pnpm test`: ✅ 51/51 test lolos (100%)
+  - Endpoint dev server `/api/health`: ✅ status 200 OK (`{"status":"ok"}`)
+
+---
+
 ## Task: Migrasi Template Impor ke Format Excel Murni (.xlsx) & Panduan Operasional — 2026-10-05
 
 - **Status:** Selesai

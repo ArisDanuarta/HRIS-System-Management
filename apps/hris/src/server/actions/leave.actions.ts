@@ -6,6 +6,7 @@ import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can, AuthContext } from "@pspk/rbac";
 import { prisma } from "@pspk/db";
 import { getStorageProvider } from "@pspk/storage";
+import { calculateAdjustedLeaveQuota } from "@pspk/shared";
 import {
   createLeaveRequestSchema,
   approveLeaveRequestSchema,
@@ -501,15 +502,12 @@ export async function adjustEmployeeLeaveBalanceAction(input: {
     const currentQuota = existing ? existing.quotaDays : (leaveType?.defaultQuotaDays || 12);
     const currentUsed = existing ? Number(existing.usedDays) : 0;
 
-    let newQuota = currentQuota;
-    if (input.mode === "ADD") {
-      newQuota = currentQuota + Math.round(input.amount);
-    } else if (input.mode === "DEDUCT") {
-      // Kuota tidak boleh lebih rendah dari hari yang sudah terpakai
-      newQuota = Math.max(Math.ceil(currentUsed), currentQuota - Math.round(input.amount));
-    } else if (input.mode === "SET") {
-      newQuota = Math.max(Math.ceil(currentUsed), Math.round(input.amount));
-    }
+    const newQuota = calculateAdjustedLeaveQuota(
+      currentQuota,
+      currentUsed,
+      input.mode,
+      input.amount,
+    );
 
     const updated = await prisma.leaveBalance.upsert({
       where: {
