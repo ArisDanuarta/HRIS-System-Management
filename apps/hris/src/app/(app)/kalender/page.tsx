@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getAuthContext } from "@pspk/auth";
-import { assertCan } from "@pspk/rbac";
+import { assertCan, can } from "@pspk/rbac";
 import { getWorkCalendarEvents } from "@/server/queries/calendar.queries";
 import { WorkCalendarView } from "@/components/kalender/work-calendar-view";
 import { GoogleConnectBanner } from "@/components/kalender/google-connect-banner";
@@ -20,6 +20,8 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
   const authCtx = await getAuthContext(session.user.id);
   if (!authCtx) redirect("/login");
   assertCan(authCtx, "hris.calendar.read:own");
+
+  const canSyncHolidays = can(authCtx, "hris.calendar.holiday:sync");
 
   const resolvedParams = await searchParams;
   const now = new Date();
@@ -50,6 +52,7 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
         leaves={leaves}
         holidays={holidays}
         googleConnected={googleConnected}
+        canSyncHolidays={canSyncHolidays}
       />
     </div>
   );
