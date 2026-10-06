@@ -17,8 +17,6 @@ import {
   Unlink,
   Clock,
   Flag,
-  Sparkles,
-  Award,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
 import type {

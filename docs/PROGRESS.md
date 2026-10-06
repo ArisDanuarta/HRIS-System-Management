@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## Tahap 6 (Fitur Tambahan): Hari Peringatan Nasional Indonesia di Kalender Kerja — 2026-10-06
+
+- **Status:** Selesai
+- **Scope & Arsitektur:**
+  1. **Dataset Kurasi Hari Peringatan Nasional (`packages/shared/src/observances.ts`):**
+     - Memuat 50+ Hari Peringatan Nasional resmi Indonesia dari Januari s.d. Desember (Hardiknas 2 Mei, Hari Kartini 21 Apr, Hari Guru Nasional 25 Nov, Harkitnas 20 Mei, Hari Anak Nasional 23 Juli, Hari Sumpah Pemuda 28 Okt, Hari Pahlawan 10 Nov, Hari Pramuka, Hari Santri, Hari Ibu, dll).
+     - **Pemisahan Logika Bisnis:** Hari peringatan bukan hari libur/tanggal merah (hari kerja normal), sehingga sengaja dikelola di layer aplikasi kurasi `@pspk/shared` dan tidak mencemari tabel `holidays` (agar kalkulasi hari kerja untuk payroll & kuota cuti tetap 100% akurat).
+     - **Tersedia 100% Offline:** Selalu muncul di kalender meskipun pengguna belum menghubungkan akun Google atau Google Calendar API sedang offline.
+     - Fungsi utilitas: `getIndonesianObservancesForMonth(year, month)` dan `getIndonesianObservancesForDate(year, month, day)`.
+  2. **Query & Integrasi Server Kalender:**
+     - [`apps/hris/src/server/queries/calendar.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/calendar.queries.ts): `getWorkCalendarEvents()` menyertakan array `observances: WorkCalendarObservance[]`.
+     - [`apps/hris/src/app/(app)/kalender/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/%28app%29/kalender/page.tsx): Meneruskan props observances ke `<WorkCalendarView />`.
+  3. **Visual & Interaksi UI Kalender Kerja (`work-calendar-view.tsx`):**
+     - Filter bar: Ditambahkan opsi filter `Peringatan (N)`.
+     - Penanda sel kalender:
+       - Border & aksen warm amber (`bg-amber-50/30 border-amber-200/90`).
+       - Titik oranye (dot indicator) di samping angka tanggal.
+       - Badge tag khusus `Peringatan` berikon bendera (`Flag`) di pojok sel.
+       - Chip peringatan interaktif berwarna amber dengan nama hari peringatan.
+     - Modal interaktif lengkap:
+       - Modal Detail Tanggal (`selectedDayData`): Menampilkan card Hari Peringatan Nasional dengan kategori, deskripsi sejarah & makna peringatan, serta badge penjelas "Hari Kerja Normal (Bukan Tanggal Merah)".
+       - Modal Detail Peringatan Mandiri (`selectedObservanceDetail`): Muncul langsung saat chip peringatan diklik di kalender.
+       - Legenda kalender dilengkapi indikator `Peringatan Nasional (Hari Kerja)`.
+  4. **Pengujian:**
+     - Unit test [`packages/shared/src/observances.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/observances.test.ts) (5 pengujian mencakup penemuan hari penting, format tanggal, isolasi bulan, dll).
+     - `pnpm test`: Lolos 8 test suite (70 tests)
+     - `pnpm typecheck`: Lolos 9 paket
+     - `pnpm lint`: Lolos 0 error
+
 ---
 
 ## Tahap 6 (Fase C): Google OAuth per Karyawan & Integrasi Meeting Google Meet — 2026-10-06
