@@ -12,7 +12,7 @@ Modul Kalender Kerja terpadu di HRIS PSPK membutuhkan dua jenis integrasi Google
 | Jenis Integrasi | Tujuan | Kredensial yang Dibutuhkan | Pengguna yang Terlibat |
 |---|---|---|---|
 | **Google Calendar Public API** | Mengambil & menyinkronkan hari libur nasional Indonesia resmi secara otomatis | `GOOGLE_CALENDAR_API_KEY` | Server-to-server (tanpa login akun Google) |
-| **Google OAuth 2.0** | Menghubungkan akun Google `@pspk.is` / `@pspk.id` milik karyawan agar meeting Google Meet pribadi muncul di kalender HRIS | `GOOGLE_CLIENT_ID`<br>`GOOGLE_CLIENT_SECRET`<br>`GOOGLE_OAUTH_REDIRECT_URI` | Karyawan perorangan yang login |
+| **Google OAuth 2.0** | Menghubungkan akun Google `@pspk.id` milik karyawan agar meeting Google Meet pribadi muncul di kalender HRIS | `GOOGLE_CLIENT_ID`<br>`GOOGLE_CLIENT_SECRET`<br>`GOOGLE_OAUTH_REDIRECT_URI` | Karyawan perorangan yang login |
 
 ---
 
@@ -60,7 +60,7 @@ Sebelum membuat OAuth Client ID, Google mewajibkan pengaturan *OAuth Consent Scr
 
 1. Di menu kiri, klik **APIs & Services** > **OAuth consent screen**.
 2. **User Type:**
-   - Pilih **Internal** *(Sangat direkomendasikan karena sistem ini internal PSPK. Dengan memilih Internal, hanya pemilik akun Google Workspace berdomain PSPK seperti `@pspk.id` atau `@pspk.is` yang dapat menghubungkan akun, dan aplikasi **tidak memerlukan proses verifikasi publik Google yang rumit**).*
+   - Pilih **Internal** *(Sangat direkomendasikan karena sistem ini internal PSPK. Dengan memilih Internal, hanya pemilik akun Google Workspace berdomain PSPK seperti `@pspk.id` yang dapat menghubungkan akun, dan aplikasi **tidak memerlukan proses verifikasi publik Google yang rumit**).*
    - Klik **Create**.
 3. **App Information:**
    - **App name:** `PSPK HRIS Work Calendar`
@@ -160,10 +160,10 @@ Setelah file `.env` disimpan, restart dev server jika perlu (`pnpm dev`).
 1. Login sebagai karyawan (bisa Staff, Manager, atau HR).
 2. Buka menu **Kalender Kerja**.
 3. Di bagian atas kalender, terdapat banner:
-   *"Ingin melihat Google Meet & event dari akun @pspk.is?"*
+   *"Ingin melihat Google Meet & event dari akun @pspk.id?"*
 4. Klik tombol **"Hubungkan Google Calendar"**.
 5. Anda akan dialihkan ke layar persetujuan Google (*Google Sign-In*).
-6. Pilih akun Google Workspace Anda (misal `nama@pspk.id` atau `nama@pspk.is`).
+6. Pilih akun Google Workspace Anda (misal `nama@pspk.id`).
 7. Klik **Izinkan / Allow**.
 8. Browser otomatis kembali ke HRIS dengan pesan sukses:
    *"Akun Google Calendar berhasil terhubung! Agenda rapat Anda telah disinkronkan."*
@@ -185,7 +185,7 @@ Setelah file `.env` disimpan, restart dev server jika perlu (`pnpm dev`).
 
 ### Q2: Muncul error `access_denied` atau akun tidak diizinkan.
 **Penyebab:** OAuth Consent Screen disetel ke *Internal*, namun Anda mencoba login menggunakan akun Gmail pribadi (`@gmail.com`) bukan akun Google Workspace organisasi PSPK.  
-**Solusi:** Gunakan akun resmi berdomain PSPK (`@pspk.id` / `@pspk.is`), atau tambahkan email tersebut di Google Workspace Admin.
+**Solusi:** Gunakan akun resmi berdomain PSPK (`@pspk.id`), atau tambahkan email tersebut di Google Workspace Admin.
 
 ### Q3: Apakah karyawan lain bisa melihat judul meeting pribadi saya?
 **Jawaban:** **Tidak.** Modul Kalender Kerja didesain dengan prinsip privasi ketat. Query database kalender memfilter `employeeId` secara spesifik hanya untuk karyawan yang sedang login. Rekan kerja atau karyawan lain di organisasi hanya dapat melihat cuti tim dan hari libur nasional bersama.

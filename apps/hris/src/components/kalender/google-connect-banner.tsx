@@ -23,7 +23,7 @@ export function GoogleConnectBanner({ show }: GoogleConnectBannerProps) {
         </div>
         <div>
           <p className="text-sm font-semibold text-[#102e50]">
-            Ingin melihat Google Meet & event dari akun @pspk.is?
+            Ingin melihat Google Meet & event dari akun @pspk.id?
           </p>
           <p className="text-xs text-slate-500 mt-0.5">
             Hubungkan akun Google untuk menampilkan meeting langsung di kalender ini.
@@ -32,7 +32,7 @@ export function GoogleConnectBanner({ show }: GoogleConnectBannerProps) {
       </div>
       <a
         href="/api/calendar/google/connect"
-        title="Hubungkan akun Google @pspk.is untuk sinkronisasi Google Meet"
+        title="Hubungkan akun Google @pspk.id untuk sinkronisasi Google Meet"
         className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 text-xs font-semibold shadow-2xs transition-all cursor-pointer active:scale-95"
       >
         {/* Google logo SVG inline */}

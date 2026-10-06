@@ -464,7 +464,7 @@ export function LoginPage({
                     Alamat Email PSPK
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
-                  <span className="text-[11px] text-[#74777f] font-mono">Domain resmi @pspk.or.id</span>
+                  <span className="text-[11px] text-[#74777f] font-mono">Domain resmi @pspk.id</span>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#43474e]">
@@ -479,7 +479,7 @@ export function LoginPage({
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nama.pegawai@pspk.or.id"
+                    placeholder="nama.pegawai@pspk.id"
                     className="w-full h-10 sm:h-11 pl-10 sm:pl-11 pr-4 rounded bg-white text-[#121c2a] text-xs sm:text-sm placeholder:text-[#74777f] border border-[#adc8f2] focus:outline-none focus:ring-2 focus:ring-[#102e50] shadow-xs transition-all duration-200"
                   />
                 </div>

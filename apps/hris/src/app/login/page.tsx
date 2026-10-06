@@ -23,7 +23,7 @@ export default function HrisLoginPage() {
           return {
             error:
               res.error.message ||
-              "Email atau password salah. Pastikan alamat surel instansi @pspk.or.id dan kata sandi diketik dengan benar.",
+              "Email atau password salah. Pastikan alamat surel instansi @pspk.id dan kata sandi diketik dengan benar.",
           };
         }
 
