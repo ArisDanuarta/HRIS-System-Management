@@ -247,6 +247,7 @@ model Employee {
   timesheetsSubmitted TimesheetSubmission[]
   timesheetsAssigned  TimesheetReviewer[]
   documents           EmployeeDocument[]
+  calendarEvents      CalendarEvent[]
 
   @@index([status])
   @@index([managerId])
@@ -785,4 +786,50 @@ model TimesheetReviewer {
   @@map("timesheet_reviewers")
   @@schema("hris")
 }
+
+// -------------------------------------------------------------
+// MODUL KALENDER KERJA & INTEGRASI GOOGLE CALENDAR
+// -------------------------------------------------------------
+
+enum CalendarEventType {
+  MEETING
+  LEAVE
+  HOLIDAY
+
+  @@schema("hris")
+}
+
+enum CalendarEventSource {
+  GOOGLE_CALENDAR
+  HRIS_SYSTEM
+
+  @@schema("hris")
+}
+
+model CalendarEvent {
+  id          String              @id @default(uuid())
+  employeeId  String?             @map("employee_id")
+  externalId  String?             @map("external_id")
+  type        CalendarEventType   @default(MEETING)
+  source      CalendarEventSource @default(HRIS_SYSTEM)
+  title       String
+  description String?
+  startAt     DateTime            @map("start_at") @db.Timestamptz(6)
+  endAt       DateTime            @map("end_at") @db.Timestamptz(6)
+  isAllDay    Boolean             @default(false) @map("is_all_day")
+  meetUrl     String?             @map("meet_url")
+  calendarId  String?             @map("calendar_id")
+  lastSyncAt  DateTime?           @map("last_sync_at") @db.Timestamptz(6)
+  createdAt   DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, externalId])
+  @@index([startAt, endAt])
+  @@index([employeeId, type])
+  @@map("calendar_events")
+  @@schema("hris")
+}
+
 

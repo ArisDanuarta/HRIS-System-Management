@@ -28,25 +28,38 @@ export interface WorkCalendarHoliday {
   isCollectiveLeave: boolean;
 }
 
+export interface WorkCalendarMeeting {
+  id: string;
+  title: string;
+  description: string | null;
+  startAt: Date;
+  endAt: Date;
+  isAllDay: boolean;
+  meetUrl: string | null;
+  source: string;
+}
+
 export interface WorkCalendarResult {
   leaves: WorkCalendarLeave[];
   holidays: WorkCalendarHoliday[];
+  meetings: WorkCalendarMeeting[];
   period: { year: number; month: number; startDate: Date; endDate: Date };
 }
 
 /**
- * Retrieves all calendar events (approved leaves + holidays) for a given month.
+ * Retrieves all calendar events (approved leaves + holidays + personal meetings) for a given month.
  * Fase A: cuti tim + hari libur nasional dari DB.
- * Fase C: akan ditambahkan Google Calendar events (meeting) per employee.
+ * Fase C: ditambahkan Google Calendar events (meeting) per employee.
  */
 export async function getWorkCalendarEvents(
   year: number,
   month: number,
+  employeeId?: string | null,
 ): Promise<WorkCalendarResult> {
   const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
   const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
-  const [approvedLeaves, holidays] = await Promise.all([
+  const [approvedLeaves, holidays, meetings] = await Promise.all([
     // Semua cuti yang disetujui dalam bulan ini (seluruh tim — terlihat oleh semua karyawan)
     prisma.leaveRequest.findMany({
       where: {
@@ -76,6 +89,19 @@ export async function getWorkCalendarEvents(
       },
       orderBy: { date: "asc" },
     }),
+
+    // Meeting Google Meet pribadi karyawan (hanya milik sendiri)
+    employeeId
+      ? prisma.calendarEvent.findMany({
+          where: {
+            employeeId,
+            type: "MEETING",
+            startAt: { lte: endDate },
+            endAt: { gte: startDate },
+          },
+          orderBy: { startAt: "asc" },
+        })
+      : Promise.resolve([]),
   ]);
 
   return {
@@ -99,6 +125,16 @@ export async function getWorkCalendarEvents(
       },
     })),
     holidays,
+    meetings: meetings.map((m) => ({
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      startAt: m.startAt,
+      endAt: m.endAt,
+      isAllDay: m.isAllDay,
+      meetUrl: m.meetUrl,
+      source: m.source,
+    })),
     period: { year, month, startDate, endDate },
   };
 }
