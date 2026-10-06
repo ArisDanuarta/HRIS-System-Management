@@ -4,6 +4,38 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 6 (Fase B): Auto-Sync Libur Nasional via Google Calendar API — 2026-10-06
+
+- **Status:** Selesai (Fase B dari 3 Fase)
+- **Scope Fase B (Sinkronisasi Libur Nasional Indonesia Tanpa Login Pengguna):**
+  1. **Service Sinkronisasi Libur Nasional:**
+     - [`apps/hris/src/server/services/holiday-sync.service.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/holiday-sync.service.ts):
+       - `syncIndonesianHolidays(year)` memanggil Google Calendar Public API menggunakan API Key (tanpa OAuth).
+       - Menargetkan kalender resmi Indonesia (`id.indonesian#holiday@group.v.calendar.google.com` dengan fallback `en.indonesian#holiday@group.v.calendar.google.com`).
+       - Mem-parsing event, mendeteksi rentang hari (all-day span), dan menandai status `isCollectiveLeave` secara otomatis untuk Cuti Bersama.
+       - Melakukan `upsert` ke model `Holiday` di PostgreSQL tanpa duplikasi.
+       - Mengotomatisasi pembersihan cache melalui `revalidatePath` untuk `/kalender`, `/cuti/kalender`, `/cuti/pengaturan`, dan `/cuti/ajukan`.
+  2. **Server Action & Route Handler API:**
+     - [`apps/hris/src/server/actions/calendar.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/calendar.actions.ts):
+       - `syncHolidaysAction(year)` dengan pengecekan sesi & guard izin `hris.calendar.holiday:sync`, serta pencatatan audit log `writeAudit`.
+     - [`apps/hris/src/app/api/calendar/holidays/sync/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/api/calendar/holidays/sync/route.ts):
+       - Route handler `POST` yang mendukung 2 jalur otorisasi: header `x-cron-secret` untuk scheduler/cron otomatis atau sesi user dengan izin HR/Admin.
+  3. **UI Tombol Sinkronisasi HR:**
+     - [`apps/hris/src/components/kalender/work-calendar-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/work-calendar-view.tsx):
+       - Tombol "Sync Libur Nasional" muncul khusus untuk peran dengan izin `hris.calendar.holiday:sync` (Admin HR & Super Admin).
+       - Dilengkapi animasi spinner saat proses sinkronisasi berjalan, banner feedback notifikasi (sukses/gagal), dan auto-refresh tampilan kalender.
+  4. **Seeding & Konfigurasi Lingkungan:**
+     - [`packages/db/prisma/seed.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed.ts) diperbarui untuk memuat data dasar 48 hari libur nasional & cuti bersama resmi 2025–2026, serta otomatis sinkronisasi ke Google Calendar jika `GOOGLE_CALENDAR_API_KEY` terisi.
+     - [`.env.example`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/.env.example) ditambahkan variabel `GOOGLE_CALENDAR_API_KEY` dan `CRON_SECRET`.
+- **Verifikasi Kualitas:**
+  - `pnpm db:seed`: ✅ Sukses (48 hari libur nasional 2025-2026 tersimpan di PostgreSQL)
+  - `pnpm typecheck`: ✅ Lolos 9 paket tanpa error
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 7 test suite (65 unit tests)
+  - Endpoint test (`curl /api/calendar/holidays/sync`): ✅ HTTP 401 Unauthorized saat tanpa kredensial
+
+---
+
 ## Tahap 6 (Fase A): Modul Kalender Kerja Terpadu (Work Calendar) — 2026-10-06
 
 - **Status:** Selesai (Fase A dari 3 Fase)

@@ -244,6 +244,116 @@ async function main() {
     });
   }
 
+  // 8. Seed Hari Libur Nasional & Cuti Bersama
+  console.log("🇮🇩 Menyiapkan data hari libur nasional & cuti bersama...");
+  const baselineHolidays: Array<{ date: string; name: string; isCollectiveLeave: boolean }> = [
+    // 2025
+    { date: "2025-01-01", name: "Tahun Baru 2025 Masehi", isCollectiveLeave: false },
+    { date: "2025-01-27", name: "Isra Mi'raj Nabi Muhammad SAW", isCollectiveLeave: false },
+    { date: "2025-01-28", name: "Cuti Bersama Tahun Baru Imlek 2576 Kongzili", isCollectiveLeave: true },
+    { date: "2025-01-29", name: "Tahun Baru Imlek 2576 Kongzili", isCollectiveLeave: false },
+    { date: "2025-03-28", name: "Cuti Bersama Hari Suci Nyepi", isCollectiveLeave: true },
+    { date: "2025-03-29", name: "Hari Suci Nyepi (Tahun Baru Saka 1947)", isCollectiveLeave: false },
+    { date: "2025-03-31", name: "Hari Raya Idul Fitri 1446 H", isCollectiveLeave: false },
+    { date: "2025-04-01", name: "Hari Raya Idul Fitri 1446 H", isCollectiveLeave: false },
+    { date: "2025-04-02", name: "Cuti Bersama Idul Fitri 1446 H", isCollectiveLeave: true },
+    { date: "2025-04-03", name: "Cuti Bersama Idul Fitri 1446 H", isCollectiveLeave: true },
+    { date: "2025-04-04", name: "Cuti Bersama Idul Fitri 1446 H", isCollectiveLeave: true },
+    { date: "2025-04-07", name: "Cuti Bersama Idul Fitri 1446 H", isCollectiveLeave: true },
+    { date: "2025-04-18", name: "Wafat Yesus Kristus", isCollectiveLeave: false },
+    { date: "2025-04-20", name: "Kebangkitan Yesus Kristus (Paskah)", isCollectiveLeave: false },
+    { date: "2025-05-01", name: "Hari Buruh Internasional", isCollectiveLeave: false },
+    { date: "2025-05-12", name: "Hari Raya Waisak 2569 BE", isCollectiveLeave: false },
+    { date: "2025-05-13", name: "Cuti Bersama Hari Raya Waisak 2569 BE", isCollectiveLeave: true },
+    { date: "2025-05-29", name: "Kenaikan Yesus Kristus", isCollectiveLeave: false },
+    { date: "2025-05-30", name: "Cuti Bersama Kenaikan Yesus Kristus", isCollectiveLeave: true },
+    { date: "2025-06-01", name: "Hari Lahir Pancasila", isCollectiveLeave: false },
+    { date: "2025-06-06", name: "Hari Raya Idul Adha 1446 H", isCollectiveLeave: false },
+    { date: "2025-06-09", name: "Cuti Bersama Hari Raya Idul Adha 1446 H", isCollectiveLeave: true },
+    { date: "2025-06-27", name: "1 Muharram / Tahun Baru Islam 1447 H", isCollectiveLeave: false },
+    { date: "2025-08-17", name: "Proklamasi Kemerdekaan RI Ke-80", isCollectiveLeave: false },
+    { date: "2025-09-05", name: "Maulid Nabi Muhammad SAW", isCollectiveLeave: false },
+    { date: "2025-12-25", name: "Hari Raya Natal", isCollectiveLeave: false },
+    { date: "2025-12-26", name: "Cuti Bersama Natal", isCollectiveLeave: true },
+    // 2026
+    { date: "2026-01-01", name: "Tahun Baru 2026 Masehi", isCollectiveLeave: false },
+    { date: "2026-01-16", name: "Isra Mi'raj Nabi Muhammad SAW", isCollectiveLeave: false },
+    { date: "2026-02-16", name: "Cuti Bersama Tahun Baru Imlek 2577 Kongzili", isCollectiveLeave: true },
+    { date: "2026-02-17", name: "Tahun Baru Imlek 2577 Kongzili", isCollectiveLeave: false },
+    { date: "2026-03-19", name: "Hari Suci Nyepi (Tahun Baru Saka 1948)", isCollectiveLeave: false },
+    { date: "2026-03-20", name: "Hari Raya Idul Fitri 1447 H", isCollectiveLeave: false },
+    { date: "2026-03-21", name: "Hari Raya Idul Fitri 1447 H", isCollectiveLeave: false },
+    { date: "2026-03-23", name: "Cuti Bersama Hari Raya Idul Fitri 1447 H", isCollectiveLeave: true },
+    { date: "2026-03-24", name: "Cuti Bersama Hari Raya Idul Fitri 1447 H", isCollectiveLeave: true },
+    { date: "2026-04-03", name: "Wafat Yesus Kristus", isCollectiveLeave: false },
+    { date: "2026-04-05", name: "Kebangkitan Yesus Kristus (Paskah)", isCollectiveLeave: false },
+    { date: "2026-05-01", name: "Hari Buruh Internasional", isCollectiveLeave: false },
+    { date: "2026-05-14", name: "Kenaikan Yesus Kristus", isCollectiveLeave: false },
+    { date: "2026-05-27", name: "Hari Raya Idul Adha 1447 H", isCollectiveLeave: false },
+    { date: "2026-05-31", name: "Hari Raya Waisak 2570 BE", isCollectiveLeave: false },
+    { date: "2026-06-01", name: "Hari Lahir Pancasila", isCollectiveLeave: false },
+    { date: "2026-06-16", name: "Tahun Baru Islam 1448 H", isCollectiveLeave: false },
+    { date: "2026-08-17", name: "Proklamasi Kemerdekaan RI Ke-81", isCollectiveLeave: false },
+    { date: "2026-08-25", name: "Maulid Nabi Muhammad SAW", isCollectiveLeave: false },
+    { date: "2026-12-25", name: "Hari Raya Natal", isCollectiveLeave: false },
+    { date: "2026-12-26", name: "Cuti Bersama Hari Raya Natal", isCollectiveLeave: true },
+  ];
+
+  for (const h of baselineHolidays) {
+    const [yStr, mStr, dStr] = h.date.split("-");
+    const holidayDate = new Date(Date.UTC(Number(yStr), Number(mStr) - 1, Number(dStr), 0, 0, 0, 0));
+    await prisma.holiday.upsert({
+      where: { date: holidayDate },
+      update: {
+        name: h.name,
+        isCollectiveLeave: h.isCollectiveLeave,
+      },
+      create: {
+        date: holidayDate,
+        name: h.name,
+        isCollectiveLeave: h.isCollectiveLeave,
+      },
+    });
+  }
+  console.log(`   ✓ ${baselineHolidays.length} hari libur nasional & cuti bersama (2025-2026) siap.`);
+
+  const gCalApiKey = process.env.GOOGLE_CALENDAR_API_KEY;
+  if (gCalApiKey) {
+    console.log("   🔄 Mengambil update libur nasional langsung dari Google Calendar API...");
+    try {
+      const currentYear = new Date().getFullYear();
+      const calId = "id.indonesian#holiday@group.v.calendar.google.com";
+      const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${gCalApiKey}&timeMin=${currentYear}-01-01T00:00:00Z&timeMax=${currentYear}-12-31T23:59:59Z&singleEvents=true`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = (await res.json()) as { items?: Array<{ summary?: string; start?: { date?: string } }> };
+        let gCount = 0;
+        if (data.items) {
+          for (const item of data.items) {
+            if (item.start?.date && item.summary) {
+              const [y, m, d] = item.start.date.split("-").map(Number);
+              const dateObj = new Date(Date.UTC(y!, m! - 1, d!, 0, 0, 0, 0));
+              const isColl = item.summary.toLowerCase().includes("cuti bersama");
+              await prisma.holiday.upsert({
+                where: { date: dateObj },
+                update: { name: item.summary, isCollectiveLeave: isColl },
+                create: { date: dateObj, name: item.summary, isCollectiveLeave: isColl },
+              });
+              gCount++;
+            }
+          }
+        }
+        console.log(`   ✓ Berhasil menyinkronkan ${gCount} event dari Google Calendar.`);
+      } else {
+        console.log(`   ⚠️ Google Calendar API mengembalikan status ${res.status}.`);
+      }
+    } catch (err) {
+      console.log("   ⚠️ Gagal memanggil Google Calendar API:", err);
+    }
+  } else {
+    console.log("   ℹ️ GOOGLE_CALENDAR_API_KEY tidak diatur, melewati sinkronisasi live Google Calendar.");
+  }
+
   console.log("✅ Inisialisasi data sistem selesai tanpa data dummy!");
 }
 

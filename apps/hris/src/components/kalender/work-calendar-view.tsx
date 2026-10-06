@@ -9,9 +9,13 @@ import {
   X,
   Users,
   ArrowRight,
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
 import type { WorkCalendarLeave, WorkCalendarHoliday } from "@/server/queries/calendar.queries";
+import { syncHolidaysAction } from "@/server/actions/calendar.actions";
 
 // ----------- Tipe Filter -----------
 type CalendarFilter = "all" | "leave" | "holiday";
@@ -23,6 +27,7 @@ interface WorkCalendarViewProps {
   leaves: WorkCalendarLeave[];
   holidays: WorkCalendarHoliday[];
   googleConnected?: boolean; // Fase C: apakah user sudah connect Google
+  canSyncHolidays?: boolean; // Fase B: izin HR / Admin untuk sinkronisasi libur nasional
 }
 
 // ----------- Komponen Utama -----------
@@ -32,6 +37,7 @@ export function WorkCalendarView({
   leaves,
   holidays,
   googleConnected = false,
+  canSyncHolidays = false,
 }: WorkCalendarViewProps) {
   const router = useRouter();
   const [currentYear, setCurrentYear] = useState(year);
@@ -44,6 +50,11 @@ export function WorkCalendarView({
     holiday: WorkCalendarHoliday | null;
   } | null>(null);
   const [selectedLeaveDetail, setSelectedLeaveDetail] = useState<WorkCalendarLeave | null>(null);
+  const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
+  const [syncFeedback, setSyncFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const MONTHS = [
     "Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -76,6 +87,34 @@ export function WorkCalendarView({
   const handleToday = () => {
     setCurrentMonth(todayMonth); setCurrentYear(todayYear);
     router.push(`/kalender?year=${todayYear}&month=${todayMonth}`);
+  };
+
+  // --- Sync Libur Nasional (Google Calendar) ---
+  const handleSyncHolidays = async () => {
+    try {
+      setIsSyncingHolidays(true);
+      setSyncFeedback(null);
+      const res = await syncHolidaysAction(currentYear);
+      if (res.success) {
+        setSyncFeedback({
+          type: "success",
+          message: res.message,
+        });
+        router.refresh();
+      } else {
+        setSyncFeedback({
+          type: "error",
+          message: res.message,
+        });
+      }
+    } catch (err: unknown) {
+      setSyncFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal menyinkronkan hari libur nasional.",
+      });
+    } finally {
+      setIsSyncingHolidays(false);
+    }
   };
 
   // --- Build grid ---
@@ -191,10 +230,52 @@ export function WorkCalendarView({
               {f.label}
             </button>
           ))}
-          <span className="ml-auto text-[11px] text-slate-400 italic hidden sm:block">
-            Klik tanggal untuk detail
-          </span>
+          {canSyncHolidays && (
+            <button
+              type="button"
+              onClick={handleSyncHolidays}
+              disabled={isSyncingHolidays}
+              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-60 active:scale-95"
+              title={`Sinkronkan libur nasional ${currentYear} dari Google Calendar`}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingHolidays ? "animate-spin text-emerald-700" : "text-emerald-700"}`} />
+              {isSyncingHolidays ? "Menyinkronkan..." : "Sync Libur Nasional"}
+            </button>
+          )}
+          {!canSyncHolidays && (
+            <span className="ml-auto text-[11px] text-slate-400 italic hidden sm:block">
+              Klik tanggal untuk detail
+            </span>
+          )}
         </div>
+
+        {/* Feedback Alert Sinkronisasi */}
+        {syncFeedback && (
+          <div
+            className={`px-5 py-2.5 border-b text-xs flex items-center justify-between transition-all ${
+              syncFeedback.type === "success"
+                ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+                : "bg-red-50 text-red-800 border-red-200"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {syncFeedback.type === "success" ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              )}
+              <span>{syncFeedback.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSyncFeedback(null)}
+              className="p-1 hover:bg-black/5 rounded cursor-pointer text-slate-500 hover:text-slate-800"
+              title="Tutup pesan"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* === Grid Kalender === */}
         <div className="p-4 md:p-6">
