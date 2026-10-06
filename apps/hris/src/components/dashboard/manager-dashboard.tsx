@@ -495,10 +495,10 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
 
             <div className="pt-3 border-t border-slate-100 text-center">
               <Link
-                href="/cuti/kalender"
+                href="/kalender"
                 className="text-xs font-semibold text-[#102e50] hover:underline inline-flex items-center gap-1"
               >
-                <span>Buka Kalender Cuti Lengkap</span>
+                <span>Buka Kalender Kerja Lengkap</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

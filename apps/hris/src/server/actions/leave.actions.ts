@@ -122,7 +122,7 @@ export async function submitLeaveRequestAction(input: CreateLeaveRequestInput) {
 
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");
-    revalidatePath("/cuti/kalender");
+    revalidatePath("/kalender");
     revalidatePath("/dashboard");
 
     return {
@@ -191,7 +191,7 @@ export async function approveLeaveRequestAction(input: ApproveLeaveRequestInput)
 
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");
-    revalidatePath("/cuti/kalender");
+    revalidatePath("/kalender");
     revalidatePath("/absensi");
     revalidatePath("/dashboard");
 
@@ -298,7 +298,7 @@ export async function cancelLeaveRequestAction(input: CancelLeaveRequestInput) {
 
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");
-    revalidatePath("/cuti/kalender");
+    revalidatePath("/kalender");
     revalidatePath("/absensi");
     revalidatePath("/dashboard");
 
@@ -344,7 +344,7 @@ export async function createHolidayAction(input: CreateHolidayInput) {
     });
 
     revalidatePath("/cuti/pengaturan");
-    revalidatePath("/cuti/kalender");
+    revalidatePath("/kalender");
     revalidatePath("/cuti/ajukan");
 
     return {

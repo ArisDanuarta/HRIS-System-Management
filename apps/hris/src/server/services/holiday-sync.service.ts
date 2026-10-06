@@ -184,7 +184,6 @@ export async function syncIndonesianHolidays(
   // Revalidasi cache rute jika di dalam konteks request Next.js
   try {
     revalidatePath("/kalender");
-    revalidatePath("/cuti/kalender");
     revalidatePath("/cuti/pengaturan");
     revalidatePath("/cuti/ajukan");
   } catch {

@@ -7,7 +7,6 @@ import {
   Fingerprint,
   Calendar,
   CheckSquare,
-  CalendarDays,
   Settings,
 } from "lucide-react";
 
@@ -16,7 +15,6 @@ export type AttendanceLeaveTab =
   | "absensi"
   | "cuti"
   | "persetujuan"
-  | "kalender"
   | "pengaturan";
 
 export interface AttendanceLeaveSubnavProps {
@@ -63,13 +61,6 @@ export function AttendanceLeaveSubnav({
       icon: <CheckSquare className="w-3.5 h-3.5" />,
       badge: pendingLeavesCount > 0 ? pendingLeavesCount : undefined,
       visible: isHrOrAdmin || isManager,
-    },
-    {
-      id: "kalender" as AttendanceLeaveTab,
-      label: "Kalender Cuti",
-      href: "/cuti/kalender",
-      icon: <CalendarDays className="w-3.5 h-3.5" />,
-      visible: true,
     },
     {
       id: "pengaturan" as AttendanceLeaveTab,

@@ -75,8 +75,7 @@ export function AppSidebar({
     if (href === "/absensi/rekap") {
       return (
         pathname.startsWith("/absensi/rekap") ||
-        pathname.startsWith("/cuti/pengaturan") ||
-        pathname.startsWith("/cuti/kalender")
+        pathname.startsWith("/cuti/pengaturan")
       );
     }
     if (href === "/absensi") {
@@ -92,8 +91,7 @@ export function AppSidebar({
       return (
         (pathname === "/cuti" || pathname.startsWith("/cuti/")) &&
         !pathname.startsWith("/cuti/persetujuan") &&
-        !pathname.startsWith("/cuti/pengaturan") &&
-        !pathname.startsWith("/cuti/kalender")
+        !pathname.startsWith("/cuti/pengaturan")
       );
     }
     if (href === "/timesheet/persetujuan") {
