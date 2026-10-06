@@ -16,12 +16,16 @@ import {
   ExternalLink,
   Unlink,
   Clock,
+  Flag,
+  Sparkles,
+  Award,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
 import type {
   WorkCalendarLeave,
   WorkCalendarHoliday,
   WorkCalendarMeeting,
+  WorkCalendarObservance,
 } from "@/server/queries/calendar.queries";
 import {
   syncHolidaysAction,
@@ -30,7 +34,7 @@ import {
 } from "@/server/actions/calendar.actions";
 
 // ----------- Tipe Filter -----------
-type CalendarFilter = "all" | "leave" | "holiday" | "meeting";
+type CalendarFilter = "all" | "leave" | "holiday" | "observance" | "meeting";
 
 // ----------- Props -----------
 interface WorkCalendarViewProps {
@@ -38,6 +42,7 @@ interface WorkCalendarViewProps {
   month: number;
   leaves: WorkCalendarLeave[];
   holidays: WorkCalendarHoliday[];
+  observances?: WorkCalendarObservance[];
   meetings?: WorkCalendarMeeting[];
   googleConnected?: boolean;
   connectedGoogleEmail?: string;
@@ -52,6 +57,7 @@ export function WorkCalendarView({
   month,
   leaves,
   holidays,
+  observances = [],
   meetings = [],
   googleConnected = false,
   connectedGoogleEmail,
@@ -68,10 +74,12 @@ export function WorkCalendarView({
     dateStr: string;
     leaves: WorkCalendarLeave[];
     holiday: WorkCalendarHoliday | null;
+    observances: WorkCalendarObservance[];
     meetings: WorkCalendarMeeting[];
   } | null>(null);
   const [selectedLeaveDetail, setSelectedLeaveDetail] = useState<WorkCalendarLeave | null>(null);
   const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<WorkCalendarMeeting | null>(null);
+  const [selectedObservanceDetail, setSelectedObservanceDetail] = useState<WorkCalendarObservance | null>(null);
   const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
   const [isSyncingGoogle, setIsSyncingGoogle] = useState(false);
   const [isDisconnectingGoogle, setIsDisconnectingGoogle] = useState(false);
@@ -243,6 +251,13 @@ export function WorkCalendarView({
   const holidayMap = new Map<string, WorkCalendarHoliday>();
   for (const h of holidays) holidayMap.set(toDateString(h.date), h);
 
+  const observanceMap = new Map<string, WorkCalendarObservance[]>();
+  for (const obs of observances) {
+    const list = observanceMap.get(obs.dateStr) || [];
+    list.push(obs);
+    observanceMap.set(obs.dateStr, list);
+  }
+
   const getLeavesForDate = (dateStr: string): WorkCalendarLeave[] => {
     const target = new Date(dateStr).getTime();
     return leaves.filter((l) => {
@@ -266,6 +281,7 @@ export function WorkCalendarView({
     { id: "all" as CalendarFilter, label: "Semua Event" },
     { id: "leave" as CalendarFilter, label: "Cuti Tim" },
     { id: "holiday" as CalendarFilter, label: "Hari Libur" },
+    { id: "observance" as CalendarFilter, label: `Peringatan (${observances.length})` },
     ...(googleConnected
       ? [{ id: "meeting" as CalendarFilter, label: `Meeting Saya (${meetings.length})` }]
       : []),
@@ -476,6 +492,7 @@ export function WorkCalendarView({
 
               const dateStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const holiday = holidayMap.get(dateStr);
+              const dayObservances = observanceMap.get(dateStr) || [];
               const dayLeaves = getLeavesForDate(dateStr);
               const dayMeetings = getMeetingsForDate(dateStr);
               const isWeekend = idx % 7 === 0 || idx % 7 === 6;
@@ -483,10 +500,15 @@ export function WorkCalendarView({
 
               // Terapkan filter aktif
               const showHoliday = (activeFilter === "all" || activeFilter === "holiday") && !!holiday;
+              const showObservances = (activeFilter === "all" || activeFilter === "observance") ? dayObservances : [];
               const filteredLeaves = activeFilter === "all" || activeFilter === "leave" ? dayLeaves : [];
               const filteredMeetings = activeFilter === "all" || activeFilter === "meeting" ? dayMeetings : [];
 
-              const hasContent = showHoliday || filteredLeaves.length > 0 || filteredMeetings.length > 0;
+              const hasContent =
+                showHoliday ||
+                dayObservances.length > 0 ||
+                filteredLeaves.length > 0 ||
+                filteredMeetings.length > 0;
 
               return (
                 <div
@@ -498,6 +520,7 @@ export function WorkCalendarView({
                         dateStr,
                         leaves: dayLeaves,
                         holiday: holiday ?? null,
+                        observances: dayObservances,
                         meetings: dayMeetings,
                       });
                     }
@@ -509,12 +532,14 @@ export function WorkCalendarView({
                       ? "border-2 border-[#102e50] bg-gradient-to-b from-[#eff4ff]/70 to-white shadow-sm ring-2 ring-[#102e50]/10"
                       : holiday
                       ? "bg-red-50/70 border-red-200 hover:border-red-300"
+                      : dayObservances.length > 0
+                      ? "bg-amber-50/30 border-amber-200/90 hover:border-amber-400/80"
                       : isWeekend
                       ? "bg-slate-50/70 border-slate-200"
                       : "bg-white border-slate-200 hover:border-[#102e50]/40"
                   }`}
                 >
-                  {/* Day number */}
+                  {/* Day number & status tags */}
                   <div className="flex items-center justify-between gap-1 mb-1">
                     <div className="flex items-center gap-1">
                       <span
@@ -533,12 +558,26 @@ export function WorkCalendarView({
                           Hari Ini
                         </span>
                       )}
+                      {dayObservances.length > 0 && !holiday && (
+                        <span
+                          className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
+                          title={`Hari Peringatan: ${dayObservances.map((o) => o.name).join(", ")}`}
+                        />
+                      )}
                     </div>
-                    {showHoliday && (
-                      <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 text-[#a8281c] truncate max-w-[60px] md:max-w-[75px]">
-                        {holiday!.isCollectiveLeave ? "Cuti Bers." : "Libur"}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1">
+                      {showHoliday && (
+                        <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 text-[#a8281c] truncate max-w-[60px] md:max-w-[75px]">
+                          {holiday!.isCollectiveLeave ? "Cuti Bers." : "Libur"}
+                        </span>
+                      )}
+                      {showObservances.length > 0 && !holiday && (
+                        <span className="text-[8px] md:text-[9px] font-bold px-1 py-0.5 rounded bg-amber-100/90 text-amber-900 border border-amber-300/80 truncate flex items-center gap-0.5">
+                          <Flag className="w-2 h-2 text-amber-700 shrink-0" />
+                          <span className="hidden sm:inline">Peringatan</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Nama hari libur */}
@@ -546,6 +585,26 @@ export function WorkCalendarView({
                     <p className="text-[10px] text-red-900 font-semibold line-clamp-1 leading-tight mb-1">
                       {holiday!.name}
                     </p>
+                  )}
+
+                  {/* Chip Hari Peringatan Nasional */}
+                  {showObservances.length > 0 && (
+                    <div className="mb-0.5">
+                      {showObservances.slice(0, 1).map((obs) => (
+                        <div
+                          key={obs.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedObservanceDetail(obs);
+                          }}
+                          className="w-full text-left px-1.5 py-0.5 rounded border border-amber-300 bg-amber-50/90 hover:bg-amber-100 text-amber-950 text-[10px] font-semibold truncate flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
+                          title={`Hari Peringatan Nasional: ${obs.name} — Klik untuk rincian`}
+                        >
+                          <Flag className="w-2.5 h-2.5 text-amber-700 shrink-0" />
+                          <span className="truncate">{obs.shortName || obs.name}</span>
+                        </div>
+                      ))}
+                    </div>
                   )}
 
                   {/* Chip meeting & cuti */}
@@ -585,9 +644,9 @@ export function WorkCalendarView({
                       );
                     })}
 
-                    {filteredLeaves.length + filteredMeetings.length > 2 && (
+                    {filteredLeaves.length + filteredMeetings.length + (showObservances.length > 1 ? showObservances.length - 1 : 0) > 2 && (
                       <span className="text-[9px] font-bold text-[#102e50] px-1">
-                        +{filteredLeaves.length + filteredMeetings.length - 2} lainnya
+                        +{filteredLeaves.length + filteredMeetings.length + (showObservances.length > 1 ? showObservances.length - 1 : 0) - 2} lainnya
                       </span>
                     )}
                   </div>
@@ -606,6 +665,10 @@ export function WorkCalendarView({
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-red-100 border border-red-300" />
                 <span className="text-slate-600">Libur / Cuti Bersama</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-amber-100 border border-amber-300" />
+                <span className="text-slate-600">Peringatan Nasional (Hari Kerja)</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-indigo-100 border border-indigo-300" />
@@ -645,6 +708,9 @@ export function WorkCalendarView({
                   <p className="text-[11px] text-slate-500">
                     {[
                       selectedDayData.holiday ? "1 hari libur" : null,
+                      selectedDayData.observances.length > 0
+                        ? `${selectedDayData.observances.length} peringatan nasional`
+                        : null,
                       selectedDayData.meetings.length > 0 ? `${selectedDayData.meetings.length} meeting` : null,
                       selectedDayData.leaves.length > 0 ? `${selectedDayData.leaves.length} cuti tim` : null,
                     ]
@@ -672,6 +738,42 @@ export function WorkCalendarView({
                     </span>
                   </div>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedDayData.holiday.name}</p>
+                </div>
+              )}
+
+              {/* Hari Peringatan Nasional */}
+              {selectedDayData.observances.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                    <Flag className="w-3.5 h-3.5 text-amber-700" />
+                    Hari Peringatan Nasional ({selectedDayData.observances.length})
+                  </p>
+                  {selectedDayData.observances.map((obs) => (
+                    <div
+                      key={obs.id}
+                      className="p-3.5 rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50/40 space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-950 mb-1">
+                            {obs.categoryLabel}
+                          </span>
+                          <h4 className="text-sm font-bold text-slate-900 leading-snug">{obs.name}</h4>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-700 leading-relaxed bg-white/80 p-2.5 rounded-lg border border-amber-200/60">
+                        {obs.description}
+                      </p>
+                      <div className="flex items-center justify-between text-[11px] pt-1.5 border-t border-amber-200/60 text-slate-600">
+                        <span className="font-medium text-amber-950">Status Operasional:</span>
+                        <span className="font-semibold px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-700">
+                          {selectedDayData.holiday
+                            ? "Bertepatan Hari Libur Nasional"
+                            : "Hari Kerja Normal (Bukan Tanggal Merah)"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
@@ -747,9 +849,10 @@ export function WorkCalendarView({
               )}
 
               {!selectedDayData.holiday &&
+                selectedDayData.observances.length === 0 &&
                 selectedDayData.leaves.length === 0 &&
                 selectedDayData.meetings.length === 0 && (
-                  <p className="text-sm text-slate-500 text-center py-4">Tidak ada event pada hari ini.</p>
+                  <p className="text-sm text-slate-500 text-center py-4">Tidak ada event atau peringatan pada hari ini.</p>
                 )}
             </div>
 
@@ -758,6 +861,68 @@ export function WorkCalendarView({
                 type="button"
                 onClick={() => setSelectedDayData(null)}
                 className="px-4 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === Modal Detail Hari Peringatan Nasional (Klik Langsung Chip) === */}
+      {selectedObservanceDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="fixed inset-0" onClick={() => setSelectedObservanceDetail(null)} />
+          <div className="relative bg-white rounded-2xl max-w-md w-full border border-amber-200 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+            <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50/50 border-b border-amber-200 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#102e50] text-[#f2af3e] flex items-center justify-center shrink-0">
+                  <Flag className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">
+                    Hari Peringatan Nasional
+                  </span>
+                  <h3 className="text-sm font-bold text-[#102e50] font-heading">
+                    {selectedObservanceDetail.day} {MONTHS[selectedObservanceDetail.month - 1]} {selectedObservanceDetail.year}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedObservanceDetail(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 space-y-3.5">
+              <div>
+                <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 mb-1.5">
+                  {selectedObservanceDetail.categoryLabel}
+                </span>
+                <h4 className="text-base font-bold text-slate-900 leading-snug">
+                  {selectedObservanceDetail.name}
+                </h4>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Makna & Sejarah Peringatan</p>
+                <p className="text-xs text-slate-700 leading-relaxed bg-amber-50/40 p-3 rounded-xl border border-amber-200/80">
+                  {selectedObservanceDetail.description}
+                </p>
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                <span className="text-slate-600 font-medium">Status Operasional Lembaga:</span>
+                <span className="font-bold text-slate-800 px-2.5 py-1 rounded-lg bg-white border border-slate-200">
+                  Hari Kerja Normal
+                </span>
+              </div>
+            </div>
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedObservanceDetail(null)}
+                className="px-4 py-1.5 rounded-lg bg-[#102e50] text-[#f2af3e] text-xs font-bold hover:bg-[#1a4473] transition-colors cursor-pointer"
               >
                 Tutup
               </button>

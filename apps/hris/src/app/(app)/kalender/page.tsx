@@ -40,7 +40,7 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
     getWorkCalendarEvents(year, month, authCtx.employeeId),
   ]);
 
-  const { leaves, holidays, meetings } = calendarData;
+  const { leaves, holidays, observances, meetings } = calendarData;
 
   return (
     <div className="space-y-6">
@@ -49,7 +49,7 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
           Kalender Kerja
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Jadwal kerja, cuti tim, hari libur nasional, dan meeting Google Meet dalam satu tampilan.
+          Jadwal kerja, cuti tim, hari libur nasional, hari peringatan, dan meeting Google Meet dalam satu tampilan.
         </p>
       </div>
 
@@ -61,6 +61,7 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
         month={month}
         leaves={leaves}
         holidays={holidays}
+        observances={observances}
         meetings={meetings}
         googleConnected={googleStatus.isConnected}
         connectedGoogleEmail={googleStatus.email}
