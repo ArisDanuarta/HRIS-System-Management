@@ -30,14 +30,12 @@ export function GoogleConnectBanner({ show }: GoogleConnectBannerProps) {
           </p>
         </div>
       </div>
-      {/* Fase A: disabled — akan aktif di Fase C */}
-      <button
-        type="button"
-        disabled
-        title="Segera hadir — integrasi Google Calendar"
-        className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-blue-200 text-blue-700 text-xs font-semibold opacity-50 cursor-not-allowed transition-all"
+      <a
+        href="/api/calendar/google/connect"
+        title="Hubungkan akun Google @pspk.is untuk sinkronisasi Google Meet"
+        className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 text-xs font-semibold shadow-2xs transition-all cursor-pointer active:scale-95"
       >
-        {/* Google logo SVG inline — tidak perlu package eksternal */}
+        {/* Google logo SVG inline */}
         <svg viewBox="0 0 24 24" className="w-4 h-4" aria-hidden="true">
           <path
             fill="#4285F4"
@@ -56,8 +54,8 @@ export function GoogleConnectBanner({ show }: GoogleConnectBannerProps) {
             d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
           />
         </svg>
-        Hubungkan Google (Segera)
-      </button>
+        Hubungkan Google Calendar
+      </a>
     </div>
   );
 }

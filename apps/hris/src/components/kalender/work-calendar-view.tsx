@@ -12,13 +12,25 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
+  Video,
+  ExternalLink,
+  Unlink,
+  Clock,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
-import type { WorkCalendarLeave, WorkCalendarHoliday } from "@/server/queries/calendar.queries";
-import { syncHolidaysAction } from "@/server/actions/calendar.actions";
+import type {
+  WorkCalendarLeave,
+  WorkCalendarHoliday,
+  WorkCalendarMeeting,
+} from "@/server/queries/calendar.queries";
+import {
+  syncHolidaysAction,
+  syncMyGoogleCalendarAction,
+  disconnectGoogleCalendarAction,
+} from "@/server/actions/calendar.actions";
 
 // ----------- Tipe Filter -----------
-type CalendarFilter = "all" | "leave" | "holiday";
+type CalendarFilter = "all" | "leave" | "holiday" | "meeting";
 
 // ----------- Props -----------
 interface WorkCalendarViewProps {
@@ -26,8 +38,12 @@ interface WorkCalendarViewProps {
   month: number;
   leaves: WorkCalendarLeave[];
   holidays: WorkCalendarHoliday[];
-  googleConnected?: boolean; // Fase C: apakah user sudah connect Google
-  canSyncHolidays?: boolean; // Fase B: izin HR / Admin untuk sinkronisasi libur nasional
+  meetings?: WorkCalendarMeeting[];
+  googleConnected?: boolean;
+  connectedGoogleEmail?: string;
+  canSyncHolidays?: boolean;
+  initialConnectedNotice?: boolean;
+  initialErrorNotice?: string;
 }
 
 // ----------- Komponen Utama -----------
@@ -36,8 +52,12 @@ export function WorkCalendarView({
   month,
   leaves,
   holidays,
+  meetings = [],
   googleConnected = false,
+  connectedGoogleEmail,
   canSyncHolidays = false,
+  initialConnectedNotice = false,
+  initialErrorNotice,
 }: WorkCalendarViewProps) {
   const router = useRouter();
   const [currentYear, setCurrentYear] = useState(year);
@@ -48,17 +68,49 @@ export function WorkCalendarView({
     dateStr: string;
     leaves: WorkCalendarLeave[];
     holiday: WorkCalendarHoliday | null;
+    meetings: WorkCalendarMeeting[];
   } | null>(null);
   const [selectedLeaveDetail, setSelectedLeaveDetail] = useState<WorkCalendarLeave | null>(null);
+  const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<WorkCalendarMeeting | null>(null);
   const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
+  const [isSyncingGoogle, setIsSyncingGoogle] = useState(false);
+  const [isDisconnectingGoogle, setIsDisconnectingGoogle] = useState(false);
   const [syncFeedback, setSyncFeedback] = useState<{
     type: "success" | "error";
     message: string;
-  } | null>(null);
+  } | null>(() => {
+    if (initialConnectedNotice) {
+      return {
+        type: "success",
+        message: "Akun Google Calendar berhasil terhubung! Agenda rapat Anda telah disinkronkan.",
+      };
+    }
+    if (initialErrorNotice) {
+      const errorMsg =
+        initialErrorNotice === "oauth_not_configured"
+          ? "Google OAuth belum dikonfigurasi di server. Hubungi IT Administrator."
+          : `Gagal menghubungkan Google: ${initialErrorNotice}`;
+      return {
+        type: "error",
+        message: errorMsg,
+      };
+    }
+    return null;
+  });
 
   const MONTHS = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
   ];
 
   const today = new Date();
@@ -71,21 +123,30 @@ export function WorkCalendarView({
   const handlePrevMonth = () => {
     let m = currentMonth - 1;
     let y = currentYear;
-    if (m < 1) { m = 12; y--; }
-    setCurrentMonth(m); setCurrentYear(y);
+    if (m < 1) {
+      m = 12;
+      y--;
+    }
+    setCurrentMonth(m);
+    setCurrentYear(y);
     router.push(`/kalender?year=${y}&month=${m}`);
   };
 
   const handleNextMonth = () => {
     let m = currentMonth + 1;
     let y = currentYear;
-    if (m > 12) { m = 1; y++; }
-    setCurrentMonth(m); setCurrentYear(y);
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+    setCurrentMonth(m);
+    setCurrentYear(y);
     router.push(`/kalender?year=${y}&month=${m}`);
   };
 
   const handleToday = () => {
-    setCurrentMonth(todayMonth); setCurrentYear(todayYear);
+    setCurrentMonth(todayMonth);
+    setCurrentYear(todayYear);
     router.push(`/kalender?year=${todayYear}&month=${todayMonth}`);
   };
 
@@ -117,6 +178,60 @@ export function WorkCalendarView({
     }
   };
 
+  // --- Sync Google Calendar Pribadi ---
+  const handleSyncMyGoogleCalendar = async () => {
+    try {
+      setIsSyncingGoogle(true);
+      setSyncFeedback(null);
+      const res = await syncMyGoogleCalendarAction();
+      if (res.success) {
+        setSyncFeedback({
+          type: "success",
+          message: res.message,
+        });
+        router.refresh();
+      } else {
+        setSyncFeedback({
+          type: "error",
+          message: res.message,
+        });
+      }
+    } catch (err: unknown) {
+      setSyncFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal menyinkronkan agenda Google Calendar.",
+      });
+    } finally {
+      setIsSyncingGoogle(false);
+    }
+  };
+
+  // --- Putuskan Koneksi Google Calendar ---
+  const handleDisconnectGoogle = async () => {
+    if (!window.confirm("Apakah Anda yakin ingin memutuskan sambungan akun Google Calendar? Agenda rapat dari Google akan dihapus dari kalender HRIS.")) {
+      return;
+    }
+    try {
+      setIsDisconnectingGoogle(true);
+      setSyncFeedback(null);
+      const res = await disconnectGoogleCalendarAction();
+      if (res.success) {
+        setSyncFeedback({
+          type: "success",
+          message: res.message,
+        });
+        router.refresh();
+      }
+    } catch (err: unknown) {
+      setSyncFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : "Gagal memutuskan sambungan Google Calendar.",
+      });
+    } finally {
+      setIsDisconnectingGoogle(false);
+    }
+  };
+
   // --- Build grid ---
   const firstDayOfMonth = new Date(currentYear, currentMonth - 1, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
@@ -137,11 +252,23 @@ export function WorkCalendarView({
     });
   };
 
+  const getMeetingsForDate = (dateStr: string): WorkCalendarMeeting[] => {
+    const target = new Date(dateStr).getTime();
+    return meetings.filter((m) => {
+      const s = new Date(toDateString(m.startAt)).getTime();
+      const e = new Date(toDateString(m.endAt)).getTime();
+      return target >= s && target <= e;
+    });
+  };
+
   // --- Filter ---
   const filterItems = [
-    { id: "all" as CalendarFilter, label: "Semua" },
+    { id: "all" as CalendarFilter, label: "Semua Event" },
     { id: "leave" as CalendarFilter, label: "Cuti Tim" },
     { id: "holiday" as CalendarFilter, label: "Hari Libur" },
+    ...(googleConnected
+      ? [{ id: "meeting" as CalendarFilter, label: `Meeting Saya (${meetings.length})` }]
+      : []),
   ];
 
   // --- Nama pendek ---
@@ -152,12 +279,24 @@ export function WorkCalendarView({
     return parts[0]!;
   };
 
+  // --- Format jam ---
+  const formatMeetingTime = (date: Date) => {
+    return new Date(date).toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Jakarta",
+    });
+  };
+
   // --- Chip style per tipe cuti ---
   const getLeavePillConfig = (typeName: string) => {
     const lower = typeName.toLowerCase();
-    if (lower.includes("sakit")) return { bg: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100", dot: "bg-rose-500", label: "Sakit" };
-    if (lower.includes("tahunan")) return { bg: "bg-[#eff4ff] text-[#102e50] border-[#dee9fc] hover:bg-blue-100", dot: "bg-blue-600", label: "Tahunan" };
-    if (lower.includes("melahirkan")) return { bg: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100", dot: "bg-purple-600", label: "Melahirkan" };
+    if (lower.includes("sakit"))
+      return { bg: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100", dot: "bg-rose-500", label: "Sakit" };
+    if (lower.includes("tahunan"))
+      return { bg: "bg-[#eff4ff] text-[#102e50] border-[#dee9fc] hover:bg-blue-100", dot: "bg-blue-600", label: "Tahunan" };
+    if (lower.includes("melahirkan"))
+      return { bg: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100", dot: "bg-purple-600", label: "Melahirkan" };
     return { bg: "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100", dot: "bg-amber-600", label: "Penting" };
   };
 
@@ -174,14 +313,48 @@ export function WorkCalendarView({
               <h2 className="text-lg font-bold text-[#102e50] font-heading leading-tight">
                 {MONTHS[currentMonth - 1]} {currentYear}
               </h2>
-              <p className="text-xs text-[#5b6675] mt-0.5">
-                Cuti tim, hari libur nasional{!googleConnected ? " · " : " & "}{!googleConnected ? <span className="text-blue-500 font-medium">meeting Google (segera)</span> : "meeting Google Meet"}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <p className="text-xs text-[#5b6675]">
+                  Cuti tim, hari libur nasional
+                  {googleConnected ? " & meeting Google Meet" : " · meeting Google (opsional)"}
+                </p>
+                {googleConnected && connectedGoogleEmail && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-800">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                    {connectedGoogleEmail}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Kontrol navigasi bulan */}
-          <div className="flex items-center gap-2">
+          {/* Kontrol navigasi bulan & sinkronisasi Google */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {googleConnected && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleSyncMyGoogleCalendar}
+                  disabled={isSyncingGoogle}
+                  className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 text-xs font-semibold transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
+                  title="Sinkronkan agenda meeting Google Meet terbaru"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingGoogle ? "animate-spin text-blue-600" : ""}`} />
+                  <span className="hidden md:inline">Sync Meeting</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDisconnectGoogle}
+                  disabled={isDisconnectingGoogle}
+                  className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-red-700 hover:bg-red-50 hover:border-red-200 text-xs transition-colors cursor-pointer"
+                  title="Putuskan sambungan Google Calendar"
+                >
+                  <Unlink className="w-4 h-4" />
+                </button>
+                <div className="h-5 w-px bg-slate-200 mx-0.5" />
+              </>
+            )}
+
             <button
               type="button"
               onClick={handleToday}
@@ -198,6 +371,7 @@ export function WorkCalendarView({
               type="button"
               onClick={handlePrevMonth}
               className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+              title="Bulan sebelumnya"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -208,6 +382,7 @@ export function WorkCalendarView({
               type="button"
               onClick={handleNextMonth}
               className="p-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+              title="Bulan berikutnya"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -230,6 +405,7 @@ export function WorkCalendarView({
               {f.label}
             </button>
           ))}
+
           {canSyncHolidays && (
             <button
               type="button"
@@ -242,6 +418,7 @@ export function WorkCalendarView({
               {isSyncingHolidays ? "Menyinkronkan..." : "Sync Libur Nasional"}
             </button>
           )}
+
           {!canSyncHolidays && (
             <span className="ml-auto text-[11px] text-slate-400 italic hidden sm:block">
               Klik tanggal untuk detail
@@ -249,7 +426,7 @@ export function WorkCalendarView({
           )}
         </div>
 
-        {/* Feedback Alert Sinkronisasi */}
+        {/* Feedback Alert */}
         {syncFeedback && (
           <div
             className={`px-5 py-2.5 border-b text-xs flex items-center justify-between transition-all ${
@@ -300,21 +477,29 @@ export function WorkCalendarView({
               const dateStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
               const holiday = holidayMap.get(dateStr);
               const dayLeaves = getLeavesForDate(dateStr);
+              const dayMeetings = getMeetingsForDate(dateStr);
               const isWeekend = idx % 7 === 0 || idx % 7 === 6;
               const isToday = currentYear === todayYear && currentMonth === todayMonth && day === todayDay;
 
               // Terapkan filter aktif
               const showHoliday = (activeFilter === "all" || activeFilter === "holiday") && !!holiday;
-              const filteredLeaves = (activeFilter === "all" || activeFilter === "leave") ? dayLeaves : [];
+              const filteredLeaves = activeFilter === "all" || activeFilter === "leave" ? dayLeaves : [];
+              const filteredMeetings = activeFilter === "all" || activeFilter === "meeting" ? dayMeetings : [];
 
-              const hasContent = showHoliday || filteredLeaves.length > 0;
+              const hasContent = showHoliday || filteredLeaves.length > 0 || filteredMeetings.length > 0;
 
               return (
                 <div
                   key={`day-${day}`}
                   onClick={() => {
                     if (hasContent) {
-                      setSelectedDayData({ day, dateStr, leaves: dayLeaves, holiday: holiday ?? null });
+                      setSelectedDayData({
+                        day,
+                        dateStr,
+                        leaves: dayLeaves,
+                        holiday: holiday ?? null,
+                        meetings: dayMeetings,
+                      });
                     }
                   }}
                   className={`h-28 md:h-32 p-1.5 md:p-2 rounded-xl border flex flex-col transition-all overflow-hidden relative ${
@@ -358,14 +543,34 @@ export function WorkCalendarView({
 
                   {/* Nama hari libur */}
                   {showHoliday && (
-                    <p className="text-[10px] text-red-900 font-semibold line-clamp-2 leading-tight mb-1">
+                    <p className="text-[10px] text-red-900 font-semibold line-clamp-1 leading-tight mb-1">
                       {holiday!.name}
                     </p>
                   )}
 
-                  {/* Chip cuti karyawan */}
+                  {/* Chip meeting & cuti */}
                   <div className="flex flex-col gap-0.5 overflow-hidden mt-auto">
-                    {filteredLeaves.slice(0, 2).map((l) => {
+                    {/* Chip Meeting Google Meet */}
+                    {filteredMeetings.slice(0, 1).map((m) => (
+                      <div
+                        key={m.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedMeetingDetail(m);
+                        }}
+                        className="w-full text-left px-1.5 py-0.5 rounded border border-indigo-200 bg-indigo-50/90 hover:bg-indigo-100 text-indigo-900 text-[10px] font-semibold truncate flex items-center gap-1 transition-colors"
+                        title={`Rapat: ${m.title} (${m.isAllDay ? "Sepanjang hari" : formatMeetingTime(m.startAt)})`}
+                      >
+                        <Video className="w-2.5 h-2.5 text-indigo-600 shrink-0" />
+                        <span className="truncate">
+                          {!m.isAllDay && <span className="opacity-75 font-normal mr-0.5">{formatMeetingTime(m.startAt)}</span>}
+                          {m.title}
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Chip Cuti Rekan Kerja */}
+                    {filteredLeaves.slice(0, filteredMeetings.length > 0 ? 1 : 2).map((l) => {
                       const conf = getLeavePillConfig(l.leaveType.name);
                       const shortName = formatShortName(l.employee.fullName);
                       return (
@@ -379,9 +584,10 @@ export function WorkCalendarView({
                         </div>
                       );
                     })}
-                    {filteredLeaves.length > 2 && (
-                      <span className="text-[10px] font-bold text-[#102e50] px-1">
-                        +{filteredLeaves.length - 2} lainnya
+
+                    {filteredLeaves.length + filteredMeetings.length > 2 && (
+                      <span className="text-[9px] font-bold text-[#102e50] px-1">
+                        +{filteredLeaves.length + filteredMeetings.length - 2} lainnya
                       </span>
                     )}
                   </div>
@@ -402,6 +608,10 @@ export function WorkCalendarView({
                 <span className="text-slate-600">Libur / Cuti Bersama</span>
               </div>
               <div className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded bg-indigo-100 border border-indigo-300" />
+                <span className="text-slate-600">Google Meet (Pribadi)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
                 <span className="w-3 h-3 rounded bg-[#eff4ff] border border-[#dee9fc]" />
                 <span className="text-slate-600">Cuti Tahunan</span>
               </div>
@@ -409,13 +619,9 @@ export function WorkCalendarView({
                 <span className="w-3 h-3 rounded bg-rose-50 border border-rose-200" />
                 <span className="text-slate-600">Izin Sakit</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-amber-50 border border-amber-200" />
-                <span className="text-slate-600">Cuti Khusus</span>
-              </div>
             </div>
             <span className="text-slate-400 text-[11px] italic hidden md:block">
-              * Klik tanggal untuk melihat detail lengkap
+              * Klik tanggal untuk detail agenda
             </span>
           </div>
         </div>
@@ -426,7 +632,6 @@ export function WorkCalendarView({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="fixed inset-0" onClick={() => setSelectedDayData(null)} />
           <div className="relative bg-white rounded-2xl max-w-md w-full border border-[#dee9fc] shadow-2xl overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-150">
-
             {/* Header modal */}
             <div className="px-5 py-4 bg-gradient-to-r from-[#eff4ff] to-white border-b border-[#dee9fc] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -440,23 +645,24 @@ export function WorkCalendarView({
                   <p className="text-[11px] text-slate-500">
                     {[
                       selectedDayData.holiday ? "1 hari libur" : null,
-                      selectedDayData.leaves.length > 0 ? `${selectedDayData.leaves.length} karyawan cuti` : null,
+                      selectedDayData.meetings.length > 0 ? `${selectedDayData.meetings.length} meeting` : null,
+                      selectedDayData.leaves.length > 0 ? `${selectedDayData.leaves.length} cuti tim` : null,
                     ]
                       .filter(Boolean)
-                      .join(" · ") || "Hari kerja biasa"}
+                      .join(" · ") || "Hari kerja normal"}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedDayData(null)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="p-4 space-y-3 max-h-80 overflow-y-auto">
+            <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
               {/* Hari libur */}
               {selectedDayData.holiday && (
                 <div className="p-3 rounded-xl bg-red-50 border border-red-200">
@@ -469,12 +675,47 @@ export function WorkCalendarView({
                 </div>
               )}
 
-              {/* Daftar cuti karyawan */}
+              {/* Rapat Google Meet Pribadi */}
+              {selectedDayData.meetings.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide flex items-center gap-1.5">
+                    <Video className="w-3.5 h-3.5" />
+                    Meeting Google Meet ({selectedDayData.meetings.length})
+                  </p>
+                  {selectedDayData.meetings.map((m) => (
+                    <div
+                      key={m.id}
+                      className="p-3 rounded-xl border border-indigo-200 bg-indigo-50/50 hover:bg-indigo-50 transition-all flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-indigo-950 truncate">{m.title}</p>
+                        <p className="text-[11px] text-indigo-700 mt-0.5 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {m.isAllDay ? "Sepanjang hari" : `${formatMeetingTime(m.startAt)} – ${formatMeetingTime(m.endAt)} WIB`}
+                        </p>
+                      </div>
+                      {m.meetUrl && (
+                        <a
+                          href={m.meetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 px-3 py-1.5 rounded-lg bg-[#102e50] hover:bg-[#1a4473] text-[#f2af3e] text-xs font-semibold flex items-center gap-1 shadow-xs transition-colors"
+                        >
+                          <Video className="w-3.5 h-3.5" />
+                          Gabung
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Daftar cuti rekan kerja */}
               {selectedDayData.leaves.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1.5">
                     <Users className="w-3.5 h-3.5" />
-                    Karyawan Cuti ({selectedDayData.leaves.length})
+                    Cuti Tim ({selectedDayData.leaves.length})
                   </p>
                   {selectedDayData.leaves.map((l) => {
                     const conf = getLeavePillConfig(l.leaveType.name);
@@ -505,16 +746,18 @@ export function WorkCalendarView({
                 </div>
               )}
 
-              {!selectedDayData.holiday && selectedDayData.leaves.length === 0 && (
-                <p className="text-sm text-slate-500 text-center py-4">Tidak ada event pada hari ini.</p>
-              )}
+              {!selectedDayData.holiday &&
+                selectedDayData.leaves.length === 0 &&
+                selectedDayData.meetings.length === 0 && (
+                  <p className="text-sm text-slate-500 text-center py-4">Tidak ada event pada hari ini.</p>
+                )}
             </div>
 
             <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
               <button
                 type="button"
                 onClick={() => setSelectedDayData(null)}
-                className="px-4 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 transition-colors cursor-pointer"
               >
                 Tutup
               </button>
@@ -523,7 +766,87 @@ export function WorkCalendarView({
         </div>
       )}
 
-      {/* === Modal Detail Cuti Karyawan (terklik dari modal hari) === */}
+      {/* === Modal Detail Meeting Google Meet === */}
+      {selectedMeetingDetail && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="fixed inset-0" onClick={() => setSelectedMeetingDetail(null)} />
+          <div className="relative bg-white rounded-2xl max-w-sm w-full border border-indigo-200 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+            <div className="px-5 py-4 bg-gradient-to-r from-indigo-50 to-white border-b border-indigo-100 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#102e50] text-[#f2af3e] flex items-center justify-center">
+                  <Video className="w-3.5 h-3.5" />
+                </div>
+                <h3 className="text-sm font-bold text-[#102e50] font-heading">Detail Meeting</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedMeetingDetail(null)}
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-3">
+              <div>
+                <p className="text-xs text-slate-500">Judul Agenda</p>
+                <p className="text-sm font-bold text-slate-900 mt-0.5">{selectedMeetingDetail.title}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-slate-500">Waktu Pelaksanaan</p>
+                <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                  {toDateString(selectedMeetingDetail.startAt)} ·{" "}
+                  {selectedMeetingDetail.isAllDay
+                    ? "Sepanjang hari"
+                    : `${formatMeetingTime(selectedMeetingDetail.startAt)} – ${formatMeetingTime(selectedMeetingDetail.endAt)} WIB`}
+                </p>
+              </div>
+
+              {selectedMeetingDetail.description && (
+                <div>
+                  <p className="text-xs text-slate-500">Deskripsi / Agenda</p>
+                  <p className="text-xs text-slate-700 mt-0.5 whitespace-pre-wrap line-clamp-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+                    {selectedMeetingDetail.description}
+                  </p>
+                </div>
+              )}
+
+              <div className="pt-2">
+                {selectedMeetingDetail.meetUrl ? (
+                  <a
+                    href={selectedMeetingDetail.meetUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#102e50] hover:bg-[#1a4473] text-[#f2af3e] text-xs font-bold shadow-xs transition-colors"
+                  >
+                    <Video className="w-4 h-4" />
+                    Buka Google Meet
+                    <ExternalLink className="w-3.5 h-3.5 ml-1 opacity-75" />
+                  </a>
+                ) : (
+                  <p className="text-xs text-slate-400 italic text-center py-1">
+                    Event ini tidak menyertakan tautan Google Meet langsung.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+              <span>Sumber: Google Calendar</span>
+              <button
+                type="button"
+                onClick={() => setSelectedMeetingDetail(null)}
+                className="px-3 py-1 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === Modal Detail Cuti Karyawan === */}
       {selectedLeaveDetail && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="fixed inset-0" onClick={() => setSelectedLeaveDetail(null)} />
@@ -533,7 +856,7 @@ export function WorkCalendarView({
               <button
                 type="button"
                 onClick={() => setSelectedLeaveDetail(null)}
-                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                className="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -547,7 +870,9 @@ export function WorkCalendarView({
                       <p className="text-xs text-slate-500">Karyawan</p>
                       <p className="text-sm font-bold text-[#102e50] mt-0.5">{selectedLeaveDetail.employee.fullName}</p>
                       {selectedLeaveDetail.employee.position && (
-                        <p className="text-xs text-slate-500">{selectedLeaveDetail.employee.position} · {selectedLeaveDetail.employee.department ?? ""}</p>
+                        <p className="text-xs text-slate-500">
+                          {selectedLeaveDetail.employee.position} · {selectedLeaveDetail.employee.department ?? ""}
+                        </p>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
@@ -584,7 +909,7 @@ export function WorkCalendarView({
               <button
                 type="button"
                 onClick={() => setSelectedLeaveDetail(null)}
-                className="px-4 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 transition-colors"
+                className="px-4 py-1.5 rounded-lg bg-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-300 transition-colors cursor-pointer"
               >
                 Tutup
               </button>

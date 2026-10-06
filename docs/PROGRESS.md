@@ -4,6 +4,45 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 6 (Fase C): Google OAuth per Karyawan & Integrasi Meeting Google Meet — 2026-10-06
+
+- **Status:** Selesai (Seluruh 3 Fase Modul Kalender Kerja Rampung)
+- **Scope Fase C (Integrasi OAuth Pribadi, Enkripsi Token, Google Meet Event):**
+  1. **Skema Database & Prisma Migration:**
+     - Menambahkan enum `CalendarEventType` (`MEETING`, `LEAVE`, `HOLIDAY`), `CalendarEventSource` (`GOOGLE_CALENDAR`, `HRIS_SYSTEM`), dan model `CalendarEvent` di [`packages/db/prisma/schema/hris.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/hris.prisma).
+     - Menghubungkan relasi `calendarEvents` pada model `Employee`.
+     - Migration dijalankan via `pnpm db:migrate --name add_calendar_events` (`20261006062920_add_calendar_events.sql`).
+  2. **Service Google Calendar & Manajemen Token (`google-calendar.service.ts`):**
+     - [`apps/hris/src/server/services/google-calendar.service.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/google-calendar.service.ts):
+       - `checkGoogleConnected(userId)`: Memeriksa status sambungan akun Google karyawan di tabel `Account`.
+       - `syncEmployeeGoogleEvents(employeeId, userId)`: Mengambil agenda kalender Google (rentang -30 hari s.d. +60 hari), mendeteksi tautan Google Meet (`hangoutLink` / `conferenceData` / deskripsi), meng-upsert event berstatus `MEETING`, dan membersihkan agenda yang telah dibatalkan/dihapus di Google Calendar.
+       - `refreshGoogleAccessToken(accountId, encryptedRefreshToken)`: Otomatis menyegarkan `access_token` jika sudah kedaluwarsa.
+       - `disconnectGoogleCalendar(userId, employeeId)`: Menghapus token dari tabel `Account` dan menghapus data agenda meeting Google milik karyawan yang login.
+       - **Keamanan Token:** Seluruh token (`access_token`, `refresh_token`) wajib dienkripsi sebelum disimpan ke DB menggunakan `encryptField` (AES-256-GCM via `DATA_ENCRYPTION_KEY`) dan didekripsi on-the-fly via `decryptField`.
+  3. **Alur Autentikasi OAuth 2.0 (Connect & Callback):**
+     - [`apps/hris/src/app/api/calendar/google/connect/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/api/calendar/google/connect/route.ts): Menginisiasi alur OAuth, menyusun URL consent Google dengan scope `calendar.events.readonly`, serta menyetel cookie anti-CSRF `pspk_gcal_oauth_state` (httpOnly).
+     - [`apps/hris/src/app/api/calendar/google/callback/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/api/calendar/google/callback/route.ts): Memvalidasi state anti-CSRF, menukar authorization code dengan token Google, mengenkripsi token, menyimpannya ke tabel `Account`, menjalankan initial sync meeting, dan mengalihkan user kembali ke `/kalender?connected=true`.
+  4. **Server Actions & Query Kalender:**
+     - [`apps/hris/src/server/actions/calendar.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/calendar.actions.ts): Ditambahkan `syncMyGoogleCalendarAction()` dan `disconnectGoogleCalendarAction()` dengan proteksi RBAC `hris.calendar.google:connect` dan audit log `writeAudit`.
+     - [`apps/hris/src/server/queries/calendar.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/calendar.queries.ts): Diperluas untuk menyertakan `meetings: WorkCalendarMeeting[]` yang secara eksklusif hanya memuat meeting milik karyawan yang login (privat).
+  5. **Pembaruan UI Kalender Kerja:**
+     - [`apps/hris/src/components/kalender/google-connect-banner.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/google-connect-banner.tsx): Tombol "Hubungkan Google Calendar" kini aktif mengarah ke `/api/calendar/google/connect`.
+     - [`apps/hris/src/components/kalender/work-calendar-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/work-calendar-view.tsx):
+       - Filter bar: Ditambahkan filter dinamis "Meeting Saya (N)".
+       - Grid kalender: Menampilkan chip meeting (warna indigo) dengan icon kamera `Video`, judul rapat, dan jam pelaksanaan WIB.
+       - Modal Detail Meeting: Klik meeting chip memunculkan dialog rincian agenda, waktu pelaksanaan, dan tombol CTA utama "Buka Google Meet" yang membuka Google Meet langsung di tab baru.
+       - Status bar akun terhubung: Menampilkan badge email Google yang terhubung, tombol "Sync Meeting", dan tombol "Putuskan Sambungan".
+  6. **Konfigurasi Environment:**
+     - [`.env.example`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/.env.example) dilengkapi `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_OAUTH_REDIRECT_URI`.
+- **Verifikasi Kualitas:**
+  - `Prisma Migration`: ✅ Sukses (`20261006062920_add_calendar_events`)
+  - `pnpm typecheck`: ✅ Lolos 9 paket tanpa error
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 7 test suite (65 unit tests)
+  - Endpoint tests (`/api/calendar/google/connect` & `/callback`): ✅ HTTP 307 Redirect aman
+
+---
+
 ## Tahap 6 (Fase B): Auto-Sync Libur Nasional via Google Calendar API — 2026-10-06
 
 - **Status:** Selesai (Fase B dari 3 Fase)

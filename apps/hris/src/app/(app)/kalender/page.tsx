@@ -3,13 +3,19 @@ import { redirect } from "next/navigation";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can } from "@pspk/rbac";
 import { getWorkCalendarEvents } from "@/server/queries/calendar.queries";
+import { checkGoogleConnected } from "@/server/services/google-calendar.service";
 import { WorkCalendarView } from "@/components/kalender/work-calendar-view";
 import { GoogleConnectBanner } from "@/components/kalender/google-connect-banner";
 
 export const dynamic = "force-dynamic";
 
 interface KalenderPageProps {
-  searchParams: Promise<{ year?: string; month?: string }>;
+  searchParams: Promise<{
+    year?: string;
+    month?: string;
+    connected?: string;
+    error?: string;
+  }>;
 }
 
 export default async function KalenderPage({ searchParams }: KalenderPageProps) {
@@ -28,10 +34,13 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
   const year = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
   const month = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
 
-  const { leaves, holidays } = await getWorkCalendarEvents(year, month);
+  // Cek koneksi akun Google & ambil meeting milik karyawan yang login
+  const [googleStatus, calendarData] = await Promise.all([
+    checkGoogleConnected(session.user.id),
+    getWorkCalendarEvents(year, month, authCtx.employeeId),
+  ]);
 
-  // Fase C: check if user has Google connected
-  const googleConnected = false;
+  const { leaves, holidays, meetings } = calendarData;
 
   return (
     <div className="space-y-6">
@@ -40,19 +49,24 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
           Kalender Kerja
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Jadwal kerja, cuti tim, hari libur nasional, dan meeting dalam satu tampilan.
+          Jadwal kerja, cuti tim, hari libur nasional, dan meeting Google Meet dalam satu tampilan.
         </p>
       </div>
 
-      <GoogleConnectBanner show={!googleConnected} />
+      {/* Banner ajakan hubungkan akun Google (muncul jika belum terhubung) */}
+      <GoogleConnectBanner show={!googleStatus.isConnected} />
 
       <WorkCalendarView
         year={year}
         month={month}
         leaves={leaves}
         holidays={holidays}
-        googleConnected={googleConnected}
+        meetings={meetings}
+        googleConnected={googleStatus.isConnected}
+        connectedGoogleEmail={googleStatus.email}
         canSyncHolidays={canSyncHolidays}
+        initialConnectedNotice={resolvedParams.connected === "true"}
+        initialErrorNotice={resolvedParams.error}
       />
     </div>
   );
