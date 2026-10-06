@@ -1,5 +1,11 @@
 import { prisma } from "@pspk/db";
-import { toDateString } from "@pspk/shared";
+import {
+  toDateString,
+  getIndonesianObservancesForMonth,
+  type ComputedObservance,
+} from "@pspk/shared";
+
+export type WorkCalendarObservance = ComputedObservance;
 
 export interface WorkCalendarLeave {
   id: string;
@@ -42,6 +48,7 @@ export interface WorkCalendarMeeting {
 export interface WorkCalendarResult {
   leaves: WorkCalendarLeave[];
   holidays: WorkCalendarHoliday[];
+  observances: WorkCalendarObservance[];
   meetings: WorkCalendarMeeting[];
   period: { year: number; month: number; startDate: Date; endDate: Date };
 }
@@ -125,6 +132,7 @@ export async function getWorkCalendarEvents(
       },
     })),
     holidays,
+    observances: getIndonesianObservancesForMonth(year, month),
     meetings: meetings.map((m) => ({
       id: m.id,
       title: m.title,
