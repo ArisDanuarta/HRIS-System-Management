@@ -181,11 +181,15 @@ export async function syncIndonesianHolidays(
     syncedCount++;
   }
 
-  // Revalidasi cache rute
-  revalidatePath("/kalender");
-  revalidatePath("/cuti/kalender");
-  revalidatePath("/cuti/pengaturan");
-  revalidatePath("/cuti/ajukan");
+  // Revalidasi cache rute jika di dalam konteks request Next.js
+  try {
+    revalidatePath("/kalender");
+    revalidatePath("/cuti/kalender");
+    revalidatePath("/cuti/pengaturan");
+    revalidatePath("/cuti/ajukan");
+  } catch {
+    // Abaikan jika dipanggil di luar konteks request Next.js (misal: script background)
+  }
 
   return {
     success: true,

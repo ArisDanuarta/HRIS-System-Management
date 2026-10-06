@@ -364,7 +364,11 @@ export async function syncEmployeeGoogleEvents(
     }
   }
 
-  revalidatePath("/kalender");
+  try {
+    revalidatePath("/kalender");
+  } catch {
+    // Abaikan jika dipanggil di luar konteks request Next.js
+  }
 
   return {
     success: true,
@@ -399,5 +403,9 @@ export async function disconnectGoogleCalendar(
     });
   }
 
-  revalidatePath("/kalender");
+  try {
+    revalidatePath("/kalender");
+  } catch {
+    // Abaikan jika dipanggil di luar konteks request Next.js
+  }
 }
