@@ -4,6 +4,42 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Tahap 6 (Fase A): Modul Kalender Kerja Terpadu (Work Calendar) — 2026-10-06
+
+- **Status:** Selesai (Fase A dari 3 Fase)
+- **Scope Fase A (Struktur Menu, RBAC, Data DB Cuti & Libur):**
+  1. **RBAC & Hak Akses:**
+     - Ditambahkan 4 permission baru di [`packages/rbac/src/permissions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/permissions.ts):
+       - `hris.calendar.read:own`
+       - `hris.calendar.read:all`
+       - `hris.calendar.holiday:sync`
+       - `hris.calendar.google:connect`
+     - Mapping role di [`packages/rbac/src/roles.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/roles.ts) untuk `admin_hr`, `manager`, `staff`, dan `super_admin`.
+     - Seed database dijalankan via `pnpm db:seed` (65 permissions & 5 roles tersinkronisasi).
+  2. **Query Server Kalender Kerja:**
+     - [`apps/hris/src/server/queries/calendar.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/calendar.queries.ts):
+       - `getWorkCalendarEvents(year, month)` mengambil data cuti tim yang berstatus `APPROVED` serta hari libur resmi dan cuti bersama dari tabel `Holiday` untuk bulan yang dipilih.
+  3. **Komponen UI Kalender Kerja:**
+     - [`apps/hris/src/components/kalender/work-calendar-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/work-calendar-view.tsx):
+       - Grid 7-kolom (Senin–Minggu) interaktif dengan indikator hari ini (*today badge*).
+       - Navigasi bulan (Maju/Mundur/Hari Ini) dengan URL query params `?year=&month=`.
+       - Filter pill: Semua Event, Cuti Tim, Hari Libur Nasional.
+       - Modal dialog daftar kegiatan harian saat tanggal diklik.
+       - Modal detail cuti rekan kerja (karyawan, departemen, jenis cuti, durasi, alasan).
+     - [`apps/hris/src/components/kalender/google-connect-banner.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/google-connect-banner.tsx):
+       - Banner ajakan integrasi Google Calendar & Google Meet (siap diaktifkan pada Fase C).
+  4. **Halaman Rute & Navigasi Sidebar:**
+     - Halaman baru [`apps/hris/src/app/(app)/kalender/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kalender/page.tsx) dengan Server Component `dynamic = "force-dynamic"`, pengecekan session, dan proteksi RBAC `hris.calendar.read:own`.
+     - Menu "Kalender Kerja" mandiri ditambahkan ke Sidebar ([`apps/hris/src/components/shell/app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)) untuk seluruh peran (Admin HR, Manager, Staff) tepat di bawah menu Beranda.
+- **Verifikasi Kualitas:**
+  - `pnpm db:seed`: ✅ Sukses (65 permissions & 5 roles)
+  - `pnpm typecheck`: ✅ Lolos 9 paket tanpa error
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 7 test suite (65 unit tests)
+  - Endpoint dev server: ✅ HTTP 307 redirect ke login saat unauthenticated
+
+---
+
 ## Tahap 5: Modul Evaluasi Kinerja & Riset (Full Workflow) — 2026-10-05
 
 - **Status:** Selesai

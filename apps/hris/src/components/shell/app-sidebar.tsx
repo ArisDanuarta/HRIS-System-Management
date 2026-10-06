@@ -22,6 +22,7 @@ import {
   Clock,
   Briefcase,
   Network,
+  CalendarRange,
 } from "lucide-react";
 
 export type RoleViewType = "admin_hr" | "manager" | "staff";
@@ -103,6 +104,9 @@ export function AppSidebar({
         pathname === "/timesheet" ||
         (pathname.startsWith("/timesheet/") && !pathname.startsWith("/timesheet/persetujuan"))
       );
+    }
+    if (href === "/kalender") {
+      return pathname.startsWith("/kalender");
     }
     return pathname.startsWith(href);
   };
@@ -234,6 +238,13 @@ export function AppSidebar({
                 isCollapsed={isCollapsed}
               />
               <NavItem
+                href="/kalender"
+                label="Kalender Kerja"
+                icon={<CalendarRange className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/kalender")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
                 href="/karyawan"
                 label="Manajemen Karyawan"
                 icon={<Users className="w-5 h-5 shrink-0" />}
@@ -336,6 +347,13 @@ export function AppSidebar({
                 isCollapsed={isCollapsed}
               />
               <NavItem
+                href="/kalender"
+                label="Kalender Kerja"
+                icon={<CalendarRange className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/kalender")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
                 href="/karyawan?view=team"
                 label="Tim Saya"
                 icon={<Users className="w-5 h-5 shrink-0" />}
@@ -416,6 +434,13 @@ export function AppSidebar({
                 label="Beranda"
                 icon={<LayoutDashboard className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/dashboard")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
+                href="/kalender"
+                label="Kalender Kerja"
+                icon={<CalendarRange className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/kalender")}
                 isCollapsed={isCollapsed}
               />
               <NavItem
