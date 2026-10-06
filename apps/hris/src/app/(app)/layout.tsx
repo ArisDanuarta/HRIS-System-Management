@@ -61,8 +61,10 @@ export default async function AppProtectedLayout({
   let pendingTimesheetsCount = 0;
   let remainingLeaveDays = 12;
 
+  const currentYear = new Date().getFullYear();
+
   if (userProfile?.employee?.id) {
-    const [activeContract, balances] = await Promise.all([
+    const [activeContract, balances, defaultAnnualType] = await Promise.all([
       prisma.employmentContract.findFirst({
         where: {
           employeeId: userProfile.employee.id,
@@ -74,9 +76,16 @@ export default async function AppProtectedLayout({
       prisma.leaveBalance.findMany({
         where: {
           employeeId: userProfile.employee.id,
-          year: 2026,
+          year: currentYear,
         },
         include: { leaveType: true },
+      }),
+      prisma.leaveType.findFirst({
+        where: {
+          name: { contains: "Tahunan", mode: "insensitive" },
+          isActive: true,
+        },
+        select: { defaultQuotaDays: true },
       }),
     ]);
 
@@ -86,6 +95,8 @@ export default async function AppProtectedLayout({
       balances.find((b) => b.leaveType.name.toLowerCase().includes("tahunan")) || balances[0];
     if (annualBalance) {
       remainingLeaveDays = Math.max(0, annualBalance.quotaDays - Number(annualBalance.usedDays));
+    } else if (defaultAnnualType) {
+      remainingLeaveDays = defaultAnnualType.defaultQuotaDays;
     }
 
     if (initialRole === "manager") {

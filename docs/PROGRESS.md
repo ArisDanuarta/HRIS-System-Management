@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## Tahap 6 (Penyempurnaan Saldo Cuti): Saldo Kuota Cuti Dinamis & Auto-Provisioning Tipe Cuti — 2026-10-06
+
+- **Status:** Selesai
+- **Scope & Perbaikan:**
+  1. **Tahun & Periode Dinamis:** Menghilangkan hardcode tahun `2026` pada modul Cuti (`/cuti`, `/cuti/ajukan`, `/cuti/pengaturan`, dan shell `layout.tsx`). Tahun periode kini otomatis mengikuti tahun berjalan (`new Date().getFullYear()`) sehingga label `"Periode: 01 Jan {tahun} — 31 Des {tahun}"` selalu akurat dan berganti sendiri secara otomatis di masa depan.
+  2. **Auto-Display Saldo Cuti Aktif (`getEmployeeLeaveBalances`):** Memperbaiki query di `leave.queries.ts` agar memetakan seluruh jenis cuti yang aktif (`Cuti Tahunan`, `Cuti Sakit`, `Cuti Melahirkan`, `Cuti Penting`). Pegawai yang baru dibuat atau belum pernah disesuaikan kuotanya secara kustom oleh HR kini otomatis menampilkan kartu kuota bawaan (`defaultQuotaDays`) dengan sisa saldo utuh.
+  3. **Empty State & UI Fallback:** Menambahkan fallback visual di `leave-balance-cards.tsx` jika belum ada master jenis cuti aktif.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 8 test suite (70 tests)
+
+---
+
+## Tahap 6 (Penyempurnaan Navigasi): Unifikasi Kalender Kerja & Penghapusan Tab Redundan Kalender Cuti — 2026-10-06
+
+- **Status:** Selesai
+- **Scope & Perubahan:**
+  1. **Penghapusan Tab Redundan:** Tab "Kalender Cuti" dihapus secara permanen dari subnavigasi Cuti & Presensi ([`AttendanceLeaveSubnav`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/attendance-leave-subnav.tsx)).
+  2. **Konsolidasi Single Source of Truth:** Seluruh visibilitas jadwal kerja, cuti rekan kerja & diri sendiri yang disetujui, hari libur bersama, peringatan nasional, serta rapat Google Meet kini terpusat 100% di menu utama **Kalender Kerja** (`/kalender`).
+  3. **Auto-Redirect Aman:** Halaman rute lama [`/cuti/kalender`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/%28app%29/cuti/kalender/page.tsx) otomatis melakukan redirect HTTP ke `/kalender` dengan tetap mempertahankan query param `year` dan `month`.
+  4. **Pembersihan Komponen Usang:** Menghapus komponen mati `leave-calendar-view.tsx` dan `leave-detail-modal.tsx`, serta memperbarui tautan kalender di `manager-dashboard.tsx` dan invalidasi cache `revalidatePath("/kalender")` di `leave.actions.ts`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 8 test suite (70 tests)
+
+---
+
 ## Tahap 6 (Fitur Tambahan): Hari Peringatan Nasional Indonesia di Kalender Kerja — 2026-10-06
 
 - **Status:** Selesai

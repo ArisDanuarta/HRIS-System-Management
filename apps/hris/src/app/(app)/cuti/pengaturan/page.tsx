@@ -25,13 +25,15 @@ export default async function PengaturanCutiPage() {
     redirect("/cuti");
   }
 
-  // Fetch real leave types, holiday list for 2026, active work schedule, and employee balances
+  const currentYear = new Date().getFullYear();
+
+  // Fetch real leave types, holiday list for current year, active work schedule, and employee balances
   const [leaveTypes, holidays, pendingApprovalsCount, workSchedule, leaveBalanceData] = await Promise.all([
     getLeaveTypes(),
-    getHolidays(2026),
+    getHolidays(currentYear),
     prisma.leaveRequest.count({ where: { status: "PENDING" } }),
     getActiveWorkSchedule(),
-    getAllEmployeeLeaveBalances(2026),
+    getAllEmployeeLeaveBalances(currentYear),
   ]);
 
   return (

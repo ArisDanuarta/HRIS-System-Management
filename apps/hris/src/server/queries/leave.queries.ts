@@ -3,30 +3,47 @@ import { prisma, LeaveStatus } from "@pspk/db";
 /**
  * Retrieves leave balances for an employee in a given year.
  */
-export async function getEmployeeLeaveBalances(employeeId: string, year: number = 2026) {
-  const balances = await prisma.leaveBalance.findMany({
-    where: {
-      employeeId,
-      year,
-    },
-    include: {
-      leaveType: true,
-    },
-    orderBy: {
-      leaveType: { name: "asc" },
-    },
-  });
+export async function getEmployeeLeaveBalances(employeeId: string, year?: number) {
+  const currentYear = year || new Date().getFullYear();
 
-  return balances.map((b) => {
-    const used = Number(b.usedDays);
-    const quota = b.quotaDays;
+  const [activeLeaveTypes, existingBalances] = await Promise.all([
+    prisma.leaveType.findMany({
+      where: { isActive: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.leaveBalance.findMany({
+      where: {
+        employeeId,
+        year: currentYear,
+      },
+      include: {
+        leaveType: true,
+      },
+    }),
+  ]);
+
+  const balanceMap = new Map(existingBalances.map((b) => [b.leaveTypeId, b]));
+
+  return activeLeaveTypes.map((lt) => {
+    const existing = balanceMap.get(lt.id);
+    const quota = existing ? existing.quotaDays : lt.defaultQuotaDays;
+    const used = existing ? Number(existing.usedDays) : 0;
     const remaining = Math.max(0, quota - used);
+
     return {
-      ...b,
+      id: existing ? existing.id : `default-${lt.id}`,
+      leaveTypeId: lt.id,
+      year: currentYear,
+      quotaDays: quota,
       usedDays: used,
       usedDaysNumber: used,
       remainingDays: remaining,
       usagePercentage: quota > 0 ? Math.round((used / quota) * 100) : 0,
+      leaveType: {
+        name: lt.name,
+        isPaid: lt.isPaid,
+        requiresAttachment: lt.requiresAttachment,
+      },
     };
   });
 }

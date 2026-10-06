@@ -40,9 +40,11 @@ export default async function CutiPage() {
   const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
   const isManager = roleKeys.includes("manager");
 
+  const currentYear = new Date().getFullYear();
+
   // Fetch balances and personal leave requests
   const [balances, requests, pendingApprovalsCount] = await Promise.all([
-    getEmployeeLeaveBalances(employee.id, 2026),
+    getEmployeeLeaveBalances(employee.id, currentYear),
     getPersonalLeaveRequests(employee.id),
     prisma.leaveRequest.count({ where: { status: "PENDING" } }),
   ]);
@@ -56,7 +58,7 @@ export default async function CutiPage() {
             Cuti & Izin Karyawan
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Informasi saldo hak cuti tahun 2026 dan riwayat permohonan izin kerja Anda.
+            Informasi saldo hak cuti tahun {currentYear} dan riwayat permohonan izin kerja Anda.
           </p>
         </div>
 
@@ -83,9 +85,11 @@ export default async function CutiPage() {
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-[#102e50] font-heading">
-            Saldo Kuota Cuti Tahun 2026
+            Saldo Kuota Cuti Tahun {currentYear}
           </h2>
-          <span className="text-xs text-gray-500">Periode: 01 Jan 2026 — 31 Des 2026</span>
+          <span className="text-xs text-gray-500">
+            Periode: 01 Jan {currentYear} — 31 Des {currentYear}
+          </span>
         </div>
 
         <LeaveBalanceCards balances={balances} />

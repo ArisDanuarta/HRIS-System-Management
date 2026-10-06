@@ -59,6 +59,16 @@ export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
     };
   };
 
+  if (balances.length === 0) {
+    return (
+      <div className="p-8 text-center bg-white rounded-xl border border-dashed border-gray-200">
+        <p className="text-xs text-gray-500 font-medium">
+          Belum ada jenis cuti aktif yang dikonfigurasi dalam sistem oleh Admin HR.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {balances.map((b) => {

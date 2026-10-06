@@ -34,11 +34,13 @@ export default async function AjukanCutiPage() {
     );
   }
 
+  const currentYear = new Date().getFullYear();
+
   // Fetch real leave types, current balances, and holiday dates for working day calculations
   const [leaveTypes, balances, holidays] = await Promise.all([
     getLeaveTypes(),
-    getEmployeeLeaveBalances(employee.id, 2026),
-    getHolidays(2026),
+    getEmployeeLeaveBalances(employee.id, currentYear),
+    getHolidays(currentYear),
   ]);
 
   return (
