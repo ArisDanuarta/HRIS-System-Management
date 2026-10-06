@@ -36,6 +36,12 @@ export const PERMISSIONS = [
   { key: "hris.leave.approve:all", module: "hris", description: "Menyetujui atau menolak cuti (override HR)" },
   { key: "hris.leave.configure:all", module: "hris", description: "Mengonfigurasi jenis cuti, saldo & hari libur" },
 
+  // --- HRIS: Calendar ---
+  { key: "hris.calendar.read:own", module: "hris", description: "Membaca kalender kerja sendiri (cuti, libur, meeting)" },
+  { key: "hris.calendar.read:all", module: "hris", description: "Membaca kalender kerja semua karyawan" },
+  { key: "hris.calendar.holiday:sync", module: "hris", description: "Sinkronkan hari libur nasional dari Google (HR/Admin)" },
+  { key: "hris.calendar.google:connect", module: "hris", description: "Menghubungkan akun Google Calendar pribadi" },
+
   // --- HRIS: Payroll & Payslips ---
   { key: "hris.payslip.read:own", module: "hris", description: "Melihat dan mengunduh slip gaji sendiri" },
   { key: "hris.payroll.read:all", module: "hris", description: "Melihat rekap payroll organisasi" },

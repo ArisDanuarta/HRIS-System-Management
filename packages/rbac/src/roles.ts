@@ -51,6 +51,11 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "sysmgmt.document.read:all",
       "sysmgmt.document.manage:hr",
       "sysmgmt.document.read:own",
+      // Calendar
+      "hris.calendar.read:all",
+      "hris.calendar.holiday:sync",
+      "hris.calendar.read:own",
+      "hris.calendar.google:connect",
     ],
   },
   {
@@ -112,6 +117,10 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.training.read:own",
       "sysmgmt.asset.read:own",
       "sysmgmt.document.read:own",
+      // Calendar
+      "hris.calendar.read:all",
+      "hris.calendar.read:own",
+      "hris.calendar.google:connect",
     ],
   },
   {
@@ -136,6 +145,9 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.training.read:own",
       "sysmgmt.asset.read:own",
       "sysmgmt.document.read:own",
+      // Calendar
+      "hris.calendar.read:own",
+      "hris.calendar.google:connect",
     ],
   },
 ];
