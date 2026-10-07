@@ -2,14 +2,15 @@
 
 import React from "react";
 import Link from "next/link";
-import { Users, ShieldCheck } from "lucide-react";
+import { Users, ShieldCheck, Sliders } from "lucide-react";
 
-export type UserGovernanceTab = "users" | "roles";
+export type UserGovernanceTab = "users" | "roles" | "modules";
 
 export interface UserGovernanceSubnavProps {
   activeTab: UserGovernanceTab;
   userCount?: number;
   roleCount?: number;
+  moduleCount?: number;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export function UserGovernanceSubnav({
   activeTab,
   userCount,
   roleCount = 5,
+  moduleCount = 6,
   className = "",
 }: UserGovernanceSubnavProps) {
   const tabs = [
@@ -33,6 +35,13 @@ export function UserGovernanceSubnav({
       href: "/pengguna?tab=roles",
       icon: ShieldCheck,
       badge: `${roleCount} Peran`,
+    },
+    {
+      id: "modules" as UserGovernanceTab,
+      label: "Tata Kelola Modul",
+      href: "/pengguna?tab=modules",
+      icon: Sliders,
+      badge: `${moduleCount} Modul`,
     },
   ];
 

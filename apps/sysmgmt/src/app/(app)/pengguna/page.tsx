@@ -8,9 +8,11 @@ import {
   getAllSystemRoles,
 } from "@/server/queries/user.queries";
 import { getRoleMatrixData } from "@/server/queries/role.queries";
+import { getModuleGovernanceData } from "@/server/queries/module.queries";
 import { UserManagementTable } from "@/components/users/user-management-table";
-import { UserGovernanceSubnav } from "@/components/shell/user-governance-subnav";
+import { UserGovernanceSubnav, UserGovernanceTab } from "@/components/shell/user-governance-subnav";
 import { RoleMatrixView } from "@/components/roles/role-matrix-view";
+import { ModuleGovernanceView } from "@/components/modules/module-governance-view";
 import { ShieldCheck, ShieldAlert, Key, Shield, Users, Layers } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +67,9 @@ export default async function UserManagementPage({
   }
 
   const resolvedParams = searchParams ? await searchParams : {};
-  const activeTab = resolvedParams.tab === "roles" ? "roles" : "users";
+  const rawTab = resolvedParams.tab;
+  const activeTab: UserGovernanceTab =
+    rawTab === "roles" ? "roles" : rawTab === "modules" ? "modules" : "users";
 
   // Muat data statistik bersama
   const [stats, allRoles] = await Promise.all([
@@ -76,6 +80,7 @@ export default async function UserManagementPage({
   // Muat data sesuai tab aktif
   const users = activeTab === "users" ? await getAllUsers() : [];
   const matrixData = activeTab === "roles" ? await getRoleMatrixData() : null;
+  const moduleData = activeTab === "modules" ? await getModuleGovernanceData() : null;
 
   return (
     <div className="space-y-6">
@@ -112,11 +117,12 @@ export default async function UserManagementPage({
         </div>
       </div>
 
-      {/* Sub-Navigasi Tab: [Akun Pengguna] & [Matriks Peran & Hak Akses] */}
+      {/* Sub-Navigasi Tab: [Akun Pengguna], [Matriks Peran & Hak Akses], [Tata Kelola Modul] */}
       <UserGovernanceSubnav
         activeTab={activeTab}
         userCount={stats.totalUsers}
         roleCount={allRoles.length}
+        moduleCount={6}
       />
 
       {/* Konten Tab 1: Akun Pengguna */}
@@ -220,6 +226,11 @@ export default async function UserManagementPage({
           {/* Tabel Matriks Grid Interaktif (Sub-Tahap A3) */}
           <RoleMatrixView matrixData={matrixData} />
         </div>
+      )}
+
+      {/* Konten Tab 3: Tata Kelola Modul (Feature Flags) */}
+      {activeTab === "modules" && moduleData && (
+        <ModuleGovernanceView governanceData={moduleData} />
       )}
     </div>
   );
