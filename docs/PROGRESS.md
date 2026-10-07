@@ -2,6 +2,30 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## Tahap A-Lanjutan (System Management): Mode Edit Interaktif Matriks RBAC & Fleksibilitas Keterangan Izin — 2026-10-07
+
+- **Status:** Selesai
+- **Scope & Solusi:**
+  1. **Server Actions Mutasi RBAC ([`role.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/role.actions.ts)):**
+     - `updateRolePermissionsAction`: Pembaruan daftar izin untuk satu peran operasional dengan perlindungan mutlak Super Admin.
+     - `batchUpdateRoleMatrixAction`: Penyimpanan batch sekaligus untuk banyak peran dalam satu transaksi database atomik.
+     - `resetRolePermissionsToDefaultAction`: Pemulihan wewenang peran ke standar awal blueprint PSPK berbasis kamus default.
+     - `updatePermissionDescriptionAction`: Fleksibilitas pengubahan teks keterangan/deskripsi izin (min 3, max 255 karakter).
+     - Seluruh mutasi dilindungi audit log atomik (`PERMISSION_UPDATE`, `ROLE_PERMISSIONS_RESET`, `PERMISSION_DESCRIPTION_UPDATE`).
+  2. **Unit Tests Mutasi Peran ([`role.actions.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/role.actions.test.ts)):**
+     - 5 skenario komprehensif menguji pencegahan pengeditan Super Admin, transaksi batch, reset wewenang, dan sanitasi input deskripsi izin.
+  3. **Antarmuka Interaktif Matriks RBAC ([`role-matrix-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/roles/role-matrix-view.tsx)):**
+     - Mode edit interaktif dengan toggle sel per role & permission.
+     - Floating bottom bar penyimpan perubahan dengan counter perubahan dan tombol batal.
+     - Modal verifikasi ganda "Reset ke Default PSPK".
+     - Modal inline untuk mengubah teks keterangan wewenang izin dengan validasi realtime.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 10 test suite (82 tests)
+
+---
+
 ## Tahap A (System Management): Optimalisasi RBAC, Sub-Navigasi Tata Kelola & Matriks Grid Hak Akses — 2026-10-07
 
 - **Status:** Selesai
