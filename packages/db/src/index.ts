@@ -63,3 +63,4 @@ export {
 } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./audit";
+export * from "./modules";

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PERMISSIONS, SYSTEM_ROLES } from "@pspk/rbac";
 import { hashPassword } from "better-auth/crypto";
+import { SYSTEM_MODULE_DEFINITIONS } from "../src/modules";
 
 const prisma = new PrismaClient();
 
@@ -316,6 +317,25 @@ async function main() {
     });
   }
   console.log(`   ✓ ${baselineHolidays.length} hari libur nasional & cuti bersama (2025-2026) siap.`);
+
+  // 9. Seed Pengaturan Modul Sistem (System Settings & Module Flags)
+  console.log("⚙️ Menyiapkan pengaturan modul sistem (system settings)...");
+  for (const mod of SYSTEM_MODULE_DEFINITIONS) {
+    await prisma.systemSetting.upsert({
+      where: { key: mod.key },
+      update: {
+        description: mod.description,
+      },
+      create: {
+        key: mod.key,
+        value: String(mod.defaultEnabled),
+        category: "MODULE",
+        description: mod.description,
+        updatedBy: "system_seed",
+      },
+    });
+  }
+  console.log(`   ✓ ${SYSTEM_MODULE_DEFINITIONS.length} modul konfigurasi sistem berhasil disiapkan.`);
 
   const gCalApiKey = process.env.GOOGLE_CALENDAR_API_KEY;
   if (gCalApiKey) {
