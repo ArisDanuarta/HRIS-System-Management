@@ -10,7 +10,8 @@ import {
 import { getRoleMatrixData } from "@/server/queries/role.queries";
 import { UserManagementTable } from "@/components/users/user-management-table";
 import { UserGovernanceSubnav } from "@/components/shell/user-governance-subnav";
-import { ShieldCheck, ShieldAlert, Key, Shield, Users, Layers, Info } from "lucide-react";
+import { RoleMatrixView } from "@/components/roles/role-matrix-view";
+import { ShieldCheck, ShieldAlert, Key, Shield, Users, Layers } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -216,16 +217,8 @@ export default async function UserManagementPage({
             ))}
           </div>
 
-          {/* Wadah Siap untuk Komponen Matriks Grid Interaktif (Sub-Tahap A3) */}
-          <div className="bg-amber-50/60 rounded-xl p-4 border border-amber-200/80 flex items-start gap-3">
-            <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="text-xs text-amber-800 space-y-1">
-              <p className="font-bold">Sub-Navigasi & Wadah Matriks RBAC Berhasil Terintegrasi</p>
-              <p className="text-amber-700/90 leading-relaxed">
-                Struktur tab telah aktif dan parameter URL <code className="bg-white px-1 py-0.5 rounded border border-amber-200 font-mono text-[11px]">?tab=roles</code> berhasil membaca data dari layer server queries. Pada sub-tahap berikutnya (Sub-Tahap A3), tabel matriks grid interaktif lengkap dengan pencarian dan filter modul akan dipasang di sini.
-              </p>
-            </div>
-          </div>
+          {/* Tabel Matriks Grid Interaktif (Sub-Tahap A3) */}
+          <RoleMatrixView matrixData={matrixData} />
         </div>
       )}
     </div>
