@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Impor Massal Data Pegawai — HRIS PSPK",
-  description: "Unggah berkas spreadsheet Excel (.xlsx) untuk mendaftarkan data pegawai secara massal",
+  description:
+    "Unggah berkas spreadsheet Excel (.xlsx) untuk mendaftarkan data pegawai secara massal",
 };
 
 export default async function ImporKaryawanPage() {
@@ -92,7 +93,8 @@ export default async function ImporKaryawanPage() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Gunakan berkas format resmi Microsoft Excel (.xlsx) untuk mendaftarkan banyak pegawai secara otomatis ke dalam database HRIS PSPK.
+              Gunakan berkas format resmi Microsoft Excel (.xlsx) untuk mendaftarkan banyak pegawai
+              secara otomatis ke dalam database HRIS PSPK.
             </p>
           </div>
         </div>
@@ -104,10 +106,7 @@ export default async function ImporKaryawanPage() {
       </div>
 
       {/* Main Interactive Importer Component with Template Downloads & Guidance */}
-      <ExcelImporter
-        departments={departments}
-        employmentTypes={employmentTypes}
-      />
+      <ExcelImporter departments={departments} employmentTypes={employmentTypes} />
     </div>
   );
 }

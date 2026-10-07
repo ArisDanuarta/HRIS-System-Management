@@ -2,11 +2,7 @@ import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
-import {
-  getAllUsers,
-  getUserStats,
-  getAllSystemRoles,
-} from "@/server/queries/user.queries";
+import { getAllUsers, getUserStats, getAllSystemRoles } from "@/server/queries/user.queries";
 import { getRoleMatrixData } from "@/server/queries/role.queries";
 import { getModuleGovernanceData } from "@/server/queries/module.queries";
 import { UserManagementTable } from "@/components/users/user-management-table";
@@ -26,9 +22,7 @@ interface UserManagementPageProps {
   searchParams?: Promise<{ tab?: string }>;
 }
 
-export default async function UserManagementPage({
-  searchParams,
-}: UserManagementPageProps) {
+export default async function UserManagementPage({ searchParams }: UserManagementPageProps) {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
 
@@ -49,9 +43,7 @@ export default async function UserManagementPage({
         <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-200">
           <ShieldAlert className="w-6 h-6" />
         </div>
-        <h2 className="text-lg font-bold text-slate-900 mb-2">
-          Hak Akses Tidak Mencukupi
-        </h2>
+        <h2 className="text-lg font-bold text-slate-900 mb-2">Hak Akses Tidak Mencukupi</h2>
         <p className="text-xs text-slate-500 leading-relaxed mb-6">
           Menu Manajemen Pengguna dan RBAC hanya dapat diakses oleh Administrator IT atau Super
           Administrator PSPK.
@@ -72,10 +64,7 @@ export default async function UserManagementPage({
     rawTab === "roles" ? "roles" : rawTab === "modules" ? "modules" : "users";
 
   // Muat data statistik bersama
-  const [stats, allRoles] = await Promise.all([
-    getUserStats(),
-    getAllSystemRoles(),
-  ]);
+  const [stats, allRoles] = await Promise.all([getUserStats(), getAllSystemRoles()]);
 
   // Muat data sesuai tab aktif
   const users = activeTab === "users" ? await getAllUsers() : [];
@@ -166,7 +155,8 @@ export default async function UserManagementPage({
                 {matrixData.stats.totalPermissions}
               </p>
               <p className="text-[11px] text-slate-400 mt-1">
-                {matrixData.stats.totalHrisPermissions} HRIS + {matrixData.stats.totalSysmgmtPermissions} SysMgmt
+                {matrixData.stats.totalHrisPermissions} HRIS +{" "}
+                {matrixData.stats.totalSysmgmtPermissions} SysMgmt
               </p>
             </div>
 

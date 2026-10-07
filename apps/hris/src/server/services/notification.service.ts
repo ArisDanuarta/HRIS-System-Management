@@ -31,7 +31,7 @@ export async function createNotification(input: CreateNotificationInput) {
  */
 export async function createNotificationForRole(
   roleKey: string,
-  input: Omit<CreateNotificationInput, "userId">
+  input: Omit<CreateNotificationInput, "userId">,
 ) {
   // Cari seluruh user yang memiliki role ini
   const userRoles = await prisma.userRole.findMany({
@@ -63,7 +63,7 @@ export async function createNotificationForRole(
  */
 export async function createNotificationForEmployeeManager(
   employeeId: string,
-  input: Omit<CreateNotificationInput, "userId">
+  input: Omit<CreateNotificationInput, "userId">,
 ) {
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },

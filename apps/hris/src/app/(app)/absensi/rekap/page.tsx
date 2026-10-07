@@ -50,8 +50,10 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
   const resolvedParams = await searchParams;
   const now = new Date();
   const currentYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
-  const currentMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
-  const selectedDeptId = isTeamView ? "ALL" : (resolvedParams.dept || "ALL");
+  const currentMonth = resolvedParams.month
+    ? parseInt(resolvedParams.month, 10)
+    : now.getMonth() + 1;
+  const selectedDeptId = isTeamView ? "ALL" : resolvedParams.dept || "ALL";
   const searchQuery = resolvedParams.q || resolvedParams.search || "";
 
   // Query real data from PostgreSQL
@@ -69,20 +71,21 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
       excludeEmployeeId: isTeamView && currentEmployee ? currentEmployee.id : undefined,
     }),
     prisma.leaveRequest.count({
-      where: isTeamView && currentEmployee
-        ? {
-            status: "PENDING",
-            employee: {
-              OR: [
-                { managerId: currentEmployee.id },
-                ...(managerTeamInfo?.currentDepartmentId
-                  ? [{ currentDepartmentId: managerTeamInfo.currentDepartmentId }]
-                  : []),
-              ],
-              id: { not: currentEmployee.id },
-            },
-          }
-        : { status: "PENDING" },
+      where:
+        isTeamView && currentEmployee
+          ? {
+              status: "PENDING",
+              employee: {
+                OR: [
+                  { managerId: currentEmployee.id },
+                  ...(managerTeamInfo?.currentDepartmentId
+                    ? [{ currentDepartmentId: managerTeamInfo.currentDepartmentId }]
+                    : []),
+                ],
+                id: { not: currentEmployee.id },
+              },
+            }
+          : { status: "PENDING" },
     }),
   ]);
 

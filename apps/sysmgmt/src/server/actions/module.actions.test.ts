@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  toggleModuleAction,
-  resetAllModulesToDefaultAction,
-} from "./module.actions";
+import { toggleModuleAction, resetAllModulesToDefaultAction } from "./module.actions";
 
 // Mock dependencies
 vi.mock("next/headers", () => ({

@@ -153,7 +153,8 @@ async function main() {
       category: "PERMANENT" as const,
       wageType: "MONTHLY" as const,
       defaultHourlyRate: null,
-      description: "Pegawai tetap lembaga dengan skema gaji bulanan penuh, tunjangan, dan benefit organisasi.",
+      description:
+        "Pegawai tetap lembaga dengan skema gaji bulanan penuh, tunjangan, dan benefit organisasi.",
     },
     {
       code: "PKWT_RISET",
@@ -161,7 +162,8 @@ async function main() {
       category: "FIXED_TERM" as const,
       wageType: "MONTHLY" as const,
       defaultHourlyRate: null,
-      description: "Perjanjian Kerja Waktu Tertentu (PKWT) untuk proyek riset berjangka dengan skema upah bulanan.",
+      description:
+        "Perjanjian Kerja Waktu Tertentu (PKWT) untuk proyek riset berjangka dengan skema upah bulanan.",
     },
     {
       code: "PKWT_HOURLY",
@@ -169,7 +171,8 @@ async function main() {
       category: "FIXED_TERM" as const,
       wageType: "HOURLY" as const,
       defaultHourlyRate: 30000,
-      description: "Staf PKWT lepas berbasis jam kerja terverifikasi lembar timesheet acc Project Lead (No Work, No Pay).",
+      description:
+        "Staf PKWT lepas berbasis jam kerja terverifikasi lembar timesheet acc Project Lead (No Work, No Pay).",
     },
     {
       code: "PART_TIME_PROJECT",
@@ -251,10 +254,18 @@ async function main() {
     // 2025
     { date: "2025-01-01", name: "Tahun Baru 2025 Masehi", isCollectiveLeave: false },
     { date: "2025-01-27", name: "Isra Mi'raj Nabi Muhammad SAW", isCollectiveLeave: false },
-    { date: "2025-01-28", name: "Cuti Bersama Tahun Baru Imlek 2576 Kongzili", isCollectiveLeave: true },
+    {
+      date: "2025-01-28",
+      name: "Cuti Bersama Tahun Baru Imlek 2576 Kongzili",
+      isCollectiveLeave: true,
+    },
     { date: "2025-01-29", name: "Tahun Baru Imlek 2576 Kongzili", isCollectiveLeave: false },
     { date: "2025-03-28", name: "Cuti Bersama Hari Suci Nyepi", isCollectiveLeave: true },
-    { date: "2025-03-29", name: "Hari Suci Nyepi (Tahun Baru Saka 1947)", isCollectiveLeave: false },
+    {
+      date: "2025-03-29",
+      name: "Hari Suci Nyepi (Tahun Baru Saka 1947)",
+      isCollectiveLeave: false,
+    },
     { date: "2025-03-31", name: "Hari Raya Idul Fitri 1446 H", isCollectiveLeave: false },
     { date: "2025-04-01", name: "Hari Raya Idul Fitri 1446 H", isCollectiveLeave: false },
     { date: "2025-04-02", name: "Cuti Bersama Idul Fitri 1446 H", isCollectiveLeave: true },
@@ -270,7 +281,11 @@ async function main() {
     { date: "2025-05-30", name: "Cuti Bersama Kenaikan Yesus Kristus", isCollectiveLeave: true },
     { date: "2025-06-01", name: "Hari Lahir Pancasila", isCollectiveLeave: false },
     { date: "2025-06-06", name: "Hari Raya Idul Adha 1446 H", isCollectiveLeave: false },
-    { date: "2025-06-09", name: "Cuti Bersama Hari Raya Idul Adha 1446 H", isCollectiveLeave: true },
+    {
+      date: "2025-06-09",
+      name: "Cuti Bersama Hari Raya Idul Adha 1446 H",
+      isCollectiveLeave: true,
+    },
     { date: "2025-06-27", name: "1 Muharram / Tahun Baru Islam 1447 H", isCollectiveLeave: false },
     { date: "2025-08-17", name: "Proklamasi Kemerdekaan RI Ke-80", isCollectiveLeave: false },
     { date: "2025-09-05", name: "Maulid Nabi Muhammad SAW", isCollectiveLeave: false },
@@ -279,13 +294,29 @@ async function main() {
     // 2026
     { date: "2026-01-01", name: "Tahun Baru 2026 Masehi", isCollectiveLeave: false },
     { date: "2026-01-16", name: "Isra Mi'raj Nabi Muhammad SAW", isCollectiveLeave: false },
-    { date: "2026-02-16", name: "Cuti Bersama Tahun Baru Imlek 2577 Kongzili", isCollectiveLeave: true },
+    {
+      date: "2026-02-16",
+      name: "Cuti Bersama Tahun Baru Imlek 2577 Kongzili",
+      isCollectiveLeave: true,
+    },
     { date: "2026-02-17", name: "Tahun Baru Imlek 2577 Kongzili", isCollectiveLeave: false },
-    { date: "2026-03-19", name: "Hari Suci Nyepi (Tahun Baru Saka 1948)", isCollectiveLeave: false },
+    {
+      date: "2026-03-19",
+      name: "Hari Suci Nyepi (Tahun Baru Saka 1948)",
+      isCollectiveLeave: false,
+    },
     { date: "2026-03-20", name: "Hari Raya Idul Fitri 1447 H", isCollectiveLeave: false },
     { date: "2026-03-21", name: "Hari Raya Idul Fitri 1447 H", isCollectiveLeave: false },
-    { date: "2026-03-23", name: "Cuti Bersama Hari Raya Idul Fitri 1447 H", isCollectiveLeave: true },
-    { date: "2026-03-24", name: "Cuti Bersama Hari Raya Idul Fitri 1447 H", isCollectiveLeave: true },
+    {
+      date: "2026-03-23",
+      name: "Cuti Bersama Hari Raya Idul Fitri 1447 H",
+      isCollectiveLeave: true,
+    },
+    {
+      date: "2026-03-24",
+      name: "Cuti Bersama Hari Raya Idul Fitri 1447 H",
+      isCollectiveLeave: true,
+    },
     { date: "2026-04-03", name: "Wafat Yesus Kristus", isCollectiveLeave: false },
     { date: "2026-04-05", name: "Kebangkitan Yesus Kristus (Paskah)", isCollectiveLeave: false },
     { date: "2026-05-01", name: "Hari Buruh Internasional", isCollectiveLeave: false },
@@ -302,7 +333,9 @@ async function main() {
 
   for (const h of baselineHolidays) {
     const [yStr, mStr, dStr] = h.date.split("-");
-    const holidayDate = new Date(Date.UTC(Number(yStr), Number(mStr) - 1, Number(dStr), 0, 0, 0, 0));
+    const holidayDate = new Date(
+      Date.UTC(Number(yStr), Number(mStr) - 1, Number(dStr), 0, 0, 0, 0),
+    );
     await prisma.holiday.upsert({
       where: { date: holidayDate },
       update: {
@@ -316,7 +349,9 @@ async function main() {
       },
     });
   }
-  console.log(`   ✓ ${baselineHolidays.length} hari libur nasional & cuti bersama (2025-2026) siap.`);
+  console.log(
+    `   ✓ ${baselineHolidays.length} hari libur nasional & cuti bersama (2025-2026) siap.`,
+  );
 
   // 9. Seed Pengaturan Modul Sistem (System Settings & Module Flags)
   console.log("⚙️ Menyiapkan pengaturan modul sistem (system settings)...");
@@ -335,7 +370,9 @@ async function main() {
       },
     });
   }
-  console.log(`   ✓ ${SYSTEM_MODULE_DEFINITIONS.length} modul konfigurasi sistem berhasil disiapkan.`);
+  console.log(
+    `   ✓ ${SYSTEM_MODULE_DEFINITIONS.length} modul konfigurasi sistem berhasil disiapkan.`,
+  );
 
   const gCalApiKey = process.env.GOOGLE_CALENDAR_API_KEY;
   if (gCalApiKey) {
@@ -346,7 +383,9 @@ async function main() {
       const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events?key=${gCalApiKey}&timeMin=${currentYear}-01-01T00:00:00Z&timeMax=${currentYear}-12-31T23:59:59Z&singleEvents=true`;
       const res = await fetch(url);
       if (res.ok) {
-        const data = (await res.json()) as { items?: Array<{ summary?: string; start?: { date?: string } }> };
+        const data = (await res.json()) as {
+          items?: Array<{ summary?: string; start?: { date?: string } }>;
+        };
         let gCount = 0;
         if (data.items) {
           for (const item of data.items) {
@@ -371,7 +410,9 @@ async function main() {
       console.log("   ⚠️ Gagal memanggil Google Calendar API:", err);
     }
   } else {
-    console.log("   ℹ️ GOOGLE_CALENDAR_API_KEY tidak diatur, melewati sinkronisasi live Google Calendar.");
+    console.log(
+      "   ℹ️ GOOGLE_CALENDAR_API_KEY tidak diatur, melewati sinkronisasi live Google Calendar.",
+    );
   }
 
   console.log("✅ Inisialisasi data sistem selesai tanpa data dummy!");

@@ -49,7 +49,8 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
           Kalender Kerja
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Jadwal kerja, cuti tim, hari libur nasional, hari peringatan, dan meeting Google Meet dalam satu tampilan.
+          Jadwal kerja, cuti tim, hari libur nasional, hari peringatan, dan meeting Google Meet
+          dalam satu tampilan.
         </p>
       </div>
 

@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Building2,
-  Briefcase,
-  Users,
-  Clock,
-  CheckCircle2,
-} from "lucide-react";
+import { Building2, Briefcase, Users, Clock, CheckCircle2 } from "lucide-react";
 import { DepartmentItem, OrganizationManagement } from "./organization-management";
 import { EmploymentTypeManagement } from "./employment-type-management";
 import { EmploymentTypeDetail } from "@/server/queries/employment-type.queries";

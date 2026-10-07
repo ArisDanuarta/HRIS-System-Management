@@ -2,10 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ModuleGovernanceData,
-  ModuleConfigItem,
-} from "@/server/queries/module.queries";
+import { ModuleGovernanceData, ModuleConfigItem } from "@/server/queries/module.queries";
 import {
   toggleModuleAction,
   resetAllModulesToDefaultAction,
@@ -42,14 +39,10 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   training: GraduationCap,
 };
 
-export function ModuleGovernanceView({
-  governanceData,
-}: ModuleGovernanceViewProps) {
+export function ModuleGovernanceView({ governanceData }: ModuleGovernanceViewProps) {
   const router = useRouter();
 
-  const [modules, setModules] = useState<ModuleConfigItem[]>(
-    governanceData.modules,
-  );
+  const [modules, setModules] = useState<ModuleConfigItem[]>(governanceData.modules);
   const [pendingModuleKey, setPendingModuleKey] = useState<string | null>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -131,9 +124,7 @@ export function ModuleGovernanceView({
       } else {
         // Rollback state jika gagal
         setModules((prev) =>
-          prev.map((m) =>
-            m.moduleKey === moduleKey ? { ...m, isEnabled: !enabled } : m,
-          ),
+          prev.map((m) => (m.moduleKey === moduleKey ? { ...m, isEnabled: !enabled } : m)),
         );
         setFeedbackMessage({
           type: "error",
@@ -142,9 +133,7 @@ export function ModuleGovernanceView({
       }
     } catch (err: unknown) {
       setModules((prev) =>
-        prev.map((m) =>
-          m.moduleKey === moduleKey ? { ...m, isEnabled: !enabled } : m,
-        ),
+        prev.map((m) => (m.moduleKey === moduleKey ? { ...m, isEnabled: !enabled } : m)),
       );
       setFeedbackMessage({
         type: "error",
@@ -183,10 +172,7 @@ export function ModuleGovernanceView({
     } catch (err: unknown) {
       setFeedbackMessage({
         type: "error",
-        text:
-          err instanceof Error
-            ? err.message
-            : "Gagal mereset modul ke pengaturan default.",
+        text: err instanceof Error ? err.message : "Gagal mereset modul ke pengaturan default.",
       });
     } finally {
       setIsResetting(false);
@@ -231,9 +217,7 @@ export function ModuleGovernanceView({
             </span>
             <Sliders className="w-4 h-4 text-[#102E50]" />
           </div>
-          <p className="text-2xl font-bold text-slate-900 mt-2 font-serif">
-            {modules.length}
-          </p>
+          <p className="text-2xl font-bold text-slate-900 mt-2 font-serif">{modules.length}</p>
           <p className="text-[11px] text-slate-400 mt-1">Area modul terkonfigurasi</p>
         </div>
 
@@ -244,9 +228,7 @@ export function ModuleGovernanceView({
             </span>
             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-2xl font-bold text-emerald-700 mt-2 font-serif">
-            {activeCount}
-          </p>
+          <p className="text-2xl font-bold text-emerald-700 mt-2 font-serif">{activeCount}</p>
           <p className="text-[11px] text-slate-400 mt-1">Dapat diakses di HRIS</p>
         </div>
 
@@ -257,9 +239,7 @@ export function ModuleGovernanceView({
             </span>
             <Sparkles className="w-4 h-4 text-amber-600" />
           </div>
-          <p className="text-2xl font-bold text-slate-700 mt-2 font-serif">
-            {inactiveCount}
-          </p>
+          <p className="text-2xl font-bold text-slate-700 mt-2 font-serif">{inactiveCount}</p>
           <p className="text-[11px] text-slate-400 mt-1">Disembunyikan dari navigasi</p>
         </div>
       </div>
@@ -356,9 +336,7 @@ export function ModuleGovernanceView({
                       <Icon className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900 leading-snug">
-                        {mod.name}
-                      </h3>
+                      <h3 className="text-sm font-bold text-slate-900 leading-snug">{mod.name}</h3>
                       <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold inline-block mt-0.5">
                         {mod.moduleKey}
                       </span>
@@ -445,9 +423,7 @@ export function ModuleGovernanceView({
               {/* Footer Kartu */}
               <div className="px-5 py-2.5 bg-slate-50/80 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between">
                 <span>
-                  {mod.updatedBy
-                    ? `Oleh: ${mod.updatedBy.split("@")[0]}`
-                    : "Pengaturan Default"}
+                  {mod.updatedBy ? `Oleh: ${mod.updatedBy.split("@")[0]}` : "Pengaturan Default"}
                 </span>
                 <span>
                   {mod.updatedAt
@@ -504,9 +480,7 @@ export function ModuleGovernanceView({
 
             <div className="bg-amber-50/70 border border-amber-200/70 rounded-xl p-3.5 space-y-2 text-xs text-amber-900">
               <p className="font-semibold text-amber-950">Dampak Penonaktifan:</p>
-              <p className="leading-relaxed text-[11px]">
-                {confirmModal.impactDescription}
-              </p>
+              <p className="leading-relaxed text-[11px]">{confirmModal.impactDescription}</p>
               <div className="pt-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
                   Rute URL yang dialihkan:

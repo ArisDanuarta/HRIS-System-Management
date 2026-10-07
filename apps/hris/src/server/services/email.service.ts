@@ -27,7 +27,9 @@ export async function sendEmployeeCredentialsEmail(
   const loginUrl =
     params.loginUrl ||
     process.env.HRIS_URL ||
-    (process.env.NODE_ENV === "production" ? "https://hris.pspk.id/masuk" : "http://localhost:3001/masuk");
+    (process.env.NODE_ENV === "production"
+      ? "https://hris.pspk.id/masuk"
+      : "http://localhost:3001/masuk");
 
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;

@@ -159,7 +159,11 @@ export async function createEmployeeAction(input: CreateEmployeeInput) {
       return { ok: false as const, error: errorMsg };
     }
 
-    const { employee: newEmp, accountCreated, credentials } = await createEmployee(parsed.data, actor);
+    const {
+      employee: newEmp,
+      accountCreated,
+      credentials,
+    } = await createEmployee(parsed.data, actor);
     revalidatePath("/karyawan");
 
     return {
@@ -359,16 +363,18 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
           );
         }
 
-        const contractType = matchedType ? matchedType.category : (r.employmentType || "PERMANENT");
-        const wageType = matchedType ? matchedType.wageType : (r.wageType || "MONTHLY");
+        const contractType = matchedType ? matchedType.category : r.employmentType || "PERMANENT";
+        const wageType = matchedType ? matchedType.wageType : r.wageType || "MONTHLY";
         const hourlyRate =
           wageType === "HOURLY"
-            ? (r.hourlyRate ? Number(r.hourlyRate) : (matchedType?.defaultHourlyRate ? Number(matchedType.defaultHourlyRate) : 30000))
+            ? r.hourlyRate
+              ? Number(r.hourlyRate)
+              : matchedType?.defaultHourlyRate
+                ? Number(matchedType.defaultHourlyRate)
+                : 30000
             : null;
         const baseSalary =
-          wageType === "HOURLY"
-            ? null
-            : (r.baseSalary ? Number(r.baseSalary) : 10000000);
+          wageType === "HOURLY" ? null : r.baseSalary ? Number(r.baseSalary) : 10000000;
 
         let contractEndDate: Date | null = null;
         if (r.contractEndDate && r.contractEndDate.trim() !== "") {
@@ -380,9 +386,7 @@ export async function importEmployeesBatchAction(rows: ImportEmployeeRow[]) {
 
         // Enkripsi nomor rekening jika disediakan
         const bankAccountEnc =
-          r.bankAccount && r.bankAccount.trim() !== ""
-            ? encryptField(r.bankAccount.trim())
-            : null;
+          r.bankAccount && r.bankAccount.trim() !== "" ? encryptField(r.bankAccount.trim()) : null;
 
         // Create employee
         await tx.employee.create({

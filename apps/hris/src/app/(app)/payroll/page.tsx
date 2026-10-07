@@ -7,15 +7,7 @@ import { formatRupiah } from "@pspk/shared";
 import { getPayrollPeriods, getPayrollStats } from "@/server/queries/payroll.queries";
 import { PeriodItem } from "@/components/payroll/payroll-period-table";
 import { PayrollClientWrapper } from "./payroll-client-wrapper";
-import {
-  Receipt,
-  Users,
-  CreditCard,
-  Sliders,
-  ShieldAlert,
-  Calendar,
-  Settings,
-} from "lucide-react";
+import { Receipt, Users, CreditCard, Sliders, ShieldAlert, Calendar, Settings } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -63,10 +55,7 @@ export default async function PayrollPage() {
     );
   }
 
-  const [periods, stats] = await Promise.all([
-    getPayrollPeriods(),
-    getPayrollStats(),
-  ]);
+  const [periods, stats] = await Promise.all([getPayrollPeriods(), getPayrollStats()]);
 
   return (
     <div className="space-y-6">

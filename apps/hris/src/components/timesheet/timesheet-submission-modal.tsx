@@ -117,7 +117,9 @@ export function TimesheetSubmissionModal({
       if (!res.ok) {
         setError(res.error || "Gagal menyimpan pengajuan timesheet.");
       } else {
-        setSuccess("Pengajuan timesheet berhasil dikumpulkan! Notifikasi telah dikirim ke atasan penilai.");
+        setSuccess(
+          "Pengajuan timesheet berhasil dikumpulkan! Notifikasi telah dikirim ke atasan penilai.",
+        );
         setTimeout(() => {
           onClose();
           // Reset form
@@ -254,13 +256,15 @@ export function TimesheetSubmissionModal({
                 className="w-full px-3.5 py-2 bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#102E50] rounded-xl font-mono text-[11px] outline-hidden transition-all placeholder:font-sans"
               />
               <p className="text-[10px] text-slate-400">
-                Pastikan akses Google Spreadsheet sudah disetel agar dapat dibuka oleh atasan penilai.
+                Pastikan akses Google Spreadsheet sudah disetel agar dapat dibuka oleh atasan
+                penilai.
               </p>
             </div>
 
             <div className="space-y-1">
               <label className="font-semibold text-slate-800">
-                Total Akumulasi Jam Kerja (Sesuai Timesheet) <span className="text-rose-500">*</span>
+                Total Akumulasi Jam Kerja (Sesuai Timesheet){" "}
+                <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -288,7 +292,8 @@ export function TimesheetSubmissionModal({
                     Pilih Atasan Penilai (Lead / Manajer) <span className="text-rose-500">*</span>
                   </label>
                   <p className="text-[10px] text-slate-400">
-                    Bisa memilih lebih dari 1 atasan jika Anda terlibat pada proyek dengan lead berbeda.
+                    Bisa memilih lebih dari 1 atasan jika Anda terlibat pada proyek dengan lead
+                    berbeda.
                   </p>
                 </div>
                 <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#102E50]/10 text-[#102E50]">

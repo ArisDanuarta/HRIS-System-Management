@@ -6,11 +6,7 @@ import { SysmgmtNavbar } from "@/components/shell/sysmgmt-navbar";
 
 export const dynamic = "force-dynamic";
 
-export default async function SysmgmtProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function SysmgmtProtectedLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
 
@@ -53,9 +49,7 @@ export default async function SysmgmtProtectedLayout({
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
       <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
   );
 }

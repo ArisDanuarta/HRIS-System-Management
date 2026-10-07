@@ -20,10 +20,7 @@ import {
   Briefcase,
   RefreshCw,
 } from "lucide-react";
-import {
-  importEmployeesBatchAction,
-  ImportEmployeeRow,
-} from "@/server/actions/employee.actions";
+import { importEmployeesBatchAction, ImportEmployeeRow } from "@/server/actions/employee.actions";
 import {
   downloadEmployeeTemplateXlsx,
   downloadAttendanceTemplateXlsx,
@@ -44,10 +41,7 @@ interface ParsedPreviewRow extends ImportEmployeeRow {
   validationErrors: string[];
 }
 
-export function ExcelImporter({
-  departments = [],
-  employmentTypes = [],
-}: ExcelImporterProps) {
+export function ExcelImporter({ departments = [], employmentTypes = [] }: ExcelImporterProps) {
   const router = useRouter();
 
   // Upload & File State
@@ -131,10 +125,8 @@ export function ExcelImporter({
         }
 
         // Konversi ke array of arrays
-        const rawSheetData: (string | number | Date | null | undefined)[][] = XLSX.utils.sheet_to_json(
-          worksheet,
-          { header: 1, defval: "" },
-        );
+        const rawSheetData: (string | number | Date | null | undefined)[][] =
+          XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
 
         if (!rawSheetData || rawSheetData.length <= 1) {
           setParseError("File spreadsheet kosong atau hanya memiliki baris header.");
@@ -142,13 +134,14 @@ export function ExcelImporter({
         }
 
         // Baris 0 = Header
-        const headerRow = rawSheetData[0]?.map((h) =>
-          String(h || "")
-            .trim()
-            .toLowerCase()
-            .replace(/[*_]/g, "")
-            .replace(/\s+/g, " "),
-        ) || [];
+        const headerRow =
+          rawSheetData[0]?.map((h) =>
+            String(h || "")
+              .trim()
+              .toLowerCase()
+              .replace(/[*_]/g, "")
+              .replace(/\s+/g, " "),
+          ) || [];
 
         // Pemetaan indeks kolom fleksibel (mendukung berbagai variasi penamaan)
         const getColIdx = (aliases: string[]) => {
@@ -163,7 +156,12 @@ export function ExcelImporter({
         const idxPhone = getColIdx(["no hp", "whatsapp", "telepon", "phone"]);
         const idxDept = getColIdx(["divisi", "departemen", "department"]);
         const idxPos = getColIdx(["jabatan", "posisi", "position", "title"]);
-        const idxContractType = getColIdx(["tipe ikatan kerja", "ikatan kerja", "tipe kontrak", "jenis kontrak"]);
+        const idxContractType = getColIdx([
+          "tipe ikatan kerja",
+          "ikatan kerja",
+          "tipe kontrak",
+          "jenis kontrak",
+        ]);
         const idxWageType = getColIdx(["skema upah", "skema kompensasi", "wagetype"]);
         const idxSalary = getColIdx(["gaji pokok", "tarif", "upah", "salary", "hourly"]);
         const idxStartDate = getColIdx(["tanggal mulai", "mulai kerja", "startdate"]);
@@ -171,7 +169,14 @@ export function ExcelImporter({
         const idxGender = getColIdx(["jenis kelamin", "gender"]);
         const idxMarital = getColIdx(["status pernikahan", "status nikah", "marital"]);
         const idxBankName = getColIdx(["nama bank", "bank"]);
-        const idxBankAccountNo = getColIdx(["nomor rekening", "no rekening", "rekening", "accountno", "bankaccount", "no rek"]);
+        const idxBankAccountNo = getColIdx([
+          "nomor rekening",
+          "no rekening",
+          "rekening",
+          "accountno",
+          "bankaccount",
+          "no rek",
+        ]);
         const idxBankAccountName = getColIdx(["nama pemilik rekening", "pemilik rekening"]);
 
         // Fallback urutan kolom jika header tidak terdeteksi spesifik (posisi 0 s.d 8)
@@ -193,7 +198,8 @@ export function ExcelImporter({
           if (!rawFullName && !rawNip && !rawWorkEmail) continue;
 
           const rawNickname = idxNickname !== -1 ? String(row[idxNickname] || "").trim() : "";
-          const rawPersonalEmail = idxPersonalEmail !== -1 ? String(row[idxPersonalEmail] || "").trim() : "";
+          const rawPersonalEmail =
+            idxPersonalEmail !== -1 ? String(row[idxPersonalEmail] || "").trim() : "";
           const rawPhone = idxPhone !== -1 ? String(row[idxPhone] || "").trim() : "";
           // Normalisasi nomor telepon jika terpotong angka 0 di depan oleh Excel
           let cleanPhone = rawPhone;
@@ -203,7 +209,8 @@ export function ExcelImporter({
 
           const rawDept = idxDept !== -1 ? String(row[idxDept] || "").trim() : "Divisi Riset";
           const rawPos = idxPos !== -1 ? String(row[idxPos] || "").trim() : "Staf Teknis Riset";
-          const rawContractType = idxContractType !== -1 ? String(row[idxContractType] || "").trim() : "";
+          const rawContractType =
+            idxContractType !== -1 ? String(row[idxContractType] || "").trim() : "";
           const rawWageType = idxWageType !== -1 ? String(row[idxWageType] || "").trim() : "";
           const rawSalary = idxSalary !== -1 ? row[idxSalary] : 10000000;
           const rawStartDate = idxStartDate !== -1 ? row[idxStartDate] : "";
@@ -211,8 +218,10 @@ export function ExcelImporter({
           const rawGender = idxGender !== -1 ? String(row[idxGender] || "").trim() : "";
           const rawMarital = idxMarital !== -1 ? String(row[idxMarital] || "").trim() : "";
           const rawBankName = idxBankName !== -1 ? String(row[idxBankName] || "").trim() : "";
-          const rawBankAccountNo = idxBankAccountNo !== -1 ? String(row[idxBankAccountNo] || "").trim() : "";
-          const rawBankAccountName = idxBankAccountName !== -1 ? String(row[idxBankAccountName] || "").trim() : "";
+          const rawBankAccountNo =
+            idxBankAccountNo !== -1 ? String(row[idxBankAccountNo] || "").trim() : "";
+          const rawBankAccountName =
+            idxBankAccountName !== -1 ? String(row[idxBankAccountName] || "").trim() : "";
 
           // Format Tanggal
           const parseDateVal = (val: unknown): string => {
@@ -254,9 +263,12 @@ export function ExcelImporter({
           const employmentType: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT" =
             contractTypeLower.includes("tetap") || contractTypeLower.includes("permanent")
               ? "PERMANENT"
-              : contractTypeLower.includes("part") || contractTypeLower.includes("proyek") || contractTypeLower.includes("adhoc") || isHourly
-              ? "PART_TIME_PROJECT"
-              : "FIXED_TERM";
+              : contractTypeLower.includes("part") ||
+                  contractTypeLower.includes("proyek") ||
+                  contractTypeLower.includes("adhoc") ||
+                  isHourly
+                ? "PART_TIME_PROJECT"
+                : "FIXED_TERM";
 
           // Validasi Baris
           const errors: string[] = [];
@@ -297,11 +309,11 @@ export function ExcelImporter({
               rawMarital.toLowerCase().includes("married")
                 ? "MARRIED"
                 : rawMarital.toLowerCase().includes("cerai") ||
-                  rawMarital.toLowerCase().includes("divorce") ||
-                  rawMarital.toLowerCase().includes("janda") ||
-                  rawMarital.toLowerCase().includes("duda")
-                ? "DIVORCED"
-                : "SINGLE",
+                    rawMarital.toLowerCase().includes("divorce") ||
+                    rawMarital.toLowerCase().includes("janda") ||
+                    rawMarital.toLowerCase().includes("duda")
+                  ? "DIVORCED"
+                  : "SINGLE",
             bankName: rawBankName || "Bank Mandiri",
             bankAccount: rawBankAccountNo || undefined,
             bankAccountName: rawBankAccountName || rawFullName,
@@ -318,7 +330,9 @@ export function ExcelImporter({
       } catch (err: unknown) {
         console.error("Gagal membaca file Excel:", err);
         const errorMsg = err instanceof Error ? err.message : "Kesalahan format berkas";
-        setParseError(`Gagal membaca berkas Excel: ${errorMsg}. Pastikan berkas berformat .xlsx, .xls, atau .csv.`);
+        setParseError(
+          `Gagal membaca berkas Excel: ${errorMsg}. Pastikan berkas berformat .xlsx, .xls, atau .csv.`,
+        );
       }
     };
 
@@ -399,7 +413,9 @@ export function ExcelImporter({
               </span>
             </div>
             <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-              Berkas <strong>.xlsx</strong> multi-sheet rapi (bukan .csv). Berisi kolom berformat rapi, contoh konkret skema gaji bulanan & per jam, serta daftar master divisi dan ikatan kerja yang aktif saat ini.
+              Berkas <strong>.xlsx</strong> multi-sheet rapi (bukan .csv). Berisi kolom berformat
+              rapi, contoh konkret skema gaji bulanan & per jam, serta daftar master divisi dan
+              ikatan kerja yang aktif saat ini.
             </p>
           </div>
         </div>
@@ -433,7 +449,9 @@ export function ExcelImporter({
               }`}
             >
               <span>Template Lainnya</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isTemplateMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${isTemplateMenuOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
             {isTemplateMenuOpen && (
@@ -460,8 +478,12 @@ export function ExcelImporter({
                         <FileSpreadsheet className="w-4 h-4" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-xs text-slate-900 group-hover:text-[#102E50]">Template Rekap Presensi</span>
-                        <span className="text-[10px] text-slate-500">Timesheet jam kerja & status presensi</span>
+                        <span className="font-semibold text-xs text-slate-900 group-hover:text-[#102E50]">
+                          Template Rekap Presensi
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          Timesheet jam kerja & status presensi
+                        </span>
                       </div>
                     </div>
                     <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#102E50]" />
@@ -480,8 +502,12 @@ export function ExcelImporter({
                         <FileSpreadsheet className="w-4 h-4" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-semibold text-xs text-slate-900 group-hover:text-[#102E50]">Template Struktur Organisasi</span>
-                        <span className="text-[10px] text-slate-500">Daftar divisi & formasi jabatan</span>
+                        <span className="font-semibold text-xs text-slate-900 group-hover:text-[#102E50]">
+                          Template Struktur Organisasi
+                        </span>
+                        <span className="text-[10px] text-slate-500">
+                          Daftar divisi & formasi jabatan
+                        </span>
                       </div>
                     </div>
                     <Download className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#102E50]" />
@@ -558,7 +584,8 @@ export function ExcelImporter({
               </div>
               <span className="font-bold text-xs text-slate-800">Buka di Excel</span>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                Isi pada lembar &ldquo;Data Pegawai&rdquo;. Format tanggal wajib <code>YYYY-MM-DD</code> (contoh: 2026-10-01).
+                Isi pada lembar &ldquo;Data Pegawai&rdquo;. Format tanggal wajib{" "}
+                <code>YYYY-MM-DD</code> (contoh: 2026-10-01).
               </p>
             </div>
 
@@ -568,7 +595,8 @@ export function ExcelImporter({
               </div>
               <span className="font-bold text-xs text-slate-800">Unggah & Pratinjau</span>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                Tarik file ke area unggah di bawah. Sistem akan memvalidasi NIP, email, dan skema upah secara otomatis.
+                Tarik file ke area unggah di bawah. Sistem akan memvalidasi NIP, email, dan skema
+                upah secara otomatis.
               </p>
             </div>
 
@@ -578,7 +606,8 @@ export function ExcelImporter({
               </div>
               <span className="font-bold text-xs text-slate-800">Eksekusi Impor</span>
               <p className="text-[11px] text-slate-500 leading-relaxed">
-                Klik tombol &ldquo;Eksekusi Impor&rdquo;. Pegawai, kontrak, dan histori penempatan tersimpan rapi.
+                Klik tombol &ldquo;Eksekusi Impor&rdquo;. Pegawai, kontrak, dan histori penempatan
+                tersimpan rapi.
               </p>
             </div>
           </div>
@@ -600,56 +629,72 @@ export function ExcelImporter({
               <tbody className="divide-y divide-slate-100 text-[11px] text-slate-600">
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">Nama Lengkap</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Teks lengkap beserta gelar</td>
                   <td className="py-2 px-3 font-mono">Dr. Aris Sudrajat M.Pd.</td>
                   <td className="py-2 px-3">Ditampilkan di seluruh laporan resmi</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">NIP</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Unik di seluruh database</td>
                   <td className="py-2 px-3 font-mono">PSPK-202610-091</td>
                   <td className="py-2 px-3">Jika duplikat, baris akan dilewati demi keamanan</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">Email Kantor</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Format email resmi valid</td>
                   <td className="py-2 px-3 font-mono">aris.sudrajat@pspk.id</td>
                   <td className="py-2 px-3">Digunakan sebagai username login</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">No HP / WhatsApp</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Awalan 08 atau +62</td>
                   <td className="py-2 px-3 font-mono">081234567890</td>
                   <td className="py-2 px-3">Kontak operasional dan darurat</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">Divisi</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Sesuai nama divisi resmi</td>
                   <td className="py-2 px-3 font-mono">Divisi Kebijakan Kurikulum</td>
                   <td className="py-2 px-3">Otomatis dibuatkan baru jika belum terdaftar</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">Tipe Ikatan Kerja</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Nama atau Kode Ikatan Kerja</td>
                   <td className="py-2 px-3 font-mono">Pegawai Tetap / PKWT Riset</td>
                   <td className="py-2 px-3">Dicocokkan ke master data Ikatan Kerja HR</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">Gaji Pokok / Tarif</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Angka murni tanpa titik atau Rp</td>
                   <td className="py-2 px-3 font-mono">18000000 atau 50000</td>
                   <td className="py-2 px-3">Nominal gaji bulanan atau tarif per jam</td>
                 </tr>
                 <tr>
                   <td className="py-2 px-3 font-semibold text-slate-800">Tanggal Mulai</td>
-                  <td className="py-2 px-3"><span className="text-rose-600 font-bold">Wajib</span></td>
+                  <td className="py-2 px-3">
+                    <span className="text-rose-600 font-bold">Wajib</span>
+                  </td>
                   <td className="py-2 px-3">Format YYYY-MM-DD</td>
                   <td className="py-2 px-3 font-mono">2026-10-01</td>
                   <td className="py-2 px-3">Tanggal awal kerja efektif</td>
@@ -709,7 +754,9 @@ export function ExcelImporter({
                   >
                     <Briefcase className="w-3 h-3 text-amber-700" />
                     <span className="font-semibold">{et.name}</span>
-                    <span className="text-[10px] text-amber-700/80">({et.wageType === "HOURLY" ? "Per Jam" : "Bulanan"})</span>
+                    <span className="text-[10px] text-amber-700/80">
+                      ({et.wageType === "HOURLY" ? "Per Jam" : "Bulanan"})
+                    </span>
                     {copiedText === et.name ? (
                       <Check className="w-3 h-3 text-emerald-600" />
                     ) : (
@@ -732,10 +779,13 @@ export function ExcelImporter({
         </div>
         <div className="flex flex-col gap-1 max-w-md">
           <span className="font-bold text-sm text-slate-800 font-heading">
-            {fileName ? `Berkas Terpilih: ${fileName} (${fileSize})` : "Pilih atau Seret Berkas Spreadsheet ke Sini"}
+            {fileName
+              ? `Berkas Terpilih: ${fileName} (${fileSize})`
+              : "Pilih atau Seret Berkas Spreadsheet ke Sini"}
           </span>
           <p className="text-xs text-slate-500">
-            Mendukung berkas <strong>Microsoft Excel (.xlsx, .xls)</strong> dan <strong>CSV (.csv)</strong>.
+            Mendukung berkas <strong>Microsoft Excel (.xlsx, .xls)</strong> dan{" "}
+            <strong>CSV (.csv)</strong>.
           </p>
         </div>
 
@@ -787,7 +837,9 @@ export function ExcelImporter({
             </Link>
           </div>
           <p className="text-slate-700">
-            Berhasil menambahkan <strong className="text-emerald-800 font-bold">{importResult.importedCount}</strong> data pegawai baru ke dalam sistem HRIS PSPK.
+            Berhasil menambahkan{" "}
+            <strong className="text-emerald-800 font-bold">{importResult.importedCount}</strong>{" "}
+            data pegawai baru ke dalam sistem HRIS PSPK.
           </p>
 
           {importResult.failedRows.length > 0 && (
@@ -898,9 +950,7 @@ export function ExcelImporter({
                       !r.isValid ? "bg-rose-50/30" : ""
                     }`}
                   >
-                    <td className="py-2 px-3 text-center font-mono text-slate-400">
-                      {r.rowIndex}
-                    </td>
+                    <td className="py-2 px-3 text-center font-mono text-slate-400">{r.rowIndex}</td>
 
                     <td className="py-2 px-3">
                       {r.isValid ? (
@@ -950,9 +1000,7 @@ export function ExcelImporter({
                         : formatRupiah(r.baseSalary || 0)}
                     </td>
 
-                    <td className="py-2 px-3 font-mono text-slate-600">
-                      {r.joinDate}
-                    </td>
+                    <td className="py-2 px-3 font-mono text-slate-600">{r.joinDate}</td>
                   </tr>
                 ))}
               </tbody>

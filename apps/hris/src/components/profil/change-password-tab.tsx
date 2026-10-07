@@ -41,7 +41,8 @@ export function ChangePasswordTab() {
 
   // Password strength calculation
   const strength = useMemo(() => {
-    if (!newPassword) return { score: 0, label: "Belum diisi", color: "bg-slate-200", text: "text-slate-400" };
+    if (!newPassword)
+      return { score: 0, label: "Belum diisi", color: "bg-slate-200", text: "text-slate-400" };
 
     let passedCount = 0;
     if (criteria.minLength) passedCount++;
@@ -61,10 +62,7 @@ export function ChangePasswordTab() {
     return { score: 4, label: "Sangat Kuat", color: "bg-emerald-600", text: "text-emerald-600" };
   }, [newPassword, criteria]);
 
-  const isFormValid =
-    currentPassword.length > 0 &&
-    criteria.minLength &&
-    criteria.matchConfirm;
+  const isFormValid = currentPassword.length > 0 && criteria.minLength && criteria.matchConfirm;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,9 +96,7 @@ export function ChangePasswordTab() {
           <div className="p-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200/80">
             <KeyRound className="w-4 h-4 text-amber-700" />
           </div>
-          <h2 className="text-xl font-bold font-serif text-[#102E50]">
-            Perbarui Kata Sandi Akun
-          </h2>
+          <h2 className="text-xl font-bold font-serif text-[#102E50]">Perbarui Kata Sandi Akun</h2>
         </div>
         <p className="text-xs sm:text-sm text-slate-500 max-w-xl">
           Gunakan kata sandi yang kuat dan unik untuk menjaga keamanan akun dan data operasional
@@ -126,9 +122,7 @@ export function ChangePasswordTab() {
         <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 animate-in fade-in">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="text-xs sm:text-sm font-bold text-rose-900">
-              Pembaruan Kata Sandi Gagal
-            </p>
+            <p className="text-xs sm:text-sm font-bold text-rose-900">Pembaruan Kata Sandi Gagal</p>
             <p className="text-xs text-rose-700">{errorMessage}</p>
           </div>
         </div>
@@ -253,7 +247,9 @@ export function ChangePasswordTab() {
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-1 mr-1 shrink-0" />
               )}
-              <span className={criteria.minLength ? "text-slate-800 font-semibold" : "text-slate-500"}>
+              <span
+                className={criteria.minLength ? "text-slate-800 font-semibold" : "text-slate-500"}
+              >
                 Minimal 6 karakter (Wajib)
               </span>
             </div>
@@ -264,7 +260,11 @@ export function ChangePasswordTab() {
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-1 mr-1 shrink-0" />
               )}
-              <span className={criteria.hasUpperLower ? "text-slate-800 font-semibold" : "text-slate-500"}>
+              <span
+                className={
+                  criteria.hasUpperLower ? "text-slate-800 font-semibold" : "text-slate-500"
+                }
+              >
                 Huruf besar & huruf kecil
               </span>
             </div>
@@ -275,7 +275,9 @@ export function ChangePasswordTab() {
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-1 mr-1 shrink-0" />
               )}
-              <span className={criteria.hasNumber ? "text-slate-800 font-semibold" : "text-slate-500"}>
+              <span
+                className={criteria.hasNumber ? "text-slate-800 font-semibold" : "text-slate-500"}
+              >
                 Memuat angka (0-9)
               </span>
             </div>
@@ -286,7 +288,9 @@ export function ChangePasswordTab() {
               ) : (
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300 ml-1 mr-1 shrink-0" />
               )}
-              <span className={criteria.hasSymbol ? "text-slate-800 font-semibold" : "text-slate-500"}>
+              <span
+                className={criteria.hasSymbol ? "text-slate-800 font-semibold" : "text-slate-500"}
+              >
                 Memuat simbol (!@#$%^&*)
               </span>
             </div>

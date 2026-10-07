@@ -249,13 +249,9 @@ export async function getTimesheetSubmissionsForReviewer(
     (i) => i.currentUserReviewerStatus === "PENDING" || i.currentUserReviewerStatus === "IN_REVIEW",
   );
 
-  const approvedItems = items.filter(
-    (i) => i.currentUserReviewerStatus === "APPROVED",
-  );
+  const approvedItems = items.filter((i) => i.currentUserReviewerStatus === "APPROVED");
 
-  const rejectedItems = items.filter(
-    (i) => i.currentUserReviewerStatus === "REJECTED",
-  );
+  const rejectedItems = items.filter((i) => i.currentUserReviewerStatus === "REJECTED");
 
   const totalHoursPending = needsReviewItems.reduce((sum, i) => sum + i.totalHours, 0);
   const totalHoursApproved = approvedItems.reduce((sum, i) => sum + i.totalHours, 0);
@@ -469,7 +465,7 @@ export async function getTimesheetValidationForPayroll(year: number, month: numb
     },
   });
 
-  const submissionMap = new Map<string, typeof submissions[0]>();
+  const submissionMap = new Map<string, (typeof submissions)[0]>();
   for (const s of submissions) {
     submissionMap.set(s.employeeId, s);
   }

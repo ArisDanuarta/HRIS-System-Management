@@ -82,10 +82,7 @@ export function AppSidebar({
       return pathname.startsWith("/karyawan/ikatan-kerja");
     }
     if (href === "/absensi/rekap") {
-      return (
-        pathname.startsWith("/absensi/rekap") ||
-        pathname.startsWith("/cuti/pengaturan")
-      );
+      return pathname.startsWith("/absensi/rekap") || pathname.startsWith("/cuti/pengaturan");
     }
     if (href === "/absensi") {
       return (

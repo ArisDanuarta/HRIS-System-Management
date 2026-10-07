@@ -68,7 +68,8 @@ export default async function IkatanKerjaPage() {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Kelola master tipe perjanjian kerja (Pegawai Tetap, PKWT Riset, Freelance Upah Per Jam, Magang), skema kompensasi, dan tarif acuan organisasi PSPK.
+            Kelola master tipe perjanjian kerja (Pegawai Tetap, PKWT Riset, Freelance Upah Per Jam,
+            Magang), skema kompensasi, dan tarif acuan organisasi PSPK.
           </p>
         </div>
       </div>

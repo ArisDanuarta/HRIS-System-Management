@@ -41,10 +41,7 @@ async function getActorInfo() {
 /**
  * Server Action: Update User Roles in System Management (RBAC)
  */
-export async function updateUserRolesSysAction(input: {
-  userId: string;
-  roleKeys: string[];
-}) {
+export async function updateUserRolesSysAction(input: { userId: string; roleKeys: string[] }) {
   try {
     const actor = await getActorInfo();
     assertCan(actor.authCtx, "sysmgmt.user.manage");
@@ -52,7 +49,8 @@ export async function updateUserRolesSysAction(input: {
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
         ok: false as const,
-        error: "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengubah peran pengguna.",
+        error:
+          "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengubah peran pengguna.",
       };
     }
 
@@ -110,7 +108,8 @@ export async function updateUserRolesSysAction(input: {
       if (activeSuperAdminCount <= 1) {
         return {
           ok: false as const,
-          error: "Tidak dapat mencabut peran Super Admin. Sistem wajib memiliki minimal satu Super Admin aktif.",
+          error:
+            "Tidak dapat mencabut peran Super Admin. Sistem wajib memiliki minimal satu Super Admin aktif.",
         };
       }
     }
@@ -177,10 +176,7 @@ export async function updateUserRolesSysAction(input: {
 /**
  * Server Action: Toggle User Active Status
  */
-export async function toggleUserStatusAction(input: {
-  userId: string;
-  isActive: boolean;
-}) {
+export async function toggleUserStatusAction(input: { userId: string; isActive: boolean }) {
   try {
     const actor = await getActorInfo();
     assertCan(actor.authCtx, "sysmgmt.user.manage");
@@ -188,7 +184,8 @@ export async function toggleUserStatusAction(input: {
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
         ok: false as const,
-        error: "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengubah status akun.",
+        error:
+          "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengubah status akun.",
       };
     }
 
@@ -295,7 +292,8 @@ export async function resetUserPasswordAction(input: { userId: string }) {
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
         ok: false as const,
-        error: "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengatur ulang kata sandi pengguna.",
+        error:
+          "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengatur ulang kata sandi pengguna.",
       };
     }
 

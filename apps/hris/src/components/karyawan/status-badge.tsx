@@ -77,10 +77,10 @@ export function ContractTypeBadge({ type, label }: ContractTypeBadgeProps) {
     (type === "PERMANENT"
       ? "Tetap"
       : type === "FIXED_TERM"
-      ? "PKWT Riset"
-      : type === "PART_TIME_PROJECT"
-      ? "Proyek"
-      : type);
+        ? "PKWT Riset"
+        : type === "PART_TIME_PROJECT"
+          ? "Proyek"
+          : type);
 
   switch (type) {
     case "PERMANENT":

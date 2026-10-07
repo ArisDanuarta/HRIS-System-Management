@@ -92,7 +92,9 @@ interface FinalizeFormProps {
 function FinalizeReviewForm({ review, onClose, onSuccess }: FinalizeFormProps) {
   const recommendedScore = calculateRecommendedFinalScore(review.selfScore, review.managerScore);
   const [finalScoreInput, setFinalScoreInput] = useState<number>(recommendedScore);
-  const [managerCommentInput, setManagerCommentInput] = useState<string>(review.managerComment || "");
+  const [managerCommentInput, setManagerCommentInput] = useState<string>(
+    review.managerComment || "",
+  );
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -101,7 +103,11 @@ function FinalizeReviewForm({ review, onClose, onSuccess }: FinalizeFormProps) {
 
   const handleFinalize = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!window.confirm(`Kunci dan finalisasi nilai kinerja untuk ${review.employee.fullName}? Hasil tidak dapat diubah kembali setelah dikunci.`)) {
+    if (
+      !window.confirm(
+        `Kunci dan finalisasi nilai kinerja untuk ${review.employee.fullName}? Hasil tidak dapat diubah kembali setelah dikunci.`,
+      )
+    ) {
       return;
     }
     setError(null);
@@ -163,7 +169,9 @@ function FinalizeReviewForm({ review, onClose, onSuccess }: FinalizeFormProps) {
             onChange={(e) => setFinalScoreInput(Number(e.target.value))}
             className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#102E50] focus:ring-1 focus:ring-[#102E50] outline-hidden font-mono font-bold"
           />
-          <p className={`mt-1 text-[11px] font-semibold px-2 py-0.5 rounded border inline-block ${predicate.badgeClass}`}>
+          <p
+            className={`mt-1 text-[11px] font-semibold px-2 py-0.5 rounded border inline-block ${predicate.badgeClass}`}
+          >
             {predicate.predicate} (Grade {predicate.grade})
           </p>
         </div>
@@ -214,7 +222,9 @@ interface ManagerReviewFormProps {
 }
 
 function ManagerReviewForm({ review, onClose, onSuccess }: ManagerReviewFormProps) {
-  const [scoreInput, setScoreInput] = useState<number>(review.managerScore ?? review.selfScore ?? 85);
+  const [scoreInput, setScoreInput] = useState<number>(
+    review.managerScore ?? review.selfScore ?? 85,
+  );
   const [commentInput, setCommentInput] = useState<string>(review.managerComment || "");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -278,7 +288,9 @@ function ManagerReviewForm({ review, onClose, onSuccess }: ManagerReviewFormProp
             onChange={(e) => setScoreInput(Number(e.target.value))}
             className="w-32 px-3 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#102E50] focus:ring-1 focus:ring-[#102E50] outline-hidden font-mono font-bold"
           />
-          <span className={`text-[11px] font-semibold px-2.5 py-1 rounded border ${predicate.badgeClass}`}>
+          <span
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded border ${predicate.badgeClass}`}
+          >
             {predicate.predicate} (Grade {predicate.grade})
           </span>
         </div>
@@ -352,7 +364,11 @@ function RequestRevisionForm({ review, onClose, onSuccess }: RevisionFormProps) 
       setError("Alasan permintaan revisi wajib diisi (minimal 5 karakter).");
       return;
     }
-    if (!window.confirm(`Kembalikan evaluasi ${review.employee.fullName} ke status DRAFT? Nilai yang sudah diisi akan dihapus.`)) {
+    if (
+      !window.confirm(
+        `Kembalikan evaluasi ${review.employee.fullName} ke status DRAFT? Nilai yang sudah diisi akan dihapus.`,
+      )
+    ) {
       return;
     }
     setError(null);
@@ -376,7 +392,8 @@ function RequestRevisionForm({ review, onClose, onSuccess }: RevisionFormProps) 
         </div>
       )}
       <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs">
-        <strong>Peringatan:</strong> Mengembalikan ke DRAFT akan menghapus nilai evaluasi mandiri dan nilai atasan yang sudah diisi. Staf perlu mengisi ulang dari awal.
+        <strong>Peringatan:</strong> Mengembalikan ke DRAFT akan menghapus nilai evaluasi mandiri
+        dan nilai atasan yang sudah diisi. Staf perlu mengisi ulang dari awal.
       </div>
       <div>
         <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -433,7 +450,9 @@ export function PerformanceDetailModal({
   currentEmployeeId,
   isHrOrAdmin = false,
 }: PerformanceDetailModalProps) {
-  const [activePanel, setActivePanel] = useState<"detail" | "manager-review" | "revision" | "unlock">("detail");
+  const [activePanel, setActivePanel] = useState<
+    "detail" | "manager-review" | "revision" | "unlock"
+  >("detail");
 
   const handleClose = () => {
     setActivePanel("detail");
@@ -445,7 +464,9 @@ export function PerformanceDetailModal({
   const isFinalized = review.status === "FINALIZED";
   const isReviewer = currentEmployeeId && review.reviewer?.id === currentEmployeeId;
   const canSubmitManagerReview = (isReviewer || isHrOrAdmin) && review.status === "SELF_REVIEW";
-  const canRequestRevision = (isReviewer || isHrOrAdmin) && (review.status === "SELF_REVIEW" || review.status === "MANAGER_REVIEW");
+  const canRequestRevision =
+    (isReviewer || isHrOrAdmin) &&
+    (review.status === "SELF_REVIEW" || review.status === "MANAGER_REVIEW");
   const canFinalize = isHrOrAdmin && review.status === "MANAGER_REVIEW";
   const canUnlock = isHrOrAdmin && isFinalized;
 
@@ -460,8 +481,12 @@ export function PerformanceDetailModal({
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-serif text-base font-bold tracking-tight">{review.employee.fullName}</h3>
-                <span className="font-mono text-[11px] text-slate-300">({review.employee.employeeNo})</span>
+                <h3 className="font-serif text-base font-bold tracking-tight">
+                  {review.employee.fullName}
+                </h3>
+                <span className="font-mono text-[11px] text-slate-300">
+                  ({review.employee.employeeNo})
+                </span>
                 {isFinalized ? (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
                     <Lock className="w-3 h-3 text-emerald-300" />
@@ -558,13 +583,14 @@ export function PerformanceDetailModal({
 
         {/* Body (Scrollable) */}
         <div className="p-6 overflow-y-auto space-y-6 text-sm">
-
           {/* Panel: Manager Review Form */}
           {activePanel === "manager-review" && canSubmitManagerReview && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-amber-600" />
-                <h4 className="font-serif font-bold text-slate-900 text-sm">Penilaian Atasan Langsung</h4>
+                <h4 className="font-serif font-bold text-slate-900 text-sm">
+                  Penilaian Atasan Langsung
+                </h4>
               </div>
               <ManagerReviewForm review={review} onClose={handleClose} onSuccess={onSuccess} />
             </div>
@@ -575,7 +601,9 @@ export function PerformanceDetailModal({
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <RotateCcw className="w-4 h-4 text-amber-600" />
-                <h4 className="font-serif font-bold text-slate-900 text-sm">Permintaan Revisi Evaluasi</h4>
+                <h4 className="font-serif font-bold text-slate-900 text-sm">
+                  Permintaan Revisi Evaluasi
+                </h4>
               </div>
               <RequestRevisionForm review={review} onClose={handleClose} onSuccess={onSuccess} />
             </div>
@@ -622,7 +650,9 @@ export function PerformanceDetailModal({
                     <Target className="w-4 h-4 text-[#102E50]" />
                     <span>Sasaran Kerja & Target Riset (OKR)</span>
                   </h4>
-                  <span className="text-[11px] text-slate-400">{review.goals.length} Sasaran Terdaftar</span>
+                  <span className="text-[11px] text-slate-400">
+                    {review.goals.length} Sasaran Terdaftar
+                  </span>
                 </div>
 
                 {review.goals.length === 0 ? (
@@ -642,7 +672,9 @@ export function PerformanceDetailModal({
                               {idx + 1}. {goal.title}
                             </div>
                             {goal.description && (
-                              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{goal.description}</p>
+                              <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                                {goal.description}
+                              </p>
                             )}
                           </div>
                           <span className="px-2.5 py-0.5 rounded-full text-xs font-bold font-mono bg-blue-50 text-blue-800 border border-blue-200 shrink-0">
@@ -686,7 +718,9 @@ export function PerformanceDetailModal({
                         <span>Evaluasi Mandiri (Staf)</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[10px] text-slate-400 block leading-none">Skor Staf</span>
+                        <span className="text-[10px] text-slate-400 block leading-none">
+                          Skor Staf
+                        </span>
                         <span className="text-lg font-bold font-mono text-sky-900">
                           {review.selfScore !== null ? review.selfScore : "-"}
                           <span className="text-xs font-normal text-slate-400"> / 100</span>
@@ -698,7 +732,10 @@ export function PerformanceDetailModal({
                         Refleksi Capaian & Hambatan:
                       </label>
                       <p className="text-xs text-slate-700 bg-white p-3 rounded-xl border border-sky-100 min-h-[72px] leading-relaxed italic">
-                        &ldquo;{review.selfComment || "Belum ada catatan refleksi yang diisi oleh pegawai."}&rdquo;
+                        &ldquo;
+                        {review.selfComment ||
+                          "Belum ada catatan refleksi yang diisi oleh pegawai."}
+                        &rdquo;
                       </p>
                     </div>
                   </div>
@@ -711,7 +748,9 @@ export function PerformanceDetailModal({
                         <span>Penilaian Atasan Langsung</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[10px] text-slate-400 block leading-none">Skor Atasan</span>
+                        <span className="text-[10px] text-slate-400 block leading-none">
+                          Skor Atasan
+                        </span>
                         <span className="text-lg font-bold font-mono text-amber-900">
                           {review.managerScore !== null ? review.managerScore : "-"}
                           <span className="text-xs font-normal text-slate-400"> / 100</span>
@@ -723,7 +762,10 @@ export function PerformanceDetailModal({
                         Catatan & Masukan Pembinaan:
                       </label>
                       <p className="text-xs text-slate-700 bg-white p-3 rounded-xl border border-amber-100 min-h-[72px] leading-relaxed italic">
-                        &ldquo;{review.managerComment || "Belum ada catatan evaluasi dari atasan langsung."}&rdquo;
+                        &ldquo;
+                        {review.managerComment ||
+                          "Belum ada catatan evaluasi dari atasan langsung."}
+                        &rdquo;
                       </p>
                     </div>
                   </div>
@@ -746,13 +788,15 @@ export function PerformanceDetailModal({
                       {isFinalized
                         ? "Nilai telah disahkan dan dikunci resmi ke dalam database kinerja organisasi."
                         : isManager && !isHrOrAdmin
-                        ? "Pengesahan resmi dan penguncian evaluasi akhir dilakukan oleh Divisi HR."
-                        : "Admin HR dapat mengesahkan skor akhir untuk dimasukkan ke laporan resmi."}
+                          ? "Pengesahan resmi dan penguncian evaluasi akhir dilakukan oleh Divisi HR."
+                          : "Admin HR dapat mengesahkan skor akhir untuk dimasukkan ke laporan resmi."}
                     </p>
                   </div>
                   {isFinalized && (
                     <div className="text-right">
-                      <span className="text-[10px] text-slate-400 block leading-none">Skor Resmi</span>
+                      <span className="text-[10px] text-slate-400 block leading-none">
+                        Skor Resmi
+                      </span>
                       <span className="text-xl font-bold font-mono text-emerald-900">
                         {review.finalScore}
                         <span className="text-xs font-normal text-slate-400"> / 100</span>
@@ -765,7 +809,12 @@ export function PerformanceDetailModal({
                 </div>
 
                 {!isFinalized && canFinalize && (
-                  <FinalizeReviewForm key={review.id} review={review} onClose={handleClose} onSuccess={onSuccess} />
+                  <FinalizeReviewForm
+                    key={review.id}
+                    review={review}
+                    onClose={handleClose}
+                    onSuccess={onSuccess}
+                  />
                 )}
 
                 {!isFinalized && !canFinalize && (
@@ -775,10 +824,10 @@ export function PerformanceDetailModal({
                       {review.status === "DRAFT"
                         ? "Pegawai masih menyusun target dan sasaran kerja (DRAFT)."
                         : review.status === "SELF_REVIEW"
-                        ? "Staf telah mengajukan evaluasi mandiri. Menunggu penilaian atasan langsung."
-                        : review.status === "MANAGER_REVIEW"
-                        ? "Penilaian atasan telah tercatat. Menunggu verifikasi komite dan pengesahan resmi oleh HR."
-                        : "Status evaluasi tidak dikenal."}
+                          ? "Staf telah mengajukan evaluasi mandiri. Menunggu penilaian atasan langsung."
+                          : review.status === "MANAGER_REVIEW"
+                            ? "Penilaian atasan telah tercatat. Menunggu verifikasi komite dan pengesahan resmi oleh HR."
+                            : "Status evaluasi tidak dikenal."}
                     </span>
                   </div>
                 )}
@@ -837,12 +886,19 @@ function UnlockPanel({
       setError("Alasan pembukaan kunci wajib diisi (minimal 5 karakter).");
       return;
     }
-    if (!window.confirm(`Buka kunci evaluasi ${review.employee.fullName}? Skor final akan dihapus dan status kembali ke MANAGER_REVIEW.`)) {
+    if (
+      !window.confirm(
+        `Buka kunci evaluasi ${review.employee.fullName}? Skor final akan dihapus dan status kembali ke MANAGER_REVIEW.`,
+      )
+    ) {
       return;
     }
     setError(null);
     startTransition(async () => {
-      const res = await unlockPerformanceReviewAction({ reviewId: review.id, reason: reason.trim() });
+      const res = await unlockPerformanceReviewAction({
+        reviewId: review.id,
+        reason: reason.trim(),
+      });
       if (!res.success) {
         setError(res.error || "Gagal membuka kunci evaluasi.");
       } else {
@@ -856,7 +912,9 @@ function UnlockPanel({
     <form onSubmit={handleUnlock} className="space-y-3">
       <div className="flex items-center gap-2">
         <Unlock className="w-4 h-4 text-rose-600" />
-        <h4 className="font-serif font-bold text-slate-900 text-sm">Buka Kunci Evaluasi yang Disahkan</h4>
+        <h4 className="font-serif font-bold text-slate-900 text-sm">
+          Buka Kunci Evaluasi yang Disahkan
+        </h4>
       </div>
 
       {error && (
@@ -867,7 +925,9 @@ function UnlockPanel({
       )}
 
       <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs">
-        <strong>Tindakan Berisiko:</strong> Membuka kunci akan menghapus skor final ({review.finalScore}) dan mengembalikan evaluasi ke status MANAGER_REVIEW. Hanya lakukan jika ada koreksi yang benar-benar perlu.
+        <strong>Tindakan Berisiko:</strong> Membuka kunci akan menghapus skor final (
+        {review.finalScore}) dan mengembalikan evaluasi ke status MANAGER_REVIEW. Hanya lakukan jika
+        ada koreksi yang benar-benar perlu.
       </div>
 
       <div>
@@ -885,7 +945,11 @@ function UnlockPanel({
       </div>
 
       <div className="flex items-center justify-end gap-2">
-        <button type="button" onClick={onClose} className="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+        >
           Batal
         </button>
         <button
@@ -894,9 +958,15 @@ function UnlockPanel({
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors disabled:opacity-50"
         >
           {isPending ? (
-            <><RefreshCw className="w-3.5 h-3.5 animate-spin" /><span>Membuka Kunci...</span></>
+            <>
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Membuka Kunci...</span>
+            </>
           ) : (
-            <><Unlock className="w-3.5 h-3.5" /><span>Buka Kunci Evaluasi</span></>
+            <>
+              <Unlock className="w-3.5 h-3.5" />
+              <span>Buka Kunci Evaluasi</span>
+            </>
           )}
         </button>
       </div>

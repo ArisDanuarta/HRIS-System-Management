@@ -14,7 +14,9 @@ export interface PerformancePredicateResult {
 /**
  * Menghitung predikat dan grade kinerja berdasarkan skor (skala 0 - 100)
  */
-export function calculatePerformancePredicate(score: number | null | undefined): PerformancePredicateResult {
+export function calculatePerformancePredicate(
+  score: number | null | undefined,
+): PerformancePredicateResult {
   if (score === null || score === undefined || isNaN(score)) {
     return {
       predicate: "-",
@@ -68,7 +70,7 @@ export function calculatePerformancePredicate(score: number | null | undefined):
  */
 export function calculateRecommendedFinalScore(
   selfScore: number | null | undefined,
-  managerScore: number | null | undefined
+  managerScore: number | null | undefined,
 ): number {
   if (managerScore !== null && managerScore !== undefined && !isNaN(managerScore)) {
     return Number(managerScore);

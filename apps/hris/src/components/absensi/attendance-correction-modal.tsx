@@ -198,9 +198,7 @@ export function AttendanceCorrectionModal({
             <select
               value={status}
               onChange={(e) =>
-                setStatus(
-                  e.target.value as "PRESENT" | "LATE" | "ABSENT" | "LEAVE" | "WFH",
-                )
+                setStatus(e.target.value as "PRESENT" | "LATE" | "ABSENT" | "LEAVE" | "WFH")
               }
               className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
             >
@@ -216,7 +214,9 @@ export function AttendanceCorrectionModal({
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between">
               <label className="font-semibold text-slate-700">Alasan Koreksi (Wajib Audit) *</label>
-              <span className="text-[10px] text-amber-800 font-semibold">Tercatat ke Log Audit</span>
+              <span className="text-[10px] text-amber-800 font-semibold">
+                Tercatat ke Log Audit
+              </span>
             </div>
             <textarea
               required
@@ -230,7 +230,8 @@ export function AttendanceCorrectionModal({
 
           {/* Audit Notice */}
           <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] leading-relaxed">
-            Perubahan data kehadiran akan tercatat secara permanen pada audit log sistem bersama dengan identitas akun Anda.
+            Perubahan data kehadiran akan tercatat secara permanen pada audit log sistem bersama
+            dengan identitas akun Anda.
           </div>
 
           {/* Modal Actions */}

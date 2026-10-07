@@ -58,7 +58,9 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
           </div>
         ) : (
           /* Kop Surat Standar (Logo + Identitas Lembaga) */
-          <div className={`flex items-start justify-between ${getBorderClass(settings.borderStyle)}`}>
+          <div
+            className={`flex items-start justify-between ${getBorderClass(settings.borderStyle)}`}
+          >
             <div className="flex items-center gap-2.5">
               {settings.logoUrl ? (
                 <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200 bg-white p-1 shrink-0 flex items-center justify-center">
@@ -145,9 +147,7 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
               Tiga Juta Enam Ratus Ribu Rupiah
             </span>
           </div>
-          <span className="text-sm font-extrabold font-mono text-[#ffddb0]">
-            Rp 3.600.000
-          </span>
+          <span className="text-sm font-extrabold font-mono text-[#ffddb0]">Rp 3.600.000</span>
         </div>
 
         {/* Penandatangan Resmi (Jika Ada) */}
@@ -209,7 +209,8 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
       <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200 text-xs text-blue-900 flex items-start gap-2">
         <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
         <span className="text-[11px] leading-relaxed">
-          Tampilan ini mencerminkan hasil cetak fisik kertas A4 dan unduhan PDF slip gaji yang akan dilihat oleh seluruh pegawai.
+          Tampilan ini mencerminkan hasil cetak fisik kertas A4 dan unduhan PDF slip gaji yang akan
+          dilihat oleh seluruh pegawai.
         </span>
       </div>
     </div>

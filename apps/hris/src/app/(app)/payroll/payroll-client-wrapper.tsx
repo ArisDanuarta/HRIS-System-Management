@@ -14,10 +14,7 @@ export function PayrollClientWrapper({ periods }: PayrollClientWrapperProps) {
   return (
     <>
       <PayrollPeriodTable periods={periods} onOpenCreateModal={() => setModalOpen(true)} />
-      <CreatePeriodModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-      />
+      <CreatePeriodModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 }

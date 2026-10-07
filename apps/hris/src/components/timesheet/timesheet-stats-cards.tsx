@@ -29,8 +29,7 @@ export function TimesheetStatsCards({ stats, hourlyRate }: TimesheetStatsCardsPr
           </div>
         </div>
         <div className="text-2xl font-bold text-emerald-950 tracking-tight">
-          {stats.totalHoursApproved}{" "}
-          <span className="text-xs font-normal text-slate-400">Jam</span>
+          {stats.totalHoursApproved} <span className="text-xs font-normal text-slate-400">Jam</span>
         </div>
         <div className="text-[11px] text-emerald-700 font-medium mt-2">
           {stats.approvedCount} pengajuan lolos verifikasi
@@ -46,8 +45,7 @@ export function TimesheetStatsCards({ stats, hourlyRate }: TimesheetStatsCardsPr
           </div>
         </div>
         <div className="text-2xl font-bold text-amber-950 tracking-tight">
-          {stats.totalHoursPending}{" "}
-          <span className="text-xs font-normal text-slate-400">Jam</span>
+          {stats.totalHoursPending} <span className="text-xs font-normal text-slate-400">Jam</span>
         </div>
         <div className="text-[11px] text-amber-700 font-medium mt-2">
           {stats.pendingCount} pengajuan sedang diproses lead
@@ -66,9 +64,7 @@ export function TimesheetStatsCards({ stats, hourlyRate }: TimesheetStatsCardsPr
           {stats.totalSubmissions}{" "}
           <span className="text-xs font-normal text-slate-400">Periode</span>
         </div>
-        <div className="text-[11px] text-slate-500 mt-2">
-          Akumulasi riwayat timesheet Anda
-        </div>
+        <div className="text-[11px] text-slate-500 mt-2">Akumulasi riwayat timesheet Anda</div>
       </div>
 
       {/* 4. Estimasi Upah Disetujui / Tarif Jam */}

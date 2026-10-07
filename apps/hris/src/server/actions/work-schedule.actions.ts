@@ -3,10 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
-import {
-  workScheduleSchema,
-  WorkScheduleInput,
-} from "../schemas/work-schedule.schema";
+import { workScheduleSchema, WorkScheduleInput } from "../schemas/work-schedule.schema";
 import { updateWorkSchedule } from "../services/work-schedule.service";
 
 /**

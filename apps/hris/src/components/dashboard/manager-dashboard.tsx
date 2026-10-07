@@ -38,7 +38,9 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
   const [rejectReason, setRejectReason] = useState("");
   const [rejectError, setRejectError] = useState<string | null>(null);
 
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const formatDate = (d: Date) => {
@@ -81,7 +83,10 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
         decisionNote: rejectReason.trim(),
       });
       if (res.success) {
-        setFeedback({ type: "success", text: `Permohonan cuti ${rejectingItem.employeeName} telah ditolak.` });
+        setFeedback({
+          type: "success",
+          text: `Permohonan cuti ${rejectingItem.employeeName} telah ditolak.`,
+        });
         setRejectingItem(null);
         setRejectReason("");
       } else {
@@ -169,7 +174,9 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
                 </span>
               </div>
               <p className="text-xs text-amber-900/80 mt-1 max-w-2xl leading-relaxed">
-                Terdapat pengajuan jam kerja dari staf freelance yang memerlukan verifikasi dan persetujuan (ACC) Anda. Penggajian (payroll) periode berjalan akan tertahan sampai seluruh atasan memberikan persetujuan.
+                Terdapat pengajuan jam kerja dari staf freelance yang memerlukan verifikasi dan
+                persetujuan (ACC) Anda. Penggajian (payroll) periode berjalan akan tertahan sampai
+                seluruh atasan memberikan persetujuan.
               </p>
               <div className="mt-2.5 flex flex-wrap gap-2">
                 {data.pendingTimesheetReviews.map((item) => (
@@ -369,15 +376,11 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
                     </div>
                     <div className="flex flex-col min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-xs text-[#102e50]">
-                          {req.employeeName}
-                        </span>
+                        <span className="font-bold text-xs text-[#102e50]">{req.employeeName}</span>
                         <span className="text-[10px] text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded">
                           {req.employeeNo}
                         </span>
-                        <span className="text-[10px] text-slate-400">
-                          ({req.positionTitle})
-                        </span>
+                        <span className="text-[10px] text-slate-400">({req.positionTitle})</span>
                       </div>
 
                       <div className="flex items-center gap-2 text-xs text-slate-600 mt-1 flex-wrap">
@@ -385,9 +388,7 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
                           {req.leaveTypeName}
                         </span>
                         <span>•</span>
-                        <span className="font-bold text-slate-800">
-                          {req.days} Hari Kerja
-                        </span>
+                        <span className="font-bold text-slate-800">{req.days} Hari Kerja</span>
                         <span>•</span>
                         <span className="text-slate-500">
                           {formatDate(req.startDate)} s/d {formatDate(req.endDate)}
@@ -458,7 +459,9 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
                       : "bg-slate-50 border-slate-200/60 text-slate-700"
                   }`}
                 >
-                  <span className={`text-[10px] uppercase font-semibold ${wd.isToday ? "text-[#ffddb0]" : "text-slate-400"}`}>
+                  <span
+                    className={`text-[10px] uppercase font-semibold ${wd.isToday ? "text-[#ffddb0]" : "text-slate-400"}`}
+                  >
                     {wd.dayName}
                   </span>
                   <span className="text-sm font-bold font-heading">{wd.dayNumber}</span>

@@ -2,7 +2,15 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, LogOut, ShieldCheck, KeyRound, ChevronDown, ArrowLeftRight, ExternalLink } from "lucide-react";
+import {
+  User,
+  LogOut,
+  ShieldCheck,
+  KeyRound,
+  ChevronDown,
+  ArrowLeftRight,
+  ExternalLink,
+} from "lucide-react";
 import { authClient } from "@pspk/auth/client";
 
 export interface UserNavProps {

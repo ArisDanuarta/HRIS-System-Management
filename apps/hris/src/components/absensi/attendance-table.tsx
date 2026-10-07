@@ -109,7 +109,8 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
         </div>
         <p className="text-sm font-bold text-[#102e50]">Belum Ada Catatan Presensi</p>
         <p className="text-xs text-slate-500 mt-1 max-w-sm">
-          Tidak ditemukan riwayat kehadiran untuk periode ini. Gunakan tombol Check-In di atas saat mulai bertugas.
+          Tidak ditemukan riwayat kehadiran untuk periode ini. Gunakan tombol Check-In di atas saat
+          mulai bertugas.
         </p>
       </div>
     );
@@ -132,14 +133,14 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
           <tbody className="divide-y divide-slate-100 text-[#121c2a]">
             {attendances.map((a) => (
               <tr key={a.id} className="hover:bg-[#f8f9ff] transition-colors">
-                <td className="py-3.5 px-4 font-semibold text-[#102e50]">
-                  {formatDate(a.date)}
-                </td>
+                <td className="py-3.5 px-4 font-semibold text-[#102e50]">{formatDate(a.date)}</td>
                 <td className="py-3.5 px-4 font-mono">
                   <div className="flex flex-col">
                     <span className="font-semibold text-[#102e50]">
                       {formatTime(a.checkInAt)}
-                      {a.checkInAt && <span className="text-[10px] text-slate-500 font-sans ml-1">{tzAbbr}</span>}
+                      {a.checkInAt && (
+                        <span className="text-[10px] text-slate-500 font-sans ml-1">{tzAbbr}</span>
+                      )}
                     </span>
                     {tzAbbr !== "WIB" && a.checkInAt && (
                       <span className="text-[10px] text-slate-400 font-sans">
@@ -152,7 +153,9 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
                   <div className="flex flex-col">
                     <span className="font-semibold text-[#102e50]">
                       {formatTime(a.checkOutAt)}
-                      {a.checkOutAt && <span className="text-[10px] text-slate-500 font-sans ml-1">{tzAbbr}</span>}
+                      {a.checkOutAt && (
+                        <span className="text-[10px] text-slate-500 font-sans ml-1">{tzAbbr}</span>
+                      )}
                     </span>
                     {tzAbbr !== "WIB" && a.checkOutAt && (
                       <span className="text-[10px] text-slate-400 font-sans">
@@ -164,12 +167,13 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
                 <td className="py-3.5 px-4 font-medium text-slate-600">
                   {calculateHours(a.checkInAt, a.checkOutAt)}
                 </td>
-                <td className="py-3.5 px-4">
-                  {renderStatusBadge(a.status)}
-                </td>
+                <td className="py-3.5 px-4">{renderStatusBadge(a.status)}</td>
                 <td className="py-3.5 px-4 max-w-xs truncate text-slate-500">
                   {a.source === "MANUAL_HR" ? (
-                    <span className="text-amber-700 font-semibold" title={a.correctionReason || "Koreksi HR"}>
+                    <span
+                      className="text-amber-700 font-semibold"
+                      title={a.correctionReason || "Koreksi HR"}
+                    >
                       [Koreksi HR] {a.correctionReason || ""}
                     </span>
                   ) : (

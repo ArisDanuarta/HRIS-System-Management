@@ -3,10 +3,7 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession } from "@pspk/auth";
-import {
-  getUserNotifications,
-  getUnreadNotificationCount,
-} from "../queries/notification.queries";
+import { getUserNotifications, getUnreadNotificationCount } from "../queries/notification.queries";
 import {
   markNotificationAsRead,
   markAllNotificationsAsRead,

@@ -55,8 +55,8 @@ export function TimesheetInputModal({
     payslip.hourlyRate && payslip.hourlyRate > 0
       ? payslip.hourlyRate
       : payslip.contract?.hourlyRate && payslip.contract.hourlyRate > 0
-      ? payslip.contract.hourlyRate
-      : 30000;
+        ? payslip.contract.hourlyRate
+        : 30000;
 
   const [totalHours, setTotalHours] = useState<string>(
     payslip.totalHours !== null && payslip.totalHours !== undefined
@@ -176,8 +176,11 @@ export function TimesheetInputModal({
           <FileSpreadsheet className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
           <div className="leading-relaxed">
             <span className="font-semibold text-blue-950">Aturan Pengumpulan Timesheet: </span>
-            Staf PKWT mencatat jam harian di template timesheet, meminta review & ttd persetujuan (acc)
-            dari Lead Divisi/Project, lalu mengumpulkan ke HR pada <strong>tanggal 20</strong> setiap bulannya.
+            Staf PKWT mencatat jam harian di template timesheet, meminta review & ttd persetujuan
+            (acc) dari Lead Divisi/Project, lalu mengumpulkan ke HR pada <strong>
+              tanggal 20
+            </strong>{" "}
+            setiap bulannya.
           </div>
         </div>
 
@@ -310,8 +313,8 @@ export function TimesheetInputModal({
                   {selectedFile
                     ? selectedFile.name
                     : payslip.timesheetKey
-                    ? "Unggah berkas baru untuk mengganti lampiran (Opsional)"
-                    : "Pilih atau Seret Berkas Timesheet yang Sudah Di-acc (PDF / Excel)"}
+                      ? "Unggah berkas baru untuk mengganti lampiran (Opsional)"
+                      : "Pilih atau Seret Berkas Timesheet yang Sudah Di-acc (PDF / Excel)"}
                 </span>
                 <span className="text-[11px] text-slate-400">
                   Format: PDF, XLSX, XLS, CSV (Maksimal 15 MB)

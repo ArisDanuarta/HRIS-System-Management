@@ -12,11 +12,7 @@ export const GenderEnum = z.enum(["MALE", "FEMALE"]);
 
 export const MaritalStatusEnum = z.enum(["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"]);
 
-export const EmploymentTypeEnum = z.enum([
-  "PERMANENT",
-  "FIXED_TERM",
-  "PART_TIME_PROJECT",
-]);
+export const EmploymentTypeEnum = z.enum(["PERMANENT", "FIXED_TERM", "PART_TIME_PROJECT"]);
 
 export const AccountRoleEnum = z.enum(["staff", "manager", "admin_hr", "admin_it"]);
 

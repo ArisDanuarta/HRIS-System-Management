@@ -67,9 +67,7 @@ export function ForbiddenView({
           <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#102E50] tracking-tight">
             {title}
           </h1>
-          <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
-            {message}
-          </p>
+          <p className="text-sm text-slate-600 leading-relaxed max-w-md mx-auto">{message}</p>
         </div>
 
         {/* Role information box if available */}

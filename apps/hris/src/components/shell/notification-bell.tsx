@@ -69,9 +69,7 @@ export function NotificationBell() {
 
   const handleMarkAsRead = async (id: string, link: string | null) => {
     await markNotificationAsReadAction(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
     setUnreadCount((prev) => Math.max(0, prev - 1));
     setIsOpen(false);
 
@@ -126,9 +124,7 @@ export function NotificationBell() {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-50/90 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <span className="font-serif font-bold text-xs text-slate-900">
-                Pusat Notifikasi
-              </span>
+              <span className="font-serif font-bold text-xs text-slate-900">Pusat Notifikasi</span>
               {unreadCount > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#A8281C]/10 text-[#A8281C]">
                   {unreadCount} baru
@@ -170,9 +166,7 @@ export function NotificationBell() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1 mb-0.5">
-                      <h4 className="text-xs font-bold text-slate-900 truncate">
-                        {n.title}
-                      </h4>
+                      <h4 className="text-xs font-bold text-slate-900 truncate">{n.title}</h4>
                       <span className="text-[10px] text-slate-400 shrink-0 font-medium">
                         {formatRelativeTime(n.createdAt)}
                       </span>

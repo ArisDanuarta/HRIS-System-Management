@@ -82,7 +82,9 @@ export function downloadEmployeeTemplateXlsx(params: {
       "nadia.utami@pspk.id",
       "nadia.utami@yahoo.com",
       "089876543210",
-      params.departments?.[1]?.name || params.departments?.[0]?.name || "Divisi Asesmen & Standar Pendidikan",
+      params.departments?.[1]?.name ||
+        params.departments?.[0]?.name ||
+        "Divisi Asesmen & Standar Pendidikan",
       params.departments?.[1]?.positions?.[0]?.title || "Spesialis Asesmen & Evaluasi",
       "PKWT Riset",
       "Gaji Bulanan",
@@ -313,8 +315,12 @@ export function downloadEmployeeTemplateXlsx(params: {
     ["CATATAN TEKNIS PENTING:"],
     ["1. Jangan mengubah, menambah, atau menghapus urutan kolom pada Sheet 'Data Pegawai'."],
     ["2. Format tanggal harus tepat Tahun-Bulan-Hari (YYYY-MM-DD), contohnya 2026-10-01."],
-    ["3. Kolom nominal gaji/tarif hanya boleh berisi angka bulat tanpa simbol mata uang (Rp) maupun titik pemisah."],
-    ["4. Sistem akan otomatis melewati baris yang memiliki NIP atau Email Kantor yang sudah terdaftar di database."],
+    [
+      "3. Kolom nominal gaji/tarif hanya boleh berisi angka bulat tanpa simbol mata uang (Rp) maupun titik pemisah.",
+    ],
+    [
+      "4. Sistem akan otomatis melewati baris yang memiliki NIP atau Email Kantor yang sudah terdaftar di database.",
+    ],
   ]);
 
   wsGuidance["!cols"] = [
@@ -333,7 +339,9 @@ export function downloadEmployeeTemplateXlsx(params: {
   // -------------------------------------------------------------
   const refRows: (string | number)[][] = [
     ["DAFTAR DIVISI & FORMASI JABATAN RESMI PSPK"],
-    ["Gunakan nama divisi dan jabatan berikut ini pada Sheet 'Data Pegawai' agar data langsung terhubung:"],
+    [
+      "Gunakan nama divisi dan jabatan berikut ini pada Sheet 'Data Pegawai' agar data langsung terhubung:",
+    ],
     [],
     ["Nama Divisi", "Nama Formasi Jabatan Terdaftar"],
   ];
@@ -358,7 +366,17 @@ export function downloadEmployeeTemplateXlsx(params: {
     );
   }
 
-  refRows.push([], ["DAFTAR TIPE IKATAN KERJA TERDAFTAR DI SISTEM"], ["Kode Ikatan Kerja", "Nama Ikatan Kerja", "Kategori Sistem", "Skema Upah", "Tarif Acuan / Jam"]);
+  refRows.push(
+    [],
+    ["DAFTAR TIPE IKATAN KERJA TERDAFTAR DI SISTEM"],
+    [
+      "Kode Ikatan Kerja",
+      "Nama Ikatan Kerja",
+      "Kategori Sistem",
+      "Skema Upah",
+      "Tarif Acuan / Jam",
+    ],
+  );
 
   if (params.employmentTypes && params.employmentTypes.length > 0) {
     for (const et of params.employmentTypes) {
@@ -379,13 +397,7 @@ export function downloadEmployeeTemplateXlsx(params: {
   }
 
   const wsRef = XLSX.utils.aoa_to_sheet(refRows);
-  wsRef["!cols"] = [
-    { wch: 40 },
-    { wch: 38 },
-    { wch: 20 },
-    { wch: 18 },
-    { wch: 20 },
-  ];
+  wsRef["!cols"] = [{ wch: 40 }, { wch: 38 }, { wch: 20 }, { wch: 18 }, { wch: 20 }];
 
   XLSX.utils.book_append_sheet(wb, wsRef, "Referensi Master Data");
 
@@ -411,9 +423,36 @@ export function downloadAttendanceTemplateXlsx() {
   ];
 
   const exampleRows = [
-    ["PSPK-202610-091", "Dr. Aris Sudrajat M.Pd.", "2026-10-05", "08:30", "17:30", "HADIR", 8.0, "Kantor PSPK Jakarta"],
-    ["PSPK-202610-092", "Nadia Utami S.Si.", "2026-10-05", "08:45", "17:45", "HADIR", 8.0, "WFA / Riset Daring"],
-    ["PSPK-202610-093", "Budi Santoso M.T.", "2026-10-05", "09:00", "15:00", "HADIR", 6.0, "FGD Kebijakan Pembelajaran"],
+    [
+      "PSPK-202610-091",
+      "Dr. Aris Sudrajat M.Pd.",
+      "2026-10-05",
+      "08:30",
+      "17:30",
+      "HADIR",
+      8.0,
+      "Kantor PSPK Jakarta",
+    ],
+    [
+      "PSPK-202610-092",
+      "Nadia Utami S.Si.",
+      "2026-10-05",
+      "08:45",
+      "17:45",
+      "HADIR",
+      8.0,
+      "WFA / Riset Daring",
+    ],
+    [
+      "PSPK-202610-093",
+      "Budi Santoso M.T.",
+      "2026-10-05",
+      "09:00",
+      "15:00",
+      "HADIR",
+      6.0,
+      "FGD Kebijakan Pembelajaran",
+    ],
   ];
 
   const wsData = XLSX.utils.aoa_to_sheet([headers, ...exampleRows]);
@@ -437,7 +476,9 @@ export function downloadAttendanceTemplateXlsx() {
     ["2. Format Tanggal wajib YYYY-MM-DD (contoh: 2026-10-05)."],
     ["3. Format Jam wajib HH:mm 24 jam (contoh: 08:30 atau 17:00)."],
     ["4. Status Presensi yang didukung: HADIR, TERLAMBAT, PULANG_CEPAT, IZIN, SAKIT, CUTI, ALFA."],
-    ["5. Kolom Total Durasi Kerja opsional; jika kosong sistem menghitung otomatis dari selisih jam masuk dan keluar."],
+    [
+      "5. Kolom Total Durasi Kerja opsional; jika kosong sistem menghitung otomatis dari selisih jam masuk dan keluar.",
+    ],
   ];
 
   const wsGuide = XLSX.utils.aoa_to_sheet(guidance);
@@ -462,20 +503,38 @@ export function downloadOrganizationTemplateXlsx() {
   ];
 
   const exampleRows = [
-    ["Divisi Kebijakan Kurikulum & Pembelajaran", "INITIATIVE", "Kepala Divisi Kebijakan Kurikulum", "YA", "Memimpin inisiatif riset kurikulum nasional"],
-    ["Divisi Kebijakan Kurikulum & Pembelajaran", "INITIATIVE", "Peneliti Kebijakan Kurikulum Utama", "TIDAK", "Peneliti senior kurikulum"],
-    ["Divisi Asesmen & Standar Pendidikan", "INITIATIVE", "Kepala Divisi Asesmen", "YA", "Memimpin riset asesmen dan standar mutu"],
-    ["Divisi Operasional & Finansial", "SUPPORT", "Manajer Operasional & Keuangan", "YA", "Manajemen operasional kantor dan keuangan"],
+    [
+      "Divisi Kebijakan Kurikulum & Pembelajaran",
+      "INITIATIVE",
+      "Kepala Divisi Kebijakan Kurikulum",
+      "YA",
+      "Memimpin inisiatif riset kurikulum nasional",
+    ],
+    [
+      "Divisi Kebijakan Kurikulum & Pembelajaran",
+      "INITIATIVE",
+      "Peneliti Kebijakan Kurikulum Utama",
+      "TIDAK",
+      "Peneliti senior kurikulum",
+    ],
+    [
+      "Divisi Asesmen & Standar Pendidikan",
+      "INITIATIVE",
+      "Kepala Divisi Asesmen",
+      "YA",
+      "Memimpin riset asesmen dan standar mutu",
+    ],
+    [
+      "Divisi Operasional & Finansial",
+      "SUPPORT",
+      "Manajer Operasional & Keuangan",
+      "YA",
+      "Manajemen operasional kantor dan keuangan",
+    ],
   ];
 
   const wsData = XLSX.utils.aoa_to_sheet([headers, ...exampleRows]);
-  wsData["!cols"] = [
-    { wch: 38 },
-    { wch: 18 },
-    { wch: 38 },
-    { wch: 26 },
-    { wch: 45 },
-  ];
+  wsData["!cols"] = [{ wch: 38 }, { wch: 18 }, { wch: 38 }, { wch: 26 }, { wch: 45 }];
 
   XLSX.utils.book_append_sheet(wb, wsData, "Struktur Divisi & Jabatan");
 

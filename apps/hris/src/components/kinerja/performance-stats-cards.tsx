@@ -1,13 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Users,
-  FileText,
-  Clock,
-  CheckCircle2,
-  TrendingUp,
-} from "lucide-react";
+import { Users, FileText, Clock, CheckCircle2, TrendingUp } from "lucide-react";
 
 interface PerformanceStatsCardsProps {
   stats: {
@@ -35,8 +29,7 @@ export function PerformanceStatsCards({ stats }: PerformanceStatsCardsProps) {
           </div>
         </div>
         <div className="text-2xl font-bold text-slate-900 tracking-tight">
-          {stats.totalReviews}{" "}
-          <span className="text-xs font-normal text-slate-400">Pegawai</span>
+          {stats.totalReviews} <span className="text-xs font-normal text-slate-400">Pegawai</span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-2">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -87,8 +80,7 @@ export function PerformanceStatsCards({ stats }: PerformanceStatsCardsProps) {
           </div>
         </div>
         <div className="text-2xl font-bold text-emerald-950 tracking-tight">
-          {stats.finalizedCount}{" "}
-          <span className="text-xs font-normal text-slate-400">Selesai</span>
+          {stats.finalizedCount} <span className="text-xs font-normal text-slate-400">Selesai</span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 font-medium mt-2">
           <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />

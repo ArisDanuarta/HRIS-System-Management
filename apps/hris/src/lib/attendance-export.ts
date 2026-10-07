@@ -68,9 +68,7 @@ export function exportAttendanceRekapXlsx({
     };
 
     const effectiveDays = stats.totalDays > 0 ? stats.totalDays : 1;
-    const attendancePercentage = Math.round(
-      ((stats.present + stats.late) / effectiveDays) * 100,
-    );
+    const attendancePercentage = Math.round(((stats.present + stats.late) / effectiveDays) * 100);
 
     return [
       index + 1,
@@ -97,7 +95,7 @@ export function exportAttendanceRekapXlsx({
 
   // Lebar kolom terukur
   wsRekap["!cols"] = [
-    { wch: 6 },  // No
+    { wch: 6 }, // No
     { wch: 18 }, // NIP
     { wch: 30 }, // Nama
     { wch: 36 }, // Divisi
@@ -127,9 +125,13 @@ export function exportAttendanceRekapXlsx({
     ["Waktu Ekspor Berkas", new Date().toLocaleString("id-ID")],
     [],
     ["KETENTUAN STATUS PRESENSI:"],
-    ["1. Hadir Tepat Waktu: Presensi masuk tercatat sebelum atau tepat pada batas jam masuk operasional kantor."],
+    [
+      "1. Hadir Tepat Waktu: Presensi masuk tercatat sebelum atau tepat pada batas jam masuk operasional kantor.",
+    ],
     ["2. Terlambat: Presensi masuk tercatat melewati batas toleransi jam masuk kantor."],
-    ["3. Cuti / Izin Resmi: Terisi otomatis dari permohonan cuti yang telah disetujui (Approved) oleh atasan & HR."],
+    [
+      "3. Cuti / Izin Resmi: Terisi otomatis dari permohonan cuti yang telah disetujui (Approved) oleh atasan & HR.",
+    ],
     ["4. Alpa: Hari kerja resmi tanpa catatan presensi masuk dan tanpa pengajuan cuti resmi."],
   ];
 
@@ -138,7 +140,10 @@ export function exportAttendanceRekapXlsx({
   XLSX.utils.book_append_sheet(wb, wsInfo, "Parameter & Ketentuan");
 
   // Format nama berkas bersih
-  const cleanDept = departmentName.toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-");
+  const cleanDept = departmentName
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-");
   const fileName = `rekap-presensi-pspk-${cleanDept}-${monthLabel.toLowerCase()}-${year}.xlsx`;
 
   XLSX.writeFile(wb, fileName);

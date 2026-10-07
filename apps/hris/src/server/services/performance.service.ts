@@ -99,7 +99,8 @@ export async function finalizePerformanceReview(input: FinalizePerformanceReview
     where: { id: input.reviewId },
     data: {
       finalScore: input.finalScore,
-      managerComment: input.managerComment !== undefined ? input.managerComment : review.managerComment,
+      managerComment:
+        input.managerComment !== undefined ? input.managerComment : review.managerComment,
       status: "FINALIZED",
     },
   });
@@ -108,7 +109,9 @@ export async function finalizePerformanceReview(input: FinalizePerformanceReview
 /**
  * Menghasilkan data ekspor rekap kinerja dalam format CSV
  */
-export async function generatePerformanceExportCsv(periodId: string): Promise<{ filename: string; content: string }> {
+export async function generatePerformanceExportCsv(
+  periodId: string,
+): Promise<{ filename: string; content: string }> {
   const period = await prisma.performancePeriod.findUnique({
     where: { id: periodId },
   });

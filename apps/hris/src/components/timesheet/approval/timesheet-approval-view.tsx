@@ -1,12 +1,7 @@
 "use client";
 
 import React from "react";
-import {
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  Users,
-} from "lucide-react";
+import { Clock, CheckCircle2, AlertTriangle, Users } from "lucide-react";
 import { TimesheetApprovalItem } from "./timesheet-approval-modal";
 import { TimesheetApprovalTable } from "./timesheet-approval-table";
 
@@ -44,11 +39,10 @@ export function TimesheetApprovalView({
             <span className="text-slate-400 text-xs">•</span>
             <span className="text-slate-500 text-xs font-medium">Verifikasi Jam Kerja</span>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900 font-serif">
-            Persetujuan Timesheet
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900 font-serif">Persetujuan Timesheet</h1>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Tinjau lembar waktu Google Spreadsheet karyawan freelance dan berikan persetujuan (ACC) jam kerja sebelum periode penggajian diproses oleh HR.
+            Tinjau lembar waktu Google Spreadsheet karyawan freelance dan berikan persetujuan (ACC)
+            jam kerja sebelum periode penggajian diproses oleh HR.
           </p>
         </div>
       </div>

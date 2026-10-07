@@ -33,7 +33,9 @@ export async function getActiveWorkSchedule(
 ): Promise<ActiveWorkSchedule> {
   try {
     if (!prisma.workScheduleSetting) {
-      console.warn("prisma.workScheduleSetting belum ter-load di Prisma instance, menggunakan fallback");
+      console.warn(
+        "prisma.workScheduleSetting belum ter-load di Prisma instance, menggunakan fallback",
+      );
       return DEFAULT_FALLBACK_SCHEDULE;
     }
 
@@ -64,10 +66,7 @@ export async function getActiveWorkSchedule(
 /**
  * Updates or creates a work schedule setting.
  */
-export async function updateWorkSchedule(
-  input: WorkScheduleInput,
-  actorUserId: string,
-) {
+export async function updateWorkSchedule(input: WorkScheduleInput, actorUserId: string) {
   if (!prisma.workScheduleSetting) {
     throw new Error(
       "Skema jadwal kerja sedang diinisialisasi. Silakan refresh halaman atau muat ulang server dev.",
@@ -126,7 +125,9 @@ export async function updateWorkSchedule(
         action: "UPDATE",
         entityType: "WorkScheduleSetting",
         entityId: updated.id,
-        before: beforeState ? (JSON.parse(JSON.stringify(beforeState)) as Prisma.InputJsonObject) : undefined,
+        before: beforeState
+          ? (JSON.parse(JSON.stringify(beforeState)) as Prisma.InputJsonObject)
+          : undefined,
         after: JSON.parse(JSON.stringify(updated)) as Prisma.InputJsonObject,
       },
       tx,

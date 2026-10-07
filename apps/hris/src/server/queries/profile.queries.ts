@@ -127,8 +127,7 @@ export async function getCurrentUserProfile(
   if (!user) return null;
 
   const activeContract = user.employee?.contracts?.[0];
-  const employmentType =
-    activeContract?.employmentTypeMaster?.name || activeContract?.type || null;
+  const employmentType = activeContract?.employmentTypeMaster?.name || activeContract?.type || null;
 
   const employeeAvatar = user.employee?.photoKey
     ? `/api/documents/${user.employee.photoKey}`

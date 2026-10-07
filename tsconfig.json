@@ -11,8 +11,5 @@
       "@pspk/ui": ["./packages/ui/src/index.ts"]
     }
   },
-  "include": [
-    "scripts/**/*",
-    "scratch/**/*"
-  ]
+  "include": ["scripts/**/*", "scratch/**/*"]
 }

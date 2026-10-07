@@ -28,7 +28,9 @@ interface LeaveRequestTableProps {
 export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const formatDate = (d: Date) => {
@@ -105,7 +107,8 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
         </div>
         <p className="text-sm font-bold text-[#102e50]">Belum Ada Pengajuan Cuti</p>
         <p className="text-xs text-slate-500 mt-1 max-w-sm">
-          Anda belum pernah mengajukan permohonan cuti. Klik tombol &quot;Ajukan Cuti Baru&quot; untuk memulai.
+          Anda belum pernah mengajukan permohonan cuti. Klik tombol &quot;Ajukan Cuti Baru&quot;
+          untuk memulai.
         </p>
       </div>
     );
@@ -151,9 +154,7 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
 
               return (
                 <tr key={r.id} className="hover:bg-[#f8f9ff] transition-colors">
-                  <td className="py-3.5 px-4 font-bold text-[#102e50]">
-                    {r.leaveType.name}
-                  </td>
+                  <td className="py-3.5 px-4 font-bold text-[#102e50]">{r.leaveType.name}</td>
                   <td className="py-3.5 px-4">
                     <span className="font-semibold text-slate-800">
                       {formatDate(r.startDate)} s/d {formatDate(r.endDate)}
@@ -179,15 +180,13 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
                       )}
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-center">
-                    {renderStatusBadge(r.status)}
-                  </td>
+                  <td className="py-3.5 px-4 text-center">{renderStatusBadge(r.status)}</td>
                   <td className="py-3.5 px-4 max-w-xs truncate text-slate-500">
                     {r.decisionNote || "-"}
                   </td>
                   <td className="py-3.5 px-4 text-right">
-                    {isPendingStatus && (
-                      isCancellingThis ? (
+                    {isPendingStatus &&
+                      (isCancellingThis ? (
                         <div className="inline-flex items-center gap-1.5">
                           <input
                             type="text"
@@ -220,8 +219,7 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
                         >
                           Batalkan
                         </button>
-                      )
-                    )}
+                      ))}
                   </td>
                 </tr>
               );

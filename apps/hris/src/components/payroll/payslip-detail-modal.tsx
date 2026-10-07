@@ -143,8 +143,10 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
               </span>
             </div>
             <div className="text-[11px] text-amber-800/90 leading-relaxed mb-2">
-              Tarif Kontrak: {formatRupiah(payslip.hourlyRate || payslip.contract?.hourlyRate || 30000)} / jam.
-              Kebijakan kompensasi berbasis jam kerja terverifikasi lembar timesheet (acc Project Lead).
+              Tarif Kontrak:{" "}
+              {formatRupiah(payslip.hourlyRate || payslip.contract?.hourlyRate || 30000)} / jam.
+              Kebijakan kompensasi berbasis jam kerja terverifikasi lembar timesheet (acc Project
+              Lead).
             </div>
             {payslip.timesheetKey ? (
               <a
@@ -179,9 +181,14 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
             </div>
             <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
               {earnings.map((l) => (
-                <div key={l.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-50">
+                <div
+                  key={l.id}
+                  className="flex items-center justify-between text-xs py-1 border-b border-slate-50"
+                >
                   <span className="text-slate-700">{l.label}</span>
-                  <span className="font-mono font-medium text-slate-900">{formatRupiah(l.amount)}</span>
+                  <span className="font-mono font-medium text-slate-900">
+                    {formatRupiah(l.amount)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -205,9 +212,14 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
                 </div>
               ) : (
                 deductions.map((l) => (
-                  <div key={l.id} className="flex items-center justify-between text-xs py-1 border-b border-slate-50">
+                  <div
+                    key={l.id}
+                    className="flex items-center justify-between text-xs py-1 border-b border-slate-50"
+                  >
                     <span className="text-slate-700">{l.label}</span>
-                    <span className="font-mono font-medium text-rose-700">-{formatRupiah(l.amount)}</span>
+                    <span className="font-mono font-medium text-rose-700">
+                      -{formatRupiah(l.amount)}
+                    </span>
                   </div>
                 ))
               )}

@@ -16,9 +16,7 @@ import {
   Target,
   User,
 } from "lucide-react";
-import {
-  StaffPerformanceReviewData,
-} from "@/server/queries/performance.queries";
+import { StaffPerformanceReviewData } from "@/server/queries/performance.queries";
 import { StaffSelfReviewForm } from "./staff-self-review-form";
 import { PerformanceScorecard } from "./performance-scorecard";
 
@@ -136,7 +134,8 @@ export function StaffPerformanceView({
           <div className="flex items-center gap-2.5">
             <UserCheck className="w-4 h-4 text-sky-600 shrink-0 mt-0.5 sm:mt-0" />
             <span>
-              Ini adalah lembar evaluasi mandiri pribadi Anda sebagai Lead/Manajer. Evaluasi ini akan diteruskan ke Direktur/Atasan Anda.
+              Ini adalah lembar evaluasi mandiri pribadi Anda sebagai Lead/Manajer. Evaluasi ini
+              akan diteruskan ke Direktur/Atasan Anda.
             </span>
           </div>
           <Link
@@ -161,8 +160,8 @@ export function StaffPerformanceView({
                   review.status === "FINALIZED"
                     ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                     : review.status === "DRAFT"
-                    ? "bg-amber-50 text-amber-800 border-amber-200"
-                    : "bg-blue-50 text-blue-800 border-blue-200"
+                      ? "bg-amber-50 text-amber-800 border-amber-200"
+                      : "bg-blue-50 text-blue-800 border-blue-200"
                 }`}
               >
                 {review.status === "DRAFT" && "Perlu Diisi (Draft)"}
@@ -173,7 +172,8 @@ export function StaffPerformanceView({
             )}
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Evaluasi berkala sasaran riset kebijakan, pencapaian target OKR, dan refleksi kinerja di PSPK.
+            Evaluasi berkala sasaran riset kebijakan, pencapaian target OKR, dan refleksi kinerja di
+            PSPK.
           </p>
         </div>
 
@@ -209,7 +209,8 @@ export function StaffPerformanceView({
             Belum Ada Periode Evaluasi Dibuka
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed mt-1">
-            Saat ini belum ada siklus evaluasi kinerja yang sedang aktif. Anda akan menerima notifikasi otomatis ketika Admin HR PSPK membuka periode penilaian baru.
+            Saat ini belum ada siklus evaluasi kinerja yang sedang aktif. Anda akan menerima
+            notifikasi otomatis ketika Admin HR PSPK membuka periode penilaian baru.
           </p>
         </div>
       ) : (
@@ -221,13 +222,13 @@ export function StaffPerformanceView({
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                   Tahapan Evaluasi Kinerja
                 </span>
-                <span className="text-[11px] font-mono text-slate-500">
-                  • {review.period.name}
-                </span>
+                <span className="text-[11px] font-mono text-slate-500">• {review.period.name}</span>
               </div>
               <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-slate-400" />
-                <span>Atasan Penilai: <strong>{review.reviewer?.fullName || "Belum Ditentukan"}</strong></span>
+                <span>
+                  Atasan Penilai: <strong>{review.reviewer?.fullName || "Belum Ditentukan"}</strong>
+                </span>
               </div>
             </div>
 
@@ -243,8 +244,8 @@ export function StaffPerformanceView({
                       isCurrent
                         ? "bg-amber-50/70 border-[#F2AF3E] ring-2 ring-[#F2AF3E]/20"
                         : isCompleted
-                        ? "bg-emerald-50/50 border-emerald-200/80 text-emerald-950"
-                        : "bg-slate-50/60 border-slate-200/60 text-slate-400 opacity-60"
+                          ? "bg-emerald-50/50 border-emerald-200/80 text-emerald-950"
+                          : "bg-slate-50/60 border-slate-200/60 text-slate-400 opacity-60"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1">
@@ -254,13 +255,15 @@ export function StaffPerformanceView({
                             isCurrent
                               ? "bg-[#102E50] text-[#F2AF3E]"
                               : isCompleted
-                              ? "bg-emerald-600 text-white"
-                              : "bg-slate-200 text-slate-500"
+                                ? "bg-emerald-600 text-white"
+                                : "bg-slate-200 text-slate-500"
                           }`}
                         >
                           {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : idx + 1}
                         </div>
-                        <span className={`text-xs font-bold ${isCurrent ? "text-[#102E50]" : "text-slate-800"}`}>
+                        <span
+                          className={`text-xs font-bold ${isCurrent ? "text-[#102E50]" : "text-slate-800"}`}
+                        >
                           {st.label}
                         </span>
                       </div>
@@ -271,9 +274,7 @@ export function StaffPerformanceView({
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-500 pl-8 leading-snug">
-                      {st.desc}
-                    </p>
+                    <p className="text-[10px] text-slate-500 pl-8 leading-snug">{st.desc}</p>
                   </div>
                 );
               })}
@@ -288,7 +289,9 @@ export function StaffPerformanceView({
                 <div className="space-y-0.5">
                   <p className="font-bold">Formulir Evaluasi Diri Aktif</p>
                   <p className="text-[11px] text-amber-800/90 leading-relaxed">
-                    Silakan isi realisasi capaian sasaran riset Anda, tentukan skor evaluasi diri, dan tuliskan refleksi pembelajaran. Setelah dikirim, lembar evaluasi akan langsung diteruskan ke atasan langsung Anda untuk ditinjau.
+                    Silakan isi realisasi capaian sasaran riset Anda, tentukan skor evaluasi diri,
+                    dan tuliskan refleksi pembelajaran. Setelah dikirim, lembar evaluasi akan
+                    langsung diteruskan ke atasan langsung Anda untuk ditinjau.
                   </p>
                 </div>
               </div>
@@ -358,7 +361,10 @@ export function StaffPerformanceView({
                   </span>
                   <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 overflow-hidden">
                     {review.goals.map((goal, idx) => (
-                      <div key={goal.id} className="p-3.5 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                      <div
+                        key={goal.id}
+                        className="p-3.5 bg-slate-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                      >
                         <div>
                           <div className="flex items-center gap-1.5 font-semibold text-slate-800">
                             <span className="font-mono text-slate-400">#{idx + 1}</span>
@@ -368,11 +374,15 @@ export function StaffPerformanceView({
                             </span>
                           </div>
                           {goal.description && (
-                            <p className="text-[11px] text-slate-500 mt-0.5 pl-4">{goal.description}</p>
+                            <p className="text-[11px] text-slate-500 mt-0.5 pl-4">
+                              {goal.description}
+                            </p>
                           )}
                         </div>
                         <div className="sm:text-right pl-4 sm:pl-0 shrink-0">
-                          <span className="text-[11px] text-slate-400 block">Realisasi yang Anda laporkan:</span>
+                          <span className="text-[11px] text-slate-400 block">
+                            Realisasi yang Anda laporkan:
+                          </span>
                           <strong className="text-slate-800">{goal.actual || "-"}</strong>
                         </div>
                       </div>

@@ -4,16 +4,13 @@ import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { AttendanceTable } from "@/components/absensi/attendance-table";
-import { getTodayAttendance, getPersonalMonthlyAttendance } from "@/server/queries/attendance.queries";
+import {
+  getTodayAttendance,
+  getPersonalMonthlyAttendance,
+} from "@/server/queries/attendance.queries";
 import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
-import {
-  CalendarCheck,
-  CheckCircle2,
-  AlertTriangle,
-  Clock,
-  Calendar,
-} from "lucide-react";
+import { CalendarCheck, CheckCircle2, AlertTriangle, Clock, Calendar } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +52,9 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
   const resolvedParams = await searchParams;
   const now = new Date();
   const currentYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
-  const currentMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
+  const currentMonth = resolvedParams.month
+    ? parseInt(resolvedParams.month, 10)
+    : now.getMonth() + 1;
 
   // Fetch real data from PostgreSQL
   const [todayAttendance, monthlyData, pendingLeavesCount, workSchedule] = await Promise.all([
@@ -73,8 +72,18 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
   const cutoffTime = `${String(cutoffH).padStart(2, "0")}:${String(cutoffM).padStart(2, "0")}`;
 
   const monthNames = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
   ];
 
   return (
@@ -172,10 +181,14 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
 
           <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
             <span>
-              Jam kerja normal lembaga: <strong>{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong>
+              Jam kerja normal lembaga:{" "}
+              <strong>
+                {workSchedule.workStartTime} — {workSchedule.workEndTime} WIB
+              </strong>
             </span>
             <span className="text-[#a8281c] font-medium">
-              Batas tepat waktu: <strong>{cutoffTime} WIB</strong> (Toleransi {workSchedule.gracePeriodMins} mnt)
+              Batas tepat waktu: <strong>{cutoffTime} WIB</strong> (Toleransi{" "}
+              {workSchedule.gracePeriodMins} mnt)
             </span>
           </div>
         </div>
@@ -188,7 +201,10 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
               <p className="font-bold text-sm font-heading">Ketentuan Kehadiran Kerja</p>
               <p className="text-xs font-semibold text-[#5b6675] mt-0.5">{workSchedule.name}</p>
               <p className="mt-2.5 text-gray-600 leading-relaxed text-xs">
-                Check-in sebelum pukul <strong>{cutoffTime} WIB</strong> diakui hadir <strong>Tepat Waktu</strong>. Check-in setelah waktu tersebut tercatat otomatis sebagai keterlambatan. Pastikan melakukan check-out saat menyelesaikan hari kerja untuk perhitungan akurat durasi kerja.
+                Check-in sebelum pukul <strong>{cutoffTime} WIB</strong> diakui hadir{" "}
+                <strong>Tepat Waktu</strong>. Check-in setelah waktu tersebut tercatat otomatis
+                sebagai keterlambatan. Pastikan melakukan check-out saat menyelesaikan hari kerja
+                untuk perhitungan akurat durasi kerja.
               </p>
             </div>
           </div>

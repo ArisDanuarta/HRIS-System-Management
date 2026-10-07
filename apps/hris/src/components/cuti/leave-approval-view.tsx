@@ -56,7 +56,9 @@ export function LeaveApprovalView({
   allRequests,
   isSuperOrHr = false,
 }: LeaveApprovalViewProps) {
-  const [activeTab, setActiveTab] = useState<"PENDING" | "APPROVED" | "REJECTED" | "ALL">("PENDING");
+  const [activeTab, setActiveTab] = useState<"PENDING" | "APPROVED" | "REJECTED" | "ALL">(
+    "PENDING",
+  );
   const [selectedAction, setSelectedAction] = useState<{
     type: "approve" | "reject";
     request: LeaveApprovalItem;
@@ -65,10 +67,14 @@ export function LeaveApprovalView({
 
   // Override Modal State
   const [overrideTarget, setOverrideTarget] = useState<LeaveApprovalItem | null>(null);
-  const [targetStatus, setTargetStatus] = useState<"APPROVED" | "REJECTED" | "CANCELLED">("APPROVED");
+  const [targetStatus, setTargetStatus] = useState<"APPROVED" | "REJECTED" | "CANCELLED">(
+    "APPROVED",
+  );
   const [overrideReason, setOverrideReason] = useState("");
 
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const formatDate = (d: Date) => {
@@ -84,8 +90,8 @@ export function LeaveApprovalView({
     activeTab === "ALL"
       ? allRequests
       : activeTab === "PENDING"
-      ? pendingRequests
-      : allRequests.filter((r) => r.status === activeTab);
+        ? pendingRequests
+        : allRequests.filter((r) => r.status === activeTab);
 
   const handleConfirmAction = (e: React.FormEvent) => {
     e.preventDefault();
@@ -399,10 +405,15 @@ export function LeaveApprovalView({
               </div>
               <div>
                 <h3 className="text-base font-bold text-[#102e50] font-heading">
-                  {selectedAction.type === "approve" ? "Setujui Permohonan Cuti" : "Tolak Permohonan Cuti"}
+                  {selectedAction.type === "approve"
+                    ? "Setujui Permohonan Cuti"
+                    : "Tolak Permohonan Cuti"}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Pemohon: <strong className="text-slate-800">{selectedAction.request.employee.fullName}</strong>
+                  Pemohon:{" "}
+                  <strong className="text-slate-800">
+                    {selectedAction.request.employee.fullName}
+                  </strong>
                 </p>
               </div>
             </div>
@@ -410,16 +421,21 @@ export function LeaveApprovalView({
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs flex flex-col gap-1.5">
               <div className="flex justify-between">
                 <span className="text-slate-500">Jenis Cuti:</span>
-                <span className="font-bold text-slate-800">{selectedAction.request.leaveType.name}</span>
+                <span className="font-bold text-slate-800">
+                  {selectedAction.request.leaveType.name}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Durasi:</span>
-                <span className="font-bold text-[#102e50]">{Number(selectedAction.request.days)} Hari Kerja</span>
+                <span className="font-bold text-[#102e50]">
+                  {Number(selectedAction.request.days)} Hari Kerja
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Tanggal:</span>
                 <span className="font-medium text-slate-800">
-                  {formatDate(selectedAction.request.startDate)} s/d {formatDate(selectedAction.request.endDate)}
+                  {formatDate(selectedAction.request.startDate)} s/d{" "}
+                  {formatDate(selectedAction.request.endDate)}
                 </span>
               </div>
               {selectedAction.request.attachmentKey && (
@@ -462,7 +478,8 @@ export function LeaveApprovalView({
 
               {selectedAction.type === "approve" && (
                 <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Persetujuan ini akan secara otomatis memotong saldo cuti pegawai dan menandai presensi harian sebagai &quot;Sedang Cuti&quot;.
+                  Persetujuan ini akan secara otomatis memotong saldo cuti pegawai dan menandai
+                  presensi harian sebagai &quot;Sedang Cuti&quot;.
                 </p>
               )}
 
@@ -483,7 +500,11 @@ export function LeaveApprovalView({
                       : "bg-[#a8281c] hover:bg-[#851e14]"
                   }`}
                 >
-                  {isPending ? "Memproses..." : selectedAction.type === "approve" ? "Konfirmasi Setujui" : "Konfirmasi Tolak"}
+                  {isPending
+                    ? "Memproses..."
+                    : selectedAction.type === "approve"
+                      ? "Konfirmasi Setujui"
+                      : "Konfirmasi Tolak"}
                 </button>
               </div>
             </form>
@@ -510,7 +531,9 @@ export function LeaveApprovalView({
                   </span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Pemohon: <strong className="text-slate-800">{overrideTarget.employee.fullName}</strong> ({overrideTarget.employee.employeeNo})
+                  Pemohon:{" "}
+                  <strong className="text-slate-800">{overrideTarget.employee.fullName}</strong> (
+                  {overrideTarget.employee.employeeNo})
                 </p>
               </div>
             </div>
@@ -529,7 +552,9 @@ export function LeaveApprovalView({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Durasi:</span>
-                <span className="font-bold text-[#102e50]">{Number(overrideTarget.days)} Hari Kerja</span>
+                <span className="font-bold text-[#102e50]">
+                  {Number(overrideTarget.days)} Hari Kerja
+                </span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-slate-200">
                 <span className="text-slate-500">Status Saat Ini:</span>
@@ -538,8 +563,8 @@ export function LeaveApprovalView({
                     overrideTarget.status === "APPROVED"
                       ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                       : overrideTarget.status === "REJECTED"
-                      ? "bg-red-50 text-[#a8281c] border border-red-200"
-                      : "bg-slate-100 text-slate-700 border border-slate-300"
+                        ? "bg-red-50 text-[#a8281c] border border-red-200"
+                        : "bg-slate-100 text-slate-700 border border-slate-300"
                   }`}
                 >
                   {overrideTarget.status}
@@ -566,8 +591,8 @@ export function LeaveApprovalView({
                           isCurrent
                             ? "opacity-40 cursor-not-allowed bg-slate-100 border-slate-200 text-slate-400"
                             : isSelected
-                            ? "bg-[#102e50] text-[#ffddb0] border-[#102e50] shadow-xs"
-                            : "bg-white border-slate-200 text-slate-700 hover:border-[#102e50]"
+                              ? "bg-[#102e50] text-[#ffddb0] border-[#102e50] shadow-xs"
+                              : "bg-white border-slate-200 text-slate-700 hover:border-[#102e50]"
                         }`}
                       >
                         {st === "APPROVED" && "Setujui (APPROVED)"}
@@ -592,8 +617,12 @@ export function LeaveApprovalView({
                     <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-start gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-bold">Saldo Cuti Akan Dikembalikan: +{impact.balanceDelta} Hari</div>
-                        <div className="text-[11px] text-emerald-800 mt-0.5">{impact.description}</div>
+                        <div className="font-bold">
+                          Saldo Cuti Akan Dikembalikan: +{impact.balanceDelta} Hari
+                        </div>
+                        <div className="text-[11px] text-emerald-800 mt-0.5">
+                          {impact.description}
+                        </div>
                       </div>
                     </div>
                   );
@@ -604,8 +633,12 @@ export function LeaveApprovalView({
                     <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
                       <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                       <div>
-                        <div className="font-bold">Saldo Cuti Akan Dipotong: {impact.balanceDelta} Hari</div>
-                        <div className="text-[11px] text-amber-800 mt-0.5">{impact.description}</div>
+                        <div className="font-bold">
+                          Saldo Cuti Akan Dipotong: {impact.balanceDelta} Hari
+                        </div>
+                        <div className="text-[11px] text-amber-800 mt-0.5">
+                          {impact.description}
+                        </div>
                       </div>
                     </div>
                   );

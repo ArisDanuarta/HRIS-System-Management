@@ -102,13 +102,16 @@ export function SensitiveFieldView({
             </div>
 
             <p className="text-sm text-slate-600 leading-relaxed">
-              Anda akan melihat nilai asli dari data pribadi yang dilindungi oleh enkripsi <strong>AES-256-GCM</strong>.
+              Anda akan melihat nilai asli dari data pribadi yang dilindungi oleh enkripsi{" "}
+              <strong>AES-256-GCM</strong>.
             </p>
 
             <div className="p-3 bg-amber-50 border border-amber-200/80 rounded-lg text-xs text-amber-900 leading-relaxed flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
               <span>
-                Sesuai kebijakan kepatuhan keamanan data PSPK, tindakan ini akan <strong>dicatat secara permanen</strong> pada sistem Audit Log lembaga (merekam identitas akun Anda, alamat IP, dan waktu akses).
+                Sesuai kebijakan kepatuhan keamanan data PSPK, tindakan ini akan{" "}
+                <strong>dicatat secara permanen</strong> pada sistem Audit Log lembaga (merekam
+                identitas akun Anda, alamat IP, dan waktu akses).
               </span>
             </div>
 

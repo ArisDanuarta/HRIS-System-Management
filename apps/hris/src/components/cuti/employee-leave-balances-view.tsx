@@ -31,7 +31,9 @@ export function EmployeeLeaveBalancesView({
   const [isPending, startTransition] = useTransition();
 
   // Feedback Notification
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
 
   // Modal State
   const [modalTarget, setModalTarget] = useState<EmployeeLeaveBalanceOverview | null>(null);
@@ -260,7 +262,8 @@ export function EmployeeLeaveBalancesView({
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#102e50]" />
             <span className="font-bold text-xs text-[#102e50]">
-              Daftar Kuota & Saldo Cuti Pegawai PSPK ({defaultLeaveType?.name || "Cuti Tahunan"} 2026)
+              Daftar Kuota & Saldo Cuti Pegawai PSPK ({defaultLeaveType?.name || "Cuti Tahunan"}{" "}
+              2026)
             </span>
           </div>
           <span className="text-[11px] text-slate-500">
@@ -297,7 +300,9 @@ export function EmployeeLeaveBalancesView({
                     <tr key={item.employeeId} className="hover:bg-slate-50/80 transition-colors">
                       <td className="py-3 px-4">
                         <div className="font-semibold text-slate-900">{item.fullName}</div>
-                        <div className="text-[11px] font-mono text-slate-400">{item.employeeNo}</div>
+                        <div className="text-[11px] font-mono text-slate-400">
+                          {item.employeeNo}
+                        </div>
                       </td>
 
                       <td className="py-3 px-4">
@@ -319,8 +324,8 @@ export function EmployeeLeaveBalancesView({
                             item.remainingDays > 5
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                               : item.remainingDays > 0
-                              ? "bg-amber-50 text-amber-700 border border-amber-200"
-                              : "bg-rose-50 text-rose-700 border border-rose-200"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : "bg-rose-50 text-rose-700 border border-rose-200"
                           }`}
                         >
                           {item.remainingDays} hari
@@ -335,8 +340,8 @@ export function EmployeeLeaveBalancesView({
                                 usagePercent > 80
                                   ? "bg-rose-500"
                                   : usagePercent > 50
-                                  ? "bg-amber-500"
-                                  : "bg-emerald-500"
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500"
                               }`}
                               style={{ width: `${Math.min(100, usagePercent)}%` }}
                             />
@@ -394,16 +399,26 @@ export function EmployeeLeaveBalancesView({
             {/* Info Saldo Saat Ini */}
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-3 gap-2 text-center text-xs">
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Kuota Saat Ini</span>
-                <span className="font-bold text-sm text-slate-800">{modalTarget.quotaDays} hari</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                  Kuota Saat Ini
+                </span>
+                <span className="font-bold text-sm text-slate-800">
+                  {modalTarget.quotaDays} hari
+                </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Telah Dipakai</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                  Telah Dipakai
+                </span>
                 <span className="font-bold text-sm text-blue-700">{modalTarget.usedDays} hari</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Sisa Aktif</span>
-                <span className="font-bold text-sm text-emerald-700">{modalTarget.remainingDays} hari</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">
+                  Sisa Aktif
+                </span>
+                <span className="font-bold text-sm text-emerald-700">
+                  {modalTarget.remainingDays} hari
+                </span>
               </div>
             </div>
 
@@ -459,8 +474,8 @@ export function EmployeeLeaveBalancesView({
                   {adjustmentMode === "ADD"
                     ? "Jumlah Hari Ditambahkan:"
                     : adjustmentMode === "DEDUCT"
-                    ? "Jumlah Hari Dikurangkan:"
-                    : "Nilai Kuota Total Baru (Hari):"}
+                      ? "Jumlah Hari Dikurangkan:"
+                      : "Nilai Kuota Total Baru (Hari):"}
                 </label>
                 <input
                   type="number"
@@ -468,7 +483,9 @@ export function EmployeeLeaveBalancesView({
                   max="100"
                   required
                   value={adjustmentAmount}
-                  onChange={(e) => setAdjustmentAmount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                  onChange={(e) =>
+                    setAdjustmentAmount(Math.max(1, parseInt(e.target.value, 10) || 1))
+                  }
                   className="px-3 py-2 rounded-lg border border-slate-300 bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none"
                 />
               </div>
@@ -476,13 +493,17 @@ export function EmployeeLeaveBalancesView({
               {/* Pratinjau Dampak */}
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-950 flex items-center justify-between">
                 <div className="flex flex-col">
-                  <span className="text-[10px] text-emerald-700 uppercase font-bold">Hasil Penyesuaian</span>
+                  <span className="text-[10px] text-emerald-700 uppercase font-bold">
+                    Hasil Penyesuaian
+                  </span>
                   <span className="text-xs font-semibold">
                     Kuota Baru: <strong>{preview.newQuota} hari</strong>
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-emerald-700 uppercase font-bold block">Sisa Cuti Baru</span>
+                  <span className="text-[10px] text-emerald-700 uppercase font-bold block">
+                    Sisa Cuti Baru
+                  </span>
                   <span className="text-xs font-bold text-emerald-800">
                     {preview.newRemaining} hari aktif
                   </span>

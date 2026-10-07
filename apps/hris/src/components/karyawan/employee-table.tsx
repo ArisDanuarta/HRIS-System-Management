@@ -128,11 +128,10 @@ export function EmployeeTable({
                         <Users className="w-6 h-6" />
                       </div>
                       <div className="flex flex-col gap-1 max-w-sm">
-                        <span className="font-semibold text-slate-800">
-                          Tidak Ada Data Pegawai
-                        </span>
+                        <span className="font-semibold text-slate-800">Tidak Ada Data Pegawai</span>
                         <span className="text-xs text-slate-500">
-                          Tidak ditemukan pegawai yang cocok dengan filter atau kata kunci pencarian Anda.
+                          Tidak ditemukan pegawai yang cocok dengan filter atau kata kunci pencarian
+                          Anda.
                         </span>
                       </div>
                     </div>
@@ -160,9 +159,7 @@ export function EmployeeTable({
                             >
                               {emp.fullName}
                             </Link>
-                            <span className="text-xs text-slate-500 truncate">
-                              {emp.workEmail}
-                            </span>
+                            <span className="text-xs text-slate-500 truncate">{emp.workEmail}</span>
                           </div>
                         </div>
                       </td>
@@ -327,7 +324,9 @@ export function EmployeeTable({
             </p>
 
             <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 leading-relaxed">
-              Penonaktifan akan mengubah status menjadi <strong>TERMINATED</strong>, menghentikan seluruh kontrak aktif yang berjalan, dan menonaktifkan akses akun pengguna terkait. Seluruh riwayat akan tetap diarsipkan di sistem.
+              Penonaktifan akan mengubah status menjadi <strong>TERMINATED</strong>, menghentikan
+              seluruh kontrak aktif yang berjalan, dan menonaktifkan akses akun pengguna terkait.
+              Seluruh riwayat akan tetap diarsipkan di sistem.
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">

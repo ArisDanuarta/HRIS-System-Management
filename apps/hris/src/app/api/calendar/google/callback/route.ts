@@ -56,8 +56,7 @@ export async function GET(req: Request) {
 
   const origin = url.origin;
   const redirectUri =
-    process.env.GOOGLE_OAUTH_REDIRECT_URI ||
-    `${origin}/api/calendar/google/callback`;
+    process.env.GOOGLE_OAUTH_REDIRECT_URI || `${origin}/api/calendar/google/callback`;
 
   // Tukarkan authorization code dengan Access & Refresh Token
   let tokenData: {

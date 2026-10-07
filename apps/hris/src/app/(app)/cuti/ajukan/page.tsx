@@ -4,7 +4,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
-import { getLeaveTypes, getEmployeeLeaveBalances, getHolidays } from "@/server/queries/leave.queries";
+import {
+  getLeaveTypes,
+  getEmployeeLeaveBalances,
+  getHolidays,
+} from "@/server/queries/leave.queries";
 import { LeaveRequestForm } from "@/components/cuti/leave-request-form";
 import { ArrowLeft } from "lucide-react";
 
@@ -64,11 +68,7 @@ export default async function AjukanCutiPage() {
       </div>
 
       {/* Interactive Form Component */}
-      <LeaveRequestForm
-        leaveTypes={leaveTypes}
-        balances={balances}
-        holidays={holidays}
-      />
+      <LeaveRequestForm leaveTypes={leaveTypes} balances={balances} holidays={holidays} />
     </div>
   );
 }

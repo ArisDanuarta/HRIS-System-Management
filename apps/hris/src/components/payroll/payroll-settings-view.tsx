@@ -18,9 +18,7 @@ import {
   RefreshCw,
   Sparkles,
 } from "lucide-react";
-import {
-  PayrollSettingsData,
-} from "@/server/queries/payroll-settings.queries";
+import { PayrollSettingsData } from "@/server/queries/payroll-settings.queries";
 import {
   updatePayrollSettingsAction,
   uploadPayrollBrandingAction,
@@ -56,7 +54,8 @@ const BORDER_PRESETS = [
     key: "NAVY_GOLD",
     name: "Navy & Gold Accent",
     description: "Kombinasi garis navy dengan aksen emas khas brand PSPK.",
-    previewClass: "border-b-2 border-[#102E50] relative after:absolute after:bottom-[-3px] after:left-0 after:right-0 after:h-[2px] after:bg-[#F2AF3E]",
+    previewClass:
+      "border-b-2 border-[#102E50] relative after:absolute after:bottom-[-3px] after:left-0 after:right-0 after:h-[2px] after:bg-[#F2AF3E]",
   },
   {
     key: "DOUBLE_LINE",
@@ -90,8 +89,12 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
   // Branding State
   const [logoKey, setLogoKey] = useState<string | null>(initialSettings.logoKey);
   const [logoUrl, setLogoUrl] = useState<string | null>(initialSettings.logoUrl);
-  const [headerBannerKey, setHeaderBannerKey] = useState<string | null>(initialSettings.headerBannerKey);
-  const [headerBannerUrl, setHeaderBannerUrl] = useState<string | null>(initialSettings.headerBannerUrl);
+  const [headerBannerKey, setHeaderBannerKey] = useState<string | null>(
+    initialSettings.headerBannerKey,
+  );
+  const [headerBannerUrl, setHeaderBannerUrl] = useState<string | null>(
+    initialSettings.headerBannerUrl,
+  );
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
@@ -106,7 +109,9 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
   const [showRawAccount, setShowRawAccount] = useState(Boolean(initialSettings.senderAccountRaw));
   const [senderAccountName, setSenderAccountName] = useState(initialSettings.senderAccountName);
   const [senderBranch, setSenderBranch] = useState(initialSettings.senderBranch || "");
-  const [payrollTransferNote, setPayrollTransferNote] = useState(initialSettings.payrollTransferNote);
+  const [payrollTransferNote, setPayrollTransferNote] = useState(
+    initialSettings.payrollTransferNote,
+  );
 
   // Signatory & Stamp State
   const [authorizedSignerName, setAuthorizedSignerName] = useState(
@@ -355,7 +360,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
     senderBankName:
       senderBankName === "Bank Lainnya" && customBankName ? customBankName : senderBankName,
     senderBankAccount,
-    senderAccountMasked: senderBankAccount.length > 4 ? `•••• ${senderBankAccount.slice(-4)}` : senderBankAccount,
+    senderAccountMasked:
+      senderBankAccount.length > 4 ? `•••• ${senderBankAccount.slice(-4)}` : senderBankAccount,
     senderAccountName,
     senderBranch,
     payrollTransferNote,
@@ -383,7 +389,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
             Pengaturan Penggajian & Dokumen Resmi
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Konfigurasi rekening bank operasional penyalur gaji PSPK, identitas kop surat, logo, dan gaya dokumen cetak slip gaji.
+            Konfigurasi rekening bank operasional penyalur gaji PSPK, identitas kop surat, logo, dan
+            gaya dokumen cetak slip gaji.
           </p>
         </div>
 
@@ -474,7 +481,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
                       Rekening Operasional Penyalur Gaji PSPK
                     </h3>
                     <p className="text-[11px] text-slate-500">
-                      Rekening sumber dana transfer penggajian bulanan yang tampil pada slip gaji pegawai.
+                      Rekening sumber dana transfer penggajian bulanan yang tampil pada slip gaji
+                      pegawai.
                     </p>
                   </div>
                 </div>
@@ -546,7 +554,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
                   className="w-full text-xs font-mono font-semibold px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:ring-2 focus:ring-[#102E50]"
                 />
                 <p className="text-[11px] text-slate-400">
-                  Data nomor rekening dienkripsi dengan standar AES-256-GCM pada database untuk keamanan finansial.
+                  Data nomor rekening dienkripsi dengan standar AES-256-GCM pada database untuk
+                  keamanan finansial.
                 </p>
               </div>
 
@@ -607,7 +616,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
                       Kop Surat & Format Border Dokumen
                     </h3>
                     <p className="text-[11px] text-slate-500">
-                      Atur identitas resmi lembaga yang dicetak pada slip gaji fisik dan format ekspor PDF.
+                      Atur identitas resmi lembaga yang dicetak pada slip gaji fisik dan format
+                      ekspor PDF.
                     </p>
                   </div>
                 </div>
@@ -632,14 +642,10 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="font-bold text-xs text-slate-900">
-                            {preset.name}
-                          </span>
+                          <span className="font-bold text-xs text-slate-900">{preset.name}</span>
                           <span
                             className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                              isSelected
-                                ? "border-[#102E50] bg-[#102E50]"
-                                : "border-slate-300"
+                              isSelected ? "border-[#102E50] bg-[#102E50]" : "border-slate-300"
                             }`}
                           >
                             {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -729,7 +735,8 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
                   )}
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  Gunakan jika lembaga Anda memiliki gambar kop surat horizontal utuh dari desainer grafis.
+                  Gunakan jika lembaga Anda memiliki gambar kop surat horizontal utuh dari desainer
+                  grafis.
                 </p>
 
                 {headerBannerUrl ? (

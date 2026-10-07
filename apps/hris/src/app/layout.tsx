@@ -19,11 +19,7 @@ export const metadata: Metadata = {
   description: "Sistem Informasi Sumber Daya Manusia Terpadu PSPK",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={`${lora.variable} ${rubik.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">{children}</body>

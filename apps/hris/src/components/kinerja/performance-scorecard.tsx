@@ -79,7 +79,7 @@ export function PerformanceScorecard({
             <div className="mt-1.5">
               <span
                 className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${getPredicateBadge(
-                  review.predicate
+                  review.predicate,
                 )}`}
               >
                 {review.predicate}
@@ -100,7 +100,9 @@ export function PerformanceScorecard({
           </div>
           <div>
             <span className="text-slate-400 block text-[11px]">Jabatan & Divisi:</span>
-            <span className="text-white">{positionTitle} • {departmentName}</span>
+            <span className="text-white">
+              {positionTitle} • {departmentName}
+            </span>
           </div>
           <div>
             <span className="text-slate-400 block text-[11px]">Atasan Penilai:</span>
@@ -141,9 +143,7 @@ export function PerformanceScorecard({
               Skor Disahkan Lembaga
             </span>
             <div className="mt-1 flex items-baseline gap-1">
-              <span className="text-2xl font-bold font-mono text-amber-950">
-                {finalScore}
-              </span>
+              <span className="text-2xl font-bold font-mono text-amber-950">{finalScore}</span>
               <span className="text-xs text-amber-500">/ 100</span>
             </div>
           </div>
@@ -157,11 +157,16 @@ export function PerformanceScorecard({
           </h4>
 
           {review.goals.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">Tidak ada rincian sasaran yang tercatat.</p>
+            <p className="text-xs text-slate-400 italic">
+              Tidak ada rincian sasaran yang tercatat.
+            </p>
           ) : (
             <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 overflow-hidden">
               {review.goals.map((g, idx) => (
-                <div key={g.id} className="p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div
+                  key={g.id}
+                  className="p-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-slate-400">#{idx + 1}</span>
@@ -170,12 +175,17 @@ export function PerformanceScorecard({
                         Bobot {g.weight}%
                       </span>
                     </div>
-                    {g.description && <p className="text-slate-500 text-[11px] pl-5">{g.description}</p>}
+                    {g.description && (
+                      <p className="text-slate-500 text-[11px] pl-5">{g.description}</p>
+                    )}
                   </div>
 
                   <div className="sm:text-right pl-5 sm:pl-0 shrink-0">
                     <div className="text-[11px] text-slate-500">
-                      Target: <strong className="text-slate-700">{g.target || "-"} {g.unit || ""}</strong>
+                      Target:{" "}
+                      <strong className="text-slate-700">
+                        {g.target || "-"} {g.unit || ""}
+                      </strong>
                     </div>
                     <div className="text-[11px] text-emerald-700 font-medium">
                       Realisasi: <strong>{g.actual || "Tercapai"}</strong>

@@ -201,13 +201,9 @@ describe("angkaTerbilang", () => {
 
   it("converts realistic salary numbers correctly", async () => {
     const { angkaTerbilang } = await import("./formatters");
-    expect(angkaTerbilang(14560000)).toBe(
-      "Empat Belas Juta Lima Ratus Enam Puluh Ribu Rupiah",
-    );
+    expect(angkaTerbilang(14560000)).toBe("Empat Belas Juta Lima Ratus Enam Puluh Ribu Rupiah");
     expect(angkaTerbilang(8500000)).toBe("Delapan Juta Lima Ratus Ribu Rupiah");
     expect(angkaTerbilang(28000000)).toBe("Dua Puluh Delapan Juta Rupiah");
-    expect(angkaTerbilang(37600000)).toBe(
-      "Tiga Puluh Tujuh Juta Enam Ratus Ribu Rupiah",
-    );
+    expect(angkaTerbilang(37600000)).toBe("Tiga Puluh Tujuh Juta Enam Ratus Ribu Rupiah");
   });
 });

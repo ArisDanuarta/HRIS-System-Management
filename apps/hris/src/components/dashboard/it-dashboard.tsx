@@ -16,7 +16,8 @@ export function ItDashboard() {
               Portal Utama Administrator IT & Sistem
             </h2>
             <p className="text-xs text-slate-300 mt-0.5">
-              Kelola akun pengguna, penugasan role, inventaris aset, dan audit trail di aplikasi System Management.
+              Kelola akun pengguna, penugasan role, inventaris aset, dan audit trail di aplikasi
+              System Management.
             </p>
           </div>
         </div>
@@ -36,12 +37,11 @@ export function ItDashboard() {
       <div className="p-6 rounded-2xl bg-white border border-[#dee9fc] shadow-xs flex flex-col gap-4">
         <div className="flex items-center gap-2 text-[#102e50]">
           <Users className="w-5 h-5 text-[#102e50]" />
-          <h1 className="text-base font-bold font-heading">
-            Pencarian Direktori Karyawan
-          </h1>
+          <h1 className="text-base font-bold font-heading">Pencarian Direktori Karyawan</h1>
         </div>
         <p className="text-xs text-slate-500">
-          Sebagai Administrator IT, Anda memiliki akses baca ke direktori dasar pegawai untuk keperluan verifikasi akun dan penugasan aset perangkat.
+          Sebagai Administrator IT, Anda memiliki akses baca ke direktori dasar pegawai untuk
+          keperluan verifikasi akun dan penugasan aset perangkat.
         </p>
 
         <div className="pt-2">

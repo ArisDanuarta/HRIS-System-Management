@@ -13,10 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import { formatRupiah, formatDate } from "@pspk/shared";
-import {
-  MyPayslipsSummary,
-  MyPayslipDetail,
-} from "@/server/queries/payslip.queries";
+import { MyPayslipsSummary, MyPayslipDetail } from "@/server/queries/payslip.queries";
 import { getMyPayslipDetailAction } from "@/server/actions/payslip.actions";
 import { PayslipPrintableModal } from "./payslip-printable-modal";
 
@@ -94,7 +91,9 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
             Slip Gaji Saya
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Arsip resmi bukti pembayaran gaji atas nama <strong className="text-slate-700">{employeeName}</strong>, tunjangan kerja, dan potongan yang telah diterbitkan oleh Divisi HR & Keuangan.
+            Arsip resmi bukti pembayaran gaji atas nama{" "}
+            <strong className="text-slate-700">{employeeName}</strong>, tunjangan kerja, dan
+            potongan yang telah diterbitkan oleh Divisi HR & Keuangan.
           </p>
         </div>
       </div>
@@ -136,19 +135,20 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
                     {formatRupiah(summary.latestPayslip.netAmount)}
                   </span>
                   <span className="text-xs text-slate-600 font-medium mt-1.5 block">
-                    Periode {MONTH_NAMES[summary.latestPayslip.month]} {summary.latestPayslip.year} ({summary.latestPayslip.kind === "THR" ? "THR" : "Reguler"})
-                    {summary.latestPayslip.wageType === "HOURLY" && summary.latestPayslip.totalHours && (
-                      <span className="text-amber-800 font-semibold ml-1.5 inline-flex items-center gap-1">
-                        • <Clock className="w-3 h-3 text-amber-600 inline" /> {summary.latestPayslip.totalHours} Jam
-                      </span>
-                    )}
+                    Periode {MONTH_NAMES[summary.latestPayslip.month]} {summary.latestPayslip.year}{" "}
+                    ({summary.latestPayslip.kind === "THR" ? "THR" : "Reguler"})
+                    {summary.latestPayslip.wageType === "HOURLY" &&
+                      summary.latestPayslip.totalHours && (
+                        <span className="text-amber-800 font-semibold ml-1.5 inline-flex items-center gap-1">
+                          • <Clock className="w-3 h-3 text-amber-600 inline" />{" "}
+                          {summary.latestPayslip.totalHours} Jam
+                        </span>
+                      )}
                   </span>
                 </>
               ) : (
                 <>
-                  <span className="text-lg font-bold text-slate-400 block">
-                    Belum Ada Slip
-                  </span>
+                  <span className="text-lg font-bold text-slate-400 block">Belum Ada Slip</span>
                   <span className="text-xs text-slate-400 mt-1 block">
                     Menunggu publikasi dari tim keuangan
                   </span>
@@ -214,7 +214,8 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
             </div>
             <div className="mt-3">
               <span className="text-2xl sm:text-3xl font-extrabold text-[#102E50] font-mono block leading-none">
-                {summary.totalCount} <span className="text-base font-normal font-sans text-slate-500">Bulan</span>
+                {summary.totalCount}{" "}
+                <span className="text-base font-normal font-sans text-slate-500">Bulan</span>
               </span>
               <span className="text-xs text-slate-600 font-medium mt-1.5 block">
                 Arsip slip siap cetak / unduh PDF
@@ -274,9 +275,7 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
       {/* Main Table: Riwayat Slip Gaji */}
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#102E50] font-serif">
-            Daftar Arsip Slip Gaji
-          </h2>
+          <h2 className="text-sm font-bold text-[#102E50] font-serif">Daftar Arsip Slip Gaji</h2>
           <span className="text-xs text-slate-500">
             Menampilkan {filteredPayslips.length} dari {summary.totalCount} dokumen
           </span>
@@ -302,10 +301,7 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
                   const isLoading = loadingPayslipId === p.id;
 
                   return (
-                    <tr
-                      key={p.id}
-                      className="hover:bg-slate-50/80 transition-colors"
-                    >
+                    <tr key={p.id} className="hover:bg-slate-50/80 transition-colors">
                       {/* Periode */}
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-[#102E50]">
@@ -390,9 +386,7 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
             <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
               <FileText className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-bold text-slate-700">
-              Belum Ada Slip Gaji Diterbitkan
-            </h3>
+            <h3 className="text-sm font-bold text-slate-700">Belum Ada Slip Gaji Diterbitkan</h3>
             <p className="text-xs text-slate-500 max-w-md mt-1 leading-relaxed">
               {selectedYear !== "ALL" || selectedKind !== "ALL"
                 ? "Tidak ada slip gaji yang cocok dengan filter yang Anda pilih. Silakan atur kembali filter tahun atau jenis slip."
@@ -406,8 +400,9 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
       <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200/80 flex items-start gap-3 text-xs text-blue-900 leading-relaxed">
         <HelpCircle className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
         <div>
-          <span className="font-bold">Pertanyaan seputar komponen slip gaji?</span>{" "}
-          Jika terdapat ketidaksesuaian nominal tunjangan, potongan absensi, atau kendala transfer rekening bank, silakan hubungi Tim Administrasi HR & Keuangan PSPK untuk verifikasi lebih lanjut.
+          <span className="font-bold">Pertanyaan seputar komponen slip gaji?</span> Jika terdapat
+          ketidaksesuaian nominal tunjangan, potongan absensi, atau kendala transfer rekening bank,
+          silakan hubungi Tim Administrasi HR & Keuangan PSPK untuk verifikasi lebih lanjut.
         </div>
       </div>
 

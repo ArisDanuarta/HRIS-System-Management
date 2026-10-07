@@ -2,10 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  RoleMatrixData,
-  CategoryMatrixGroup,
-} from "@/server/queries/role.queries";
+import { RoleMatrixData, CategoryMatrixGroup } from "@/server/queries/role.queries";
 import {
   batchUpdateRoleMatrixAction,
   resetRolePermissionsToDefaultAction,
@@ -104,8 +101,8 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
 
   // State Mode Edit
   const [isEditMode, setIsEditMode] = useState(false);
-  const [editedMatrix, setEditedMatrix] = useState<Record<string, Record<string, boolean>>>(
-    () => createInitialMatrixState(matrixData),
+  const [editedMatrix, setEditedMatrix] = useState<Record<string, Record<string, boolean>>>(() =>
+    createInitialMatrixState(matrixData),
   );
   const [isSaving, setIsSaving] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
@@ -720,8 +717,7 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
 
                             {/* Kolom Akses per Peran */}
                             {matrixData.roles.map((role) => {
-                              const isChecked =
-                                editedMatrix[role.key]?.[perm.key] ?? false;
+                              const isChecked = editedMatrix[role.key]?.[perm.key] ?? false;
 
                               return (
                                 <td
@@ -871,8 +867,8 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
               </h3>
               <p className="text-xs text-slate-500 leading-relaxed">
                 Tindakan ini akan mengatur ulang seluruh pemetaan izin untuk peran{" "}
-                <strong>Admin HR, Manajer, Staf, dan Admin IT</strong> kembali persis sesuai
-                standar blueprint awal PSPK. Peran Super Admin tetap aman.
+                <strong>Admin HR, Manajer, Staf, dan Admin IT</strong> kembali persis sesuai standar
+                blueprint awal PSPK. Peran Super Admin tetap aman.
               </p>
             </div>
 
@@ -976,7 +972,8 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
                   autoFocus
                 />
                 <p className="text-[11px] text-slate-400">
-                  Perubahan keterangan ini akan langsung terlihat di matriks peran dan audit log sistem.
+                  Perubahan keterangan ini akan langsung terlihat di matriks peran dan audit log
+                  sistem.
                 </p>
               </div>
 

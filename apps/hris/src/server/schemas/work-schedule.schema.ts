@@ -13,9 +13,7 @@ export const workScheduleSchema = z.object({
     .number({ invalid_type_error: "Toleransi keterlambatan harus berupa angka" })
     .min(0, "Toleransi minimal 0 menit")
     .max(120, "Toleransi maksimal 120 menit"),
-  workingDays: z
-    .array(z.number().min(1).max(7))
-    .min(1, "Pilih minimal satu hari kerja aktif"),
+  workingDays: z.array(z.number().min(1).max(7)).min(1, "Pilih minimal satu hari kerja aktif"),
   isFlexible: z.boolean().default(false),
   departmentId: z.string().nullable().optional(),
 });

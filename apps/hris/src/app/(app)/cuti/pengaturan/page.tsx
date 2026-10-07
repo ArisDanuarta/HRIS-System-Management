@@ -2,7 +2,11 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma } from "@pspk/db";
-import { getLeaveTypes, getHolidays, getAllEmployeeLeaveBalances } from "@/server/queries/leave.queries";
+import {
+  getLeaveTypes,
+  getHolidays,
+  getAllEmployeeLeaveBalances,
+} from "@/server/queries/leave.queries";
 import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { LeaveSettingsView } from "@/components/cuti/leave-settings-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
@@ -28,13 +32,14 @@ export default async function PengaturanCutiPage() {
   const currentYear = new Date().getFullYear();
 
   // Fetch real leave types, holiday list for current year, active work schedule, and employee balances
-  const [leaveTypes, holidays, pendingApprovalsCount, workSchedule, leaveBalanceData] = await Promise.all([
-    getLeaveTypes(),
-    getHolidays(currentYear),
-    prisma.leaveRequest.count({ where: { status: "PENDING" } }),
-    getActiveWorkSchedule(),
-    getAllEmployeeLeaveBalances(currentYear),
-  ]);
+  const [leaveTypes, holidays, pendingApprovalsCount, workSchedule, leaveBalanceData] =
+    await Promise.all([
+      getLeaveTypes(),
+      getHolidays(currentYear),
+      prisma.leaveRequest.count({ where: { status: "PENDING" } }),
+      getActiveWorkSchedule(),
+      getAllEmployeeLeaveBalances(currentYear),
+    ]);
 
   return (
     <div className="space-y-6">
@@ -44,7 +49,8 @@ export default async function PengaturanCutiPage() {
           Pengaturan Jam Kerja, Kuota Cuti & Hari Libur
         </h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Kelola kebijakan jam kerja operasional kantor, toleransi keterlambatan, master jenis cuti, serta daftar libur resmi.
+          Kelola kebijakan jam kerja operasional kantor, toleransi keterlambatan, master jenis cuti,
+          serta daftar libur resmi.
         </p>
       </div>
 

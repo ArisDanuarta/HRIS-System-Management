@@ -41,7 +41,10 @@ export default async function DashboardPage() {
   const cookieStore = await cookies();
   const rawPreviewCookie = cookieStore.get("pspk_role_view")?.value;
   const activePreviewRole =
-    isSuperAdmin && (rawPreviewCookie === "admin_hr" || rawPreviewCookie === "manager" || rawPreviewCookie === "staff")
+    isSuperAdmin &&
+    (rawPreviewCookie === "admin_hr" ||
+      rawPreviewCookie === "manager" ||
+      rawPreviewCookie === "staff")
       ? rawPreviewCookie
       : null;
 

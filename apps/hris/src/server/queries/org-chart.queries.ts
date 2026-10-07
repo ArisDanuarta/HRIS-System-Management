@@ -83,10 +83,7 @@ export async function getOrgChartData(): Promise<OrgChartData> {
         },
       },
     },
-    orderBy: [
-      { currentDepartment: { name: "asc" } },
-      { fullName: "asc" },
-    ],
+    orderBy: [{ currentDepartment: { name: "asc" } }, { fullName: "asc" }],
   });
 
   const nodesMap = new Map<string, OrgChartNode>();

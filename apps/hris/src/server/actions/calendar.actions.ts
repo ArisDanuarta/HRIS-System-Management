@@ -70,9 +70,7 @@ export async function syncMyGoogleCalendarAction() {
     );
   }
 
-  const { syncEmployeeGoogleEvents } = await import(
-    "@/server/services/google-calendar.service"
-  );
+  const { syncEmployeeGoogleEvents } = await import("@/server/services/google-calendar.service");
 
   const result = await syncEmployeeGoogleEvents(authCtx.employeeId, session.user.id);
 
@@ -112,9 +110,7 @@ export async function disconnectGoogleCalendarAction() {
 
   assertCan(authCtx, "hris.calendar.google:connect");
 
-  const { disconnectGoogleCalendar } = await import(
-    "@/server/services/google-calendar.service"
-  );
+  const { disconnectGoogleCalendar } = await import("@/server/services/google-calendar.service");
 
   await disconnectGoogleCalendar(session.user.id, authCtx.employeeId);
 

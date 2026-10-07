@@ -259,10 +259,7 @@ export function PerformanceHeader({
       )}
 
       {/* Modal */}
-      <PerformancePeriodModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-      />
+      <PerformancePeriodModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }

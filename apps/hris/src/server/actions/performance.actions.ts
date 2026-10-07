@@ -105,9 +105,7 @@ export async function createPerformancePeriodAction(rawData: unknown) {
         select: { userId: true },
       });
 
-      const userIds = [
-        ...new Set(activeUsers.map((u) => u.userId).filter(Boolean)),
-      ] as string[];
+      const userIds = [...new Set(activeUsers.map((u) => u.userId).filter(Boolean))] as string[];
 
       if (userIds.length > 0) {
         await prisma.notification.createMany({
@@ -141,7 +139,10 @@ export async function createPerformancePeriodAction(rawData: unknown) {
     console.error("Gagal membuat periode kinerja:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan sistem saat membuat periode kinerja.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan sistem saat membuat periode kinerja.",
     };
   }
 }
@@ -204,7 +205,8 @@ export async function updatePerformancePeriodStatusAction(rawData: unknown) {
     console.error("Gagal mengubah status periode:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat mengubah status periode.",
+      error:
+        error instanceof Error ? error.message : "Terjadi kesalahan saat mengubah status periode.",
     };
   }
 }
@@ -302,7 +304,10 @@ export async function finalizePerformanceReviewAction(rawData: unknown) {
     console.error("Gagal memfinalisasi review:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat memfinalisasi review kinerja.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat memfinalisasi review kinerja.",
     };
   }
 }
@@ -395,7 +400,10 @@ export async function submitStaffSelfReviewAction(rawData: unknown) {
 
     // OWNERSHIP CHECK: Pastikan review ini memang milik employee yang sedang login
     if (existingReview.employeeId !== currentEmployee.id) {
-      return { success: false, error: "Anda hanya berwenang mengisi evaluasi mandiri untuk diri Anda sendiri." };
+      return {
+        success: false,
+        error: "Anda hanya berwenang mengisi evaluasi mandiri untuk diri Anda sendiri.",
+      };
     }
 
     // Validasi status review (hanya boleh jika DRAFT)
@@ -498,7 +506,10 @@ export async function submitStaffSelfReviewAction(rawData: unknown) {
     console.error("Gagal submit evaluasi mandiri:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan sistem saat mengirim evaluasi mandiri.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan sistem saat mengirim evaluasi mandiri.",
     };
   }
 }
@@ -546,7 +557,10 @@ export async function createGoalAction(rawData: unknown) {
     }
 
     if (!isOwner && !isManagerOfEmployee && !isSuperAdmin && !isAdminHr) {
-      return { success: false, error: "Anda tidak memiliki wewenang untuk menambahkan sasaran pada pegawai ini." };
+      return {
+        success: false,
+        error: "Anda tidak memiliki wewenang untuk menambahkan sasaran pada pegawai ini.",
+      };
     }
 
     // Pastikan periode masih OPEN
@@ -568,7 +582,10 @@ export async function createGoalAction(rawData: unknown) {
     });
 
     if (review && review.status === "FINALIZED") {
-      return { success: false, error: "Sasaran tidak dapat diubah karena penilaian kinerja telah disahkan resmi." };
+      return {
+        success: false,
+        error: "Sasaran tidak dapat diubah karena penilaian kinerja telah disahkan resmi.",
+      };
     }
 
     // Hitung total bobot saat ini
@@ -643,7 +660,10 @@ export async function createGoalAction(rawData: unknown) {
     console.error("Gagal menambahkan sasaran riset:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat menambahkan sasaran riset.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menambahkan sasaran riset.",
     };
   }
 }
@@ -682,7 +702,10 @@ export async function deleteGoalAction(rawData: unknown) {
     }
 
     if (goal.period.status !== "OPEN") {
-      return { success: false, error: "Sasaran tidak dapat dihapus karena periode evaluasi telah ditutup." };
+      return {
+        success: false,
+        error: "Sasaran tidak dapat dihapus karena periode evaluasi telah ditutup.",
+      };
     }
 
     const currentEmployee = await prisma.employee.findUnique({
@@ -709,7 +732,10 @@ export async function deleteGoalAction(rawData: unknown) {
     });
 
     if (review && review.status === "FINALIZED") {
-      return { success: false, error: "Sasaran tidak dapat dihapus karena evaluasi kinerja telah disahkan resmi." };
+      return {
+        success: false,
+        error: "Sasaran tidak dapat dihapus karena evaluasi kinerja telah disahkan resmi.",
+      };
     }
 
     await prisma.performanceGoal.delete({
@@ -741,11 +767,11 @@ export async function deleteGoalAction(rawData: unknown) {
     console.error("Gagal menghapus sasaran riset:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus sasaran riset.",
+      error:
+        error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus sasaran riset.",
     };
   }
 }
-
 
 /**
  * Server Action: Perbarui butir Sasaran Riset / OKR yang sudah ada
@@ -781,7 +807,10 @@ export async function updateGoalAction(rawData: unknown) {
     }
 
     if (goal.period.status !== "OPEN") {
-      return { success: false, error: "Sasaran tidak dapat diubah karena periode evaluasi telah ditutup." };
+      return {
+        success: false,
+        error: "Sasaran tidak dapat diubah karena periode evaluasi telah ditutup.",
+      };
     }
 
     const review = await prisma.performanceReview.findUnique({
@@ -794,7 +823,10 @@ export async function updateGoalAction(rawData: unknown) {
     });
 
     if (review?.status === "FINALIZED") {
-      return { success: false, error: "Sasaran tidak dapat diubah karena evaluasi kinerja telah disahkan resmi." };
+      return {
+        success: false,
+        error: "Sasaran tidak dapat diubah karena evaluasi kinerja telah disahkan resmi.",
+      };
     }
 
     const currentEmployee = await prisma.employee.findUnique({
@@ -816,7 +848,10 @@ export async function updateGoalAction(rawData: unknown) {
     }
 
     if (!isOwner && !isManagerOfEmployee && !isSuperAdmin && !isAdminHr) {
-      return { success: false, error: "Anda tidak memiliki wewenang untuk mengubah sasaran pada pegawai ini." };
+      return {
+        success: false,
+        error: "Anda tidak memiliki wewenang untuk mengubah sasaran pada pegawai ini.",
+      };
     }
 
     // Cek total bobot baru tidak melebihi 100%
@@ -924,7 +959,8 @@ export async function submitManagerReviewAction(rawData: unknown) {
     if (!isReviewer && !isSuperAdmin && !isAdminHr) {
       return {
         success: false,
-        error: "Hanya atasan langsung, Admin HR, atau Super Admin yang dapat mengisi penilaian atasan.",
+        error:
+          "Hanya atasan langsung, Admin HR, atau Super Admin yang dapat mengisi penilaian atasan.",
       };
     }
 
@@ -975,7 +1011,10 @@ export async function submitManagerReviewAction(rawData: unknown) {
     console.error("Gagal submit penilaian atasan:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan penilaian atasan.",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menyimpan penilaian atasan.",
     };
   }
 }
@@ -1001,7 +1040,8 @@ export async function requestReviewRevisionAction(rawData: unknown) {
 
     const validated = requestReviewRevisionSchema.safeParse(rawData);
     if (!validated.success) {
-      const firstError = validated.error.issues[0]?.message || "Input permintaan revisi tidak valid";
+      const firstError =
+        validated.error.issues[0]?.message || "Input permintaan revisi tidak valid";
       return { success: false, error: firstError };
     }
 
@@ -1019,7 +1059,11 @@ export async function requestReviewRevisionAction(rawData: unknown) {
     }
 
     if (review.status === "FINALIZED") {
-      return { success: false, error: "Evaluasi yang sudah disahkan resmi tidak dapat dikembalikan ke DRAFT. Gunakan fitur Buka Kunci (unlock) terlebih dahulu." };
+      return {
+        success: false,
+        error:
+          "Evaluasi yang sudah disahkan resmi tidak dapat dikembalikan ke DRAFT. Gunakan fitur Buka Kunci (unlock) terlebih dahulu.",
+      };
     }
 
     if (review.period.status !== "OPEN") {
@@ -1039,7 +1083,8 @@ export async function requestReviewRevisionAction(rawData: unknown) {
     if (!isReviewer && !isSuperAdmin && !isAdminHr) {
       return {
         success: false,
-        error: "Hanya atasan langsung, Admin HR, atau Super Admin yang dapat meminta revisi evaluasi.",
+        error:
+          "Hanya atasan langsung, Admin HR, atau Super Admin yang dapat meminta revisi evaluasi.",
       };
     }
 
@@ -1076,7 +1121,8 @@ export async function requestReviewRevisionAction(rawData: unknown) {
     console.error("Gagal meminta revisi evaluasi:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat meminta revisi evaluasi.",
+      error:
+        error instanceof Error ? error.message : "Terjadi kesalahan saat meminta revisi evaluasi.",
     };
   }
 }
@@ -1092,7 +1138,8 @@ export async function unlockPerformanceReviewAction(rawData: unknown) {
     if (!actor.isSuperAdmin && !actor.isAdminHr) {
       return {
         success: false,
-        error: "Hanya Super Admin atau Admin HR yang dapat membuka kunci evaluasi yang sudah disahkan.",
+        error:
+          "Hanya Super Admin atau Admin HR yang dapat membuka kunci evaluasi yang sudah disahkan.",
       };
     }
 
@@ -1111,7 +1158,10 @@ export async function unlockPerformanceReviewAction(rawData: unknown) {
     }
 
     if (review.status !== "FINALIZED") {
-      return { success: false, error: `Evaluasi ini berstatus ${review.status}, bukan FINALIZED. Tidak perlu dibuka kunci.` };
+      return {
+        success: false,
+        error: `Evaluasi ini berstatus ${review.status}, bukan FINALIZED. Tidak perlu dibuka kunci.`,
+      };
     }
 
     const updated = await prisma.performanceReview.update({
@@ -1141,7 +1191,8 @@ export async function unlockPerformanceReviewAction(rawData: unknown) {
     console.error("Gagal membuka kunci evaluasi kinerja:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Terjadi kesalahan saat membuka kunci evaluasi.",
+      error:
+        error instanceof Error ? error.message : "Terjadi kesalahan saat membuka kunci evaluasi.",
     };
   }
 }

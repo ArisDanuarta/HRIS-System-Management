@@ -1,10 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PERMISSIONS } from "@pspk/rbac";
-import {
-  parsePermissionKey,
-  RESOURCE_METADATA,
-  SYSTEM_ROLE_ORDER,
-} from "./role.queries";
+import { parsePermissionKey, RESOURCE_METADATA, SYSTEM_ROLE_ORDER } from "./role.queries";
 
 describe("RBAC Role Queries & Parser Helper", () => {
   it("mengurai format permission key standar dengan benar", () => {
@@ -52,12 +48,6 @@ describe("RBAC Role Queries & Parser Helper", () => {
   });
 
   it("memastikan urutan peran sistem SYSTEM_ROLE_ORDER lengkap dengan 5 peran pokok", () => {
-    expect(SYSTEM_ROLE_ORDER).toEqual([
-      "super_admin",
-      "admin_it",
-      "admin_hr",
-      "manager",
-      "staff",
-    ]);
+    expect(SYSTEM_ROLE_ORDER).toEqual(["super_admin", "admin_it", "admin_hr", "manager", "staff"]);
   });
 });

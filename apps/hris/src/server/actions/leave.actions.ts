@@ -148,7 +148,7 @@ export async function submitLeaveRequestAction(input: CreateLeaveRequestInput) {
 export async function approveLeaveRequestAction(input: ApproveLeaveRequestInput) {
   try {
     const { userId, employeeId, authCtx } = await getAuthenticatedUser();
-    
+
     // Must have either all-approval (HR) or team-approval (Manager)
     const canApproveAll = can(authCtx, "hris.leave.approve:all");
     const canApproveTeam = can(authCtx, "hris.leave.approve:team");
@@ -285,7 +285,7 @@ export async function rejectLeaveRequestAction(input: RejectLeaveRequestInput) {
 export async function cancelLeaveRequestAction(input: CancelLeaveRequestInput) {
   try {
     const { userId, authCtx } = await getAuthenticatedUser();
-    
+
     // Check permission
     assertCan(authCtx, "hris.leave.cancel:own");
 
@@ -415,13 +415,7 @@ export async function uploadLeaveAttachmentAction(formData: FormData) {
     }
 
     // Allowed mime types & extensions: PDF, JPG, PNG, WEBP
-    const allowedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-    ];
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"];
     const isAllowedExt = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.name);
     if (!allowedTypes.includes(file.type) && !isAllowedExt) {
       return {
@@ -444,7 +438,8 @@ export async function uploadLeaveAttachmentAction(formData: FormData) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const storage = getStorageProvider();
-    const contentType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
+    const contentType =
+      file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
     await storage.put(storageKey, buffer, { contentType });
 
     return {
@@ -502,7 +497,7 @@ export async function adjustEmployeeLeaveBalanceAction(input: {
       select: { name: true, defaultQuotaDays: true },
     });
 
-    const currentQuota = existing ? existing.quotaDays : (leaveType?.defaultQuotaDays || 12);
+    const currentQuota = existing ? existing.quotaDays : leaveType?.defaultQuotaDays || 12;
     const currentUsed = existing ? Number(existing.usedDays) : 0;
 
     const newQuota = calculateAdjustedLeaveQuota(
@@ -607,9 +602,8 @@ export async function overrideLeaveDecisionAction(input: OverrideLeaveDecisionIn
     console.error("overrideLeaveDecisionAction error:", err);
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal melakukan koreksi/override keputusan cuti.",
+      message:
+        err instanceof Error ? err.message : "Gagal melakukan koreksi/override keputusan cuti.",
     };
   }
 }
-
-

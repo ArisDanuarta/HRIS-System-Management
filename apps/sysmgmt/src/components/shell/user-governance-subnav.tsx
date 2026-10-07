@@ -64,9 +64,7 @@ export function UserGovernanceSubnav({
             }`}
           >
             <Icon
-              className={`w-3.5 h-3.5 shrink-0 ${
-                isActive ? "text-[#F2AF3E]" : "text-slate-400"
-              }`}
+              className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-[#F2AF3E]" : "text-slate-400"}`}
             />
             <span>{tab.label}</span>
             {tab.badge && (

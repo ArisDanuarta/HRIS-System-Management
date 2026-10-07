@@ -11,7 +11,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Pengaturan Dokumen & Bank Penggajian — HRIS PSPK",
-  description: "Kelola rekening operasional bank pengirim penggajian PSPK, logo, kop surat, dan border dokumen slip gaji",
+  description:
+    "Kelola rekening operasional bank pengirim penggajian PSPK, logo, kop surat, dan border dokumen slip gaji",
 };
 
 export default async function PayrollSettingsPage() {
@@ -39,7 +40,8 @@ export default async function PayrollSettingsPage() {
           Hak Akses Terbatas (Separation of Duties)
         </h2>
         <p className="text-xs text-slate-500 leading-relaxed mb-6">
-          Pengaturan rekening bank pengirim penggajian dan desain dokumen resmi lembaga hanya dapat dikonfigurasi oleh Administrator HR dan Super Admin.
+          Pengaturan rekening bank pengirim penggajian dan desain dokumen resmi lembaga hanya dapat
+          dikonfigurasi oleh Administrator HR dan Super Admin.
         </p>
         <Link
           href="/dashboard"

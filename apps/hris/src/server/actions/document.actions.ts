@@ -8,12 +8,7 @@ import { can, AuthContext } from "@pspk/rbac";
 import { prisma, writeAudit } from "@pspk/db";
 import { getStorageProvider } from "@pspk/storage";
 
-const ALLOWED_MIME_TYPES = [
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
+const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 
@@ -27,7 +22,7 @@ const VALID_CATEGORIES = [
   "OTHER",
 ] as const;
 
-export type DocumentCategory = typeof VALID_CATEGORIES[number];
+export type DocumentCategory = (typeof VALID_CATEGORIES)[number];
 
 async function getAuthenticatedUser(): Promise<{
   userId: string;
@@ -65,7 +60,12 @@ async function getAuthenticatedUser(): Promise<{
  */
 export async function uploadEmployeeDocumentAction(formData: FormData) {
   try {
-    const { userId, userEmail, employeeId: actorEmployeeId, authCtx } = await getAuthenticatedUser();
+    const {
+      userId,
+      userEmail,
+      employeeId: actorEmployeeId,
+      authCtx,
+    } = await getAuthenticatedUser();
 
     const employeeId = formData.get("employeeId") as string;
     const category = formData.get("category") as DocumentCategory;
@@ -201,7 +201,12 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
  */
 export async function deleteEmployeeDocumentAction({ documentId }: { documentId: string }) {
   try {
-    const { userId, userEmail, employeeId: actorEmployeeId, authCtx } = await getAuthenticatedUser();
+    const {
+      userId,
+      userEmail,
+      employeeId: actorEmployeeId,
+      authCtx,
+    } = await getAuthenticatedUser();
 
     const isSuperOrHr =
       can(authCtx, "hris.employee.update:all") ||

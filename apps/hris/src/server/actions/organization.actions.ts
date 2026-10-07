@@ -236,7 +236,8 @@ export async function transferEmployeePositionAction(formData: FormData) {
     return { ok: true as const, data: result };
   } catch (err: unknown) {
     console.error("transferEmployeePositionAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal memproses mutasi/perubahan jabatan pegawai.";
+    const msg =
+      err instanceof Error ? err.message : "Gagal memproses mutasi/perubahan jabatan pegawai.";
     return { ok: false as const, error: msg };
   }
 }

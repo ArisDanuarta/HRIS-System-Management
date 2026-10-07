@@ -42,7 +42,8 @@ export const SYSTEM_MODULE_DEFINITIONS: SystemModuleDefinition[] = [
     moduleKey: "performance",
     name: "Manajemen Kinerja (Performance)",
     category: "hris",
-    description: "Penetapan sasaran kerja (KPI), evaluasi kinerja berkala, self-review, dan rekap scorecard.",
+    description:
+      "Penetapan sasaran kerja (KPI), evaluasi kinerja berkala, self-review, dan rekap scorecard.",
     defaultEnabled: true,
     affectedNavItems: [
       "Kinerja Organisasi (/kinerja)",
@@ -58,7 +59,8 @@ export const SYSTEM_MODULE_DEFINITIONS: SystemModuleDefinition[] = [
     moduleKey: "timesheet",
     name: "Timesheet Staf Per Jam & Freelance",
     category: "hris",
-    description: "Pencatatan jam kerja lembar waktu harian staf lepas/hourly serta alur persetujuan manajer.",
+    description:
+      "Pencatatan jam kerja lembar waktu harian staf lepas/hourly serta alur persetujuan manajer.",
     defaultEnabled: true,
     affectedNavItems: [
       "Timesheet Freelance (/timesheet/persetujuan)",
@@ -74,7 +76,8 @@ export const SYSTEM_MODULE_DEFINITIONS: SystemModuleDefinition[] = [
     moduleKey: "recruitment",
     name: "Rekrutmen & Pelacak Pelamar (ATS)",
     category: "hris",
-    description: "Manajemen lowongan kerja, seleksi berkas kandidat pelamar, dan jadwal wawancara kerja.",
+    description:
+      "Manajemen lowongan kerja, seleksi berkas kandidat pelamar, dan jadwal wawancara kerja.",
     defaultEnabled: false,
     affectedNavItems: ["Rekrutmen (/rekrutmen)"],
     affectedRoutes: ["/rekrutmen"],
@@ -85,7 +88,8 @@ export const SYSTEM_MODULE_DEFINITIONS: SystemModuleDefinition[] = [
     moduleKey: "training",
     name: "Pelatihan & Pengembangan Kompetensi",
     category: "hris",
-    description: "Pengelolaan program pelatihan staf, sertifikasi keahlian, dan anggaran pengembangan SDM.",
+    description:
+      "Pengelolaan program pelatihan staf, sertifikasi keahlian, dan anggaran pengembangan SDM.",
     defaultEnabled: false,
     affectedNavItems: ["Pelatihan (/pelatihan)"],
     affectedRoutes: ["/pelatihan"],
@@ -125,7 +129,10 @@ export async function getModuleFlags(dbClient: PrismaClient): Promise<ModuleFlag
       }
     }
   } catch (error) {
-    console.error("Gagal membaca konfigurasi modul dari database, menggunakan fallback default:", error);
+    console.error(
+      "Gagal membaca konfigurasi modul dari database, menggunakan fallback default:",
+      error,
+    );
   }
 
   return flags;

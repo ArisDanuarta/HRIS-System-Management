@@ -70,11 +70,7 @@ export function SupervisorProfileModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div
-        className="fixed inset-0"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
       <div className="relative bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 flex flex-col overflow-hidden z-10 animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="px-6 py-5 bg-gradient-to-r from-[#102E50] to-[#1a4473] text-white flex items-center justify-between shrink-0">
@@ -144,8 +140,9 @@ export function SupervisorProfileModal({
           <div className="flex items-start gap-2.5 p-3 rounded-lg bg-amber-50/80 border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
             <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold">Peran Penyetuju (Approver):</span>{" "}
-              Atasan langsung bertindak sebagai peninjau utama permohonan cuti, perizinan kehadiran, dan penilai berkala evaluasi capaian kinerja riset Anda.
+              <span className="font-bold">Peran Penyetuju (Approver):</span> Atasan langsung
+              bertindak sebagai peninjau utama permohonan cuti, perizinan kehadiran, dan penilai
+              berkala evaluasi capaian kinerja riset Anda.
             </div>
           </div>
 
@@ -252,7 +249,8 @@ export function SupervisorProfileModal({
             <p className="text-[11px] text-slate-400 flex items-center gap-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span>
-                Informasi kartu kontak resmi. Data finansial & dokumen sensitif diproteksi sesuai kebijakan privasi PSPK.
+                Informasi kartu kontak resmi. Data finansial & dokumen sensitif diproteksi sesuai
+                kebijakan privasi PSPK.
               </span>
             </p>
           </div>

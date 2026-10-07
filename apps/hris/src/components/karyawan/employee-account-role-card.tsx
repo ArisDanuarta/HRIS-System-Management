@@ -231,7 +231,8 @@ export function EmployeeAccountRoleCard({
                 Status Akun & Hak Akses Portal
               </h3>
               <p className="text-xs text-slate-500">
-                Informasi kredensial login, peran RBAC, dan tingkat otorisasi akses pegawai di sistem PSPK.
+                Informasi kredensial login, peran RBAC, dan tingkat otorisasi akses pegawai di
+                sistem PSPK.
               </p>
             </div>
           </div>
@@ -283,13 +284,19 @@ export function EmployeeAccountRoleCard({
               </div>
 
               <div className="flex flex-col gap-1 mt-1">
-                <span className="text-[11px] text-slate-400 font-medium">Alamat Surel Kantor (ID Pengguna)</span>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Alamat Surel Kantor (ID Pengguna)
+                </span>
                 <span className="font-mono font-bold text-slate-800 text-sm">{user.email}</span>
               </div>
 
               <div className="flex flex-col gap-1">
-                <span className="text-[11px] text-slate-400 font-medium">Email Notifikasi Pribadi</span>
-                <span className="text-slate-600 font-medium">{personalEmail || "Tidak dicantumkan"}</span>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  Email Notifikasi Pribadi
+                </span>
+                <span className="text-slate-600 font-medium">
+                  {personalEmail || "Tidak dicantumkan"}
+                </span>
               </div>
             </div>
 
@@ -337,7 +344,8 @@ export function EmployeeAccountRoleCard({
                 Pegawai Belum Memiliki Akun Login Portal
               </h4>
               <p className="text-xs text-amber-800/80 mt-1 leading-relaxed">
-                Pegawai ini tercatat dalam basis data kepegawaian namun belum memiliki kredensial akun pengguna aktif untuk masuk ke portal HRIS.
+                Pegawai ini tercatat dalam basis data kepegawaian namun belum memiliki kredensial
+                akun pengguna aktif untuk masuk ke portal HRIS.
               </p>
             </div>
             {canCreateAccount && (
@@ -367,7 +375,8 @@ export function EmployeeAccountRoleCard({
                   Kelola Peran & Hak Akses Pegawai
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Pilih peran sistem yang diberikan kepada: <strong className="text-slate-800">{fullName}</strong>
+                  Pilih peran sistem yang diberikan kepada:{" "}
+                  <strong className="text-slate-800">{fullName}</strong>
                 </p>
               </div>
             </div>
@@ -486,7 +495,9 @@ export function EmployeeAccountRoleCard({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Email Kirim Kredensial:</span>
-                    <span className="font-medium text-slate-700">{personalEmail || "(Belum ada)"}</span>
+                    <span className="font-medium text-slate-700">
+                      {personalEmail || "(Belum ada)"}
+                    </span>
                   </div>
                 </div>
 
@@ -543,7 +554,9 @@ export function EmployeeAccountRoleCard({
                       <span className="text-slate-400 block text-[10px] uppercase font-bold font-sans">
                         Email Login Kantor
                       </span>
-                      <span className="font-bold text-slate-800">{createdCredentials.workEmail}</span>
+                      <span className="font-bold text-slate-800">
+                        {createdCredentials.workEmail}
+                      </span>
                     </div>
                     <div>
                       <span className="text-slate-400 block text-[10px] uppercase font-bold font-sans">
@@ -576,7 +589,11 @@ export function EmployeeAccountRoleCard({
                     onClick={handleCopyCredentials}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-all cursor-pointer shadow-xs"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    {copied ? (
+                      <Check className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
                     <span>{copied ? "Tersalin!" : "Salin Kredensial"}</span>
                   </button>
                   <button

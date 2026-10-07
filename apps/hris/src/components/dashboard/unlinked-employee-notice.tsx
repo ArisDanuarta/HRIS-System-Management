@@ -22,7 +22,9 @@ export function UnlinkedEmployeeNotice({ roleName }: UnlinkedEmployeeNoticeProps
           Akun Belum Tertaut ke Data Pegawai
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-          Dashboard <strong>{roleName}</strong> membutuhkan identitas profil karyawan untuk menampilkan presensi pribadi, saldo cuti, atau daftar tim bawahan. Saat ini akun Super Admin ini belum ditautkan ke data pegawai.
+          Dashboard <strong>{roleName}</strong> membutuhkan identitas profil karyawan untuk
+          menampilkan presensi pribadi, saldo cuti, atau daftar tim bawahan. Saat ini akun Super
+          Admin ini belum ditautkan ke data pegawai.
         </p>
       </div>
 

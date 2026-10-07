@@ -24,17 +24,17 @@ File ini mendefinisikan alur kerja baku yang **WAJIB** diikuti oleh agent coding
    - Pertahankan konsistensi arsitektur: validasi Zod di server action, otorisasi server-side, serialisasi plain JSON object melintasi batas server/client, serta penggunaan komponen desain brand PSPK.
 
 4. **Crosscheck kembali kesesuaian dengan hasil analisis**
-   - Setelah mengedit kode, lakukan tinjauan mandiri (*self-review*):
+   - Setelah mengedit kode, lakukan tinjauan mandiri (_self-review_):
      - Apakah semua temuan di tahap analisis sudah terselesaikan?
-     - Apakah ada efek samping (*side effects*) pada komponen atau fungsi lain yang memanggil kode tersebut?
-     - Apakah penanganan nilai *nullable*, *edge cases*, dan konversi tipe (*Decimal* ke *number*, *Date* ke *string*) sudah tuntas?
+     - Apakah ada efek samping (_side effects_) pada komponen atau fungsi lain yang memanggil kode tersebut?
+     - Apakah penanganan nilai _nullable_, _edge cases_, dan konversi tipe (_Decimal_ ke _number_, _Date_ ke _string_) sudah tuntas?
 
 5. **Catat hal penting (jika ada)**
    - Jika terdapat keputusan arsitektur baru, asumsi aturan bisnis, perubahan skema, atau hal krusial lain, catat pada:
      - `docs/PROGRESS.md`
      - `docs/DECISIONS.md`
      - `docs/OPEN_QUESTIONS.md`
-   - Jika perbaikan bersifat rutin/minor dan tidak ada hal baru yang substansial, langkah pencatatan ini boleh dilewati (*skip*).
+   - Jika perbaikan bersifat rutin/minor dan tidak ada hal baru yang substansial, langkah pencatatan ini boleh dilewati (_skip_).
 
 6. **Verifikasi yang sudah dikerjakan**
    - Lakukan verifikasi teknis secara menyeluruh:

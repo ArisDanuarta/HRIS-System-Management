@@ -2,11 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import {
-  prisma,
-  writeAudit,
-  SYSTEM_MODULE_DEFINITIONS,
-} from "@pspk/db";
+import { prisma, writeAudit, SYSTEM_MODULE_DEFINITIONS } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, ForbiddenError } from "@pspk/rbac";
 import { extractClientIp } from "@pspk/shared";
@@ -42,10 +38,7 @@ async function getActorInfo() {
 /**
  * Server Action: Mengaktifkan atau menonaktifkan status modul sistem.
  */
-export async function toggleModuleAction(input: {
-  moduleKey: string;
-  enabled: boolean;
-}) {
+export async function toggleModuleAction(input: { moduleKey: string; enabled: boolean }) {
   try {
     const actor = await getActorInfo();
 
@@ -82,9 +75,7 @@ export async function toggleModuleAction(input: {
     const beforeSetting = await prisma.systemSetting.findUnique({
       where: { key: def.key },
     });
-    const prevEnabled = beforeSetting
-      ? beforeSetting.value === "true"
-      : def.defaultEnabled;
+    const prevEnabled = beforeSetting ? beforeSetting.value === "true" : def.defaultEnabled;
 
     if (prevEnabled === enabled) {
       return {

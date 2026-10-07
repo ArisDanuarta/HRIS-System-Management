@@ -219,7 +219,9 @@ export function PayrollPeriodTable({ periods, onOpenCreateModal }: PayrollPeriod
                               p.kind === "THR" ? "text-amber-700" : "text-slate-700"
                             }`}
                           >
-                            {p.kind === "THR" ? "Tunjangan Hari Raya (THR)" : "Gaji Reguler Bulanan"}
+                            {p.kind === "THR"
+                              ? "Tunjangan Hari Raya (THR)"
+                              : "Gaji Reguler Bulanan"}
                           </span>
                           <span className="text-[11px] text-slate-400 mt-0.5">
                             Cut-Off: {p.cutoffDate ? formatDate(p.cutoffDate) : "Akhir Bulan"}

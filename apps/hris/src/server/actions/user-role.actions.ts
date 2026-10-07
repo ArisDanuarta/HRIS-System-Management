@@ -43,10 +43,7 @@ async function getActorInfo() {
 /**
  * Server Action: Update Employee Roles (RBAC)
  */
-export async function updateEmployeeRolesAction(input: {
-  employeeId: string;
-  roleKeys: string[];
-}) {
+export async function updateEmployeeRolesAction(input: { employeeId: string; roleKeys: string[] }) {
   try {
     const actor = await getActorInfo();
 
@@ -54,7 +51,8 @@ export async function updateEmployeeRolesAction(input: {
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
         ok: false as const,
-        error: "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengubah peran pengguna.",
+        error:
+          "Hanya Super Admin atau Administrator IT yang memiliki wewenang untuk mengubah peran pengguna.",
       };
     }
 
@@ -116,7 +114,8 @@ export async function updateEmployeeRolesAction(input: {
       if (activeSuperAdminCount <= 1) {
         return {
           ok: false as const,
-          error: "Tidak dapat mencabut peran Super Admin. Sistem wajib memiliki minimal satu Super Admin aktif.",
+          error:
+            "Tidak dapat mencabut peran Super Admin. Sistem wajib memiliki minimal satu Super Admin aktif.",
         };
       }
     }
@@ -201,7 +200,8 @@ export async function createEmployeeLoginAccountAction(input: {
       if (input.roleKey !== "staff" && input.roleKey !== "manager") {
         return {
           ok: false as const,
-          error: "Admin HR hanya berwenang membuat akun dengan peran Karyawan (Staff) atau Manajer.",
+          error:
+            "Admin HR hanya berwenang membuat akun dengan peran Karyawan (Staff) atau Manajer.",
         };
       }
     }
@@ -225,7 +225,8 @@ export async function createEmployeeLoginAccountAction(input: {
     if (!employee.workEmail) {
       return {
         ok: false as const,
-        error: "Pegawai belum memiliki alamat email kantor (@pspk.id). Harap lengkapi email kantor terlebih dahulu.",
+        error:
+          "Pegawai belum memiliki alamat email kantor (@pspk.id). Harap lengkapi email kantor terlebih dahulu.",
       };
     }
 

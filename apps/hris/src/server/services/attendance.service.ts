@@ -6,11 +6,7 @@ import { getActiveWorkSchedule } from "./work-schedule.service";
 /**
  * Records employee check-in using server timestamp.
  */
-export async function recordCheckIn(
-  employeeId: string,
-  notes?: string,
-  userId?: string,
-) {
+export async function recordCheckIn(employeeId: string, notes?: string, userId?: string) {
   const opTimezone = process.env.APP_TIMEZONE || "Asia/Jakarta";
   const tzAbbr = getTimezoneAbbr(opTimezone);
   const now = new Date();
@@ -118,11 +114,7 @@ export async function recordCheckIn(
 /**
  * Records employee check-out using server timestamp.
  */
-export async function recordCheckOut(
-  employeeId: string,
-  notes?: string,
-  userId?: string,
-) {
+export async function recordCheckOut(employeeId: string, notes?: string, userId?: string) {
   const opTimezone = process.env.APP_TIMEZONE || "Asia/Jakarta";
   const tzAbbr = getTimezoneAbbr(opTimezone);
   const now = new Date();
@@ -188,10 +180,7 @@ export async function recordCheckOut(
 /**
  * Performs administrative attendance correction by HR with mandatory reason and audit log.
  */
-export async function correctAttendance(
-  input: CorrectAttendanceInput,
-  adminUserId: string,
-) {
+export async function correctAttendance(input: CorrectAttendanceInput, adminUserId: string) {
   const targetDate = new Date(input.date);
 
   const existing = await prisma.attendance.findUnique({

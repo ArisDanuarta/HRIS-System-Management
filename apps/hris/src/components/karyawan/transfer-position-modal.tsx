@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  X,
-  Briefcase,
-  Upload,
-  Loader2,
-  AlertCircle,
-  ArrowRight,
-} from "lucide-react";
+import { X, Briefcase, Upload, Loader2, AlertCircle, ArrowRight } from "lucide-react";
 import { transferEmployeePositionAction } from "@/server/actions/organization.actions";
 import { toDateString } from "@pspk/shared";
 import { DEPT_TYPE_LABEL, DepartmentType } from "@/server/schemas/organization.schema";
@@ -59,9 +52,7 @@ export function TransferPositionModal({
   );
   const [positionId, setPositionId] = useState<string>(employee.currentPositionId || "");
   const [managerId, setManagerId] = useState<string>(employee.managerId || "");
-  const [effectiveDate, setEffectiveDate] = useState<string>(
-    toDateString(new Date()),
-  );
+  const [effectiveDate, setEffectiveDate] = useState<string>(toDateString(new Date()));
   const [skNumber, setSkNumber] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -203,9 +194,7 @@ export function TransferPositionModal({
           </div>
           <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 mx-2" />
           <div className="flex flex-col text-right">
-            <span className="text-[10px] uppercase font-bold text-slate-400">
-              Atasan Saat Ini
-            </span>
+            <span className="text-[10px] uppercase font-bold text-slate-400">Atasan Saat Ini</span>
             <span className="font-semibold text-slate-700 mt-0.5">
               {employee.managerName || "Tidak ada atasan"}
             </span>
@@ -263,7 +252,8 @@ export function TransferPositionModal({
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.type ? `${DEPT_TYPE_LABEL[d.type]} — ` : ""}{d.name}
+                    {d.type ? `${DEPT_TYPE_LABEL[d.type]} — ` : ""}
+                    {d.name}
                   </option>
                 ))}
               </select>

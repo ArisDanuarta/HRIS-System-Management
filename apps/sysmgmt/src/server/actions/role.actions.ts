@@ -54,7 +54,8 @@ export async function updateRolePermissionsAction(input: {
     if (input.roleKey === "super_admin") {
       return {
         ok: false as const,
-        error: "Wewenang peran Super Admin bersifat permanen (akses penuh) dan tidak dapat dikurangi.",
+        error:
+          "Wewenang peran Super Admin bersifat permanen (akses penuh) dan tidak dapat dikurangi.",
       };
     }
 
@@ -265,9 +266,7 @@ export async function batchUpdateRoleMatrixAction(input: {
 /**
  * Server Action: Reset Wewenang Peran ke Standar Awal Sistem PSPK
  */
-export async function resetRolePermissionsToDefaultAction(input?: {
-  roleKey?: string;
-}) {
+export async function resetRolePermissionsToDefaultAction(input?: { roleKey?: string }) {
   try {
     const actor = await getActorInfo();
 

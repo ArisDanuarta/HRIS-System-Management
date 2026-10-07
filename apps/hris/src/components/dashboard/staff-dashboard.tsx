@@ -206,11 +206,12 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
                     </span>
                     <span className="text-xs text-slate-600 font-medium mt-1 block">
                       Periode {data.latestPayslip.month}/{data.latestPayslip.year}
-                      {data.latestPayslip.wageType === "HOURLY" && data.latestPayslip.totalHours && (
-                        <span className="text-amber-800 font-semibold ml-1.5">
-                          • {data.latestPayslip.totalHours} Jam
-                        </span>
-                      )}
+                      {data.latestPayslip.wageType === "HOURLY" &&
+                        data.latestPayslip.totalHours && (
+                          <span className="text-amber-800 font-semibold ml-1.5">
+                            • {data.latestPayslip.totalHours} Jam
+                          </span>
+                        )}
                     </span>
                   </>
                 ) : (
@@ -322,15 +323,15 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
                         leave.status === "APPROVED"
                           ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           : leave.status === "PENDING"
-                          ? "bg-amber-50 text-amber-700 border border-amber-200"
-                          : "bg-red-50 text-red-700 border border-red-200"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-red-50 text-red-700 border border-red-200"
                       }`}
                     >
                       {leave.status === "APPROVED"
                         ? "Disetujui"
                         : leave.status === "PENDING"
-                        ? "Menunggu"
-                        : "Ditolak"}
+                          ? "Menunggu"
+                          : "Ditolak"}
                     </span>
                   </div>
                 </div>
@@ -344,9 +345,7 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
           <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-3">
             <div className="flex items-center gap-2 text-[#102e50] pb-2 border-b border-slate-100">
               <BookOpen className="w-4 h-4 text-[#f2af3e]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider">
-                Dokumen & Panduan Staf
-              </h3>
+              <h3 className="text-xs font-bold uppercase tracking-wider">Dokumen & Panduan Staf</h3>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
               Akses cepat ketentuan kerja, pedoman cuti, dan standar operasional prosedur PSPK:
@@ -355,15 +354,21 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
             <div className="flex flex-col divide-y divide-slate-100 text-xs">
               <div className="py-2.5 flex items-center justify-between">
                 <span className="font-semibold text-slate-700">Panduan Presensi & Cuti</span>
-                <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">SOP</span>
+                <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">
+                  SOP
+                </span>
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="font-semibold text-slate-700">Tata Kelola Riset & Etik</span>
-                <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">SOP</span>
+                <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">
+                  SOP
+                </span>
               </div>
               <div className="py-2.5 flex items-center justify-between">
                 <span className="font-semibold text-slate-700">Kalender Kerja Lembaga 2026</span>
-                <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">Resmi</span>
+                <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">
+                  Resmi
+                </span>
               </div>
             </div>
 
@@ -371,7 +376,8 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
               <div className="p-3 bg-[#eff4ff] rounded-lg text-xs text-[#102e50] flex items-start gap-2">
                 <ShieldCheck className="w-4 h-4 text-[#f2af3e] shrink-0 mt-0.5" />
                 <span>
-                  Pengajuan cuti wajib diajukan minimal <strong>3 hari kerja</strong> sebelum jadwal pelaksanaan.
+                  Pengajuan cuti wajib diajukan minimal <strong>3 hari kerja</strong> sebelum jadwal
+                  pelaksanaan.
                 </span>
               </div>
             </div>

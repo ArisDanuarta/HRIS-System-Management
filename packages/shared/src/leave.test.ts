@@ -53,34 +53,24 @@ describe("Leave Calculations (AGENTS.md Section 8.2)", () => {
 
   describe("isDateOverlapping", () => {
     it("detects exact same date range overlap", () => {
-      expect(
-        isDateOverlapping("2026-09-20", "2026-09-25", "2026-09-20", "2026-09-25"),
-      ).toBe(true);
+      expect(isDateOverlapping("2026-09-20", "2026-09-25", "2026-09-20", "2026-09-25")).toBe(true);
     });
 
     it("detects partial overlap at start", () => {
-      expect(
-        isDateOverlapping("2026-09-18", "2026-09-22", "2026-09-20", "2026-09-25"),
-      ).toBe(true);
+      expect(isDateOverlapping("2026-09-18", "2026-09-22", "2026-09-20", "2026-09-25")).toBe(true);
     });
 
     it("detects partial overlap at end", () => {
-      expect(
-        isDateOverlapping("2026-09-24", "2026-09-28", "2026-09-20", "2026-09-25"),
-      ).toBe(true);
+      expect(isDateOverlapping("2026-09-24", "2026-09-28", "2026-09-20", "2026-09-25")).toBe(true);
     });
 
     it("detects enclosure overlap (A inside B)", () => {
-      expect(
-        isDateOverlapping("2026-09-22", "2026-09-23", "2026-09-20", "2026-09-25"),
-      ).toBe(true);
+      expect(isDateOverlapping("2026-09-22", "2026-09-23", "2026-09-20", "2026-09-25")).toBe(true);
     });
 
     it("returns false for non-overlapping consecutive ranges", () => {
       // Range A: Sept 20 to Sept 22. Range B: Sept 23 to Sept 25.
-      expect(
-        isDateOverlapping("2026-09-20", "2026-09-22", "2026-09-23", "2026-09-25"),
-      ).toBe(false);
+      expect(isDateOverlapping("2026-09-20", "2026-09-22", "2026-09-23", "2026-09-25")).toBe(false);
     });
   });
 

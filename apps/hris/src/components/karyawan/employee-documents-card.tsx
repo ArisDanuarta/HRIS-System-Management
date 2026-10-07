@@ -44,7 +44,11 @@ interface EmployeeDocumentsCardProps {
 
 const CATEGORY_META: Record<
   string,
-  { label: string; badgeClass: string; group: "identity" | "academic" | "contract" | "certificate" | "other" }
+  {
+    label: string;
+    badgeClass: string;
+    group: "identity" | "academic" | "contract" | "certificate" | "other";
+  }
 > = {
   KTP: {
     label: "KTP (Identitas)",
@@ -92,7 +96,9 @@ export function EmployeeDocumentsCard({
   isHrOrAdmin = false,
 }: EmployeeDocumentsCardProps) {
   const [documents, setDocuments] = useState<EmployeeDocumentItem[]>(initialDocuments);
-  const [activeGroup, setActiveGroup] = useState<"ALL" | "identity" | "academic" | "contract" | "certificate" | "other">("ALL");
+  const [activeGroup, setActiveGroup] = useState<
+    "ALL" | "identity" | "academic" | "contract" | "certificate" | "other"
+  >("ALL");
 
   // Upload Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -109,7 +115,9 @@ export function EmployeeDocumentsCard({
   const [deleteTarget, setDeleteTarget] = useState<EmployeeDocumentItem | null>(null);
 
   // Feedback Notification
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const formatFileSize = (bytes: number): string => {
@@ -256,7 +264,8 @@ export function EmployeeDocumentsCard({
             </span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Arsip digital resmi kepegawaian (KTP, NPWP, Ijazah, Kontrak Kerja Fisik, dan Berkas Penugasan Riset).
+            Arsip digital resmi kepegawaian (KTP, NPWP, Ijazah, Kontrak Kerja Fisik, dan Berkas
+            Penugasan Riset).
           </p>
         </div>
 
@@ -365,7 +374,8 @@ export function EmployeeDocumentsCard({
               label: doc.category,
               badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
             };
-            const isPdf = doc.mimeType.includes("pdf") || doc.fileName.toLowerCase().endsWith(".pdf");
+            const isPdf =
+              doc.mimeType.includes("pdf") || doc.fileName.toLowerCase().endsWith(".pdf");
             const isImage = doc.mimeType.startsWith("image/");
 
             return (
@@ -379,8 +389,8 @@ export function EmployeeDocumentsCard({
                       isPdf
                         ? "bg-red-50 text-red-700 border-red-200"
                         : isImage
-                        ? "bg-blue-50 text-blue-700 border-blue-200"
-                        : "bg-slate-50 text-slate-700 border-slate-200"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
                     }`}
                   >
                     {isPdf ? (
@@ -410,7 +420,10 @@ export function EmployeeDocumentsCard({
                     >
                       {doc.title}
                     </h4>
-                    <p className="text-[11px] font-mono text-slate-500 truncate" title={doc.fileName}>
+                    <p
+                      className="text-[11px] font-mono text-slate-500 truncate"
+                      title={doc.fileName}
+                    >
                       {doc.fileName}
                     </p>
 
@@ -544,8 +557,8 @@ export function EmployeeDocumentsCard({
                     isDragOver
                       ? "border-[#102E50] bg-blue-50/50"
                       : selectedFile
-                      ? "border-emerald-300 bg-emerald-50/30"
-                      : "border-slate-300 hover:border-slate-400 bg-slate-50/50"
+                        ? "border-emerald-300 bg-emerald-50/30"
+                        : "border-slate-300 hover:border-slate-400 bg-slate-50/50"
                   }`}
                 >
                   <input
@@ -577,7 +590,9 @@ export function EmployeeDocumentsCard({
                         <UploadCloud className="w-5 h-5 text-[#102E50]" />
                       </div>
                       <div>
-                        <span className="font-bold text-slate-700">Tarik & Jatuhkan berkas ke sini</span>
+                        <span className="font-bold text-slate-700">
+                          Tarik & Jatuhkan berkas ke sini
+                        </span>
                         <p className="text-[11px] text-slate-400 mt-0.5">
                           atau klik untuk menjelajah dari penyimpanan komputer
                         </p>
@@ -659,7 +674,8 @@ export function EmployeeDocumentsCard({
                   alt={previewDoc.title}
                   className="max-h-[68vh] object-contain rounded-lg shadow-sm"
                 />
-              ) : previewDoc.mimeType.includes("pdf") || previewDoc.fileName.toLowerCase().endsWith(".pdf") ? (
+              ) : previewDoc.mimeType.includes("pdf") ||
+                previewDoc.fileName.toLowerCase().endsWith(".pdf") ? (
                 <iframe
                   src={`/api/documents/${previewDoc.fileKey}`}
                   title={previewDoc.title}
@@ -707,7 +723,8 @@ export function EmployeeDocumentsCard({
             <div className="p-3.5 rounded-xl bg-red-50/50 border border-red-100 text-xs flex flex-col gap-1 text-slate-700">
               <p>
                 Apakah Anda yakin ingin menghapus berkas{" "}
-                <strong className="text-red-900">&ldquo;{deleteTarget.title}&rdquo;</strong> ({deleteTarget.fileName}) dari arsip {employeeName}?
+                <strong className="text-red-900">&ldquo;{deleteTarget.title}&rdquo;</strong> (
+                {deleteTarget.fileName}) dari arsip {employeeName}?
               </p>
             </div>
 

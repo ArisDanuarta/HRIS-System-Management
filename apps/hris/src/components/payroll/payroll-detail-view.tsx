@@ -96,9 +96,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
   // Filter daftar departemen unik
   const departments = Array.from(
     new Set(
-      period.payslips
-        .map((p) => p.employee.currentDepartment?.name)
-        .filter(Boolean) as string[],
+      period.payslips.map((p) => p.employee.currentDepartment?.name).filter(Boolean) as string[],
     ),
   );
 
@@ -111,8 +109,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
       p.employee.employeeNo.toLowerCase().includes(q);
 
     const matchDept =
-      selectedDeptFilter === "ALL" ||
-      p.employee.currentDepartment?.name === selectedDeptFilter;
+      selectedDeptFilter === "ALL" || p.employee.currentDepartment?.name === selectedDeptFilter;
 
     return matchSearch && matchDept;
   });
@@ -151,8 +148,8 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
   const [showRevertConfirm, setShowRevertConfirm] = useState(false);
   const isTimesheetBlocked = Boolean(
     period.timesheetValidation &&
-      period.timesheetValidation.totalHourlyEmployees > 0 &&
-      !period.timesheetValidation.canProceed,
+    period.timesheetValidation.totalHourlyEmployees > 0 &&
+    !period.timesheetValidation.canProceed,
   );
 
   const handleLock = () => {
@@ -234,7 +231,9 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-              <span>Cut-Off: {period.cutoffDate ? formatDate(period.cutoffDate) : "Akhir Bulan"}</span>
+              <span>
+                Cut-Off: {period.cutoffDate ? formatDate(period.cutoffDate) : "Akhir Bulan"}
+              </span>
               <span>•</span>
               <span>Total Diproses: {period.totalEmployees} Pegawai</span>
             </p>
@@ -266,8 +265,8 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                   isTimesheetBlocked
                     ? "Kalkulasi ditahan: Masih terdapat timesheet freelance yang belum di-ACC oleh atasan"
                     : period.status === "DRAFT"
-                    ? "Kalkulasi Payroll Massal"
-                    : "Hitung Ulang"
+                      ? "Kalkulasi Payroll Massal"
+                      : "Hitung Ulang"
                 }
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] hover:bg-[#1a4473] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
@@ -278,7 +277,9 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                 ) : (
                   <RotateCcw className="w-3.5 h-3.5 text-[#F2AF3E]" />
                 )}
-                <span>{period.status === "DRAFT" ? "Kalkulasi Payroll Massal" : "Hitung Ulang"}</span>
+                <span>
+                  {period.status === "DRAFT" ? "Kalkulasi Payroll Massal" : "Hitung Ulang"}
+                </span>
               </button>
             )}
 
@@ -398,8 +399,8 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                       isCompleted
                         ? "bg-emerald-600 text-white"
                         : isCurrent
-                        ? "bg-[#102E50] text-[#F2AF3E] ring-4 ring-[#102E50]/15"
-                        : "bg-slate-100 text-slate-400"
+                          ? "bg-[#102E50] text-[#F2AF3E] ring-4 ring-[#102E50]/15"
+                          : "bg-slate-100 text-slate-400"
                     }`}
                   >
                     {isCompleted ? "✓" : idx + 1}
@@ -409,8 +410,8 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                       isCurrent
                         ? "text-[#102E50] font-bold"
                         : isCompleted
-                        ? "text-emerald-700"
-                        : "text-slate-400"
+                          ? "text-emerald-700"
+                          : "text-slate-400"
                     }`}
                   >
                     {step.label}
@@ -648,10 +649,12 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                         {p.wageType === "HOURLY" && (
                           <div className="text-[10px] text-amber-800 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
                             <span>
-                              {p.totalHours || 0} jam @ {formatRupiah(p.hourlyRate || p.contract?.hourlyRate || 30000)}
+                              {p.totalHours || 0} jam @{" "}
+                              {formatRupiah(p.hourlyRate || p.contract?.hourlyRate || 30000)}
                             </span>
-                            {p.timesheetKey && (
-                              p.timesheetKey.startsWith("http://") || p.timesheetKey.startsWith("https://") ? (
+                            {p.timesheetKey &&
+                              (p.timesheetKey.startsWith("http://") ||
+                              p.timesheetKey.startsWith("https://") ? (
                                 <a
                                   href={p.timesheetKey}
                                   target="_blank"
@@ -674,8 +677,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                                   <Download className="w-2.5 h-2.5" />
                                   <span>File Timesheet</span>
                                 </a>
-                              )
-                            )}
+                              ))}
                           </div>
                         )}
                       </td>
@@ -715,7 +717,11 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                               className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 rounded-lg text-xs font-semibold transition-colors shadow-2xs"
                             >
                               <Clock className="w-3.5 h-3.5 text-amber-600" />
-                              <span>{p.totalHours && p.totalHours > 0 ? "Ubah Timesheet" : "Input Timesheet"}</span>
+                              <span>
+                                {p.totalHours && p.totalHours > 0
+                                  ? "Ubah Timesheet"
+                                  : "Input Timesheet"}
+                              </span>
                             </button>
                           )}
                           <button
@@ -766,15 +772,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                 <h3 className="font-bold text-base text-slate-900 font-serif">
                   Kembalikan ke Draf Awal?
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Reset alur siklus penggajian periode ini
-                </p>
+                <p className="text-xs text-slate-500">Reset alur siklus penggajian periode ini</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Tindakan ini akan mengembalikan status periode penggajian beserta seluruh slip gaji menjadi <strong>Draf Awal (DRAFT)</strong>.
-              Gunakan ini untuk menahan proses hingga seluruh jam kerja timesheet freelance resmi disetujui (ACC) oleh atasan proyek.
+              Tindakan ini akan mengembalikan status periode penggajian beserta seluruh slip gaji
+              menjadi <strong>Draf Awal (DRAFT)</strong>. Gunakan ini untuk menahan proses hingga
+              seluruh jam kerja timesheet freelance resmi disetujui (ACC) oleh atasan proyek.
             </p>
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">

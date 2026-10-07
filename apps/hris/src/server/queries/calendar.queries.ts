@@ -150,10 +150,7 @@ export async function getWorkCalendarEvents(
 /**
  * Helper: Check apakah suatu tanggal (string YYYY-MM-DD) jatuh dalam rentang leave.
  */
-export function isLeaveOnDate(
-  leave: { startDate: Date; endDate: Date },
-  dateStr: string,
-): boolean {
+export function isLeaveOnDate(leave: { startDate: Date; endDate: Date }, dateStr: string): boolean {
   const target = new Date(dateStr).getTime();
   const s = new Date(toDateString(leave.startDate)).getTime();
   const e = new Date(toDateString(leave.endDate)).getTime();

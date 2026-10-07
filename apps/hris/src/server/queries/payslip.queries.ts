@@ -127,11 +127,7 @@ export async function getMyPayslips(
     include: {
       period: true,
     },
-    orderBy: [
-      { period: { year: "desc" } },
-      { period: { month: "desc" } },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ period: { year: "desc" } }, { period: { month: "desc" } }, { createdAt: "desc" }],
   });
 
   // Ekstrak daftar tahun unik untuk filter
@@ -148,11 +144,7 @@ export async function getMyPayslips(
     include: {
       period: true,
     },
-    orderBy: [
-      { period: { year: "desc" } },
-      { period: { month: "desc" } },
-      { createdAt: "desc" },
-    ],
+    orderBy: [{ period: { year: "desc" } }, { period: { month: "desc" } }, { createdAt: "desc" }],
   });
 
   const formattedPayslips: MyPayslipListItem[] = filteredPayslips.map((p) => ({

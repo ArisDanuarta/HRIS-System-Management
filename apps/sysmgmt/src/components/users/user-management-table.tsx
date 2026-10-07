@@ -91,7 +91,10 @@ export function UserManagementTable({
 
   // Modal State: Reset Password
   const [resetModalUser, setResetModalUser] = useState<UserItem | null>(null);
-  const [resetResult, setResetResult] = useState<{ email: string; temporaryPassword: string } | null>(null);
+  const [resetResult, setResetResult] = useState<{
+    email: string;
+    temporaryPassword: string;
+  } | null>(null);
   const [copiedPassword, setCopiedPassword] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
 
@@ -112,8 +115,7 @@ export function UserManagementTable({
       u.employee?.employeeNo.toLowerCase().includes(q);
 
     const matchRole =
-      selectedRoleFilter === "ALL" ||
-      u.roles.some((r) => r.role.key === selectedRoleFilter);
+      selectedRoleFilter === "ALL" || u.roles.some((r) => r.role.key === selectedRoleFilter);
 
     const matchStatus =
       selectedStatusFilter === "ALL" ||
@@ -346,9 +348,7 @@ export function UserManagementTable({
         <div className="flex items-center gap-3">
           {/* Filter Peran */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-slate-500 whitespace-nowrap">
-              Peran:
-            </label>
+            <label className="text-xs font-medium text-slate-500 whitespace-nowrap">Peran:</label>
             <select
               value={selectedRoleFilter}
               onChange={(e) => setSelectedRoleFilter(e.target.value)}
@@ -365,9 +365,7 @@ export function UserManagementTable({
 
           {/* Filter Status */}
           <div className="flex items-center gap-2">
-            <label className="text-xs font-medium text-slate-500 whitespace-nowrap">
-              Status:
-            </label>
+            <label className="text-xs font-medium text-slate-500 whitespace-nowrap">Status:</label>
             <select
               value={selectedStatusFilter}
               onChange={(e) => setSelectedStatusFilter(e.target.value)}
@@ -406,14 +404,10 @@ export function UserManagementTable({
                 filteredUsers.map((u) => {
                   const isCurrentActor = u.id === currentUserId;
                   const isTargetSuperAdmin = u.roles.some((r) => r.role.key === "super_admin");
-                  const canManageThisUser =
-                    isSuperAdmin || (isAdminIt && !isTargetSuperAdmin);
+                  const canManageThisUser = isSuperAdmin || (isAdminIt && !isTargetSuperAdmin);
 
                   return (
-                    <tr
-                      key={u.id}
-                      className="hover:bg-slate-50/60 transition-colors group"
-                    >
+                    <tr key={u.id} className="hover:bg-slate-50/60 transition-colors group">
                       {/* Kolom Pengguna */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
@@ -431,9 +425,7 @@ export function UserManagementTable({
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-slate-500 font-mono">
-                              {u.email}
-                            </div>
+                            <div className="text-xs text-slate-500 font-mono">{u.email}</div>
                           </div>
                         </div>
                       </td>
@@ -467,9 +459,7 @@ export function UserManagementTable({
                       {/* Kolom Peran */}
                       <td className="py-3.5 px-4">
                         <div className="flex flex-wrap gap-1.5 max-w-xs">
-                          {u.roles.map((r) =>
-                            getRoleBadge(r.role.key, r.role.name),
-                          )}
+                          {u.roles.map((r) => getRoleBadge(r.role.key, r.role.name))}
                         </div>
                       </td>
 
@@ -492,8 +482,8 @@ export function UserManagementTable({
                             isCurrentActor
                               ? "Anda tidak dapat menonaktifkan akun sendiri"
                               : !canManageThisUser
-                              ? "Hanya Super Admin yang dapat mengubah status akun ini"
-                              : "Klik untuk mengubah status aktif"
+                                ? "Hanya Super Admin yang dapat mengubah status akun ini"
+                                : "Klik untuk mengubah status aktif"
                           }
                         >
                           <span
@@ -614,9 +604,7 @@ export function UserManagementTable({
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Surel Login:</span>
-                <span className="font-mono text-slate-800 font-medium">
-                  {roleModalUser.email}
-                </span>
+                <span className="font-mono text-slate-800 font-medium">{roleModalUser.email}</span>
               </div>
               {roleModalUser.employee && (
                 <div className="flex justify-between">
@@ -661,8 +649,8 @@ export function UserManagementTable({
                       isRestrictedForAdminIt
                         ? "bg-slate-100/60 border-slate-200 opacity-60 cursor-not-allowed"
                         : isChecked
-                        ? "bg-amber-50/40 border-amber-300 ring-1 ring-amber-300/40 cursor-pointer"
-                        : "bg-white border-slate-200 hover:border-slate-300 cursor-pointer"
+                          ? "bg-amber-50/40 border-amber-300 ring-1 ring-amber-300/40 cursor-pointer"
+                          : "bg-white border-slate-200 hover:border-slate-300 cursor-pointer"
                     }`}
                   >
                     <input
@@ -675,9 +663,7 @@ export function UserManagementTable({
                     <div className="flex-1 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-slate-800">{r.name}</span>
-                        <span className="font-mono text-[10px] text-slate-400">
-                          {r.key}
-                        </span>
+                        <span className="font-mono text-[10px] text-slate-400">{r.key}</span>
                       </div>
                       <p className="text-slate-500 mt-0.5 text-[11px] leading-relaxed">
                         {r.description || "Peran fungsional operasional sistem PSPK."}
@@ -729,12 +715,8 @@ export function UserManagementTable({
                   <Key className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-base">
-                    Reset Kata Sandi
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Hasilkan kata sandi sementara baru
-                  </p>
+                  <h3 className="font-bold text-slate-900 text-base">Reset Kata Sandi</h3>
+                  <p className="text-xs text-slate-500">Hasilkan kata sandi sementara baru</p>
                 </div>
               </div>
               <button
@@ -767,9 +749,7 @@ export function UserManagementTable({
                   <ul className="list-disc pl-4 space-y-0.5 text-amber-700">
                     <li>Semua sesi login aktif pengguna ini akan otomatis terputus.</li>
                     <li>Sistem akan men-generate kata sandi sementara acak baru.</li>
-                    <li>
-                      Tindakan ini akan dicatat ke dalam buku besar Audit Log.
-                    </li>
+                    <li>Tindakan ini akan dicatat ke dalam buku besar Audit Log.</li>
                   </ul>
                 </div>
 
@@ -798,8 +778,8 @@ export function UserManagementTable({
                 <div className="p-3 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
                   <span>
-                    Kata sandi baru berhasil digenerate! Harap salin dan serahkan
-                    kepada pengguna dengan aman.
+                    Kata sandi baru berhasil digenerate! Harap salin dan serahkan kepada pengguna
+                    dengan aman.
                   </span>
                 </div>
 
@@ -892,10 +872,8 @@ export function UserManagementTable({
 
             <p className="text-xs text-slate-600 leading-relaxed mb-6">
               Apakah Anda yakin ingin{" "}
-              <strong>
-                {statusConfirmUser.isActive ? "menonaktifkan" : "mengaktifkan"}
-              </strong>{" "}
-              akses login untuk pengguna{" "}
+              <strong>{statusConfirmUser.isActive ? "menonaktifkan" : "mengaktifkan"}</strong> akses
+              login untuk pengguna{" "}
               <strong className="text-slate-900">
                 {statusConfirmUser.name || statusConfirmUser.email}
               </strong>
@@ -925,9 +903,7 @@ export function UserManagementTable({
                 } disabled:opacity-50`}
               >
                 {isPending && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
-                <span>
-                  {statusConfirmUser.isActive ? "Ya, Nonaktifkan" : "Ya, Aktifkan"}
-                </span>
+                <span>{statusConfirmUser.isActive ? "Ya, Nonaktifkan" : "Ya, Aktifkan"}</span>
               </button>
             </div>
           </div>

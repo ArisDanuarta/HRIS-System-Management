@@ -1,6 +1,6 @@
 # PSPK HRIS & System Management — Spesifikasi Implementasi
 
-> **Sumber:** *Dokumen Analisis & Blueprint — Perancangan Sistem HRIS & System Management* (September 2026), disusun oleh I Made Aris Danuarta, IT Administrator PSPK.
+> **Sumber:** _Dokumen Analisis & Blueprint — Perancangan Sistem HRIS & System Management_ (September 2026), disusun oleh I Made Aris Danuarta, IT Administrator PSPK.
 >
 > **Perubahan utama dari blueprint:** tidak memakai Vercel dan Supabase. Sistem di-deploy ke **VPS dengan Docker**. Database memakai **PostgreSQL lokal dulu** (development di mesin sendiri), lalu dipindah ke container PostgreSQL di VPS saat siap deploy.
 >
@@ -46,7 +46,7 @@ Aturan ini **wajib** dipatuhi di seluruh proyek.
 9. **Perubahan skema hanya lewat Prisma migration.** Jangan ubah database manual. Migration yang sudah di-commit tidak diedit; buat migration baru.
 10. **Definition of Done.** Sebelum menyatakan suatu tugas/fase selesai, `pnpm lint`, `pnpm typecheck`, `pnpm test`, dan `pnpm build` harus lolos, dan semua item checklist fase tercentang.
 11. **Ruang lingkup.** Hanya kerjakan fase yang diminta. Jangan menambah fitur di luar spesifikasi tanpa mencatatnya di `docs/OPEN_QUESTIONS.md`.
-12. **Jangan menebak aturan bisnis.** Aturan payroll, pajak (PPh 21), BPJS, kebijakan cuti, dan THR harus dikonfirmasi ke Admin HR/keuangan PSPK. Jika belum ada jawaban, buat komponennya *configurable*, tulis asumsi eksplisit di `docs/OPEN_QUESTIONS.md`, dan jangan hard-code angka.
+12. **Jangan menebak aturan bisnis.** Aturan payroll, pajak (PPh 21), BPJS, kebijakan cuti, dan THR harus dikonfirmasi ke Admin HR/keuangan PSPK. Jika belum ada jawaban, buat komponennya _configurable_, tulis asumsi eksplisit di `docs/OPEN_QUESTIONS.md`, dan jangan hard-code angka.
 13. **Progress.** Setelah tiap fase, perbarui `docs/PROGRESS.md` (yang selesai, yang tertunda, keputusan penting, cara menjalankan).
 
 ---
@@ -55,10 +55,10 @@ Aturan ini **wajib** dipatuhi di seluruh proyek.
 
 PSPK (Pusat Studi Pendidikan dan Kebijakan) adalah organisasi nonprofit independen di bidang riset dan advokasi kebijakan pendidikan. Pengelolaan SDM saat ini manual (Excel + aplikasi pihak ketiga yang terpisah), sehingga konsolidasi data dan pelaporan sulit. Proyek ini membangun **satu platform terpadu** yang terdiri dari dua aplikasi web dalam **satu monorepo** dan **satu database PostgreSQL**:
 
-| Aplikasi | Isi |
-| --- | --- |
-| **HRIS** (`apps/hris`) | Data karyawan, absensi & cuti (dengan approval), payroll, kinerja, rekrutmen, pelatihan (opsional) |
-| **System Management** (`apps/sysmgmt`) | Manajemen user & role (RBAC), manajemen aset, dokumen/SOP dengan versi, audit log |
+| Aplikasi                               | Isi                                                                                                |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **HRIS** (`apps/hris`)                 | Data karyawan, absensi & cuti (dengan approval), payroll, kinerja, rekrutmen, pelatihan (opsional) |
+| **System Management** (`apps/sysmgmt`) | Manajemen user & role (RBAC), manajemen aset, dokumen/SOP dengan versi, audit log                  |
 
 Kedua aplikasi memakai identitas (user), RBAC, dan audit log yang sama.
 
@@ -76,38 +76,38 @@ Kedua aplikasi memakai identitas (user), RBAC, dan audit log yang sama.
 
 ## 2. Perubahan dari blueprint awal
 
-| Aspek | Blueprint awal | Spesifikasi ini |
-| --- | --- | --- |
-| Hosting web | Vercel | **VPS + Docker** (Next.js `output: "standalone"`) |
-| Database | Supabase Postgres (managed) | **PostgreSQL 17 di Docker**; lokal dulu → container di VPS |
-| Autentikasi | Supabase Auth | **Better Auth** (`@pspk/auth`), sesi disimpan di database |
-| Otorisasi | Row Level Security (RLS) | **RBAC di application layer** (`@pspk/rbac`); RLS PostgreSQL opsional sebagai lapisan tambahan |
-| File storage | Supabase Storage | **Filesystem (Docker volume)** lewat abstraksi `StorageProvider`; MinIO/S3-compatible opsional nanti |
-| TLS / reverse proxy | Otomatis oleh Vercel | **Caddy** (HTTPS otomatis) |
-| Backup | Otomatis (Supabase Pro) | **`pg_dump` terjadwal** + salinan di luar VPS |
-| Analisis biaya (Bagian 7 blueprint) | Vercel + Supabase, skenario A/B | **Tidak berlaku.** Biaya VPS belum dihitung, tergantung penyedia dan spesifikasi |
-| Struktur data | 2 aplikasi, 1 database, 2 skema | Tetap 2 aplikasi & 1 database; **tambah skema kecil `core`** untuk user/RBAC/audit yang dipakai bersama |
-| Modul, RBAC 5 peran, rencana migrasi, roadmap, brand | — | **Tetap** (roadmap disesuaikan di Bagian 14) |
+| Aspek                                                | Blueprint awal                  | Spesifikasi ini                                                                                         |
+| ---------------------------------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Hosting web                                          | Vercel                          | **VPS + Docker** (Next.js `output: "standalone"`)                                                       |
+| Database                                             | Supabase Postgres (managed)     | **PostgreSQL 17 di Docker**; lokal dulu → container di VPS                                              |
+| Autentikasi                                          | Supabase Auth                   | **Better Auth** (`@pspk/auth`), sesi disimpan di database                                               |
+| Otorisasi                                            | Row Level Security (RLS)        | **RBAC di application layer** (`@pspk/rbac`); RLS PostgreSQL opsional sebagai lapisan tambahan          |
+| File storage                                         | Supabase Storage                | **Filesystem (Docker volume)** lewat abstraksi `StorageProvider`; MinIO/S3-compatible opsional nanti    |
+| TLS / reverse proxy                                  | Otomatis oleh Vercel            | **Caddy** (HTTPS otomatis)                                                                              |
+| Backup                                               | Otomatis (Supabase Pro)         | **`pg_dump` terjadwal** + salinan di luar VPS                                                           |
+| Analisis biaya (Bagian 7 blueprint)                  | Vercel + Supabase, skenario A/B | **Tidak berlaku.** Biaya VPS belum dihitung, tergantung penyedia dan spesifikasi                        |
+| Struktur data                                        | 2 aplikasi, 1 database, 2 skema | Tetap 2 aplikasi & 1 database; **tambah skema kecil `core`** untuk user/RBAC/audit yang dipakai bersama |
+| Modul, RBAC 5 peran, rencana migrasi, roadmap, brand | —                               | **Tetap** (roadmap disesuaikan di Bagian 14)                                                            |
 
 ---
 
 ## 3. Stack teknologi
 
-| Komponen | Pilihan | Catatan |
-| --- | --- | --- |
-| Runtime | Node.js LTS (≥ 22) | Kunci di `.nvmrc` dan `engines` |
-| Package manager | pnpm (via Corepack) | Workspace monorepo |
-| Monorepo | Turborepo 2.x | `turbo.json` memakai kunci `tasks` |
-| Framework web | Next.js (App Router, TypeScript strict) | Server Components + Server Actions |
-| Styling | Tailwind CSS + komponen gaya shadcn/ui (Radix) | Token brand di `@pspk/ui` |
-| Database | PostgreSQL 17 | Docker (dev & prod) |
-| ORM | Prisma (multi-schema) | Migration dikelola di `@pspk/db` |
-| Auth | Better Auth (email + password) | Alternatif: Auth.js. Dipakai hanya untuk identitas & sesi, otorisasi tetap di `@pspk/rbac` |
-| Validasi | Zod | Dipakai di server action dan form |
-| Form | react-hook-form + `@hookform/resolvers` | |
-| Testing | Vitest (unit/integrasi), Playwright (E2E) | |
-| Reverse proxy | Caddy 2 | Hanya untuk produksi/VPS |
-| Container | Docker + Docker Compose | Dev: hanya PostgreSQL. Prod: seluruh stack |
+| Komponen        | Pilihan                                        | Catatan                                                                                    |
+| --------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Runtime         | Node.js LTS (≥ 22)                             | Kunci di `.nvmrc` dan `engines`                                                            |
+| Package manager | pnpm (via Corepack)                            | Workspace monorepo                                                                         |
+| Monorepo        | Turborepo 2.x                                  | `turbo.json` memakai kunci `tasks`                                                         |
+| Framework web   | Next.js (App Router, TypeScript strict)        | Server Components + Server Actions                                                         |
+| Styling         | Tailwind CSS + komponen gaya shadcn/ui (Radix) | Token brand di `@pspk/ui`                                                                  |
+| Database        | PostgreSQL 17                                  | Docker (dev & prod)                                                                        |
+| ORM             | Prisma (multi-schema)                          | Migration dikelola di `@pspk/db`                                                           |
+| Auth            | Better Auth (email + password)                 | Alternatif: Auth.js. Dipakai hanya untuk identitas & sesi, otorisasi tetap di `@pspk/rbac` |
+| Validasi        | Zod                                            | Dipakai di server action dan form                                                          |
+| Form            | react-hook-form + `@hookform/resolvers`        |                                                                                            |
+| Testing         | Vitest (unit/integrasi), Playwright (E2E)      |                                                                                            |
+| Reverse proxy   | Caddy 2                                        | Hanya untuk produksi/VPS                                                                   |
+| Container       | Docker + Docker Compose                        | Dev: hanya PostgreSQL. Prod: seluruh stack                                                 |
 
 > Versi paket **tidak dikunci di dokumen ini**. Pasang versi stabil terbaru saat setup, lalu biarkan `pnpm-lock.yaml` mengunci versinya.
 
@@ -155,31 +155,32 @@ pspk-platform/
 
 **Tanggung jawab package**
 
-| Package | Isi utama | Boleh bergantung ke |
-| --- | --- | --- |
-| `@pspk/config` | `tsconfig/*.json`, preset ESLint | — |
-| `@pspk/shared` | Formatter tanggal/rupiah, helper Zod, enkripsi AES-256-GCM, konstanta | — |
-| `@pspk/db` | Prisma schema (`core`, `hris`, `sysmgmt`), migration, seed, `prisma` singleton, `audit.ts` | `shared` |
-| `@pspk/rbac` | `PERMISSIONS`, `ROLE_PERMISSIONS`, `can()`, `assertCan()`, resolusi scope (`own`/`team`/`all`) | `db`, `shared` |
-| `@pspk/auth` | Instance Better Auth, `getSession()`, `requireSession()` | `db`, `rbac` |
-| `@pspk/storage` | `StorageProvider`, `LocalDiskStorage`, factory dari env | `shared` |
-| `@pspk/ui` | Komponen, `brand.css`, font lokal, `AppSwitcher` | `shared` |
+| Package         | Isi utama                                                                                      | Boleh bergantung ke |
+| --------------- | ---------------------------------------------------------------------------------------------- | ------------------- |
+| `@pspk/config`  | `tsconfig/*.json`, preset ESLint                                                               | —                   |
+| `@pspk/shared`  | Formatter tanggal/rupiah, helper Zod, enkripsi AES-256-GCM, konstanta                          | —                   |
+| `@pspk/db`      | Prisma schema (`core`, `hris`, `sysmgmt`), migration, seed, `prisma` singleton, `audit.ts`     | `shared`            |
+| `@pspk/rbac`    | `PERMISSIONS`, `ROLE_PERMISSIONS`, `can()`, `assertCan()`, resolusi scope (`own`/`team`/`all`) | `db`, `shared`      |
+| `@pspk/auth`    | Instance Better Auth, `getSession()`, `requireSession()`                                       | `db`, `rbac`        |
+| `@pspk/storage` | `StorageProvider`, `LocalDiskStorage`, factory dari env                                        | `shared`            |
+| `@pspk/ui`      | Komponen, `brand.css`, font lokal, `AppSwitcher`                                               | `shared`            |
 
 Package internal memakai pola **Just-in-Time**: `exports` menunjuk langsung ke `src/index.ts`, dan tiap app mendaftarkannya di `transpilePackages`.
 
 ---
+
 ## 5. Fase 1 — Setup awal monorepo (langkah demi langkah)
 
 Tujuan fase ini: repo berjalan lokal dengan dua aplikasi Next.js kosong, terhubung ke PostgreSQL lokal, skema `core` + migration pertama + seed role/permission, dan Dockerfile produksi yang sudah terverifikasi build-nya. **Belum ada fitur bisnis.**
 
 ### 5.1 Prasyarat (mesin development)
 
-| Kebutuhan | Cek |
-| --- | --- |
-| Node.js LTS ≥ 22 | `node -v` |
-| Corepack (bawaan Node) | `corepack --version` |
+| Kebutuhan                                   | Cek                      |
+| ------------------------------------------- | ------------------------ |
+| Node.js LTS ≥ 22                            | `node -v`                |
+| Corepack (bawaan Node)                      | `corepack --version`     |
 | Docker Desktop / Docker Engine + Compose v2 | `docker compose version` |
-| Git | `git --version` |
+| Git                                         | `git --version`          |
 
 > **PostgreSQL lokal.** Default dokumen ini: PostgreSQL berjalan sebagai container Docker (`docker-compose.dev.yml`) di `localhost:5432`. Jika lebih suka PostgreSQL yang terpasang langsung di OS, lewati langkah 5.6 dan cukup arahkan `DATABASE_URL` ke instance tersebut (buat database `pspk_platform`). Seluruh langkah lain sama.
 > Jika port 5432 sudah dipakai, ubah mapping port menjadi `5433:5432` dan sesuaikan `DATABASE_URL`.
@@ -261,7 +262,7 @@ pnpm add -D -w turbo typescript prettier    # pastikan versi terbaru terpasang
 }
 ```
 
-> Turborepo secara default memakai *strict env mode*: variabel environment tidak otomatis diteruskan ke task. Karena env dimuat di dalam script tiap app lewat `dotenv-cli` (5.4), ini tidak jadi masalah. Jika suatu task butuh env dari shell, daftarkan lewat `passThroughEnv`/`globalPassThroughEnv`.
+> Turborepo secara default memakai _strict env mode_: variabel environment tidak otomatis diteruskan ke task. Karena env dimuat di dalam script tiap app lewat `dotenv-cli` (5.4), ini tidak jadi masalah. Jika suatu task butuh env dari shell, daftarkan lewat `passThroughEnv`/`globalPassThroughEnv`.
 
 **`.gitignore`**
 
@@ -361,6 +362,7 @@ Lalu untuk **masing-masing app**:
    ```
 
    (`3002` untuk `sysmgmt`.) Tambahkan `dotenv-cli` sebagai devDependency. Jika file `.env` tidak ada, `dotenv-cli` dapat gagal; untuk build Docker dipakai `next build` langsung tanpa script ini (lihat Bagian 10.3).
+
 3. Ganti `tsconfig.json` agar `extends` ke `@pspk/config/tsconfig/nextjs.json` (pertahankan `paths` `@/*`).
 4. `next.config.ts`:
 
@@ -386,6 +388,7 @@ Lalu untuk **masing-masing app**:
    ```
 
    Jika Prisma bermasalah saat di-bundle, tambahkan ke `serverExternalPackages` sesuai dokumentasi.
+
 5. Tambahkan dependency workspace: `pnpm --filter @pspk/hris add @pspk/ui@workspace:* @pspk/db@workspace:* @pspk/auth@workspace:* @pspk/rbac@workspace:* @pspk/shared@workspace:* @pspk/storage@workspace:*` (ulangi untuk `sysmgmt`).
 6. Buat endpoint health `src/app/api/health/route.ts`:
 
@@ -509,7 +512,7 @@ services:
       POSTGRES_USER: pspk
       POSTGRES_PASSWORD: pspk_dev_password
     ports:
-      - "127.0.0.1:5432:5432"   # hanya bisa diakses dari mesin ini
+      - "127.0.0.1:5432:5432" # hanya bisa diakses dari mesin ini
     volumes:
       - pspk_pgdata_dev:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -621,6 +624,7 @@ Tulis `docker/Dockerfile.next`, `docker/Dockerfile.migrate`, `docker-compose.pro
 - [ ] `docs/PROGRESS.md`, `docs/DECISIONS.md`, `docs/OPEN_QUESTIONS.md` dibuat; `docs/data-audit.md` diisi hasil audit awal data existing (Bagian 11).
 
 ---
+
 ## 6. Desain database
 
 > Ini rancangan awal. **Finalisasi skema dilakukan di Fase 1 setelah audit data existing** (Bagian 11): kolom harus berdasarkan field yang benar-benar dipakai di lapangan, bukan asumsi generik.
@@ -638,56 +642,56 @@ Tulis `docker/Dockerfile.next`, `docker/Dockerfile.migrate`, `docker-compose.pro
 
 ### 6.2 Skema `core` (identitas, RBAC, audit — dipakai bersama)
 
-| Model | Kolom utama | Catatan |
-| --- | --- | --- |
-| `User` | id, email (unique), name, emailVerified, image?, isActive | `isActive=false` → tidak bisa login. Dikelola bersama library auth |
-| `Account`, `Session`, `Verification` | mengikuti skema Better Auth | Hasilkan dengan generator library, lalu pindahkan ke skema `core` |
-| `Role` | id, key (unique), name, description, isSystem | key: `super_admin`, `admin_hr`, `admin_it`, `manager`, `staff` |
-| `Permission` | id, key (unique), module, description | Contoh: `hris.leave.approve:team` |
-| `RolePermission` | roleId, permissionId | PK gabungan |
-| `UserRole` | userId, roleId, assignedById?, assignedAt | User boleh punya lebih dari satu role |
-| `AuditLog` | id, occurredAt, actorUserId?, actorEmail, app (`hris`/`sysmgmt`/`system`), action, entityType, entityId?, before Json?, after Json?, ip?, userAgent?, requestId? | **Append-only**; lihat Bagian 9.2 |
+| Model                                | Kolom utama                                                                                                                                                      | Catatan                                                            |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `User`                               | id, email (unique), name, emailVerified, image?, isActive                                                                                                        | `isActive=false` → tidak bisa login. Dikelola bersama library auth |
+| `Account`, `Session`, `Verification` | mengikuti skema Better Auth                                                                                                                                      | Hasilkan dengan generator library, lalu pindahkan ke skema `core`  |
+| `Role`                               | id, key (unique), name, description, isSystem                                                                                                                    | key: `super_admin`, `admin_hr`, `admin_it`, `manager`, `staff`     |
+| `Permission`                         | id, key (unique), module, description                                                                                                                            | Contoh: `hris.leave.approve:team`                                  |
+| `RolePermission`                     | roleId, permissionId                                                                                                                                             | PK gabungan                                                        |
+| `UserRole`                           | userId, roleId, assignedById?, assignedAt                                                                                                                        | User boleh punya lebih dari satu role                              |
+| `AuditLog`                           | id, occurredAt, actorUserId?, actorEmail, app (`hris`/`sysmgmt`/`system`), action, entityType, entityId?, before Json?, after Json?, ip?, userAgent?, requestId? | **Append-only**; lihat Bagian 9.2                                  |
 
 ### 6.3 Skema `hris`
 
-| Model | Kolom utama | Catatan |
-| --- | --- | --- |
-| `Department` | id, name, parentId? | Hierarki opsional |
-| `Position` | id, title, departmentId | |
-| `Employee` | id, employeeNo (unique), userId? (unique → `core.User`), fullName, nickname?, workEmail, personalEmail?, phone?, birthDate, birthPlace?, gender, maritalStatus?, address?, emergencyContactName?, emergencyContactPhone?, nikEnc?, npwpEnc?, bankName?, bankAccountEnc?, bankAccountName?, joinDate, endDate?, status, managerId? (self-relation), currentPositionId?, currentDepartmentId?, photoKey?, deletedAt? | Kolom `*Enc` dienkripsi aplikasi (Bagian 9.3). `managerId` menentukan atasan langsung & tim |
-| `EmploymentHistory` | id, employeeId, positionId, departmentId, startDate, endDate?, notes? | Riwayat jabatan |
-| `EmploymentContract` | id, employeeId, type, startDate, endDate?, baseSalary? (Decimal), documentKey?, status, notes? | `type`: `PERMANENT` (tetap), `FIXED_TERM`, `PART_TIME_PROJECT` |
-| `Attendance` | id, employeeId, date, checkInAt?, checkOutAt?, status, source, notes?, correctedById?, correctionReason? | Unique `(employeeId, date)` |
-| `Holiday` | id, date (unique), name, isCollectiveLeave | Untuk hitung hari kerja |
-| `LeaveType` | id, name, defaultQuotaDays, isPaid, requiresAttachment, isActive | Data awal disepakati dengan HR |
-| `LeaveBalance` | id, employeeId, leaveTypeId, year, quotaDays, usedDays | Unique `(employeeId, leaveTypeId, year)` |
-| `LeaveRequest` | id, employeeId, leaveTypeId, startDate, endDate, days (Decimal), reason?, attachmentKey?, status, approverId?, decidedAt?, decisionNote? | Alur di Bagian 8.2 |
-| `PayrollPeriod` | id, year, month, kind (`REGULAR`/`THR`), status, cutoffDate?, lockedAt? | Unique `(year, month, kind)` |
-| `SalaryComponent` | id, code (unique), name, type (`EARNING`/`DEDUCTION`), calcType (`FIXED`/`PERCENT_OF_BASE`/`MANUAL`), defaultValue?, isActive | Configurable; jangan hard-code |
-| `EmployeeSalaryComponent` | id, employeeId, componentId, amount (Decimal), effectiveFrom, effectiveTo? | Komponen gaji per karyawan |
-| `Payslip` | id, periodId, employeeId, grossAmount, totalDeduction, netAmount, status, publishedAt?, pdfKey? | Unique `(periodId, employeeId)` |
-| `PayslipLine` | id, payslipId, componentId?, label, type, amount | Snapshot komponen saat dihitung |
-| `PerformancePeriod` | id, name, startDate, endDate, status | |
-| `PerformanceGoal` | id, employeeId, periodId, title, description?, weight (Decimal), target?, unit?, actual? | KPI/OKR sederhana |
-| `PerformanceReview` | id, employeeId, periodId, reviewerId, selfScore?, managerScore?, finalScore?, selfComment?, managerComment?, status | Alur di Bagian 8.5 |
-| `JobOpening` | id, title, departmentId?, description?, status, openedAt, closedAt? | |
-| `Candidate` | id, fullName, email, phone?, cvKey?, source? | |
-| `Application` | id, jobOpeningId, candidateId, stage, notes? | Stage: `APPLIED`, `SCREENING`, `INTERVIEW`, `OFFER`, `HIRED`, `REJECTED` |
-| `Interview` | id, applicationId, scheduledAt, interviewerId, notes?, score? | |
-| `OnboardingTask` | id, employeeId, title, dueDate?, doneAt?, assigneeId? | Checklist onboarding |
-| `TrainingRecord` | id, employeeId, title, provider?, startDate, endDate?, certificateKey?, expiresAt? | Opsional |
+| Model                     | Kolom utama                                                                                                                                                                                                                                                                                                                                                                                                        | Catatan                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `Department`              | id, name, parentId?                                                                                                                                                                                                                                                                                                                                                                                                | Hierarki opsional                                                                           |
+| `Position`                | id, title, departmentId                                                                                                                                                                                                                                                                                                                                                                                            |                                                                                             |
+| `Employee`                | id, employeeNo (unique), userId? (unique → `core.User`), fullName, nickname?, workEmail, personalEmail?, phone?, birthDate, birthPlace?, gender, maritalStatus?, address?, emergencyContactName?, emergencyContactPhone?, nikEnc?, npwpEnc?, bankName?, bankAccountEnc?, bankAccountName?, joinDate, endDate?, status, managerId? (self-relation), currentPositionId?, currentDepartmentId?, photoKey?, deletedAt? | Kolom `*Enc` dienkripsi aplikasi (Bagian 9.3). `managerId` menentukan atasan langsung & tim |
+| `EmploymentHistory`       | id, employeeId, positionId, departmentId, startDate, endDate?, notes?                                                                                                                                                                                                                                                                                                                                              | Riwayat jabatan                                                                             |
+| `EmploymentContract`      | id, employeeId, type, startDate, endDate?, baseSalary? (Decimal), documentKey?, status, notes?                                                                                                                                                                                                                                                                                                                     | `type`: `PERMANENT` (tetap), `FIXED_TERM`, `PART_TIME_PROJECT`                              |
+| `Attendance`              | id, employeeId, date, checkInAt?, checkOutAt?, status, source, notes?, correctedById?, correctionReason?                                                                                                                                                                                                                                                                                                           | Unique `(employeeId, date)`                                                                 |
+| `Holiday`                 | id, date (unique), name, isCollectiveLeave                                                                                                                                                                                                                                                                                                                                                                         | Untuk hitung hari kerja                                                                     |
+| `LeaveType`               | id, name, defaultQuotaDays, isPaid, requiresAttachment, isActive                                                                                                                                                                                                                                                                                                                                                   | Data awal disepakati dengan HR                                                              |
+| `LeaveBalance`            | id, employeeId, leaveTypeId, year, quotaDays, usedDays                                                                                                                                                                                                                                                                                                                                                             | Unique `(employeeId, leaveTypeId, year)`                                                    |
+| `LeaveRequest`            | id, employeeId, leaveTypeId, startDate, endDate, days (Decimal), reason?, attachmentKey?, status, approverId?, decidedAt?, decisionNote?                                                                                                                                                                                                                                                                           | Alur di Bagian 8.2                                                                          |
+| `PayrollPeriod`           | id, year, month, kind (`REGULAR`/`THR`), status, cutoffDate?, lockedAt?                                                                                                                                                                                                                                                                                                                                            | Unique `(year, month, kind)`                                                                |
+| `SalaryComponent`         | id, code (unique), name, type (`EARNING`/`DEDUCTION`), calcType (`FIXED`/`PERCENT_OF_BASE`/`MANUAL`), defaultValue?, isActive                                                                                                                                                                                                                                                                                      | Configurable; jangan hard-code                                                              |
+| `EmployeeSalaryComponent` | id, employeeId, componentId, amount (Decimal), effectiveFrom, effectiveTo?                                                                                                                                                                                                                                                                                                                                         | Komponen gaji per karyawan                                                                  |
+| `Payslip`                 | id, periodId, employeeId, grossAmount, totalDeduction, netAmount, status, publishedAt?, pdfKey?                                                                                                                                                                                                                                                                                                                    | Unique `(periodId, employeeId)`                                                             |
+| `PayslipLine`             | id, payslipId, componentId?, label, type, amount                                                                                                                                                                                                                                                                                                                                                                   | Snapshot komponen saat dihitung                                                             |
+| `PerformancePeriod`       | id, name, startDate, endDate, status                                                                                                                                                                                                                                                                                                                                                                               |                                                                                             |
+| `PerformanceGoal`         | id, employeeId, periodId, title, description?, weight (Decimal), target?, unit?, actual?                                                                                                                                                                                                                                                                                                                           | KPI/OKR sederhana                                                                           |
+| `PerformanceReview`       | id, employeeId, periodId, reviewerId, selfScore?, managerScore?, finalScore?, selfComment?, managerComment?, status                                                                                                                                                                                                                                                                                                | Alur di Bagian 8.5                                                                          |
+| `JobOpening`              | id, title, departmentId?, description?, status, openedAt, closedAt?                                                                                                                                                                                                                                                                                                                                                |                                                                                             |
+| `Candidate`               | id, fullName, email, phone?, cvKey?, source?                                                                                                                                                                                                                                                                                                                                                                       |                                                                                             |
+| `Application`             | id, jobOpeningId, candidateId, stage, notes?                                                                                                                                                                                                                                                                                                                                                                       | Stage: `APPLIED`, `SCREENING`, `INTERVIEW`, `OFFER`, `HIRED`, `REJECTED`                    |
+| `Interview`               | id, applicationId, scheduledAt, interviewerId, notes?, score?                                                                                                                                                                                                                                                                                                                                                      |                                                                                             |
+| `OnboardingTask`          | id, employeeId, title, dueDate?, doneAt?, assigneeId?                                                                                                                                                                                                                                                                                                                                                              | Checklist onboarding                                                                        |
+| `TrainingRecord`          | id, employeeId, title, provider?, startDate, endDate?, certificateKey?, expiresAt?                                                                                                                                                                                                                                                                                                                                 | Opsional                                                                                    |
 
 Enum `hris`: `EmployeeStatus` (`ACTIVE`, `PROBATION`, `ON_LEAVE`, `RESIGNED`, `TERMINATED`), `Gender`, `MaritalStatus`, `EmploymentType`, `ContractStatus`, `AttendanceStatus` (`PRESENT`, `LATE`, `ABSENT`, `LEAVE`, `HOLIDAY`, `WFH`), `AttendanceSource` (`WEB`, `MANUAL_HR`, `IMPORT`), `LeaveStatus` (`DRAFT`, `PENDING`, `APPROVED`, `REJECTED`, `CANCELLED`), `PayrollStatus` (`DRAFT`, `CALCULATED`, `APPROVED`, `PUBLISHED`, `LOCKED`), `PayrollKind`, `SalaryComponentType`, `SalaryCalcType`, `ReviewStatus` (`DRAFT`, `SELF_REVIEW`, `MANAGER_REVIEW`, `FINALIZED`), `ApplicationStage`.
 
 ### 6.4 Skema `sysmgmt`
 
-| Model | Kolom utama | Catatan |
-| --- | --- | --- |
-| `Asset` | id, assetTag (unique), category (`IT`/`NON_IT`), type, name, brand?, model?, serialNumber?, purchaseDate?, purchasePrice?, status, location?, notes? | Status: `IN_STOCK`, `ASSIGNED`, `MAINTENANCE`, `RETIRED`, `LOST` |
-| `AssetAssignment` | id, assetId, employeeId (→ `hris.Employee`), assignedAt, returnedAt?, conditionOut?, conditionIn?, notes? | Riwayat pemegang aset; hanya satu assignment aktif per aset |
-| `SoftwareLicense` | id, name, vendor?, licenseKeyEnc?, seatsTotal, seatsUsed, purchaseDate?, expiresAt?, notes? | Kunci lisensi dienkripsi |
-| `Document` | id, code (unique, mis. `SOP-001`), title, category, visibility, status, ownerId?, currentVersionId? | Visibility: `ALL_STAFF`, `HR_ONLY`, `IT_ONLY`, `MANAGERS` |
-| `DocumentVersion` | id, documentId, versionNo, fileKey, fileName, mimeType, sizeBytes, sha256, changeNote?, effectiveDate?, createdById, createdAt | Versi lama read-only |
+| Model             | Kolom utama                                                                                                                                          | Catatan                                                          |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `Asset`           | id, assetTag (unique), category (`IT`/`NON_IT`), type, name, brand?, model?, serialNumber?, purchaseDate?, purchasePrice?, status, location?, notes? | Status: `IN_STOCK`, `ASSIGNED`, `MAINTENANCE`, `RETIRED`, `LOST` |
+| `AssetAssignment` | id, assetId, employeeId (→ `hris.Employee`), assignedAt, returnedAt?, conditionOut?, conditionIn?, notes?                                            | Riwayat pemegang aset; hanya satu assignment aktif per aset      |
+| `SoftwareLicense` | id, name, vendor?, licenseKeyEnc?, seatsTotal, seatsUsed, purchaseDate?, expiresAt?, notes?                                                          | Kunci lisensi dienkripsi                                         |
+| `Document`        | id, code (unique, mis. `SOP-001`), title, category, visibility, status, ownerId?, currentVersionId?                                                  | Visibility: `ALL_STAFF`, `HR_ONLY`, `IT_ONLY`, `MANAGERS`        |
+| `DocumentVersion` | id, documentId, versionNo, fileKey, fileName, mimeType, sizeBytes, sha256, changeNote?, effectiveDate?, createdById, createdAt                       | Versi lama read-only                                             |
 
 ---
 
@@ -725,10 +729,18 @@ export type Resource = { ownerEmployeeId?: string; managerEmployeeId?: string | 
 export function can(ctx: AuthContext, permission: string, resource?: Resource): boolean {
   // "permission" tanpa scope, mis. "hris.leave.read"
   if (ctx.permissions.has(`${permission}:all`)) return true;
-  if (resource?.managerEmployeeId && ctx.employeeId === resource.managerEmployeeId
-      && ctx.permissions.has(`${permission}:team`)) return true;
-  if (resource?.ownerEmployeeId && ctx.employeeId === resource.ownerEmployeeId
-      && ctx.permissions.has(`${permission}:own`)) return true;
+  if (
+    resource?.managerEmployeeId &&
+    ctx.employeeId === resource.managerEmployeeId &&
+    ctx.permissions.has(`${permission}:team`)
+  )
+    return true;
+  if (
+    resource?.ownerEmployeeId &&
+    ctx.employeeId === resource.ownerEmployeeId &&
+    ctx.permissions.has(`${permission}:own`)
+  )
+    return true;
   return false;
 }
 
@@ -739,7 +751,7 @@ export function assertCan(ctx: AuthContext, permission: string, resource?: Resou
 
 Ketentuan implementasi:
 
-- Untuk **daftar** data (mis. list cuti), jangan filter di client. Service menurunkan *filter query* dari scope tertinggi yang dimiliki user (`all` → tanpa filter; `team` → `employee.managerId = ctx.employeeId` atau milik sendiri; `own` → milik sendiri).
+- Untuk **daftar** data (mis. list cuti), jangan filter di client. Service menurunkan _filter query_ dari scope tertinggi yang dimiliki user (`all` → tanpa filter; `team` → `employee.managerId = ctx.employeeId` atau milik sendiri; `own` → milik sendiri).
 - `requireSession()` di layout/route mengarahkan ke login bila sesi tidak ada dan menolak user nonaktif.
 - Permission user dimuat sekali per request (`React.cache`) dari `UserRole → RolePermission → Permission`.
 - Tidak boleh menghapus/menonaktifkan **super admin terakhir**; perubahan role selalu masuk audit log; hanya `super_admin` yang boleh memberi/mencabut role `super_admin`.
@@ -749,20 +761,20 @@ Ketentuan implementasi:
 
 Peran mengikuti blueprint: **Super Admin**, **Admin HR**, **Admin IT/System**, **Manajer/Atasan**, **Karyawan (Staff)**. Satu user bisa memegang beberapa peran (mis. `manager` + `staff`).
 
-| Area | Staff | Manajer | Admin HR | Admin IT | Super Admin |
-| --- | --- | --- | --- | --- | --- |
-| Profil karyawan | own: baca + ubah data pribadi terbatas | team: baca | all: CRUD | all: baca direktori dasar | all |
-| Kontrak & riwayat jabatan | own: baca | — | all: CRUD | — | all |
-| Absensi | own: baca + check-in/out | team: baca | all: baca + koreksi | — | all |
-| Cuti | own: ajukan/baca/batalkan | team: baca + setujui/tolak | all: baca + override + konfigurasi | — | all |
-| Payroll & slip gaji | own: baca slip yang sudah dipublikasi | — (tidak melihat gaji tim) | all: kelola | — | all |
-| Kinerja | own: isi self-review | team: review | all: kelola periode & finalisasi | — | all |
-| Rekrutmen | — | pewawancara: input hasil wawancara | all: CRUD | — | all |
-| Pelatihan | own: baca | team: baca | all: CRUD | — | all |
-| User & role | — | — | — | all (kecuali role `super_admin`) | all |
-| Aset & lisensi | own: lihat aset yang dipegang | — | baca | all: CRUD | all |
-| Dokumen/SOP | baca dokumen sesuai visibility | baca sesuai visibility | unggah/kelola kategori HR | all: CRUD | all |
-| Audit log | — | — | — | all: baca | all: baca |
+| Area                      | Staff                                  | Manajer                            | Admin HR                           | Admin IT                         | Super Admin |
+| ------------------------- | -------------------------------------- | ---------------------------------- | ---------------------------------- | -------------------------------- | ----------- |
+| Profil karyawan           | own: baca + ubah data pribadi terbatas | team: baca                         | all: CRUD                          | all: baca direktori dasar        | all         |
+| Kontrak & riwayat jabatan | own: baca                              | —                                  | all: CRUD                          | —                                | all         |
+| Absensi                   | own: baca + check-in/out               | team: baca                         | all: baca + koreksi                | —                                | all         |
+| Cuti                      | own: ajukan/baca/batalkan              | team: baca + setujui/tolak         | all: baca + override + konfigurasi | —                                | all         |
+| Payroll & slip gaji       | own: baca slip yang sudah dipublikasi  | — (tidak melihat gaji tim)         | all: kelola                        | —                                | all         |
+| Kinerja                   | own: isi self-review                   | team: review                       | all: kelola periode & finalisasi   | —                                | all         |
+| Rekrutmen                 | —                                      | pewawancara: input hasil wawancara | all: CRUD                          | —                                | all         |
+| Pelatihan                 | own: baca                              | team: baca                         | all: CRUD                          | —                                | all         |
+| User & role               | —                                      | —                                  | —                                  | all (kecuali role `super_admin`) | all         |
+| Aset & lisensi            | own: lihat aset yang dipegang          | —                                  | baca                               | all: CRUD                        | all         |
+| Dokumen/SOP               | baca dokumen sesuai visibility         | baca sesuai visibility             | unggah/kelola kategori HR          | all: CRUD                        | all         |
+| Audit log                 | —                                      | —                                  | —                                  | all: baca                        | all: baca   |
 
 Matriks ini adalah **mapping default** (`ROLE_PERMISSIONS`) yang di-seed ke database dan dapat disesuaikan lewat UI Role & Access Management (Fase 3). Daftar `PERMISSIONS` dibuat lengkap per modul berdasarkan tabel ini.
 
@@ -878,8 +890,11 @@ Semua file (kontrak, lampiran cuti, CV, slip gaji PDF, dokumen/SOP, foto) disimp
 
 ```ts
 export interface StorageProvider {
-  put(key: string, body: Buffer | NodeJS.ReadableStream, opts: { contentType: string }):
-    Promise<{ key: string; size: number; sha256: string }>;
+  put(
+    key: string,
+    body: Buffer | NodeJS.ReadableStream,
+    opts: { contentType: string },
+  ): Promise<{ key: string; size: number; sha256: string }>;
   get(key: string): Promise<{ stream: NodeJS.ReadableStream; size: number; contentType?: string }>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
@@ -911,6 +926,7 @@ export interface StorageProvider {
 - Dependensi: jalankan `pnpm audit` berkala dan perbarui patch keamanan.
 
 ---
+
 ## 10. Docker, VPS, dan deployment
 
 ### 10.1 Gambaran
@@ -1150,7 +1166,7 @@ services:
 
 networks:
   internal:
-    internal: true      # postgres tidak punya akses keluar/masuk dari internet
+    internal: true # postgres tidak punya akses keluar/masuk dari internet
   web: {}
 
 volumes:
@@ -1334,14 +1350,15 @@ Migrasi bertahap agar operasional harian tidak terganggu (sesuai blueprint):
 - Selalu jalankan dulu di database lokal/staging dan cocokkan hasilnya dengan sumber (jumlah baris, total gaji, sampel manual) sebelum menyentuh produksi.
 
 ---
+
 ## 12. Testing & kualitas kode
 
-| Jenis | Alat | Cakupan wajib |
-| --- | --- | --- |
-| Unit | Vitest | `can()`/scope RBAC, hitung hari kerja & saldo cuti, deteksi overlap cuti, kalkulasi payroll, enkripsi/dekripsi kolom, sanitasi key storage (path traversal), formatter id-ID |
-| Integrasi | Vitest + PostgreSQL nyata | Service layer terhadap database `pspk_platform_test`: alur cuti, versi dokumen, satu assignment aktif per aset, append-only audit |
-| E2E | Playwright | Login; ajukan cuti → setujui → saldo berkurang; unggah SOP versi baru; staff ditolak mengakses halaman/dokumen terlarang |
-| Statis | ESLint, `tsc --noEmit`, Prettier | Berjalan di `pnpm lint` / `pnpm typecheck` |
+| Jenis     | Alat                             | Cakupan wajib                                                                                                                                                                |
+| --------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit      | Vitest                           | `can()`/scope RBAC, hitung hari kerja & saldo cuti, deteksi overlap cuti, kalkulasi payroll, enkripsi/dekripsi kolom, sanitasi key storage (path traversal), formatter id-ID |
+| Integrasi | Vitest + PostgreSQL nyata        | Service layer terhadap database `pspk_platform_test`: alur cuti, versi dokumen, satu assignment aktif per aset, append-only audit                                            |
+| E2E       | Playwright                       | Login; ajukan cuti → setujui → saldo berkurang; unggah SOP versi baru; staff ditolak mengakses halaman/dokumen terlarang                                                     |
+| Statis    | ESLint, `tsc --noEmit`, Prettier | Berjalan di `pnpm lint` / `pnpm typecheck`                                                                                                                                   |
 
 - **Database test terpisah** (`pspk_platform_test`). Skrip test yang mereset database **wajib memeriksa** nama database berakhiran `_test` sebelum menjalankan `prisma migrate reset --force`, dan menolak berjalan jika tidak.
 - Uji otorisasi secara negatif: untuk setiap server action sensitif harus ada test bahwa peran yang tidak berhak ditolak.
@@ -1355,13 +1372,13 @@ Migrasi bertahap agar operasional harian tidak terganggu (sesuai blueprint):
 
 ### 13.1 Brand PSPK
 
-| Token | Nilai | Pemakaian |
-| --- | --- | --- |
-| `navy` | `#102E50` | Warna utama: sidebar, header, teks judul, tombol utama |
-| `gold` | `#F2AF3E` | Aksen: tombol sekunder/CTA, highlight, indikator aktif |
-| `maroon` | `#A8281C` | Aksi berbahaya/hapus, error, peringatan penting |
-| Heading | **Lora** | `h1`–`h3`, judul kartu |
-| Body | **Rubik** | Teks, tabel, form |
+| Token    | Nilai     | Pemakaian                                              |
+| -------- | --------- | ------------------------------------------------------ |
+| `navy`   | `#102E50` | Warna utama: sidebar, header, teks judul, tombol utama |
+| `gold`   | `#F2AF3E` | Aksen: tombol sekunder/CTA, highlight, indikator aktif |
+| `maroon` | `#A8281C` | Aksi berbahaya/hapus, error, peringatan penting        |
+| Heading  | **Lora**  | `h1`–`h3`, judul kartu                                 |
+| Body     | **Rubik** | Teks, tabel, form                                      |
 
 `packages/ui/src/brand.css` (Tailwind v4, konfigurasi berbasis CSS; untuk Tailwind v3 buat preset `tailwind.config` yang setara):
 
@@ -1403,18 +1420,20 @@ Migrasi bertahap agar operasional harian tidak terganggu (sesuai blueprint):
 
 Roadmap mengikuti blueprint, disesuaikan untuk VPS + Docker. Estimasi bersifat indikatif dan perlu disesuaikan dengan ketersediaan tim serta hasil audit data pada Fase 1.
 
-| Fase | Fokus | Estimasi |
-| --- | --- | --- |
+| Fase  | Fokus                                                                                                                                                                                              | Estimasi   |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | **1** | Audit data existing, finalisasi skema database, setup monorepo & environment (**Docker + PostgreSQL lokal**, pengganti Vercel + Supabase), kerangka auth & RBAC, validasi Docker produksi di lokal | 2–3 minggu |
-| **2** | HRIS Core: data karyawan, absensi & cuti | 4–6 minggu |
-| **3** | System Management: RBAC UI, manajemen aset, dokumen/SOP, viewer audit log (**paralel dengan Fase 2**) | 3–4 minggu |
-| **4** | Payroll & Kinerja, migrasi data historis; Rekrutmen & Pelatihan di akhir fase atau pasca go-live | 4–6 minggu |
-| **5** | UAT, pelatihan pengguna, **provisioning & deploy VPS produksi**, go-live bertahap | 2–3 minggu |
+| **2** | HRIS Core: data karyawan, absensi & cuti                                                                                                                                                           | 4–6 minggu |
+| **3** | System Management: RBAC UI, manajemen aset, dokumen/SOP, viewer audit log (**paralel dengan Fase 2**)                                                                                              | 3–4 minggu |
+| **4** | Payroll & Kinerja, migrasi data historis; Rekrutmen & Pelatihan di akhir fase atau pasca go-live                                                                                                   | 4–6 minggu |
+| **5** | UAT, pelatihan pengguna, **provisioning & deploy VPS produksi**, go-live bertahap                                                                                                                  | 2–3 minggu |
 
 ### Fase 1
+
 Checklist di Bagian 5.11.
 
 ### Fase 2 — HRIS Core
+
 - [ ] Skema `hris` (karyawan, departemen/jabatan, kontrak, absensi, libur, cuti) ter-migrate; seed jenis cuti sesuai kesepakatan HR.
 - [ ] CRUD karyawan + kontrak + riwayat jabatan; field sensitif terenkripsi, di-mask, dan `VIEW_SENSITIVE` diaudit.
 - [ ] Absensi check-in/out + rekap + koreksi HR beralasan.
@@ -1424,6 +1443,7 @@ Checklist di Bagian 5.11.
 - [ ] Semua mutasi tercatat di audit log; `pnpm lint/typecheck/test/build` hijau.
 
 ### Fase 3 — System Management
+
 - [ ] Skema `sysmgmt` ter-migrate.
 - [ ] UI user & role: undang, nonaktifkan, tugaskan role, edit mapping role↔permission; proteksi super admin terakhir.
 - [ ] Aset & lisensi: CRUD, assignment/return, riwayat, peringatan kedaluwarsa, impor Excel.
@@ -1432,6 +1452,7 @@ Checklist di Bagian 5.11.
 - [ ] `StorageProvider` lokal teruji.
 
 ### Fase 4 — Payroll, Kinerja, (Rekrutmen/Pelatihan)
+
 - [ ] Aturan payroll dikonfirmasi tertulis oleh HR/keuangan (`docs/OPEN_QUESTIONS.md` terjawab) sebelum implementasi.
 - [ ] Alur periode payroll, slip snapshot, PDF slip, halaman slip staff; manajer tidak bisa melihat gaji tim (teruji).
 - [ ] Kalkulasi payroll punya unit test dengan kasus nyata dari HR; validasi berlapis sebelum `PUBLISHED`.
@@ -1440,6 +1461,7 @@ Checklist di Bagian 5.11.
 - [ ] (Opsional) Rekrutmen & Pelatihan.
 
 ### Fase 5 — UAT & go-live
+
 - [ ] VPS diprovisioning sesuai Bagian 10.8; DNS & HTTPS aktif; PostgreSQL tidak terekspos publik.
 - [ ] Role database aplikasi terpisah + pencabutan `UPDATE/DELETE` audit log terverifikasi.
 - [ ] Backup harian otomatis + salinan di luar VPS; **restore berhasil diuji**.
@@ -1484,7 +1506,7 @@ sebelum fitur dokumen. Pastikan audit log append-only dan viewer-nya berfungsi.
 Laporkan setelah checklist selesai.
 ```
 
-**Fase 4** *(jalankan hanya setelah aturan payroll dikonfirmasi)*
+**Fase 4** _(jalankan hanya setelah aturan payroll dikonfirmasi)_
 
 ```
 Baca AGENTS.md dan docs/OPEN_QUESTIONS.md. Kerjakan HANYA Fase 4 (Bagian 8.5, 8.6,
@@ -1506,21 +1528,21 @@ untuk tiap perintah.
 
 ## 16. Pertanyaan terbuka (catat jawabannya di `docs/OPEN_QUESTIONS.md`)
 
-| # | Pertanyaan | Dibutuhkan sebelum |
-| --- | --- | --- |
-| 1 | Domain/subdomain final, penyedia VPS, dan spesifikasi VPS? | Fase 5 |
-| 2 | Metode absensi: check-in web saja, geolokasi, atau impor dari mesin absensi? Jadwal kerja/jam masuk standar? | Fase 2 |
-| 3 | Kebijakan cuti: jenis, kuota, carry-over, aturan cuti bersama/hari libur nasional? | Fase 2 |
-| 4 | Struktur organisasi & atasan: cukup satu tingkat approval, atau bertingkat? | Fase 2 |
-| 5 | Format nomor pegawai dan nomor aset? | Fase 2/3 |
-| 6 | Aturan payroll: komponen gaji/tunjangan/potongan, BPJS, PPh 21, tanggal cut-off, pembulatan, aturan THR, potongan cuti tak berbayar? | Fase 4 |
-| 7 | Hasil audit data existing: format Excel dan fungsi aplikasi pihak ketiga yang perlu diganti? | Fase 1 |
-| 8 | Perlu notifikasi email (SMTP)? Penyedia SMTP apa? Perlu "lupa password" via email? | Fase 2 |
-| 9 | Perlu SSO (Google Workspace/Microsoft 365) atau cukup email + password? 2FA untuk admin? | Fase 1/2 |
-| 10 | Kebijakan retensi data (karyawan resign, audit log, slip gaji) dan kebutuhan kepatuhan UU PDP? | Fase 2 |
-| 11 | Zona waktu operasional (kantor/staf tersebar di lebih dari satu zona)? Default `Asia/Jakarta`. | Fase 1 |
-| 12 | Apakah Pemantik akan dipindah ke VPS yang sama atau tetap terpisah? Apakah RBAC/UI akan dipakai bersama? | Pasca Fase 3 |
-| 13 | Rekrutmen & Pelatihan: masuk sebelum go-live atau pasca go-live? | Fase 4 |
+| #   | Pertanyaan                                                                                                                           | Dibutuhkan sebelum |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------ |
+| 1   | Domain/subdomain final, penyedia VPS, dan spesifikasi VPS?                                                                           | Fase 5             |
+| 2   | Metode absensi: check-in web saja, geolokasi, atau impor dari mesin absensi? Jadwal kerja/jam masuk standar?                         | Fase 2             |
+| 3   | Kebijakan cuti: jenis, kuota, carry-over, aturan cuti bersama/hari libur nasional?                                                   | Fase 2             |
+| 4   | Struktur organisasi & atasan: cukup satu tingkat approval, atau bertingkat?                                                          | Fase 2             |
+| 5   | Format nomor pegawai dan nomor aset?                                                                                                 | Fase 2/3           |
+| 6   | Aturan payroll: komponen gaji/tunjangan/potongan, BPJS, PPh 21, tanggal cut-off, pembulatan, aturan THR, potongan cuti tak berbayar? | Fase 4             |
+| 7   | Hasil audit data existing: format Excel dan fungsi aplikasi pihak ketiga yang perlu diganti?                                         | Fase 1             |
+| 8   | Perlu notifikasi email (SMTP)? Penyedia SMTP apa? Perlu "lupa password" via email?                                                   | Fase 2             |
+| 9   | Perlu SSO (Google Workspace/Microsoft 365) atau cukup email + password? 2FA untuk admin?                                             | Fase 1/2           |
+| 10  | Kebijakan retensi data (karyawan resign, audit log, slip gaji) dan kebutuhan kepatuhan UU PDP?                                       | Fase 2             |
+| 11  | Zona waktu operasional (kantor/staf tersebar di lebih dari satu zona)? Default `Asia/Jakarta`.                                       | Fase 1             |
+| 12  | Apakah Pemantik akan dipindah ke VPS yang sama atau tetap terpisah? Apakah RBAC/UI akan dipakai bersama?                             | Pasca Fase 3       |
+| 13  | Rekrutmen & Pelatihan: masuk sebelum go-live atau pasca go-live?                                                                     | Fase 4             |
 
 ---
 
@@ -1528,21 +1550,21 @@ untuk tiap perintah.
 
 ### 17.1 Variabel environment
 
-| Variabel | Dev | Prod | Keterangan |
-| --- | --- | --- | --- |
-| `DATABASE_URL` | ✔ | ✔ | Prod: memakai role `APP_DB_USER`; job migrate memakai role pemilik |
-| `HRIS_URL`, `SYSMGMT_URL` | ✔ | ✔ | URL publik tiap app |
-| `AUTH_SECRET` | ✔ | ✔ | ≥ 32 byte acak; sama untuk kedua app |
-| `AUTH_COOKIE_DOMAIN` | kosong | `.domain-pspk.example` | Berbagi sesi antar subdomain |
-| `DATA_ENCRYPTION_KEY` | ✔ | ✔ | Kunci AES-256 (base64, 32 byte); **backup terpisah** |
-| `STORAGE_DRIVER` | `local` | `local` | `s3` di masa depan |
-| `STORAGE_LOCAL_DIR` | `./.data/uploads` | `/app/uploads` | |
-| `MAX_UPLOAD_MB` | `25` | `25` | Selaraskan dengan Caddy `request_body` |
-| `APP_TIMEZONE` | `Asia/Jakarta` | `Asia/Jakarta` | Zona waktu tampilan |
-| `POSTGRES_DB/USER/PASSWORD` | — | ✔ | Kredensial pemilik database (compose prod) |
-| `APP_DB_USER/PASSWORD` | — | ✔ | Role aplikasi non-owner |
-| `HRIS_DOMAIN`, `SYSMGMT_DOMAIN` | — | ✔ | Untuk Caddy dan URL publik |
-| `SEED_ADMIN_EMAIL/PASSWORD`, `SEED_DEMO` | ✔ | sementara | Jangan disimpan permanen di server |
+| Variabel                                 | Dev               | Prod                   | Keterangan                                                         |
+| ---------------------------------------- | ----------------- | ---------------------- | ------------------------------------------------------------------ |
+| `DATABASE_URL`                           | ✔                 | ✔                      | Prod: memakai role `APP_DB_USER`; job migrate memakai role pemilik |
+| `HRIS_URL`, `SYSMGMT_URL`                | ✔                 | ✔                      | URL publik tiap app                                                |
+| `AUTH_SECRET`                            | ✔                 | ✔                      | ≥ 32 byte acak; sama untuk kedua app                               |
+| `AUTH_COOKIE_DOMAIN`                     | kosong            | `.domain-pspk.example` | Berbagi sesi antar subdomain                                       |
+| `DATA_ENCRYPTION_KEY`                    | ✔                 | ✔                      | Kunci AES-256 (base64, 32 byte); **backup terpisah**               |
+| `STORAGE_DRIVER`                         | `local`           | `local`                | `s3` di masa depan                                                 |
+| `STORAGE_LOCAL_DIR`                      | `./.data/uploads` | `/app/uploads`         |                                                                    |
+| `MAX_UPLOAD_MB`                          | `25`              | `25`                   | Selaraskan dengan Caddy `request_body`                             |
+| `APP_TIMEZONE`                           | `Asia/Jakarta`    | `Asia/Jakarta`         | Zona waktu tampilan                                                |
+| `POSTGRES_DB/USER/PASSWORD`              | —                 | ✔                      | Kredensial pemilik database (compose prod)                         |
+| `APP_DB_USER/PASSWORD`                   | —                 | ✔                      | Role aplikasi non-owner                                            |
+| `HRIS_DOMAIN`, `SYSMGMT_DOMAIN`          | —                 | ✔                      | Untuk Caddy dan URL publik                                         |
+| `SEED_ADMIN_EMAIL/PASSWORD`, `SEED_DEMO` | ✔                 | sementara              | Jangan disimpan permanen di server                                 |
 
 ### 17.2 Ringkasan perintah
 
@@ -1569,4 +1591,4 @@ docker compose -f docker-compose.prod.yml logs -f --tail=100 hris sysmgmt
 
 ### 17.3 Referensi
 
-Struktur modul, peran, rencana migrasi, roadmap, dan brand bersumber dari dokumen *Analisis & Blueprint HRIS & System Management PSPK* (September 2026). Bagian 7 blueprint (analisis biaya Vercel & Supabase) tidak dipakai lagi karena hosting berpindah ke VPS + Docker; perhitungan biaya VPS dilakukan terpisah setelah penyedia dan spesifikasi ditentukan.
+Struktur modul, peran, rencana migrasi, roadmap, dan brand bersumber dari dokumen _Analisis & Blueprint HRIS & System Management PSPK_ (September 2026). Bagian 7 blueprint (analisis biaya Vercel & Supabase) tidak dipakai lagi karena hosting berpindah ke VPS + Docker; perhitungan biaya VPS dilakukan terpisah setelah penyedia dan spesifikasi ditentukan.

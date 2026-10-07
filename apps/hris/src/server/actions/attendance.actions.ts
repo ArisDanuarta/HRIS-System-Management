@@ -13,11 +13,7 @@ import {
   CheckOutInput,
   CorrectAttendanceInput,
 } from "../schemas/attendance.schema";
-import {
-  recordCheckIn,
-  recordCheckOut,
-  correctAttendance,
-} from "../services/attendance.service";
+import { recordCheckIn, recordCheckOut, correctAttendance } from "../services/attendance.service";
 
 async function getAuthenticatedUser(): Promise<{
   userId: string;

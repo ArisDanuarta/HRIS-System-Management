@@ -56,4 +56,3 @@ describe("Formula Kalkulasi Payroll PSPK", () => {
     expect(netAmount).toBe(0);
   });
 });
-

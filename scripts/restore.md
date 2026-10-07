@@ -27,5 +27,6 @@ docker run --rm -v pspk-platform_uploads:/data -v /path/to/backup:/backup alpine
 ```
 
 ## 3. Catatan Penting
+
 - `DATA_ENCRYPTION_KEY` harus sesuai dengan kunci yang aktif saat data dienkripsi.
 - Uji restore secara berkala pada database lokal/staging (`pspk_platform_test`).

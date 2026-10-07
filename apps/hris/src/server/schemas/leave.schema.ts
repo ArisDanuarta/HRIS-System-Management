@@ -1,12 +1,6 @@
 import { z } from "zod";
 
-export const leaveStatusEnum = z.enum([
-  "DRAFT",
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-  "CANCELLED",
-]);
+export const leaveStatusEnum = z.enum(["DRAFT", "PENDING", "APPROVED", "REJECTED", "CANCELLED"]);
 
 export const createLeaveRequestSchema = z.object({
   leaveTypeId: z.string().uuid({ message: "Pilih jenis cuti yang valid" }),
@@ -23,7 +17,10 @@ export const approveLeaveRequestSchema = z.object({
 
 export const rejectLeaveRequestSchema = z.object({
   leaveRequestId: z.string().uuid({ message: "ID Permohonan cuti tidak valid" }),
-  decisionNote: z.string().min(3, { message: "Catatan penolakan cuti wajib diisi minimal 3 karakter" }).max(500),
+  decisionNote: z
+    .string()
+    .min(3, { message: "Catatan penolakan cuti wajib diisi minimal 3 karakter" })
+    .max(500),
 });
 
 export const cancelLeaveRequestSchema = z.object({

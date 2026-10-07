@@ -101,9 +101,7 @@ export default async function CutiPage() {
           <h2 className="text-base font-bold text-[#102e50] font-heading">
             Riwayat Permohonan Cuti
           </h2>
-          <span className="text-xs text-gray-500">
-            Total {requests.length} pengajuan tercatat
-          </span>
+          <span className="text-xs text-gray-500">Total {requests.length} pengajuan tercatat</span>
         </div>
 
         <LeaveRequestTable requests={requests} />

@@ -74,7 +74,7 @@ function AddGoalModal({
     }
     if (currentTotalWeight + weight > 100) {
       setError(
-        `Total bobot melebihi 100%. Saat ini sudah ${currentTotalWeight}%, Anda hanya dapat menambah maksimal ${remainingWeight}%.`
+        `Total bobot melebihi 100%. Saat ini sudah ${currentTotalWeight}%, Anda hanya dapat menambah maksimal ${remainingWeight}%.`,
       );
       return;
     }
@@ -179,9 +179,7 @@ function AddGoalModal({
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Target Capaian
-              </label>
+              <label className="block font-semibold text-slate-700 mb-1">Target Capaian</label>
               <input
                 type="text"
                 placeholder="Misal: 2"
@@ -191,9 +189,7 @@ function AddGoalModal({
               />
             </div>
             <div>
-              <label className="block font-semibold text-slate-700 mb-1">
-                Satuan Output
-              </label>
+              <label className="block font-semibold text-slate-700 mb-1">Satuan Output</label>
               <input
                 type="text"
                 placeholder="Misal: Naskah / Policy Brief"
@@ -287,10 +283,25 @@ export function StaffSelfReviewForm({
 
   // Helper predikat evaluasi mandiri
   const getScorePredicate = (score: number) => {
-    if (score >= 90) return { label: "Sangat Baik (Melampaui Target)", color: "text-emerald-700 bg-emerald-50 border-emerald-200" };
-    if (score >= 80) return { label: "Baik (Sesuai Ekspektasi)", color: "text-blue-700 bg-blue-50 border-blue-200" };
-    if (score >= 70) return { label: "Cukup (Perlu Penguatan)", color: "text-amber-700 bg-amber-50 border-amber-200" };
-    return { label: "Perlu Peningkatan Signifikan", color: "text-rose-700 bg-rose-50 border-rose-200" };
+    if (score >= 90)
+      return {
+        label: "Sangat Baik (Melampaui Target)",
+        color: "text-emerald-700 bg-emerald-50 border-emerald-200",
+      };
+    if (score >= 80)
+      return {
+        label: "Baik (Sesuai Ekspektasi)",
+        color: "text-blue-700 bg-blue-50 border-blue-200",
+      };
+    if (score >= 70)
+      return {
+        label: "Cukup (Perlu Penguatan)",
+        color: "text-amber-700 bg-amber-50 border-amber-200",
+      };
+    return {
+      label: "Perlu Peningkatan Signifikan",
+      color: "text-rose-700 bg-rose-50 border-rose-200",
+    };
   };
 
   const predicateInfo = getScorePredicate(selfScore);
@@ -368,7 +379,8 @@ export function StaffSelfReviewForm({
                   1. Sasaran Riset & Target Kerja (OKR/KPI)
                 </h3>
                 <p className="text-[11px] text-slate-500">
-                  Daftarkan target kerja riset Anda dan cantumkan realisasi capaian yang berhasil Anda tuntaskan.
+                  Daftarkan target kerja riset Anda dan cantumkan realisasi capaian yang berhasil
+                  Anda tuntaskan.
                 </p>
               </div>
             </div>
@@ -379,8 +391,8 @@ export function StaffSelfReviewForm({
                   isGoalWeightValid
                     ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                     : calculatedTotalWeight > 100
-                    ? "bg-rose-50 text-rose-800 border-rose-200"
-                    : "bg-amber-50 text-amber-800 border-amber-200"
+                      ? "bg-rose-50 text-rose-800 border-rose-200"
+                      : "bg-amber-50 text-amber-800 border-amber-200"
                 }`}
               >
                 <Scale className="w-3.5 h-3.5" />
@@ -408,7 +420,8 @@ export function StaffSelfReviewForm({
                   Belum Ada Sasaran Riset Terdaftar
                 </h4>
                 <p className="text-xs text-slate-500 max-w-md mx-auto mt-1 leading-relaxed">
-                  Susun sasaran riset dan target kerja (OKR) Anda pada periode ini. Klik tombol di bawah untuk mendaftarkan target riset pertama Anda.
+                  Susun sasaran riset dan target kerja (OKR) Anda pada periode ini. Klik tombol di
+                  bawah untuk mendaftarkan target riset pertama Anda.
                 </p>
               </div>
               <button
@@ -433,9 +446,7 @@ export function StaffSelfReviewForm({
                         <span className="text-xs font-mono font-bold text-slate-400">
                           #{idx + 1}
                         </span>
-                        <h4 className="font-semibold text-xs text-slate-900">
-                          {goal.title}
-                        </h4>
+                        <h4 className="font-semibold text-xs text-slate-900">{goal.title}</h4>
                       </div>
                       {goal.description && (
                         <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed pl-5">
@@ -498,15 +509,14 @@ export function StaffSelfReviewForm({
                   2. Skor Penilaian Diri (0–100)
                 </h3>
                 <p className="text-[11px] text-slate-500">
-                  Berikan estimasi penilaian objektif atas kedisiplinan, kualitas riset, dan dampak kerja Anda.
+                  Berikan estimasi penilaian objektif atas kedisiplinan, kualitas riset, dan dampak
+                  kerja Anda.
                 </p>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="text-2xl font-bold font-mono text-[#102E50]">
-                {selfScore}
-              </span>
+              <span className="text-2xl font-bold font-mono text-[#102E50]">{selfScore}</span>
               <span className="text-xs text-slate-400"> / 100</span>
             </div>
           </div>
@@ -515,7 +525,9 @@ export function StaffSelfReviewForm({
             <div>
               <div className="flex items-center justify-between text-xs text-slate-600 mb-1.5">
                 <span>Geser untuk menyesuaikan skor:</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${predicateInfo.color}`}>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${predicateInfo.color}`}
+                >
                   {predicateInfo.label}
                 </span>
               </div>
@@ -550,7 +562,8 @@ export function StaffSelfReviewForm({
                 3. Refleksi Capaian & Catatan Pembelajaran
               </h3>
               <p className="text-[11px] text-slate-500">
-                Uraikan keberhasilan terbesar, kendala operasional/metodologi, serta dukungan yang Anda perlukan.
+                Uraikan keberhasilan terbesar, kendala operasional/metodologi, serta dukungan yang
+                Anda perlukan.
               </p>
             </div>
           </div>
@@ -611,7 +624,8 @@ export function StaffSelfReviewForm({
                   <strong className="text-[#102E50] font-mono font-bold text-sm">
                     {selfScore}/100
                   </strong>{" "}
-                  untuk {goals.length} target sasaran. Setelah dikirim, lembar evaluasi akan terkunci dan diteruskan ke atasan Anda (
+                  untuk {goals.length} target sasaran. Setelah dikirim, lembar evaluasi akan
+                  terkunci dan diteruskan ke atasan Anda (
                   <strong>{reviewerName || "Atasan"}</strong>) untuk ditinjau.
                 </p>
               </div>

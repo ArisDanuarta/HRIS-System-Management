@@ -1,8 +1,4 @@
-import {
-  prisma,
-  SYSTEM_MODULE_DEFINITIONS,
-  SystemModuleDefinition,
-} from "@pspk/db";
+import { prisma, SYSTEM_MODULE_DEFINITIONS, SystemModuleDefinition } from "@pspk/db";
 
 export interface ModuleConfigItem extends SystemModuleDefinition {
   isEnabled: boolean;

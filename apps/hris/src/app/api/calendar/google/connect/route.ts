@@ -19,15 +19,12 @@ export async function GET(req: Request) {
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) {
-    return NextResponse.redirect(
-      new URL("/kalender?error=oauth_not_configured", req.url),
-    );
+    return NextResponse.redirect(new URL("/kalender?error=oauth_not_configured", req.url));
   }
 
   const origin = new URL(req.url).origin;
   const redirectUri =
-    process.env.GOOGLE_OAUTH_REDIRECT_URI ||
-    `${origin}/api/calendar/google/callback`;
+    process.env.GOOGLE_OAUTH_REDIRECT_URI || `${origin}/api/calendar/google/callback`;
 
   // Token state anti-CSRF
   const stateToken = crypto.randomBytes(24).toString("hex");

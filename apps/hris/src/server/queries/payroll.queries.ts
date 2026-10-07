@@ -46,10 +46,7 @@ export async function getPayrollPeriods(filter?: GetPayrollPeriodsFilter) {
   return periods.map((p) => {
     const totalEmployees = p.payslips.length;
     const totalGross = p.payslips.reduce((acc, curr) => acc + Number(curr.grossAmount), 0);
-    const totalDeduction = p.payslips.reduce(
-      (acc, curr) => acc + Number(curr.totalDeduction),
-      0,
-    );
+    const totalDeduction = p.payslips.reduce((acc, curr) => acc + Number(curr.totalDeduction), 0);
     const totalNet = p.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
 
     return {
@@ -219,10 +216,7 @@ export async function getPayrollStats() {
 
   if (activePeriod) {
     currentPeriodEmployeesProcessed = activePeriod.payslips.length;
-    currentPeriodNet = activePeriod.payslips.reduce(
-      (acc, curr) => acc + Number(curr.netAmount),
-      0,
-    );
+    currentPeriodNet = activePeriod.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
   }
 
   return {

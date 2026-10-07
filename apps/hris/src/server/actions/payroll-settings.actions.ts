@@ -79,7 +79,11 @@ export async function updatePayrollSettingsAction(
 
     // Hanya enkripsi ulang jika nomor rekening diubah dan bukan placeholder ter-masking
     const rawAcc = data.senderBankAccount.trim();
-    if (!rawAcc.startsWith("••••") && !rawAcc.includes("••••") && rawAcc !== "[Tersimpan Terenkripsi]") {
+    if (
+      !rawAcc.startsWith("••••") &&
+      !rawAcc.includes("••••") &&
+      rawAcc !== "[Tersimpan Terenkripsi]"
+    ) {
       encryptedBankAcc = encryptField(rawAcc);
     }
 

@@ -245,7 +245,9 @@ export function OrgChartView({ data, isHrOrAdmin = false }: OrgChartViewProps) {
               onChange={(e) => setSelectedDepartment(e.target.value)}
               className="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50] cursor-pointer text-slate-700"
             >
-              <option value="ALL">Semua Divisi ({data.departments.reduce((acc, d) => acc + d.count, 0)})</option>
+              <option value="ALL">
+                Semua Divisi ({data.departments.reduce((acc, d) => acc + d.count, 0)})
+              </option>
               {data.departments.map((dept) => (
                 <option key={dept.id} value={dept.id}>
                   {dept.name} ({dept.count})
@@ -350,7 +352,8 @@ export function OrgChartView({ data, isHrOrAdmin = false }: OrgChartViewProps) {
               <Building2 className="w-12 h-12 mx-auto text-slate-300 mb-3" />
               <h3 className="font-bold text-slate-800 text-base">Tidak Ditemukan Struktur</h3>
               <p className="text-xs text-slate-500 mt-1">
-                Tidak ada data pegawai yang sesuai dengan filter divisi atau kriteria pencarian Anda.
+                Tidak ada data pegawai yang sesuai dengan filter divisi atau kriteria pencarian
+                Anda.
               </p>
             </div>
           ) : (
@@ -479,7 +482,8 @@ export function OrgChartView({ data, isHrOrAdmin = false }: OrgChartViewProps) {
 
             <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>
-                💡 Tip: Buka menu <b>Ubah Data Pegawai</b> untuk memilih atasan langsung dari formasi pimpinan.
+                💡 Tip: Buka menu <b>Ubah Data Pegawai</b> untuk memilih atasan langsung dari
+                formasi pimpinan.
               </span>
               <button
                 type="button"
@@ -532,8 +536,8 @@ function TreeNode({
           isHighlighted
             ? "border-[#F2AF3E] ring-4 ring-[#F2AF3E]/30 shadow-lg scale-105"
             : node.level === 1
-            ? "border-[#102E50] ring-1 ring-[#102E50]/20"
-            : "border-slate-200/90 hover:border-[#102E50]/60"
+              ? "border-[#102E50] ring-1 ring-[#102E50]/20"
+              : "border-slate-200/90 hover:border-[#102E50]/60"
         }`}
       >
         {/* Top Level Pill */}
@@ -543,8 +547,8 @@ function TreeNode({
               node.level === 1
                 ? "bg-[#102E50] text-white"
                 : node.level === 2
-                ? "bg-[#eff4ff] text-[#102E50] border border-[#dee9fc]"
-                : "bg-slate-100 text-slate-600"
+                  ? "bg-[#eff4ff] text-[#102E50] border border-[#dee9fc]"
+                  : "bg-slate-100 text-slate-600"
             }`}
           >
             Level {node.level} • {node.departmentName}
@@ -587,7 +591,10 @@ function TreeNode({
             >
               {node.fullName}
             </h4>
-            <p className="text-[11px] text-slate-600 font-medium truncate mt-0.5" title={node.positionTitle}>
+            <p
+              className="text-[11px] text-slate-600 font-medium truncate mt-0.5"
+              title={node.positionTitle}
+            >
               {node.positionTitle}
             </p>
             <div className="text-[10px] text-slate-400 truncate mt-0.5">
@@ -642,7 +649,9 @@ function TreeNode({
             title={isCollapsed ? `Tampilkan ${node.children.length} bawahan` : "Tutup bawahan"}
           >
             {isCollapsed ? (
-              <span className="text-[10px] font-extrabold leading-none">+{node.children.length}</span>
+              <span className="text-[10px] font-extrabold leading-none">
+                +{node.children.length}
+              </span>
             ) : (
               <ChevronUp className="w-3 h-3" />
             )}
@@ -734,8 +743,8 @@ function ListItemNode({ node, depth, searchQuery, isHrOrAdmin }: ListItemNodePro
           isMatched
             ? "border-[#F2AF3E] bg-amber-50/30"
             : depth === 0
-            ? "border-[#102E50]/20 bg-slate-50/50"
-            : "border-slate-200/70 hover:border-slate-300 bg-white"
+              ? "border-[#102E50]/20 bg-slate-50/50"
+              : "border-slate-200/70 hover:border-slate-300 bg-white"
         }`}
         style={{ marginLeft: `${depth * 28}px` }}
       >

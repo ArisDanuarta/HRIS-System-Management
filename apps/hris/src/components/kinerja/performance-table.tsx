@@ -1,19 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {
-  Search,
-  Filter,
-  Eye,
-  CheckCircle2,
-  Clock,
-  FileText,
-  Layers,
-} from "lucide-react";
-import {
-  PerformanceDetailModal,
-  PerformanceReviewItem,
-} from "./performance-detail-modal";
+import { Search, Filter, Eye, CheckCircle2, Clock, FileText, Layers } from "lucide-react";
+import { PerformanceDetailModal, PerformanceReviewItem } from "./performance-detail-modal";
 
 interface PerformanceTableProps {
   reviews: PerformanceReviewItem[];
@@ -98,9 +87,7 @@ export function PerformanceTable({
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">
-            {st}
-          </span>
+          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">{st}</span>
         );
     }
   };
@@ -194,7 +181,9 @@ export function PerformanceTable({
                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                         <Layers className="w-5 h-5" />
                       </div>
-                      <p className="font-medium text-slate-600">Tidak ada data pegawai yang sesuai filter</p>
+                      <p className="font-medium text-slate-600">
+                        Tidak ada data pegawai yang sesuai filter
+                      </p>
                       <p className="text-[11px] text-slate-400">
                         Coba sesuaikan kata kunci pencarian atau ubah filter divisi.
                       </p>
@@ -265,9 +254,7 @@ export function PerformanceTable({
                       </td>
 
                       {/* Status Review */}
-                      <td className="py-3 px-4 text-center">
-                        {getStatusBadge(r.status)}
-                      </td>
+                      <td className="py-3 px-4 text-center">{getStatusBadge(r.status)}</td>
 
                       {/* Skor Akhir & Predikat */}
                       <td className="py-3 px-4 text-center">

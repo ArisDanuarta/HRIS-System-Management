@@ -60,7 +60,10 @@ export async function getPerformancePeriods(): Promise<PerformancePeriodSummary[
 
     let averageScore: number | null = null;
     if (finalizedCount > 0) {
-      const sum = finalized.reduce((acc, curr) => acc + (curr.finalScore ? Number(curr.finalScore) : 0), 0);
+      const sum = finalized.reduce(
+        (acc, curr) => acc + (curr.finalScore ? Number(curr.finalScore) : 0),
+        0,
+      );
       averageScore = Math.round((sum / finalizedCount) * 10) / 10;
     }
 
@@ -114,7 +117,7 @@ export async function getPerformanceOverviewStats(
     teamManagerId?: string;
     managerDepartmentId?: string;
     excludeEmployeeId?: string;
-  }
+  },
 ) {
   const where: Prisma.PerformanceReviewWhereInput = {
     periodId,
@@ -168,7 +171,10 @@ export async function getPerformanceOverviewStats(
 
   let averageScore = 0;
   if (finalizedCount > 0) {
-    const totalScore = finalized.reduce((acc, curr) => acc + (curr.finalScore ? Number(curr.finalScore) : 0), 0);
+    const totalScore = finalized.reduce(
+      (acc, curr) => acc + (curr.finalScore ? Number(curr.finalScore) : 0),
+      0,
+    );
     averageScore = Math.round((totalScore / finalizedCount) * 10) / 10;
   }
 
@@ -186,7 +192,8 @@ export async function getPerformanceOverviewStats(
     finalizedCount,
     averageScore,
     completeGoalsCount,
-    participationRate: totalReviews > 0 ? Math.round(((totalReviews - draftCount) / totalReviews) * 100) : 0,
+    participationRate:
+      totalReviews > 0 ? Math.round(((totalReviews - draftCount) / totalReviews) * 100) : 0,
     completionRate: totalReviews > 0 ? Math.round((finalizedCount / totalReviews) * 100) : 0,
   };
 }
@@ -195,7 +202,8 @@ export async function getPerformanceOverviewStats(
  * Mengambil daftar seluruh review kinerja pegawai untuk periode tertentu
  */
 export async function getPerformanceReviewsByPeriod(periodId: string, filter?: PerformanceFilter) {
-  const { departmentId, status, search, teamManagerId, managerDepartmentId, excludeEmployeeId } = filter || {};
+  const { departmentId, status, search, teamManagerId, managerDepartmentId, excludeEmployeeId } =
+    filter || {};
 
   const andConditions: Prisma.EmployeeWhereInput[] = [];
 
@@ -276,9 +284,7 @@ export async function getPerformanceReviewsByPeriod(periodId: string, filter?: P
         },
       },
     },
-    orderBy: [
-      { employee: { fullName: "asc" } },
-    ],
+    orderBy: [{ employee: { fullName: "asc" } }],
   });
 
   // Ambil goals untuk masing-masing employee pada periodId ini
@@ -489,7 +495,7 @@ export interface StaffPerformanceReviewData {
  */
 export async function getStaffPerformanceReview(
   employeeId: string,
-  periodId?: string
+  periodId?: string,
 ): Promise<StaffPerformanceReviewData | null> {
   const activePeriod = await getActivePerformancePeriod(periodId);
   if (!activePeriod) return null;
@@ -675,4 +681,3 @@ export async function getStaffPerformancePeriods(employeeId: string) {
     finalScore: r.finalScore ? Number(r.finalScore) : null,
   }));
 }
-

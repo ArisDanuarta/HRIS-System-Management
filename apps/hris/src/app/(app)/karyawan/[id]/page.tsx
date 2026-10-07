@@ -94,8 +94,7 @@ export default async function EmployeeDetailPage({
   }
 
   // Sanitasi Tab: Tab data sensitif dan akun hanya diizinkan untuk Admin HR / Super Admin
-  const effectiveTab =
-    !isHrOrAdmin && (tab === "sensitif" || tab === "akun") ? "biodata" : tab;
+  const effectiveTab = !isHrOrAdmin && (tab === "sensitif" || tab === "akun") ? "biodata" : tab;
 
   const initial = employee.fullName.charAt(0).toUpperCase();
 
@@ -109,7 +108,9 @@ export default async function EmployeeDetailPage({
         className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors w-fit"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
-        <span>{isManager && !isHrOrAdmin ? "Kembali ke Tim Saya" : "Kembali ke Direktori Pegawai"}</span>
+        <span>
+          {isManager && !isHrOrAdmin ? "Kembali ke Tim Saya" : "Kembali ke Direktori Pegawai"}
+        </span>
       </Link>
 
       {/* Profile Header Card */}
@@ -280,7 +281,11 @@ export default async function EmployeeDetailPage({
               <div>
                 <span className="text-slate-400 block mb-0.5">Jenis Kelamin</span>
                 <span className="font-semibold text-slate-800">
-                  {employee.gender === "MALE" ? "Laki-laki" : employee.gender === "FEMALE" ? "Perempuan" : "-"}
+                  {employee.gender === "MALE"
+                    ? "Laki-laki"
+                    : employee.gender === "FEMALE"
+                      ? "Perempuan"
+                      : "-"}
                 </span>
               </div>
 
@@ -298,7 +303,8 @@ export default async function EmployeeDetailPage({
               <div>
                 <span className="text-slate-400 block mb-0.5">Tempat, Tanggal Lahir</span>
                 <span className="font-semibold text-slate-800">
-                  {employee.birthPlace || "-"}, {employee.birthDate ? formatDate(employee.birthDate) : "-"}
+                  {employee.birthPlace || "-"},{" "}
+                  {employee.birthDate ? formatDate(employee.birthDate) : "-"}
                 </span>
               </div>
 
@@ -329,7 +335,9 @@ export default async function EmployeeDetailPage({
                 <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                 <div className="flex flex-col min-w-0">
                   <span className="text-[11px] text-slate-400">Email Kantor (Resmi)</span>
-                  <span className="font-semibold text-slate-800 truncate">{employee.workEmail}</span>
+                  <span className="font-semibold text-slate-800 truncate">
+                    {employee.workEmail}
+                  </span>
                 </div>
               </div>
 
@@ -375,7 +383,8 @@ export default async function EmployeeDetailPage({
               Data Pribadi Sensitif & Payroll Perbankan
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Nilai di bawah ini dilindungi enkripsi AES-256-GCM. Pembukaan data akan tercatat di sistem audit trail.
+              Nilai di bawah ini dilindungi enkripsi AES-256-GCM. Pembukaan data akan tercatat di
+              sistem audit trail.
             </p>
           </div>
 
@@ -465,7 +474,10 @@ export default async function EmployeeDetailPage({
               <tbody className="divide-y divide-slate-100">
                 {employee.contracts.length === 0 ? (
                   <tr>
-                    <td colSpan={isHrOrAdmin ? 6 : 5} className="py-8 text-center text-slate-400 italic">
+                    <td
+                      colSpan={isHrOrAdmin ? 6 : 5}
+                      className="py-8 text-center text-slate-400 italic"
+                    >
                       Belum ada riwayat kontrak kerja
                     </td>
                   </tr>
@@ -487,8 +499,8 @@ export default async function EmployeeDetailPage({
                           {contract.wageType === "HOURLY" && contract.hourlyRate
                             ? `${formatRupiah(contract.hourlyRate)} / jam`
                             : contract.baseSalary
-                            ? formatRupiah(contract.baseSalary)
-                            : "-"}
+                              ? formatRupiah(contract.baseSalary)
+                              : "-"}
                         </td>
                       )}
                       <td className="py-3 px-4">
@@ -633,4 +645,3 @@ export default async function EmployeeDetailPage({
     </div>
   );
 }
-

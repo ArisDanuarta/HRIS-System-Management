@@ -22,7 +22,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Kinerja & Riset — HRIS PSPK",
-  description: "Kelola siklus evaluasi sasaran riset kebijakan, OKR, dan review kinerja pegawai PSPK",
+  description:
+    "Kelola siklus evaluasi sasaran riset kebijakan, OKR, dan review kinerja pegawai PSPK",
 };
 
 interface PageProps {
@@ -63,7 +64,9 @@ export default async function PerformancePage({ searchParams }: PageProps) {
   const rawPreviewCookie = cookieStore.get("pspk_role_view")?.value;
   const activePreviewRole =
     isSuperAdmin &&
-    (rawPreviewCookie === "admin_hr" || rawPreviewCookie === "manager" || rawPreviewCookie === "staff")
+    (rawPreviewCookie === "admin_hr" ||
+      rawPreviewCookie === "manager" ||
+      rawPreviewCookie === "staff")
       ? rawPreviewCookie
       : null;
 
@@ -151,7 +154,8 @@ export default async function PerformancePage({ searchParams }: PageProps) {
           <div className="pb-4 border-b border-slate-200">
             <h1 className="text-xl font-bold text-slate-900 font-serif">Kinerja Tim</h1>
             <p className="text-xs text-slate-500">
-              Pantau sasaran riset kebijakan (OKR), evaluasi mandiri staf, dan penilaian kinerja anggota tim Anda.
+              Pantau sasaran riset kebijakan (OKR), evaluasi mandiri staf, dan penilaian kinerja
+              anggota tim Anda.
             </p>
           </div>
 
@@ -163,7 +167,8 @@ export default async function PerformancePage({ searchParams }: PageProps) {
               Belum Ada Periode Evaluasi Kinerja Aktif
             </h2>
             <p className="text-xs text-slate-500 leading-relaxed mb-6">
-              Divisi HR belum menginisiasi siklus evaluasi kinerja. Periode aktif akan tampil di sini setelah dibuka oleh HR.
+              Divisi HR belum menginisiasi siklus evaluasi kinerja. Periode aktif akan tampil di
+              sini setelah dibuka oleh HR.
             </p>
           </div>
         </div>
@@ -198,9 +203,7 @@ export default async function PerformancePage({ searchParams }: PageProps) {
         stats={stats}
         reviews={reviews}
         departments={
-          managerTeamInfo?.currentDepartment
-            ? [managerTeamInfo.currentDepartment]
-            : departments
+          managerTeamInfo?.currentDepartment ? [managerTeamInfo.currentDepartment] : departments
         }
         isManager={true}
         managerDepartmentName={managerTeamInfo?.currentDepartment?.name}
@@ -225,7 +228,8 @@ export default async function PerformancePage({ searchParams }: PageProps) {
         <div className="pb-4 border-b border-slate-200">
           <h1 className="text-xl font-bold text-slate-900 font-serif">Kinerja & Riset</h1>
           <p className="text-xs text-slate-500">
-            Kelola formula sasaran riset kebijakan (*OKR/KPI*), evaluasi staf, dan rekap penilaian kinerja organisasi.
+            Kelola formula sasaran riset kebijakan (*OKR/KPI*), evaluasi staf, dan rekap penilaian
+            kinerja organisasi.
           </p>
         </div>
 
@@ -237,7 +241,8 @@ export default async function PerformancePage({ searchParams }: PageProps) {
             Belum Ada Periode Evaluasi Kinerja
           </h2>
           <p className="text-xs text-slate-500 leading-relaxed mb-6">
-            Mulai siklus evaluasi pertama untuk menetapkan sasaran riset (OKR) dan menginisiasi lembar penilaian staf PSPK.
+            Mulai siklus evaluasi pertama untuk menetapkan sasaran riset (OKR) dan menginisiasi
+            lembar penilaian staf PSPK.
           </p>
         </div>
       </div>

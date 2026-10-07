@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  SYSTEM_MODULE_DEFINITIONS,
-  isModuleActive,
-  ModuleFlags,
-} from "./modules";
+import { SYSTEM_MODULE_DEFINITIONS, isModuleActive, ModuleFlags } from "./modules";
 
 describe("System Modules & Feature Flags", () => {
   it("harus memiliki 6 definisi modul sistem terstandarisasi", () => {

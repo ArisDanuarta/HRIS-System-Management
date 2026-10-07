@@ -344,14 +344,17 @@ export function TodayAttendanceCard({
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  todayAttendance?.status === "LATE" ? "bg-amber-500" : "bg-emerald-500 animate-pulse"
+                  todayAttendance?.status === "LATE"
+                    ? "bg-amber-500"
+                    : "bg-emerald-500 animate-pulse"
                 }`}
               />
               <span>
                 Hadir ({formatAttendanceTime(todayAttendance?.checkInAt)} {effectiveAbbr}
                 {!isWib && (
                   <span className="text-slate-500 font-normal">
-                    {" "}• {formatAttendanceTime(todayAttendance?.checkInAt, "Asia/Jakarta")} WIB
+                    {" "}
+                    • {formatAttendanceTime(todayAttendance?.checkInAt, "Asia/Jakarta")} WIB
                   </span>
                 )}
                 )
@@ -396,9 +399,7 @@ export function TodayAttendanceCard({
                 >
                   <Clock className="w-3.5 h-3.5 text-[#f2af3e]" />
                   <span>
-                    {!isWib
-                      ? `Kantor Pusat: ${secondaryTime}`
-                      : `Lokal Anda: ${secondaryTime}`}
+                    {!isWib ? `Kantor Pusat: ${secondaryTime}` : `Lokal Anda: ${secondaryTime}`}
                   </span>
                 </span>
               )}
@@ -408,7 +409,8 @@ export function TodayAttendanceCard({
           {/* Subtitle & Schedule */}
           {employeeName && (
             <p className="text-xs text-[#74777f]">
-              Presensi tercatat atas nama: <strong className="text-[#102e50] font-semibold">{employeeName}</strong>
+              Presensi tercatat atas nama:{" "}
+              <strong className="text-[#102e50] font-semibold">{employeeName}</strong>
             </p>
           )}
 
@@ -416,15 +418,26 @@ export function TodayAttendanceCard({
             <div className="inline-flex flex-wrap items-center gap-1.5 text-[11px] text-[#5b6675] mt-0.5 bg-slate-50 p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200/80">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               <span>
-                Jadwal kantor: <strong className="text-[#102e50]">{workSchedule.workStartTime} — {workSchedule.workEndTime} WIB</strong>
+                Jadwal kantor:{" "}
+                <strong className="text-[#102e50]">
+                  {workSchedule.workStartTime} — {workSchedule.workEndTime} WIB
+                </strong>
                 {!isWib && localWorkStart && localWorkEnd && (
                   <span className="text-[#102e50] font-semibold">
-                    {" "}(setara <strong>{localWorkStart} — {localWorkEnd} {effectiveAbbr}</strong> waktu Anda)
+                    {" "}
+                    (setara{" "}
+                    <strong>
+                      {localWorkStart} — {localWorkEnd} {effectiveAbbr}
+                    </strong>{" "}
+                    waktu Anda)
                   </span>
-                )}
-                {" "}• Batas tepat waktu: <strong className="text-[#102e50]">{cutoffTimeWib} WIB</strong>
+                )}{" "}
+                • Batas tepat waktu: <strong className="text-[#102e50]">{cutoffTimeWib} WIB</strong>
                 {!isWib && localCutoffTime && (
-                  <span> ({localCutoffTime} {effectiveAbbr})</span>
+                  <span>
+                    {" "}
+                    ({localCutoffTime} {effectiveAbbr})
+                  </span>
                 )}
               </span>
             </div>
@@ -516,7 +529,9 @@ export function TodayAttendanceCard({
                   title="Tambah catatan aktivitas pulang"
                 >
                   <FileText className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{showNotesInput ? "Batal" : notes ? "Ada Catatan" : "+ Catatan Pulang"}</span>
+                  <span>
+                    {showNotesInput ? "Batal" : notes ? "Ada Catatan" : "+ Catatan Pulang"}
+                  </span>
                 </button>
 
                 <button

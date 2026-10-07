@@ -117,8 +117,8 @@ export function AttendanceRekapView({
     const selectedDeptName = isTeamView
       ? departmentName || "Divisi Tim"
       : dept === "ALL"
-      ? "Semua Divisi"
-      : departments.find((d) => d.id === dept)?.name || "Divisi";
+        ? "Semua Divisi"
+        : departments.find((d) => d.id === dept)?.name || "Divisi";
 
     exportAttendanceRekapXlsx({
       employees,
@@ -147,7 +147,9 @@ export function AttendanceRekapView({
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder={isTeamView ? "Cari anggota tim atau NIP..." : "Cari nama pegawai atau NIP..."}
+            placeholder={
+              isTeamView ? "Cari anggota tim atau NIP..." : "Cari nama pegawai atau NIP..."
+            }
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleFilter()}
@@ -221,7 +223,8 @@ export function AttendanceRekapView({
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-[#102e50]" />
             <span className="font-bold text-xs text-[#102e50]">
-              Rekapitulasi Kehadiran: {employees.length} {isTeamView ? "Anggota Tim" : "Pegawai"} Terdata
+              Rekapitulasi Kehadiran: {employees.length} {isTeamView ? "Anggota Tim" : "Pegawai"}{" "}
+              Terdata
             </span>
           </div>
 
@@ -279,13 +282,17 @@ export function AttendanceRekapView({
                       <td className="py-3.5 px-4">
                         <div className="flex flex-col">
                           <span className="font-bold text-[#102e50]">{emp.fullName}</span>
-                          <span className="text-[11px] font-mono text-slate-500">{emp.employeeNo}</span>
+                          <span className="text-[11px] font-mono text-slate-500">
+                            {emp.employeeNo}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-600">
                         <div className="flex flex-col">
                           <span>{emp.currentPosition?.title || "Staff"}</span>
-                          <span className="text-[11px] text-slate-400">{emp.currentDepartment?.name || "PSPK"}</span>
+                          <span className="text-[11px] text-slate-400">
+                            {emp.currentDepartment?.name || "PSPK"}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3.5 px-4 text-center">
@@ -315,11 +322,13 @@ export function AttendanceRekapView({
                         <td className="py-3.5 px-4 text-right">
                           <button
                             type="button"
-                            onClick={() => setSelectedForCorrection({
-                              id: emp.id,
-                              fullName: emp.fullName,
-                              employeeNo: emp.employeeNo,
-                            })}
+                            onClick={() =>
+                              setSelectedForCorrection({
+                                id: emp.id,
+                                fullName: emp.fullName,
+                                employeeNo: emp.employeeNo,
+                              })
+                            }
                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-[#102e50] hover:bg-[#eff4ff] text-[#102e50] text-xs font-semibold transition-all cursor-pointer active:scale-[0.98]"
                           >
                             <Edit3 className="w-3.5 h-3.5" />

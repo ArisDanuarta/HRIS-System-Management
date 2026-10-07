@@ -413,5 +413,3 @@ export function angkaTerbilang(amount: number | bigint | string | null | undefin
   const hasil = bilang(num).replace(/\s+/g, " ").trim();
   return hasil ? `${hasil} Rupiah` : "Nol Rupiah";
 }
-
-

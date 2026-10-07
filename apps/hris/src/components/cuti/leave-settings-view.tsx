@@ -39,7 +39,9 @@ export function LeaveSettingsView({
   employeeBalances = [],
   defaultLeaveType,
 }: LeaveSettingsViewProps) {
-  const [activeTab, setActiveTab] = useState<"schedule" | "types" | "holidays" | "balances">("schedule");
+  const [activeTab, setActiveTab] = useState<"schedule" | "types" | "holidays" | "balances">(
+    "schedule",
+  );
 
   // Holiday Modal state
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
@@ -53,7 +55,9 @@ export function LeaveSettingsView({
   const [editIsPaid, setEditIsPaid] = useState(true);
   const [editRequiresAttachment, setEditRequiresAttachment] = useState(false);
 
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   const formatDate = (d: Date) => {
@@ -197,15 +201,14 @@ export function LeaveSettingsView({
       </div>
 
       {/* TAB 0: JADWAL KERJA & JAM MASUK */}
-      {activeTab === "schedule" && (
-        workSchedule ? (
+      {activeTab === "schedule" &&
+        (workSchedule ? (
           <WorkScheduleSettingsView initialSchedule={workSchedule} />
         ) : (
           <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
             Memuat data jadwal kerja...
           </div>
-        )
-      )}
+        ))}
 
       {/* TAB 1: JENIS CUTI */}
       {activeTab === "types" && (
@@ -225,9 +228,7 @@ export function LeaveSettingsView({
               <tbody className="divide-y divide-slate-100 text-[#121c2a]">
                 {leaveTypes.map((lt) => (
                   <tr key={lt.id} className="hover:bg-[#f8f9ff] transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-[#102e50]">
-                      {lt.name}
-                    </td>
+                    <td className="py-3.5 px-4 font-bold text-[#102e50]">{lt.name}</td>
                     <td className="py-3.5 px-4 text-center font-bold text-[#102e50]">
                       {lt.defaultQuotaDays} Hari
                     </td>
@@ -295,9 +296,7 @@ export function LeaveSettingsView({
                     <td className="py-3.5 px-4 font-bold text-[#102e50] font-mono">
                       {formatDate(h.date)}
                     </td>
-                    <td className="py-3.5 px-4 font-semibold text-slate-800">
-                      {h.name}
-                    </td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-800">{h.name}</td>
                     <td className="py-3.5 px-4 text-center">
                       <span
                         className={`px-2.5 py-0.5 rounded-full font-semibold ${
@@ -346,7 +345,9 @@ export function LeaveSettingsView({
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="font-semibold text-slate-700">Nama Peringatan / Hari Libur *</label>
+                <label className="font-semibold text-slate-700">
+                  Nama Peringatan / Hari Libur *
+                </label>
                 <input
                   type="text"
                   required
@@ -401,7 +402,9 @@ export function LeaveSettingsView({
 
             <form onSubmit={handleUpdateType} className="flex flex-col gap-4 text-xs">
               <div className="flex flex-col gap-1">
-                <label className="font-semibold text-slate-700">Kuota Bawaan Tahunan (Hari) *</label>
+                <label className="font-semibold text-slate-700">
+                  Kuota Bawaan Tahunan (Hari) *
+                </label>
                 <input
                   type="number"
                   min={0}

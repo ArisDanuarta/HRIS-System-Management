@@ -34,11 +34,7 @@ const MONTH_NAMES = [
   "Desember",
 ];
 
-export function TimesheetDetailModal({
-  isOpen,
-  onClose,
-  submission,
-}: TimesheetDetailModalProps) {
+export function TimesheetDetailModal({ isOpen, onClose, submission }: TimesheetDetailModalProps) {
   if (!isOpen || !submission) return null;
 
   const getStatusBadge = (st: string) => {
@@ -152,7 +148,8 @@ export function TimesheetDetailModal({
               <div className="flex items-center gap-2 text-slate-500 mt-1">
                 <Calendar className="w-3.5 h-3.5 text-slate-400" />
                 <span>
-                  Diajukan pada: {new Date(submission.submittedAt).toLocaleDateString("id-ID", {
+                  Diajukan pada:{" "}
+                  {new Date(submission.submittedAt).toLocaleDateString("id-ID", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
@@ -168,7 +165,8 @@ export function TimesheetDetailModal({
             <div className="p-3.5 bg-white rounded-xl border border-slate-200">
               <span className="text-[10px] text-slate-400 block mb-0.5">Total Jam Kerja</span>
               <span className="text-xl font-bold font-mono text-[#102E50]">
-                {submission.totalHours} <span className="text-xs font-normal text-slate-400">Jam</span>
+                {submission.totalHours}{" "}
+                <span className="text-xs font-normal text-slate-400">Jam</span>
               </span>
             </div>
             <div className="p-3.5 bg-gradient-to-br from-emerald-50/70 via-white to-slate-50/60 rounded-xl border border-emerald-200/80 flex items-center justify-between gap-3 shadow-2xs">

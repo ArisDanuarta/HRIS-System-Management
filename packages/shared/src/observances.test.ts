@@ -11,16 +11,12 @@ describe("Indonesian National Observances (Hari Peringatan Nasional)", () => {
   });
 
   it("should contain crucial education observances (Hardiknas & HGN)", () => {
-    const hardiknas = INDONESIAN_NATIONAL_OBSERVANCES.find(
-      (o) => o.month === 5 && o.day === 2,
-    );
+    const hardiknas = INDONESIAN_NATIONAL_OBSERVANCES.find((o) => o.month === 5 && o.day === 2);
     expect(hardiknas).toBeDefined();
     expect(hardiknas?.name).toContain("Hari Pendidikan Nasional");
     expect(hardiknas?.category).toBe("education");
 
-    const hgn = INDONESIAN_NATIONAL_OBSERVANCES.find(
-      (o) => o.month === 11 && o.day === 25,
-    );
+    const hgn = INDONESIAN_NATIONAL_OBSERVANCES.find((o) => o.month === 11 && o.day === 25);
     expect(hgn).toBeDefined();
     expect(hgn?.name).toContain("Hari Guru Nasional");
     expect(hgn?.category).toBe("education");

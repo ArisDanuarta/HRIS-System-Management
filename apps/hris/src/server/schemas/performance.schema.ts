@@ -1,25 +1,24 @@
 import { z } from "zod";
 
-export const createPerformancePeriodSchema = z.object({
-  name: z
-    .string({ required_error: "Nama periode evaluasi wajib diisi" })
-    .trim()
-    .min(3, "Nama periode minimal 3 karakter")
-    .max(150, "Nama periode maksimal 150 karakter"),
-  startDate: z
-    .string({ required_error: "Tanggal mulai wajib diisi" })
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal mulai harus YYYY-MM-DD"),
-  endDate: z
-    .string({ required_error: "Tanggal selesai wajib diisi" })
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal selesai harus YYYY-MM-DD"),
-  status: z.enum(["OPEN", "CLOSED"]).default("OPEN"),
-}).refine(
-  (data) => new Date(data.endDate) >= new Date(data.startDate),
-  {
+export const createPerformancePeriodSchema = z
+  .object({
+    name: z
+      .string({ required_error: "Nama periode evaluasi wajib diisi" })
+      .trim()
+      .min(3, "Nama periode minimal 3 karakter")
+      .max(150, "Nama periode maksimal 150 karakter"),
+    startDate: z
+      .string({ required_error: "Tanggal mulai wajib diisi" })
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal mulai harus YYYY-MM-DD"),
+    endDate: z
+      .string({ required_error: "Tanggal selesai wajib diisi" })
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal selesai harus YYYY-MM-DD"),
+    status: z.enum(["OPEN", "CLOSED"]).default("OPEN"),
+  })
+  .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
     message: "Tanggal selesai tidak boleh sebelum tanggal mulai",
     path: ["endDate"],
-  }
-);
+  });
 
 export type CreatePerformancePeriodInput = z.infer<typeof createPerformancePeriodSchema>;
 
@@ -44,9 +43,7 @@ export const finalizePerformanceReviewSchema = z.object({
   hrNote: z.string().optional(),
 });
 
-export type FinalizePerformanceReviewInput = z.infer<
-  typeof finalizePerformanceReviewSchema
->;
+export type FinalizePerformanceReviewInput = z.infer<typeof finalizePerformanceReviewSchema>;
 
 export const performanceGoalItemSchema = z.object({
   id: z.string().uuid().optional(),
@@ -67,9 +64,7 @@ export const performanceGoalItemSchema = z.object({
 export const savePerformanceGoalsSchema = z.object({
   employeeId: z.string().uuid("ID pegawai tidak valid"),
   periodId: z.string().uuid("ID periode tidak valid"),
-  goals: z
-    .array(performanceGoalItemSchema)
-    .min(1, "Minimal harus ada 1 target sasaran"),
+  goals: z.array(performanceGoalItemSchema).min(1, "Minimal harus ada 1 target sasaran"),
 });
 
 export type SavePerformanceGoalsInput = z.infer<typeof savePerformanceGoalsSchema>;
@@ -89,7 +84,7 @@ export const submitStaffSelfReviewSchema = z.object({
       z.object({
         goalId: z.string().uuid("ID target sasaran tidak valid"),
         actual: z.string().trim().optional().nullable(),
-      })
+      }),
     )
     .optional(),
 });
@@ -172,5 +167,3 @@ export const unlockPerformanceReviewSchema = z.object({
 });
 
 export type UnlockPerformanceReviewInput = z.infer<typeof unlockPerformanceReviewSchema>;
-
-

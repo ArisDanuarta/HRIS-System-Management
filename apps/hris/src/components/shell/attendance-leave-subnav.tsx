@@ -2,20 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-import {
-  Layers,
-  Fingerprint,
-  Calendar,
-  CheckSquare,
-  Settings,
-} from "lucide-react";
+import { Layers, Fingerprint, Calendar, CheckSquare, Settings } from "lucide-react";
 
-export type AttendanceLeaveTab =
-  | "rekap"
-  | "absensi"
-  | "cuti"
-  | "persetujuan"
-  | "pengaturan";
+export type AttendanceLeaveTab = "rekap" | "absensi" | "cuti" | "persetujuan" | "pengaturan";
 
 export interface AttendanceLeaveSubnavProps {
   activeTab: AttendanceLeaveTab;
@@ -87,16 +76,12 @@ export function AttendanceLeaveSubnav({
                 : "text-slate-600 hover:text-[#102e50] hover:bg-slate-100 font-medium"
             }`}
           >
-            <span className={isActive ? "text-[#f2af3e]" : "text-slate-400"}>
-              {tab.icon}
-            </span>
+            <span className={isActive ? "text-[#f2af3e]" : "text-slate-400"}>{tab.icon}</span>
             <span>{tab.label}</span>
             {tab.badge !== undefined && (
               <span
                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive
-                    ? "bg-[#ba1a1a] text-white"
-                    : "bg-[#ba1a1a] text-white"
+                  isActive ? "bg-[#ba1a1a] text-white" : "bg-[#ba1a1a] text-white"
                 }`}
               >
                 {tab.badge}

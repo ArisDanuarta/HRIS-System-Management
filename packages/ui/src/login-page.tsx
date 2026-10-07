@@ -71,7 +71,8 @@ export function LoginPage({
           if (onSuccess) onSuccess();
         }
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : "Terjadi kesalahan saat memproses autentikasi.";
+        const msg =
+          err instanceof Error ? err.message : "Terjadi kesalahan saat memproses autentikasi.";
         setErrorMessage(msg);
         setFormState("error");
       }
@@ -122,7 +123,12 @@ export function LoginPage({
 
         {/* Ambient Mathematical Geometry (Vector Lines with Smooth Micro-Rotations) */}
         <div className="absolute inset-0 pointer-events-none select-none opacity-40">
-          <svg className="w-full h-full" fill="none" viewBox="0 0 680 960" xmlns="http://www.w3.org/2000/svg">
+          <svg
+            className="w-full h-full"
+            fill="none"
+            viewBox="0 0 680 960"
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <circle
               cx="580"
               cy="180"
@@ -133,7 +139,14 @@ export function LoginPage({
               strokeWidth="1.2"
               className="origin-[580px_180px] animate-[spin_120s_linear_infinite] transition-colors duration-500"
             />
-            <circle cx="580" cy="180" r="460" stroke="#ffffff" strokeOpacity="0.12" strokeWidth="0.75" />
+            <circle
+              cx="580"
+              cy="180"
+              r="460"
+              stroke="#ffffff"
+              strokeOpacity="0.12"
+              strokeWidth="0.75"
+            />
             <path
               d="M-100 850L750 320"
               stroke={isHris ? "#feba48" : "#60a5fa"}
@@ -158,7 +171,12 @@ export function LoginPage({
               strokeWidth="1.2"
               className="transition-colors duration-500"
             />
-            <path d="M50 780C210 650 390 680 540 860" stroke="#ffffff" strokeOpacity="0.15" strokeWidth="1" />
+            <path
+              d="M50 780C210 650 390 680 540 860"
+              stroke="#ffffff"
+              strokeOpacity="0.15"
+              strokeWidth="1"
+            />
             <rect
               height="160"
               rx="4"
@@ -211,8 +229,12 @@ export function LoginPage({
                 isHris ? "bg-[#feba48]" : "bg-[#60a5fa]"
               }`}
             />
-            <p className={`text-xs tracking-widest uppercase font-semibold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}>
-              {isHris ? "Manajemen SDM • Kesejahteraan • Kinerja" : "Keamanan • Hak Akses • Integritas Sistem"}
+            <p
+              className={`text-xs tracking-widest uppercase font-semibold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}
+            >
+              {isHris
+                ? "Manajemen SDM • Kesejahteraan • Kinerja"
+                : "Keamanan • Hak Akses • Integritas Sistem"}
             </p>
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-[36px] text-white leading-tight mb-3 font-serif transition-all duration-300">
@@ -229,7 +251,9 @@ export function LoginPage({
           {/* Metric / Distinct Highlights */}
           <div className="mt-5 pt-5 border-t border-white/10 grid grid-cols-2 gap-4">
             <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-xs transition-transform duration-300 hover:translate-y-[-2px] hover:bg-white/10">
-              <div className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}>
+              <div
+                className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}
+              >
                 {isHris ? "SDM Terpadu" : "RBAC 5 Peran"}
               </div>
               <div className="text-[10px] sm:text-[11px] text-[#d9e3f6] uppercase mt-0.5 tracking-wider">
@@ -237,7 +261,9 @@ export function LoginPage({
               </div>
             </div>
             <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-xs transition-transform duration-300 hover:translate-y-[-2px] hover:bg-white/10">
-              <div className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}>
+              <div
+                className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}
+              >
                 {isHris ? "256-Bit TLS" : "Audit Trail"}
               </div>
               <div className="text-[10px] sm:text-[11px] text-[#d9e3f6] uppercase mt-0.5 tracking-wider">
@@ -250,7 +276,11 @@ export function LoginPage({
         {/* Bottom Trust Signals */}
         <div className="relative z-10 pt-3 flex items-center justify-between gap-4 border-t border-white/15 text-[#d9e3f6]">
           <div className="flex items-center gap-2">
-            <svg className={`w-3.5 h-3.5 transition-colors duration-300 ${isHris ? "text-[#feba48]" : "text-[#60a5fa]"}`} fill="currentColor" viewBox="0 0 24 24">
+            <svg
+              className={`w-3.5 h-3.5 transition-colors duration-300 ${isHris ? "text-[#feba48]" : "text-[#60a5fa]"}`}
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
             </svg>
             <span className="text-[11px] text-white/90 font-medium">
@@ -296,8 +326,18 @@ export function LoginPage({
                     : "opacity-0 scale-50"
                 }`}
               />
-              <svg className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg
+                className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
               <span className="truncate">Portal HRIS</span>
             </button>
@@ -320,8 +360,18 @@ export function LoginPage({
                     : "opacity-0 scale-50"
                 }`}
               />
-              <svg className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              <svg
+                className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
               </svg>
               <span className="truncate">System Management</span>
             </button>
@@ -331,7 +381,13 @@ export function LoginPage({
             className="inline-flex items-center gap-1.5 text-xs text-[#5b6675] hover:text-[#102e50] font-semibold transition-colors duration-200 hover:underline"
             href={helpHref}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
               <circle cx="12" cy="12" r="10" />
               <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -359,7 +415,14 @@ export function LoginPage({
                   />
                   <div className="w-12 h-12 rounded-full bg-[#102e50] flex items-center justify-center shadow-lg text-white">
                     <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      />
                       <path
                         className={`opacity-90 fill-current ${activeTab === "sysmgmt" ? "text-[#60a5fa]" : "text-[#feba48]"}`}
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
@@ -372,11 +435,10 @@ export function LoginPage({
                     Mengalihkan Akses Portal
                   </p>
                   <h3 className="text-base font-serif font-bold text-[#102e50] mt-0.5">
-                    Menghubungkan ke {activeTab === "sysmgmt" ? "System Management" : "Portal HRIS"}...
+                    Menghubungkan ke {activeTab === "sysmgmt" ? "System Management" : "Portal HRIS"}
+                    ...
                   </h3>
-                  <p className="text-[11px] text-[#5b6675] mt-1">
-                    Sistem Tata Kelola Terpadu PSPK
-                  </p>
+                  <p className="text-[11px] text-[#5b6675] mt-1">Sistem Tata Kelola Terpadu PSPK</p>
                 </div>
                 {/* Micro Loading Beam Indicator */}
                 <div className="w-36 h-1 bg-[#e6eeff] rounded-full mt-4 overflow-hidden">
@@ -410,8 +472,12 @@ export function LoginPage({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full transition-colors duration-300 ${isHris ? "bg-[#f2af3e]" : "bg-[#60a5fa]"}`}></span>
-                <span className={`text-[11px] font-bold tracking-widest uppercase transition-colors duration-300 ${isHris ? "text-[#805600]" : "text-[#102e50]"}`}>
+                <span
+                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${isHris ? "bg-[#f2af3e]" : "bg-[#60a5fa]"}`}
+                ></span>
+                <span
+                  className={`text-[11px] font-bold tracking-widest uppercase transition-colors duration-300 ${isHris ? "text-[#805600]" : "text-[#102e50]"}`}
+                >
                   {isHris ? "Akses Masuk Pegawai HRIS" : "Akses Administrator Sistem"}
                 </span>
               </div>
@@ -428,7 +494,11 @@ export function LoginPage({
             {/* Inline Error Banner Frame */}
             {formState === "error" && (
               <div className="mb-5 p-3.5 rounded bg-[#ffdad6] text-[#93000a] flex items-start gap-3 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
-                <svg className="w-5 h-5 text-[#ba1a1a] shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg
+                  className="w-5 h-5 text-[#ba1a1a] shrink-0 mt-0.5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
                   <path
                     fillRule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
@@ -436,7 +506,9 @@ export function LoginPage({
                   />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-xs sm:text-sm font-bold text-[#ba1a1a] leading-tight">Autentikasi Gagal</p>
+                  <p className="text-xs sm:text-sm font-bold text-[#ba1a1a] leading-tight">
+                    Autentikasi Gagal
+                  </p>
                   <p className="text-xs sm:text-sm text-[#93000a] mt-0.5">
                     {errorMessage || "Email atau kata sandi yang Anda masukkan tidak sesuai."}
                   </p>
@@ -447,7 +519,13 @@ export function LoginPage({
                   className="text-[#ba1a1a] hover:opacity-75 transition-opacity"
                   onClick={() => setFormState("idle")}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -460,16 +538,31 @@ export function LoginPage({
               {/* Email Field */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs sm:text-sm text-[#121c2a] font-medium flex items-center gap-1" htmlFor="email-field">
+                  <label
+                    className="text-xs sm:text-sm text-[#121c2a] font-medium flex items-center gap-1"
+                    htmlFor="email-field"
+                  >
                     Alamat Email PSPK
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
-                  <span className="text-[11px] text-[#74777f] font-mono">Domain resmi @pspk.id</span>
+                  <span className="text-[11px] text-[#74777f] font-mono">
+                    Domain resmi @pspk.id
+                  </span>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#43474e]">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
                     </svg>
                   </div>
                   <input
@@ -488,7 +581,10 @@ export function LoginPage({
               {/* Password Field */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs sm:text-sm text-[#121c2a] font-medium flex items-center gap-1" htmlFor="password-field">
+                  <label
+                    className="text-xs sm:text-sm text-[#121c2a] font-medium flex items-center gap-1"
+                    htmlFor="password-field"
+                  >
                     Kata Sandi
                     <span className="text-[#ba1a1a]">*</span>
                   </label>
@@ -501,7 +597,13 @@ export function LoginPage({
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#43474e]">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <svg
+                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                    >
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0110 0v4" />
                     </svg>
@@ -524,13 +626,37 @@ export function LoginPage({
                     className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#43474e] hover:text-[#121c2a] focus:outline-none transition-transform duration-150 active:scale-90"
                   >
                     {showPassword ? (
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                        />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <svg
+                        className="w-4 h-4 sm:w-5 sm:h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
                       </svg>
                     )}
                   </button>
@@ -549,10 +675,18 @@ export function LoginPage({
                     className="w-4 h-4 rounded text-[#102e50] border-gray-300 focus:ring-[#feba48] cursor-pointer transition-transform duration-150 active:scale-95"
                     style={{ accentColor: "#102e50" }}
                   />
-                  <span className="text-xs sm:text-sm text-[#121c2a]">Ingat saya di perangkat ini</span>
+                  <span className="text-xs sm:text-sm text-[#121c2a]">
+                    Ingat saya di perangkat ini
+                  </span>
                 </label>
                 <div className="hidden sm:flex items-center gap-1 text-[#74777f] text-[11px]">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg
+                    className="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                   </svg>
@@ -568,8 +702,19 @@ export function LoginPage({
                   disabled
                   className="w-full h-11 mt-1 px-6 rounded bg-[#102e50]/85 text-white text-sm font-semibold tracking-wide flex items-center justify-center gap-3 cursor-wait shadow-xs"
                 >
-                  <svg className="animate-spin h-4 w-4 text-[#ffddb0]" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                  <svg
+                    className="animate-spin h-4 w-4 text-[#ffddb0]"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                    />
                     <path
                       className="opacity-90"
                       fill="currentColor"
@@ -585,7 +730,13 @@ export function LoginPage({
                   className="w-full h-11 mt-1 px-6 rounded bg-[#102e50] hover:bg-[#001934] active:scale-[0.99] text-white text-sm font-semibold tracking-wide flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#102e50] cursor-pointer"
                 >
                   <span>Masuk ke {isHris ? "HRIS" : "System Management"}</span>
-                  <svg className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
                   </svg>

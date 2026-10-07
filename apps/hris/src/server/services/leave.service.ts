@@ -79,7 +79,9 @@ export async function submitLeaveRequest(
   }
 
   if (leaveType.requiresAttachment && !input.attachmentKey) {
-    throw new Error(`Jenis cuti ${leaveType.name} mewajibkan pengunggahan berkas lampiran pendukung.`);
+    throw new Error(
+      `Jenis cuti ${leaveType.name} mewajibkan pengunggahan berkas lampiran pendukung.`,
+    );
   }
 
   // Check quota balance
@@ -170,7 +172,9 @@ export async function approveLeaveRequest(
   }
 
   if (request.status !== "PENDING") {
-    throw new Error(`Permohonan cuti ini tidak dapat disetujui karena sudah berstatus ${request.status}.`);
+    throw new Error(
+      `Permohonan cuti ini tidak dapat disetujui karena sudah berstatus ${request.status}.`,
+    );
   }
 
   const startDate = request.startDate;
@@ -370,7 +374,9 @@ export async function cancelLeaveRequest(
       where: { id: leaveRequestId },
       data: {
         status: "CANCELLED",
-        decisionNote: cancellationReason ? `Dibatalkan: ${cancellationReason}` : "Dibatalkan oleh pemohon",
+        decisionNote: cancellationReason
+          ? `Dibatalkan: ${cancellationReason}`
+          : "Dibatalkan oleh pemohon",
       },
     });
 
@@ -531,7 +537,9 @@ export async function overrideLeaveDecision({
       });
 
       if (overlapping) {
-        throw new Error("Terdapat pengajuan cuti lain yang sudah disetujui pada rentang tanggal yang sama.");
+        throw new Error(
+          "Terdapat pengajuan cuti lain yang sudah disetujui pada rentang tanggal yang sama.",
+        );
       }
 
       // Deduct quota
@@ -669,4 +677,3 @@ export async function overrideLeaveDecision({
 
   return result;
 }
-

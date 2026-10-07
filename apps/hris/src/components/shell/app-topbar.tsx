@@ -60,8 +60,8 @@ export function AppTopbar({
       return currentRole === "staff"
         ? "Kinerja Saya"
         : currentRole === "manager"
-        ? "Kinerja Tim"
-        : "Kinerja Organisasi";
+          ? "Kinerja Tim"
+          : "Kinerja Organisasi";
     }
     if (pathname.startsWith("/profil")) return "Profil Saya";
     return "Portal HRIS";
@@ -81,9 +81,7 @@ export function AppTopbar({
             Portal HRIS
           </span>
           <ChevronRight className="w-3.5 h-3.5 text-[#c4c6cf]" />
-          <span className="text-[#102e50] font-bold text-xs sm:text-sm">
-            {getPageTitle()}
-          </span>
+          <span className="text-[#102e50] font-bold text-xs sm:text-sm">{getPageTitle()}</span>
         </div>
       </div>
 

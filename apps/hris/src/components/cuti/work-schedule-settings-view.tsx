@@ -49,7 +49,9 @@ export function WorkScheduleSettingsView({ initialSchedule }: WorkScheduleSettin
   });
 
   const [testTime, setTestTime] = useState<string>("09:14");
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; text: string } | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   // Helper to compute cutoff time (e.g., 09:00 + 15 min = 09:15)
@@ -364,7 +366,8 @@ export function WorkScheduleSettingsView({ initialSchedule }: WorkScheduleSettin
                   Terapkan Jam Fleksibel (Flexible Hours)
                 </span>
                 <span className="text-[11px] text-slate-500 block">
-                  Jika diaktifkan, pegawai bebas check-in kapan saja selama memenuhi target total jam kerja.
+                  Jika diaktifkan, pegawai bebas check-in kapan saja selama memenuhi target total
+                  jam kerja.
                 </span>
               </div>
             </label>
@@ -462,11 +465,7 @@ export function WorkScheduleSettingsView({ initialSchedule }: WorkScheduleSettin
                   style={{ width: "65%" }}
                   title="Tepat Waktu (Hadir)"
                 />
-                <div
-                  className="bg-amber-500 h-full"
-                  style={{ width: "35%" }}
-                  title="Terlambat"
-                />
+                <div className="bg-amber-500 h-full" style={{ width: "35%" }} title="Terlambat" />
               </div>
               <div className="flex justify-between text-[10px] font-mono text-slate-500">
                 <span>{schedule.workStartTime}</span>
@@ -484,13 +483,18 @@ export function WorkScheduleSettingsView({ initialSchedule }: WorkScheduleSettin
             </div>
             <ul className="space-y-2 list-disc list-inside text-[11px] leading-relaxed text-slate-600">
               <li>
-                <strong>Koreksi Manual:</strong> Jika pegawai terlambat karena tugas luar kantor atau kendala teknis, Admin HR tetap dapat memberikan persetujuan status hadir lewat menu <em>Koreksi Absensi</em>.
+                <strong>Koreksi Manual:</strong> Jika pegawai terlambat karena tugas luar kantor
+                atau kendala teknis, Admin HR tetap dapat memberikan persetujuan status hadir lewat
+                menu <em>Koreksi Absensi</em>.
               </li>
               <li>
-                <strong>Pengaruh ke Payroll:</strong> Status keterlambatan terakumulasi pada rekapitulasi bulanan dan dapat dijadikan rujukan perhitungan tunjangan kehadiran (jika diaktifkan).
+                <strong>Pengaruh ke Payroll:</strong> Status keterlambatan terakumulasi pada
+                rekapitulasi bulanan dan dapat dijadikan rujukan perhitungan tunjangan kehadiran
+                (jika diaktifkan).
               </li>
               <li>
-                <strong>Zona Waktu:</strong> Semua pencatatan waktu diproses dalam zona waktu resmi <strong>Asia/Jakarta (WIB)</strong>.
+                <strong>Zona Waktu:</strong> Semua pencatatan waktu diproses dalam zona waktu resmi{" "}
+                <strong>Asia/Jakarta (WIB)</strong>.
               </li>
             </ul>
           </div>

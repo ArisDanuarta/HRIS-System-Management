@@ -117,7 +117,9 @@ export function TimesheetApprovalModal({
       if (!res.ok) {
         setActionError(res.error);
       } else {
-        setActionSuccess("Status review telah diperbarui. Pegawai mendapat notifikasi lembar kerja sedang diperiksa.");
+        setActionSuccess(
+          "Status review telah diperbarui. Pegawai mendapat notifikasi lembar kerja sedang diperiksa.",
+        );
         if (onSuccess) onSuccess();
       }
     });
@@ -217,9 +219,12 @@ export function TimesheetApprovalModal({
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
                   Pegawai Freelance
                 </span>
-                <p className="font-bold text-slate-900 text-sm truncate">{submission.employeeName}</p>
+                <p className="font-bold text-slate-900 text-sm truncate">
+                  {submission.employeeName}
+                </p>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  NIP: {submission.employeeNo} • {submission.employeePosition} • {submission.employeeDepartment}
+                  NIP: {submission.employeeNo} • {submission.employeePosition} •{" "}
+                  {submission.employeeDepartment}
                 </p>
               </div>
             </div>
@@ -248,7 +253,9 @@ export function TimesheetApprovalModal({
                 &ldquo;{submission.description}&rdquo;
               </p>
             ) : (
-              <p className="text-xs text-slate-400 italic mt-0.5">Tidak ada catatan tambahan dari staf.</p>
+              <p className="text-xs text-slate-400 italic mt-0.5">
+                Tidak ada catatan tambahan dari staf.
+              </p>
             )}
           </div>
 
@@ -260,7 +267,9 @@ export function TimesheetApprovalModal({
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-xs font-bold text-slate-900">Dokumen Lembar Waktu (Google Spreadsheet)</p>
+                  <p className="text-xs font-bold text-slate-900">
+                    Dokumen Lembar Waktu (Google Spreadsheet)
+                  </p>
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800">
                     Google Sheets
                   </span>
@@ -311,9 +320,12 @@ export function TimesheetApprovalModal({
                   <Eye className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="font-semibold block text-blue-950">Status Review: Belum Diperiksa</span>
+                  <span className="font-semibold block text-blue-950">
+                    Status Review: Belum Diperiksa
+                  </span>
                   <span className="text-[11px] text-blue-800">
-                    Buka spreadsheet di atas atau klik tombol berikut untuk menandai ke staf bahwa Anda sedang memeriksa jam kerja ini.
+                    Buka spreadsheet di atas atau klik tombol berikut untuk menandai ke staf bahwa
+                    Anda sedang memeriksa jam kerja ini.
                   </span>
                 </div>
               </div>
@@ -335,9 +347,12 @@ export function TimesheetApprovalModal({
                 <Clock className="w-4 h-4" />
               </div>
               <div>
-                <span className="font-semibold block text-blue-950">Anda Sedang Memeriksa Pengajuan Ini</span>
+                <span className="font-semibold block text-blue-950">
+                  Anda Sedang Memeriksa Pengajuan Ini
+                </span>
                 <span className="text-[11px] text-blue-700">
-                  Pastikan jam kerja pada spreadsheet sudah sesuai sebelum memberikan persetujuan (ACC) atau penolakan.
+                  Pastikan jam kerja pada spreadsheet sudah sesuai sebelum memberikan persetujuan
+                  (ACC) atau penolakan.
                 </span>
               </div>
             </div>
@@ -384,7 +399,9 @@ export function TimesheetApprovalModal({
             <div className="border-t border-slate-200/80 pt-4">
               <div className="flex items-center gap-2 mb-2.5 text-xs font-semibold text-slate-700">
                 <Users className="w-4 h-4 text-slate-500" />
-                <span>Status Rekan Atasan Penilai Lainnya ({submission.reviewers.length} Penilai)</span>
+                <span>
+                  Status Rekan Atasan Penilai Lainnya ({submission.reviewers.length} Penilai)
+                </span>
               </div>
               <div className="space-y-2">
                 {otherReviewers.map((r) => (
@@ -443,7 +460,10 @@ export function TimesheetApprovalModal({
           {/* Bagian Keputusan / Form Atasan Aktif */}
           <div className="border-t border-slate-200/80 pt-4">
             <div className="flex items-center justify-between mb-2">
-              <label htmlFor="reviewer-notes" className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+              <label
+                htmlFor="reviewer-notes"
+                className="text-xs font-semibold text-slate-700 flex items-center gap-1.5"
+              >
                 <MessageSquare className="w-3.5 h-3.5 text-slate-500" />
                 <span>Catatan Evaluasi / Umpan Balik (Opsional jika ACC, Wajib jika Tolak)</span>
               </label>
@@ -484,7 +504,8 @@ export function TimesheetApprovalModal({
                   <span>Konfirmasi Penolakan / Permintaan Revisi</span>
                 </div>
                 <p className="text-slate-600">
-                  Apakah Anda yakin ingin menolak pengajuan ini? Staf freelance akan menerima notifikasi beserta catatan alasan Anda untuk diperbaiki.
+                  Apakah Anda yakin ingin menolak pengajuan ini? Staf freelance akan menerima
+                  notifikasi beserta catatan alasan Anda untuk diperbaiki.
                 </p>
                 <div className="flex items-center justify-end gap-2 pt-1">
                   <button

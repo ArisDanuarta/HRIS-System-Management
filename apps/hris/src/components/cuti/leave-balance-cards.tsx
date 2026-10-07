@@ -84,7 +84,9 @@ export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
                 <span className="text-xs font-bold text-slate-700 truncate pr-2">
                   {b.leaveType.name}
                 </span>
-                <div className={`w-9 h-9 rounded-lg ${theme.bg} flex items-center justify-center shrink-0`}>
+                <div
+                  className={`w-9 h-9 rounded-lg ${theme.bg} flex items-center justify-center shrink-0`}
+                >
                   {getIcon(b.leaveType.name)}
                 </div>
               </div>

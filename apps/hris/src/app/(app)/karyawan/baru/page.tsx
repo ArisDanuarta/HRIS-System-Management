@@ -3,7 +3,11 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
-import { getOrgStructureData, getManagersList, getAssignableRoles } from "@/server/queries/employee.queries";
+import {
+  getOrgStructureData,
+  getManagersList,
+  getAssignableRoles,
+} from "@/server/queries/employee.queries";
 import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
 
@@ -44,7 +48,8 @@ export default async function TambahKaryawanPage() {
                 Pendaftaran Pegawai Baru
               </h1>
               <p className="text-xs text-slate-500">
-                Isi formulir bertahap untuk mencatat identitas, penempatan tim, kontrak kerja, dan data sensitif pegawai.
+                Isi formulir bertahap untuk mencatat identitas, penempatan tim, kontrak kerja, dan
+                data sensitif pegawai.
               </p>
             </div>
           </div>

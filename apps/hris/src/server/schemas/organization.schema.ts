@@ -10,12 +10,7 @@ export const DEPT_TYPE_LABEL: Record<DepartmentType, string> = {
   SUPPORT: "Fungsi Pendukung",
 };
 
-export const TYPE_ORDER: DepartmentType[] = [
-  "GOVERNANCE",
-  "LEADERSHIP",
-  "INITIATIVE",
-  "SUPPORT",
-];
+export const TYPE_ORDER: DepartmentType[] = ["GOVERNANCE", "LEADERSHIP", "INITIATIVE", "SUPPORT"];
 
 export const createDepartmentSchema = z.object({
   name: z
@@ -67,12 +62,7 @@ export const updatePositionSchema = z.object({
 
 export type UpdatePositionInput = z.infer<typeof updatePositionSchema>;
 
-export const TransferTypeEnum = z.enum([
-  "PROMOTION",
-  "ROTATION",
-  "DEMOTION",
-  "ADJUSTMENT",
-]);
+export const TransferTypeEnum = z.enum(["PROMOTION", "ROTATION", "DEMOTION", "ADJUSTMENT"]);
 
 export type TransferType = z.infer<typeof TransferTypeEnum>;
 

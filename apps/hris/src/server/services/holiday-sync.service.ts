@@ -136,7 +136,8 @@ export async function syncIndonesianHolidays(
     const endObj = rawEndDate ? new Date(`${rawEndDate}T00:00:00Z`) : startObj;
 
     const currentCursor = new Date(startObj);
-    const maxEnd = endObj.getTime() > startObj.getTime() ? endObj : new Date(startObj.getTime() + 86400000);
+    const maxEnd =
+      endObj.getTime() > startObj.getTime() ? endObj : new Date(startObj.getTime() + 86400000);
 
     while (currentCursor < maxEnd) {
       const yearVal = currentCursor.getUTCFullYear();

@@ -194,9 +194,12 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
                 <div className="px-3.5 py-2.5 rounded-xl bg-[#f8fafd] border border-[#dee9fc]/60 text-sm font-semibold text-[#121c2a]">
                   {employee.manager ? (
                     <div>
-                      <span className="text-[#102e50] font-bold block">{employee.manager.fullName}</span>
+                      <span className="text-[#102e50] font-bold block">
+                        {employee.manager.fullName}
+                      </span>
                       <span className="text-xs text-slate-500 font-normal">
-                        {employee.manager.position || "Atasan Langsung"} {employee.manager.employeeNo ? `(${employee.manager.employeeNo})` : ""}
+                        {employee.manager.position || "Atasan Langsung"}{" "}
+                        {employee.manager.employeeNo ? `(${employee.manager.employeeNo})` : ""}
                       </span>
                     </div>
                   ) : (
@@ -262,9 +265,9 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
               Akun Pengelola Tanpa Profil Kepegawaian Internal
             </p>
             <p className="text-amber-800 leading-relaxed">
-              Akun ini terdaftar sebagai akun sistem dengan hak akses fungsional langsung.
-              Jika Anda merupakan staf atau peneliti aktif PSPK yang memerlukan integrasi data absensi,
-              cuti, dan penggajian, silakan hubungi Tim HR untuk melakukan penautan akun pegawai.
+              Akun ini terdaftar sebagai akun sistem dengan hak akses fungsional langsung. Jika Anda
+              merupakan staf atau peneliti aktif PSPK yang memerlukan integrasi data absensi, cuti,
+              dan penggajian, silakan hubungi Tim HR untuk melakukan penautan akun pegawai.
             </p>
           </div>
         </div>
@@ -373,9 +376,10 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
         <div className="text-xs leading-relaxed space-y-1">
           <p className="font-bold text-[#102e50]">Pembaruan Data Resmi Kepegawaian</p>
           <p className="text-[#43474e]">
-            Data kepegawaian resmi seperti NIP, Departemen/Divisi Riset, Posisi, Nomor Rekening Gaji,
-            dan Tipe Perjanjian Kerja diatur terpusat oleh Departemen HR untuk memastikan akurasi data
-            administrasi dan kepatuhan perpajakan/BPJS. Silakan hubungi bagian HR untuk pengajuan pembaruan data resmi.
+            Data kepegawaian resmi seperti NIP, Departemen/Divisi Riset, Posisi, Nomor Rekening
+            Gaji, dan Tipe Perjanjian Kerja diatur terpusat oleh Departemen HR untuk memastikan
+            akurasi data administrasi dan kepatuhan perpajakan/BPJS. Silakan hubungi bagian HR untuk
+            pengajuan pembaruan data resmi.
           </p>
         </div>
       </div>

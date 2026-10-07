@@ -215,7 +215,7 @@ line-icon only.
 
 ## 6. Layar HRIS
 
-> Awali tiap prompt dengan: *"Continue in the PSPK design system and the HRIS shell."* (untuk layar Staff/Manajer, sebut tampilan peran yang dimaksud).
+> Awali tiap prompt dengan: _"Continue in the PSPK design system and the HRIS shell."_ (untuk layar Staff/Manajer, sebut tampilan peran yang dimaksud).
 
 ### P-H1 — Dashboard Admin HR
 
@@ -456,9 +456,10 @@ dibuat, diperbarui, dilewati; button "Unduh laporan error"). Clear stepper at to
 ```
 
 ---
+
 ## 7. Layar System Management
 
-> Awali tiap prompt dengan: *"Continue in the PSPK design system and the System Management shell."*
+> Awali tiap prompt dengan: _"Continue in the PSPK design system and the System Management shell."_
 
 ### P-S1 — Dashboard System Management
 
@@ -699,7 +700,7 @@ varied so the layout is stress-tested with long names and empty optional fields.
 
 ### 10.1 Koneksi (sekali)
 
-Langkah umum (dapat sedikit berbeda antar versi Antigravity — cek codelab resmi Google *Design-to-Code with Antigravity and Stitch MCP*): buat API key di Stitch → di Antigravity buka Agent Manager → MCP Servers → cari "Google Stitch" → pasang dan masukkan API key. **Jangan commit API key**; simpan di konfigurasi lokal Antigravity, bukan di repo.
+Langkah umum (dapat sedikit berbeda antar versi Antigravity — cek codelab resmi Google _Design-to-Code with Antigravity and Stitch MCP_): buat API key di Stitch → di Antigravity buka Agent Manager → MCP Servers → cari "Google Stitch" → pasang dan masukkan API key. **Jangan commit API key**; simpan di konfigurasi lokal Antigravity, bukan di repo.
 
 Verifikasi:
 
@@ -772,13 +773,13 @@ laporkan perbedaan yang tersisa. Hanya kerjakan layar ini.
 
 ### 10.5 Konversi per fase (kelompok layar)
 
-| Fase | Layar yang dikonversi | Catatan prompt |
-| --- | --- | --- |
-| 1 | Prompt 0, P-1A–P-1E, P-C1, P-C2, P-C4 | Token, komponen dasar, shell, login |
-| 2 | P-H1–P-H15, P-H23, P-C3, P-M1–P-M3 | Data karyawan, absensi, cuti + wizard impor |
-| 3 | P-S1–P-S11, P-H23 (impor aset) | RBAC UI, aset, dokumen, audit log |
-| 4 | P-H16–P-H22, P-M4, P-M5 | Payroll, kinerja, rekrutmen, pelatihan |
-| 5 | Semua | Penyempurnaan visual saat UAT |
+| Fase | Layar yang dikonversi                 | Catatan prompt                              |
+| ---- | ------------------------------------- | ------------------------------------------- |
+| 1    | Prompt 0, P-1A–P-1E, P-C1, P-C2, P-C4 | Token, komponen dasar, shell, login         |
+| 2    | P-H1–P-H15, P-H23, P-C3, P-M1–P-M3    | Data karyawan, absensi, cuti + wizard impor |
+| 3    | P-S1–P-S11, P-H23 (impor aset)        | RBAC UI, aset, dokumen, audit log           |
+| 4    | P-H16–P-H22, P-M4, P-M5               | Payroll, kinerja, rekrutmen, pelatihan      |
+| 5    | Semua                                 | Penyempurnaan visual saat UAT               |
 
 Contoh prompt kelompok (Fase 2):
 
@@ -824,50 +825,50 @@ Route adalah usulan awal; sesuaikan dengan struktur `src/app/(app)/...` di `AGEN
 
 **HRIS (`apps/hris`)**
 
-| ID | Layar | Route | Permission minimum | Fase |
-| --- | --- | --- | --- | --- |
-| C1 | Login | `/login` | publik | 1 |
-| C2 | Profil Saya & ganti password | `/profil` | sesi valid | 1 |
-| C3 | Notifikasi | `/notifikasi` | sesi valid | 2 |
-| H1 | Dashboard Admin HR | `/dashboard` | `hris.employee.read:all` | 2 |
-| H2 | Beranda Karyawan | `/dashboard` | `hris.attendance.read:own` | 2 |
-| H3 | Beranda Manajer | `/dashboard` | `hris.leave.approve:team` | 2 |
-| H4 | Daftar Karyawan | `/karyawan` | `hris.employee.read:all` | 2 |
-| H5 | Detail Karyawan | `/karyawan/[id]` | `hris.employee.read:all` / `:team` / `:own` | 2 |
-| H6 | Form Karyawan | `/karyawan/baru`, `/karyawan/[id]/ubah` | `hris.employee.write:all` | 2 |
-| H7 | Kontrak | `/karyawan/[id]?tab=kontrak` | `hris.contract.read:all` | 2 |
-| H8 | Struktur Organisasi | `/karyawan/struktur` | `hris.employee.read:all` | 2 |
-| H9 | Absensi Saya | `/absensi` | `hris.attendance.read:own` | 2 |
-| H10 | Rekap Absensi | `/absensi/rekap` | `hris.attendance.read:team` / `:all` | 2 |
-| H11 | Cuti Saya | `/cuti` | `hris.leave.read:own` | 2 |
-| H12 | Ajukan Cuti | `/cuti/ajukan` | `hris.leave.create:own` | 2 |
-| H13 | Persetujuan Cuti | `/cuti/persetujuan` | `hris.leave.approve:team` / `:all` | 2 |
-| H14 | Kalender Cuti | `/cuti/kalender` | `hris.leave.read:team` | 2 |
-| H15 | Pengaturan Cuti | `/cuti/pengaturan` | `hris.leave.configure:all` | 2 |
-| H16 | Payroll: periode | `/payroll` | `hris.payroll.read:all` | 4 |
-| H17 | Payroll: detail periode | `/payroll/[periodId]` | `hris.payroll.manage:all` | 4 |
-| H18 | Komponen gaji | `/payroll/komponen/[employeeId]` | `hris.payroll.manage:all` | 4 |
-| H19 | Slip Gaji Saya | `/slip-gaji` | `hris.payslip.read:own` | 4 |
-| H20 | Kinerja | `/kinerja/...` | `hris.performance.read:own` / `:team` / `:all` | 4 |
-| H21 | Rekrutmen | `/rekrutmen/...` | `hris.recruitment.read:all` | 4 (opsional) |
-| H22 | Pelatihan & Onboarding | `/pelatihan`, `/onboarding` | `hris.training.read:own` / `:all` | 4 (opsional) |
-| H23 | Wizard impor Excel | `/karyawan/impor` | `hris.employee.import:all` | 2 |
+| ID  | Layar                        | Route                                   | Permission minimum                             | Fase         |
+| --- | ---------------------------- | --------------------------------------- | ---------------------------------------------- | ------------ |
+| C1  | Login                        | `/login`                                | publik                                         | 1            |
+| C2  | Profil Saya & ganti password | `/profil`                               | sesi valid                                     | 1            |
+| C3  | Notifikasi                   | `/notifikasi`                           | sesi valid                                     | 2            |
+| H1  | Dashboard Admin HR           | `/dashboard`                            | `hris.employee.read:all`                       | 2            |
+| H2  | Beranda Karyawan             | `/dashboard`                            | `hris.attendance.read:own`                     | 2            |
+| H3  | Beranda Manajer              | `/dashboard`                            | `hris.leave.approve:team`                      | 2            |
+| H4  | Daftar Karyawan              | `/karyawan`                             | `hris.employee.read:all`                       | 2            |
+| H5  | Detail Karyawan              | `/karyawan/[id]`                        | `hris.employee.read:all` / `:team` / `:own`    | 2            |
+| H6  | Form Karyawan                | `/karyawan/baru`, `/karyawan/[id]/ubah` | `hris.employee.write:all`                      | 2            |
+| H7  | Kontrak                      | `/karyawan/[id]?tab=kontrak`            | `hris.contract.read:all`                       | 2            |
+| H8  | Struktur Organisasi          | `/karyawan/struktur`                    | `hris.employee.read:all`                       | 2            |
+| H9  | Absensi Saya                 | `/absensi`                              | `hris.attendance.read:own`                     | 2            |
+| H10 | Rekap Absensi                | `/absensi/rekap`                        | `hris.attendance.read:team` / `:all`           | 2            |
+| H11 | Cuti Saya                    | `/cuti`                                 | `hris.leave.read:own`                          | 2            |
+| H12 | Ajukan Cuti                  | `/cuti/ajukan`                          | `hris.leave.create:own`                        | 2            |
+| H13 | Persetujuan Cuti             | `/cuti/persetujuan`                     | `hris.leave.approve:team` / `:all`             | 2            |
+| H14 | Kalender Cuti                | `/cuti/kalender`                        | `hris.leave.read:team`                         | 2            |
+| H15 | Pengaturan Cuti              | `/cuti/pengaturan`                      | `hris.leave.configure:all`                     | 2            |
+| H16 | Payroll: periode             | `/payroll`                              | `hris.payroll.read:all`                        | 4            |
+| H17 | Payroll: detail periode      | `/payroll/[periodId]`                   | `hris.payroll.manage:all`                      | 4            |
+| H18 | Komponen gaji                | `/payroll/komponen/[employeeId]`        | `hris.payroll.manage:all`                      | 4            |
+| H19 | Slip Gaji Saya               | `/slip-gaji`                            | `hris.payslip.read:own`                        | 4            |
+| H20 | Kinerja                      | `/kinerja/...`                          | `hris.performance.read:own` / `:team` / `:all` | 4            |
+| H21 | Rekrutmen                    | `/rekrutmen/...`                        | `hris.recruitment.read:all`                    | 4 (opsional) |
+| H22 | Pelatihan & Onboarding       | `/pelatihan`, `/onboarding`             | `hris.training.read:own` / `:all`              | 4 (opsional) |
+| H23 | Wizard impor Excel           | `/karyawan/impor`                       | `hris.employee.import:all`                     | 2            |
 
 **System Management (`apps/sysmgmt`)**
 
-| ID | Layar | Route | Permission minimum | Fase |
-| --- | --- | --- | --- | --- |
-| S1 | Dashboard | `/dashboard` | `sysmgmt.dashboard.read:all` | 3 |
-| S2 | Daftar Pengguna | `/pengguna` | `sysmgmt.user.read:all` | 3 |
-| S3 | Detail Pengguna & Role | `/pengguna/[id]` | `sysmgmt.user.manage:all` | 3 |
-| S4 | Role & Akses | `/role` | `sysmgmt.role.manage:all` | 3 |
-| S5 | Daftar Aset | `/aset` | `sysmgmt.asset.read:all` | 3 |
-| S6 | Detail Aset | `/aset/[id]` | `sysmgmt.asset.read:all` | 3 |
-| S7 | Lisensi Software | `/lisensi` | `sysmgmt.license.read:all` | 3 |
-| S8 | Dokumen & SOP | `/dokumen` | `sysmgmt.document.read` (menurut visibility) | 3 |
-| S9 | Detail Dokumen | `/dokumen/[id]` | `sysmgmt.document.read` | 3 |
-| S10 | Audit Log | `/audit-log` | `sysmgmt.audit.read:all` | 3 |
-| S11 | Aset Saya & Dokumen (Staff) | `/aset-saya`, `/dokumen` | `sysmgmt.asset.read:own` | 3 |
+| ID  | Layar                       | Route                    | Permission minimum                           | Fase |
+| --- | --------------------------- | ------------------------ | -------------------------------------------- | ---- |
+| S1  | Dashboard                   | `/dashboard`             | `sysmgmt.dashboard.read:all`                 | 3    |
+| S2  | Daftar Pengguna             | `/pengguna`              | `sysmgmt.user.read:all`                      | 3    |
+| S3  | Detail Pengguna & Role      | `/pengguna/[id]`         | `sysmgmt.user.manage:all`                    | 3    |
+| S4  | Role & Akses                | `/role`                  | `sysmgmt.role.manage:all`                    | 3    |
+| S5  | Daftar Aset                 | `/aset`                  | `sysmgmt.asset.read:all`                     | 3    |
+| S6  | Detail Aset                 | `/aset/[id]`             | `sysmgmt.asset.read:all`                     | 3    |
+| S7  | Lisensi Software            | `/lisensi`               | `sysmgmt.license.read:all`                   | 3    |
+| S8  | Dokumen & SOP               | `/dokumen`               | `sysmgmt.document.read` (menurut visibility) | 3    |
+| S9  | Detail Dokumen              | `/dokumen/[id]`          | `sysmgmt.document.read`                      | 3    |
+| S10 | Audit Log                   | `/audit-log`             | `sysmgmt.audit.read:all`                     | 3    |
+| S11 | Aset Saya & Dokumen (Staff) | `/aset-saya`, `/dokumen` | `sysmgmt.asset.read:own`                     | 3    |
 
 > Nama permission di atas adalah usulan; daftar final ditetapkan di `@pspk/rbac` (`AGENTS.md` Bagian 7). Bila berbeda, agent mengikuti `@pspk/rbac`.
 
@@ -881,43 +882,49 @@ Gunakan bila Stitch tidak menghasilkan `DESIGN.md`, atau sebagai patokan untuk m
 # PSPK Platform — Design System
 
 ## Prinsip
+
 Profesional, tenang, terpercaya. Padat informasi namun lega. Tanpa gradien,
 glassmorphism, atau foto stok. Seluruh teks UI dalam Bahasa Indonesia.
 
 ## Warna
-| Token | Hex | Pemakaian |
-| --- | --- | --- |
-| navy | #102E50 | Utama: sidebar, header, tombol utama, judul |
-| gold | #F2AF3E | Aksen/CTA sekunder; teks di atasnya wajib navy |
-| maroon | #A8281C | Aksi destruktif, error |
-| bg-page | #F5F7FA | Latar halaman |
-| surface | #FFFFFF | Kartu, tabel, dialog |
-| text-primary | #1B2430 | Teks utama |
-| text-muted | #5B6675 | Teks sekunder |
-| border | #E1E6ED | Garis, pemisah |
-| success | (hijau redup, tentukan saat desain final) | Disetujui, Aktif |
-| warning | (amber turunan gold) | Menunggu, akan berakhir |
-| danger | maroon | Ditolak, error |
-| info | (tint navy) | Informasi, netral |
+
+| Token        | Hex                                       | Pemakaian                                      |
+| ------------ | ----------------------------------------- | ---------------------------------------------- |
+| navy         | #102E50                                   | Utama: sidebar, header, tombol utama, judul    |
+| gold         | #F2AF3E                                   | Aksen/CTA sekunder; teks di atasnya wajib navy |
+| maroon       | #A8281C                                   | Aksi destruktif, error                         |
+| bg-page      | #F5F7FA                                   | Latar halaman                                  |
+| surface      | #FFFFFF                                   | Kartu, tabel, dialog                           |
+| text-primary | #1B2430                                   | Teks utama                                     |
+| text-muted   | #5B6675                                   | Teks sekunder                                  |
+| border       | #E1E6ED                                   | Garis, pemisah                                 |
+| success      | (hijau redup, tentukan saat desain final) | Disetujui, Aktif                               |
+| warning      | (amber turunan gold)                      | Menunggu, akan berakhir                        |
+| danger       | maroon                                    | Ditolak, error                                 |
+| info         | (tint navy)                               | Informasi, netral                              |
 
 Seluruh nilai netral/semantik di atas adalah usulan awal; final mengikuti hasil
 desain yang disetujui. Semua kombinasi teks/latar harus lolos WCAG AA.
 
 ## Tipografi
+
 - Heading: Lora (h1 28–32, h2 22–24, h3 18–20; weight 600)
 - Body & UI: Rubik (14–16; label 13–14 weight 500; caption 12)
 - Angka pada tabel: tabular-nums, rata kanan
 
 ## Spasi, bentuk, bayangan
+
 - Basis 4px; radius 8px (kontrol), 12px (kartu)
 - Bayangan: 2 level (kartu, overlay); fokus ring 2px gold dengan offset
 
 ## Layout
+
 - Sidebar navy 264px (ciut 72px), topbar putih 64px, konten max-width 1280px
 - Tabel: baris 48px, header sticky, aksi di kanan
 - Breakpoint: 640 / 768 / 1024 / 1280
 
 ## Komponen wajib
+
 Button (primary, secondary, outline, ghost, destructive, loading), Input, Textarea,
 Select, DatePicker, DateRange, FileDropzone, Checkbox, Switch, MaskedField, Badge
 status, Card, StatCard, Tabs, Breadcrumb, Stepper, Timeline, DataTable, Dialog,
@@ -925,13 +932,16 @@ Drawer, ConfirmDialog, Toast, Alert, Skeleton, EmptyState, ErrorState, Avatar,
 Tooltip, AppSwitcher.
 
 ## Status badge
+
 Aktif · Nonaktif · Menunggu · Disetujui · Ditolak · Dibatalkan · Draf ·
 Dihitung · Dipublikasikan · Dikunci — selalu dengan teks (tidak hanya warna).
 
 ## Aksesibilitas
+
 Kontras AA, fokus terlihat, label pada semua input, target sentuh ≥ 44px di mobile.
 
 ## Larangan
+
 Teks emas di atas putih; warna di luar palet; ikon berbeda gaya; teks Inggris di UI.
 ```
 
@@ -941,26 +951,26 @@ Teks emas di atas putih; warna di luar palet; ikon berbeda gaya; teks Inggris di
 
 Pakai data yang sama di semua layar agar desain koheren. **Seluruhnya fiktif.**
 
-| Tokoh | Peran | Keterangan |
-| --- | --- | --- |
-| Ratna Aprilia | Admin HR | Departemen SDM & Umum |
-| Dewi Lestari | Admin IT | Departemen TI |
-| Agus Prasetyo | Manajer | Atasan langsung Made Wirawan (tim 6 orang) |
-| Made Wirawan | Karyawan | Peneliti, Tipe: Tetap, no. pegawai `PSPK-0042` |
-| Siti Rahmawati | Karyawan | Analis Kebijakan, Tipe: Kontrak, kontrak berakhir dalam 24 hari |
-| Ni Luh Ayu Kartika | Karyawan | Asisten Riset, Tipe: Paruh Waktu/Proyek |
-| Budi Santoso | Karyawan | Staf Keuangan, Tipe: Tetap |
-| Rizky Ramadhan | Kandidat | Melamar posisi Peneliti Junior |
+| Tokoh              | Peran    | Keterangan                                                      |
+| ------------------ | -------- | --------------------------------------------------------------- |
+| Ratna Aprilia      | Admin HR | Departemen SDM & Umum                                           |
+| Dewi Lestari       | Admin IT | Departemen TI                                                   |
+| Agus Prasetyo      | Manajer  | Atasan langsung Made Wirawan (tim 6 orang)                      |
+| Made Wirawan       | Karyawan | Peneliti, Tipe: Tetap, no. pegawai `PSPK-0042`                  |
+| Siti Rahmawati     | Karyawan | Analis Kebijakan, Tipe: Kontrak, kontrak berakhir dalam 24 hari |
+| Ni Luh Ayu Kartika | Karyawan | Asisten Riset, Tipe: Paruh Waktu/Proyek                         |
+| Budi Santoso       | Karyawan | Staf Keuangan, Tipe: Tetap                                      |
+| Rizky Ramadhan     | Kandidat | Melamar posisi Peneliti Junior                                  |
 
-| Data | Contoh |
-| --- | --- |
-| Departemen | Riset & Kebijakan, SDM & Umum, TI, Keuangan |
-| Jenis cuti (dummy) | Cuti Tahunan (12 hari), Cuti Sakit, Cuti Melahirkan, Cuti Penting |
-| Periode payroll | Agustus 2026 (Reguler), Juli 2026 (Dikunci) |
-| Angka gaji | Pembulatan dummy, mis. Rp 8.500.000 (bersih) — hanya untuk tampilan |
-| Aset | `LPT-0007` Laptop Lenovo ThinkPad (Dipakai, pemegang Made Wirawan); `MON-0012` Monitor 24" (Tersedia) |
-| Lisensi | Microsoft 365 Business (40/45 seat, berakhir 12 Oktober 2026) |
-| Dokumen | `SOP-001` Pengajuan Cuti (v3); `KBJ-002` Kebijakan Keamanan Informasi (v1) |
-| Tanggal acuan | 21 September 2026 |
+| Data               | Contoh                                                                                                |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| Departemen         | Riset & Kebijakan, SDM & Umum, TI, Keuangan                                                           |
+| Jenis cuti (dummy) | Cuti Tahunan (12 hari), Cuti Sakit, Cuti Melahirkan, Cuti Penting                                     |
+| Periode payroll    | Agustus 2026 (Reguler), Juli 2026 (Dikunci)                                                           |
+| Angka gaji         | Pembulatan dummy, mis. Rp 8.500.000 (bersih) — hanya untuk tampilan                                   |
+| Aset               | `LPT-0007` Laptop Lenovo ThinkPad (Dipakai, pemegang Made Wirawan); `MON-0012` Monitor 24" (Tersedia) |
+| Lisensi            | Microsoft 365 Business (40/45 seat, berakhir 12 Oktober 2026)                                         |
+| Dokumen            | `SOP-001` Pengajuan Cuti (v3); `KBJ-002` Kebijakan Keamanan Informasi (v1)                            |
+| Tanggal acuan      | 21 September 2026                                                                                     |
 
 Data ini hanya contoh tampilan. Jenis cuti, kuota, dan angka payroll sebenarnya ditetapkan HR (lihat `docs/OPEN_QUESTIONS.md`).

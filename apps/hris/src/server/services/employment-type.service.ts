@@ -28,7 +28,10 @@ export interface UpdateEmploymentTypeDTO {
 }
 
 export async function createEmploymentType(dto: CreateEmploymentTypeDTO, actor: ActorInfo) {
-  const normalizedCode = dto.code.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+  const normalizedCode = dto.code
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_]/g, "_");
 
   if (!normalizedCode) {
     throw new Error("Kode ikatan kerja wajib diisi.");
@@ -52,7 +55,10 @@ export async function createEmploymentType(dto: CreateEmploymentTypeDTO, actor: 
       name: dto.name.trim(),
       category: dto.category,
       wageType: dto.wageType,
-      defaultHourlyRate: dto.defaultHourlyRate !== undefined && dto.defaultHourlyRate !== null ? dto.defaultHourlyRate : null,
+      defaultHourlyRate:
+        dto.defaultHourlyRate !== undefined && dto.defaultHourlyRate !== null
+          ? dto.defaultHourlyRate
+          : null,
       description: dto.description?.trim() || null,
       isActive: dto.isActive ?? true,
     },
@@ -98,7 +104,10 @@ export async function updateEmploymentType(dto: UpdateEmploymentTypeDTO, actor: 
       name: dto.name.trim(),
       category: dto.category,
       wageType: dto.wageType,
-      defaultHourlyRate: dto.defaultHourlyRate !== undefined && dto.defaultHourlyRate !== null ? dto.defaultHourlyRate : null,
+      defaultHourlyRate:
+        dto.defaultHourlyRate !== undefined && dto.defaultHourlyRate !== null
+          ? dto.defaultHourlyRate
+          : null,
       description: dto.description?.trim() || null,
       isActive: dto.isActive !== undefined ? dto.isActive : existing.isActive,
     },

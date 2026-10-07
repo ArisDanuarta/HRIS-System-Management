@@ -130,7 +130,9 @@ export function EmploymentTypeManagement({ initialTypes }: EmploymentTypeManagem
               name: res.data.name,
               category: res.data.category,
               wageType: res.data.wageType,
-              defaultHourlyRate: res.data.defaultHourlyRate ? Number(res.data.defaultHourlyRate) : null,
+              defaultHourlyRate: res.data.defaultHourlyRate
+                ? Number(res.data.defaultHourlyRate)
+                : null,
               description: res.data.description,
               isActive: res.data.isActive,
               createdAt:
@@ -169,7 +171,9 @@ export function EmploymentTypeManagement({ initialTypes }: EmploymentTypeManagem
                     name: res.data.name,
                     category: res.data.category,
                     wageType: res.data.wageType,
-                    defaultHourlyRate: res.data.defaultHourlyRate ? Number(res.data.defaultHourlyRate) : null,
+                    defaultHourlyRate: res.data.defaultHourlyRate
+                      ? Number(res.data.defaultHourlyRate)
+                      : null,
                     description: res.data.description,
                     isActive: res.data.isActive,
                   }
@@ -491,7 +495,8 @@ export function EmploymentTypeManagement({ initialTypes }: EmploymentTypeManagem
                     onChange={(e) =>
                       setModalState((prev) => ({
                         ...prev,
-                        category: e.target.value as "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT",
+                        category: e.target.value as
+                          "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT",
                       }))
                     }
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white"
@@ -546,7 +551,8 @@ export function EmploymentTypeManagement({ initialTypes }: EmploymentTypeManagem
                     </span>
                   </div>
                   <span className="text-[10px] text-amber-800/90 mt-1 block">
-                    Tarif default yang otomatis terisi saat Admin HR mendaftarkan pegawai dengan ikatan kerja ini.
+                    Tarif default yang otomatis terisi saat Admin HR mendaftarkan pegawai dengan
+                    ikatan kerja ini.
                   </span>
                 </div>
               )}

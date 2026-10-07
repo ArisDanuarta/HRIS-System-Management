@@ -29,7 +29,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Komponen grid kartu modul interaktif ([`module-governance-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/modules/module-governance-view.tsx)):
        - Toggle switch instan per modul dengan indikator status aktif/nonaktif.
        - Badge penanda `Wajib / Inti` atau `Opsional`.
-       - Filter pencarian instan dan penyaring status (*Semua, Aktif, Nonaktif*).
+       - Filter pencarian instan dan penyaring status (_Semua, Aktif, Nonaktif_).
        - Modal konfirmasi reset ke default PSPK.
   4. **Integrasi Reaktif di HRIS (`apps/hris`):**
      - **Navigasi Sidebar:** Mengondisikan menu Bagan Organisasi, Struktur Organisasi, Kinerja, dan Timesheet agar tidak muncul jika dinonaktifkan di seluruh kelompok peran (Admin HR, Manajer Tim, Staf, Layanan Mandiri).
@@ -87,7 +87,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   3. **Komponen Visual Matriks Grid RBAC Interaktif ([`role-matrix-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/roles/role-matrix-view.tsx)):**
      - Visualisasi tabel 2D silang 5 Peran Sistem (`Super Admin`, `Admin IT`, `Admin HR`, `Manajer`, `Staf`) $\times$ 56 Permission.
      - Accordion buka/tutup per kategori modul dan kontrol cepat "Buka Semua" / "Tutup Semua".
-     - Bilah pencarian instan realtime dan filter tab modul (*Semua*, *HRIS*, *System Management*).
+     - Bilah pencarian instan realtime dan filter tab modul (_Semua_, _HRIS_, _System Management_).
      - Lencana wewenang berwarna ramah pengguna: Penuh (`:all`), Tim (`:team`), Mandiri (`:own`), Khusus (`:sync/:connect/:hr`), dan Terkunci (`—`).
   4. **Proteksi Keamanan Backend & Audit Logging ([`user.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/user.actions.ts) & [`can.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/can.test.ts)):**
      - Penegakan `assertCan(actor.authCtx, "sysmgmt.user.manage")` di seluruh server actions mutasi.
@@ -251,7 +251,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
        - `getWorkCalendarEvents(year, month)` mengambil data cuti tim yang berstatus `APPROVED` serta hari libur resmi dan cuti bersama dari tabel `Holiday` untuk bulan yang dipilih.
   3. **Komponen UI Kalender Kerja:**
      - [`apps/hris/src/components/kalender/work-calendar-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/work-calendar-view.tsx):
-       - Grid 7-kolom (Senin–Minggu) interaktif dengan indikator hari ini (*today badge*).
+       - Grid 7-kolom (Senin–Minggu) interaktif dengan indikator hari ini (_today badge_).
        - Navigasi bulan (Maju/Mundur/Hari Ini) dengan URL query params `?year=&month=`.
        - Filter pill: Semua Event, Cuti Tim, Hari Libur Nasional.
        - Modal dialog daftar kegiatan harian saat tanggal diklik.
@@ -259,7 +259,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - [`apps/hris/src/components/kalender/google-connect-banner.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/google-connect-banner.tsx):
        - Banner ajakan integrasi Google Calendar & Google Meet (siap diaktifkan pada Fase C).
   4. **Halaman Rute & Navigasi Sidebar:**
-     - Halaman baru [`apps/hris/src/app/(app)/kalender/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kalender/page.tsx) dengan Server Component `dynamic = "force-dynamic"`, pengecekan session, dan proteksi RBAC `hris.calendar.read:own`.
+     - Halaman baru [`apps/hris/src/app/(app)/kalender/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kalender/page.tsx>) dengan Server Component `dynamic = "force-dynamic"`, pengecekan session, dan proteksi RBAC `hris.calendar.read:own`.
      - Menu "Kalender Kerja" mandiri ditambahkan ke Sidebar ([`apps/hris/src/components/shell/app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)) untuk seluruh peran (Admin HR, Manager, Staff) tepat di bawah menu Beranda.
 - **Verifikasi Kualitas:**
   - `pnpm db:seed`: ✅ Sukses (65 permissions & 5 roles)
@@ -313,26 +313,25 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## Tahap 4: Bagan Hierarki Organisasi & Visual Interaktif Divisi/Manajer (Opsi A Core HRIS) — 2026-10-05
 
-
 - **Status:** Selesai
-- **Scope:** 
+- **Scope:**
   1. Sub-tahap 4A: Engine Pembentukan Pohon Hierarki Organisasi ([`apps/hris/src/server/queries/org-chart.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/org-chart.queries.ts)):
      - Query seluruh pegawai aktif beserta kontrak aktif, divisi, jabatan struktural, dan atasan langsung (`managerId`).
      - Algoritma resolusi simpul pohon (`OrgChartNode`), identifikasi pimpinan puncak (`rootNodes`), komputasi kedalaman tingkat (`level` & `maxDepth`), kalkulasi rekursif jumlah bawahan langsung maupun bawahan tidak langsung (`totalSubordinatesCount`), pengelompokan ringkasan divisi, serta pelacakan pegawai aktif yang belum memiliki atasan atau atasan tidak ditemukan (`unassignedEmployees`).
   2. Sub-tahap 4B: Komponen Visual Pohon Organisasi Interaktif ([`apps/hris/src/components/karyawan/org-chart-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/org-chart-view.tsx)):
      - Dua Mode Tampilan:
-       - **Visual Tree**: Visualisasi bagan pohon bertingkat dengan garis konektor CSS rapi, kartu pegawai dengan foto profil/inisial brand PSPK, status keaktifan pegawai, badge divisi & ikatan kerja, jumlah bawahan, tombol buka/tutup cabang (*expand/collapse*), serta kontrol zoom (50% s.d. 150%) dan reset ukuran.
+       - **Visual Tree**: Visualisasi bagan pohon bertingkat dengan garis konektor CSS rapi, kartu pegawai dengan foto profil/inisial brand PSPK, status keaktifan pegawai, badge divisi & ikatan kerja, jumlah bawahan, tombol buka/tutup cabang (_expand/collapse_), serta kontrol zoom (50% s.d. 150%) dan reset ukuran.
        - **Hierarchical Accordion List**: Tampilan daftar berjenjang dengan indentasi hierarkis dinamis untuk navigasi cepat dan ramah perangkat layar kecil/mobile.
-     - Pencarian Instan Terarah: Mencari pegawai berdasarkan nama, nama panggilan, nomor pegawai (NIP), jabatan, atau divisi dengan otomatis membuka seluruh rantai atasan (*ancestor chain*) dan memberikan efek penyorotan visual (*amber border & pulse highlight*).
+     - Pencarian Instan Terarah: Mencari pegawai berdasarkan nama, nama panggilan, nomor pegawai (NIP), jabatan, atau divisi dengan otomatis membuka seluruh rantai atasan (_ancestor chain_) dan memberikan efek penyorotan visual (_amber border & pulse highlight_).
      - Filter Divisi: Memfilter cabang bagan per unit kerja/divisi tertentu.
      - Drawer Khusus "Pegawai Belum Terpetakan": Panel modal interaktif untuk mendeteksi pegawai aktif yang belum memiliki atasan langsung (`managerId === null`), dilengkapi indikator jabatan dan tombol tautan cepat khusus Admin HR untuk segera mengatur atasan di formulir profil.
-  3. Sub-tahap 4C: Halaman Bagan Struktur Organisasi & Integrasi Navigasi ([`apps/hris/src/app/(app)/karyawan/struktur/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/struktur/page.tsx)):
+  3. Sub-tahap 4C: Halaman Bagan Struktur Organisasi & Integrasi Navigasi ([`apps/hris/src/app/(app)/karyawan/struktur/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/struktur/page.tsx>)):
      - Dapat diakses oleh **seluruh peran** (`admin_hr`, `manager`, `staff`) untuk menjaga transparansi koordinasi internal organisasi.
      - Integrasi Menu Sidebar ([`apps/hris/src/components/shell/app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)) dengan ikon `Network` pada seluruh section peran dan penanda tautan aktif (`isNavActive`).
      - Integrasi Breadcrumb Topbar ([`apps/hris/src/components/shell/app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx)).
-     - Tombol Cepat Aksi: Tautan langsung "Bagan Organisasi ↗" di halaman Direktori Pegawai ([`apps/hris/src/app/(app)/karyawan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/page.tsx)) dan "Visual Bagan Pohon Organisasi ↗" di halaman Kelola Organisasi ([`apps/hris/src/app/(app)/karyawan/organisasi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/organisasi/page.tsx)).
+     - Tombol Cepat Aksi: Tautan langsung "Bagan Organisasi ↗" di halaman Direktori Pegawai ([`apps/hris/src/app/(app)/karyawan/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/page.tsx>)) dan "Visual Bagan Pohon Organisasi ↗" di halaman Kelola Organisasi ([`apps/hris/src/app/(app)/karyawan/organisasi/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/organisasi/page.tsx>)).
 - **Ketahanan Cache Prisma Development:**
-  - Menambahkan deteksi *outdated client* pada singleton Prisma ([`packages/db/src/index.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/src/index.ts)) menggunakan proxy trap agar saat model schema mengalami penambahan migrasi baru di sesi Turbopack dev, client langsung di-instansiasi ulang secara transparan tanpa terjadi `PrismaClientValidationError`.
+  - Menambahkan deteksi _outdated client_ pada singleton Prisma ([`packages/db/src/index.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/src/index.ts)) menggunakan proxy trap agar saat model schema mengalami penambahan migrasi baru di sesi Turbopack dev, client langsung di-instansiasi ulang secara transparan tanpa terjadi `PrismaClientValidationError`.
 - **Verifikasi Kualitas:**
   - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error (0 error)
   - `pnpm lint`: ✅ 0 error
@@ -344,12 +343,12 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ## Tahap 3: Vault Dokumen & Berkas Digital Pegawai (Opsi A Core HRIS) — 2026-10-05
 
 - **Status:** Selesai
-- **Scope:** 
+- **Scope:**
   1. Sub-tahap 3A: Skema Database & Migrasi Prisma untuk Berkas Digital Pegawai (`EmployeeDocument` di skema `hris`).
   2. Sub-tahap 3B: Server Actions Upload & Hapus Dokumen (`uploadEmployeeDocumentAction`, `deleteEmployeeDocumentAction`) dengan validasi MIME/ukuran file, penyimpanan aman ke `@pspk/storage`, otorisasi akses berjenjang (Aturan Khusus: Berkas Kontrak Kerja `CONTRACT` wajib diunggah/diperbarui/dihapus hanya oleh Admin HR / Super Admin sedangkan staf hanya bisa melihat dan mengunduh; Berkas non-kontrak seperti KTP, NPWP, Ijazah, CV, Sertifikat, dll. dapat diisi/diunggah mandiri oleh pegawai pemilik akun atau oleh HR), dan pencatatan audit log `UPLOAD_DOCUMENT` & `DELETE_DOCUMENT`.
   3. Sub-tahap 3C: Komponen Vault Berkas Digital Interaktif ([`EmployeeDocumentsCard`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/employee-documents-card.tsx)) yang diintegrasikan di dua tempat:
-     - Halaman detail pegawai ([`apps/hris/src/app/(app)/karyawan/[id]`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/page.tsx)) pada tab "Dokumen & Berkas" untuk Admin HR dan Manajer.
-     - Halaman Profil Saya ([`apps/hris/src/app/(app)/profil`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/profil/page.tsx) & [`ProfileView`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/profil/profile-view.tsx)) pada tab "Dokumen & Berkas" untuk Layanan Mandiri Karyawan (ESS / Employee Self-Service).
+     - Halaman detail pegawai ([`apps/hris/src/app/(app)/karyawan/[id]`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/page.tsx>)) pada tab "Dokumen & Berkas" untuk Admin HR dan Manajer.
+     - Halaman Profil Saya ([`apps/hris/src/app/(app)/profil`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/profil/page.tsx>) & [`ProfileView`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/profil/profile-view.tsx)) pada tab "Dokumen & Berkas" untuk Layanan Mandiri Karyawan (ESS / Employee Self-Service).
 - **Perubahan Utama:**
   - Skema & Relasi Database: Menambahkan model `EmployeeDocument` pada [`packages/db/prisma/schema/hris.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/hris.prisma) dengan atribut `id`, `employeeId`, `category` (KTP/KK, Ijazah & CV, Kontrak Fisik, Sertifikat, Lainnya), `title`, `fileName`, `fileKey`, `fileSize`, `mimeType`, `uploadedById`, dan `createdAt`. Migration `20261005071240_add_employee_documents` berhasil dieksekusi ke PostgreSQL.
   - Query Data Pegawai & Profil: Memperbarui [`getEmployeeById`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/employee.queries.ts) dan [`getCurrentUserProfile`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/profile.queries.ts) untuk menyertakan relasi `documents` terurut tanggal unggah terbaru (`orderBy: { createdAt: "desc" }`).
@@ -377,14 +376,14 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ## Tahap 2: Koreksi & Override Keputusan Cuti oleh Admin HR (Opsi A Core HRIS) — 2026-10-05
 
 - **Status:** Selesai
-- **Scope:** 
+- **Scope:**
   1. Sub-tahap 2A: Layanan & Server Action Koreksi/Override Keputusan Cuti (`overrideLeaveDecision` & `overrideLeaveDecisionAction`) dengan otorisasi khusus `super_admin` & `admin_hr` (`hris.leave.configure:all`). Menangani sinkronisasi kuota saldo cuti secara otomatis (pengembalian hari cuti bila status dibatalkan/ditolak dari disetujui, atau pemotongan kuota & validasi sisa saldo/jadwal bentrok bila status diubah menjadi disetujui), sinkronisasi log status presensi kerja/LEAVE, dan audit log mendalam `OVERRIDE` pada entitas `LeaveRequest`.
-  2. Sub-tahap 2B: Antarmuka Interaktif Override Keputusan Cuti pada tab riwayat persetujuan di [`apps/hris/src/app/(app)/cuti/persetujuan`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/persetujuan/page.tsx) dan [`leave-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-approval-view.tsx), dilengkapi tombol "Override" khusus Admin HR, modal interaktif, kartu pratinjau kalkulasi saldo otomatis, dan formulir alasan wajib (min. 5 karakter).
+  2. Sub-tahap 2B: Antarmuka Interaktif Override Keputusan Cuti pada tab riwayat persetujuan di [`apps/hris/src/app/(app)/cuti/persetujuan`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/persetujuan/page.tsx>) dan [`leave-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-approval-view.tsx), dilengkapi tombol "Override" khusus Admin HR, modal interaktif, kartu pratinjau kalkulasi saldo otomatis, dan formulir alasan wajib (min. 5 karakter).
 - **Perubahan Utama:**
   - Skema Validasi: Menambahkan [`overrideLeaveDecisionSchema`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/schemas/leave.schema.ts) dengan validasi Zod untuk ID permohonan cuti, enum status tujuan (`APPROVED`, `REJECTED`, `CANCELLED`), dan alasan koreksi tertulis.
   - Helper & Unit Testing: Menambahkan fungsi murni [`getLeaveOverrideImpact`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.ts) dan rangkaian unit test di [`packages/shared/src/leave.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.test.ts) untuk menguji kalkulasi delta saldo (refund vs deduct) dan kebutuhan sinkronisasi presensi.
   - Layanan Bisnis Transaksional: Mengembangkan [`overrideLeaveDecision`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/leave.service.ts) di dalam `prisma.$transaction`:
-    - Transisi ke `APPROVED`: Validasi kecukupan sisa kuota, cek bentrok jadwal (*overlap*) dengan cuti lain, potong `usedDays` di `LeaveBalance`, dan tandai presensi sebagai `LEAVE` pada hari kerja non-libur.
+    - Transisi ke `APPROVED`: Validasi kecukupan sisa kuota, cek bentrok jadwal (_overlap_) dengan cuti lain, potong `usedDays` di `LeaveBalance`, dan tandai presensi sebagai `LEAVE` pada hari kerja non-libur.
     - Transisi keluar dari `APPROVED` (ke `REJECTED` atau `CANCELLED`): Kembalikan saldo cuti pegawai (`decrement usedDays`) dan bersihkan status presensi `LEAVE` pada rentang tanggal terkait.
     - Pembaruan status permohonan dengan catatan `[Override HR] <alasan>` dan pencatatan audit log `OVERRIDE`.
   - Aksi Server & Revalidasi: Menambahkan [`overrideLeaveDecisionAction`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/leave.actions.ts) dengan revalidasi path `/cuti`, `/cuti/persetujuan`, `/cuti/pengaturan`, dan `/absensi`.
@@ -400,8 +399,8 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ## Tahap 1: Penyempurnaan Modul Presensi & Saldo Cuti (Opsi A Core HRIS) — 2026-10-05
 
 - **Status:** Selesai
-- **Scope:** 
-  1. Sub-tahap 1A: Ekspor Rekap Presensi Bulanan ke Format Excel Resmi (`.xlsx`) dengan lembar kerja ganda (*Rekap Presensi* dengan 11 kolom pengukuran + lembar *Parameter & Ketentuan*), terintegrasi ke `/absensi/rekap`, tombol aksi download, dan pencatatan audit log `EXPORT` pada entitas `Attendance`.
+- **Scope:**
+  1. Sub-tahap 1A: Ekspor Rekap Presensi Bulanan ke Format Excel Resmi (`.xlsx`) dengan lembar kerja ganda (_Rekap Presensi_ dengan 11 kolom pengukuran + lembar _Parameter & Ketentuan_), terintegrasi ke `/absensi/rekap`, tombol aksi download, dan pencatatan audit log `EXPORT` pada entitas `Attendance`.
   2. Sub-tahap 1B: Manajemen & Penyesuaian Saldo Cuti Pegawai (`LeaveBalance`) di `/cuti/pengaturan` (Tab "Saldo Cuti Pegawai" dengan badge jumlah pegawai, kartu ringkasan kuota/terpakai, pencarian instan, filter divisi, modal interaktif penyesuaian kuota dengan mode `ADD`, `DEDUCT`, `SET`, validasi proteksi sisa cuti, audit log `UPDATE` lengkap dengan alasan wajib, serta unit test terisolasi).
 - **Perubahan Utama:**
   - Pustaka Ekspor Excel Presensi: Membuat [`apps/hris/src/lib/attendance-export.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/lib/attendance-export.ts) yang mengonversi data presensi bulanan menjadi workbook Excel rapi dengan sheet ringkasan dan referensi aturan jam kerja.
@@ -410,7 +409,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - Query Saldo Cuti Pegawai: Menambahkan [`getAllEmployeeLeaveBalances`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/leave.queries.ts) yang memuat seluruh saldo cuti tahun berjalan aktif per pegawai lengkap dengan kuota, terpakai, dan sisa.
   - Fungsi Murni & Unit Test: Menambahkan fungsi murni [`calculateAdjustedLeaveQuota`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.ts) dan unit test di [`packages/shared/src/leave.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/shared/src/leave.test.ts) untuk memvalidasi seluruh mode kalkulasi kuota (`ADD`, `DEDUCT`, `SET`) dan mencegah kuota dipotong di bawah hari yang sudah terpakai.
   - Aksi Server Penyesuaian Saldo: Membuat [`adjustEmployeeLeaveBalanceAction`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/leave.actions.ts) dengan validasi izin `hris.leave.configure:all`, input alasan minimal 5 karakter, upsert `LeaveBalance`, audit log perbandingan nilai sebelum/sesudah, dan revalidasi path `/cuti` & `/cuti/pengaturan`.
-  - Komponen UI Saldo Cuti: Membangun [`apps/hris/src/components/cuti/employee-leave-balances-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/employee-leave-balances-view.tsx) dan mengintegrasikannya ke tab "Saldo Cuti Pegawai" di [`LeaveSettingsView`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-settings-view.tsx) dan [`apps/hris/src/app/(app)/cuti/pengaturan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/pengaturan/page.tsx).
+  - Komponen UI Saldo Cuti: Membangun [`apps/hris/src/components/cuti/employee-leave-balances-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/employee-leave-balances-view.tsx) dan mengintegrasikannya ke tab "Saldo Cuti Pegawai" di [`LeaveSettingsView`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-settings-view.tsx) dan [`apps/hris/src/app/(app)/cuti/pengaturan/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/pengaturan/page.tsx>).
 - **Verifikasi Kualitas:**
   - `pnpm typecheck`: ✅ 9/9 package lolos tanpa error
   - `pnpm lint`: ✅ 0 error
@@ -502,6 +501,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Fase 1 — Setup Awal Monorepo & Fondasi Sistem
+
 - **Status:** Selesai (Completed)
 - **Capaian:**
   - Struktur monorepo Turborepo + pnpm workspace telah disiapkan dan diselaraskan.
@@ -518,6 +518,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - Seluruh pengujian kualitas hijau: `pnpm lint`, `pnpm typecheck`, `pnpm test` (14 unit test), `pnpm build`.
 
 ### Checklist Fase 1 (100% Terpenuhi):
+
 - [x] Repo, workspace, Turborepo, Prettier, ESLint, `tsconfig` bersama berjalan; `pnpm lint`, `typecheck`, `build` hijau.
 - [x] `apps/hris` (3001) dan `apps/sysmgmt` (3002) berjalan dengan `pnpm dev`; `/api/health` OK di keduanya (`{"status":"ok"}`).
 - [x] PostgreSQL lokal berjalan; `DATABASE_URL` dari `.env`.
@@ -531,14 +532,15 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Layar P-C1 — Halaman Login Bersama (PSPK Platform)
+
 - **Status:** Selesai (Completed)
 - **Sumber Desain:** Stitch AI Screen P-C1 (Project ID: `9384324621089398179`, Screen ID: `d1ac364d517f42948a50aa4aab3f89d8`)
 - **Implementasi:**
   - Ditulis ulang 100% murni dalam React & Tailwind CSS (`packages/ui/src/login-page.tsx`).
-  - Fitur Pengalih Portal (Slide Switcher): Ditambahkan segmented pill control interaktif di bagian atas untuk berpindah mulus antar *Portal HRIS* (`:3001/login`) dan *System Management* (`:3002/login`).
+  - Fitur Pengalih Portal (Slide Switcher): Ditambahkan segmented pill control interaktif di bagian atas untuk berpindah mulus antar _Portal HRIS_ (`:3001/login`) dan _System Management_ (`:3002/login`).
   - Identitas Khas Tiap Portal:
-    - **HRIS**: Nuansa aksen emas `#feba48`, label *Akses Masuk Pegawai HRIS*, headline fokus ke manajemen absensi, cuti, dan kepegawaian tim riset PSPK.
-    - **System Management**: Nuansa aksen teknologi biru `#60a5fa`, label *Akses Administrator Sistem*, headline fokus ke kontrol hak akses RBAC, inventarisasi aset, dan audit trail.
+    - **HRIS**: Nuansa aksen emas `#feba48`, label _Akses Masuk Pegawai HRIS_, headline fokus ke manajemen absensi, cuti, dan kepegawaian tim riset PSPK.
+    - **System Management**: Nuansa aksen teknologi biru `#60a5fa`, label _Akses Administrator Sistem_, headline fokus ke kontrol hak akses RBAC, inventarisasi aset, dan audit trail.
   - Desain 1 Layar Penuh: Layout terkunci rapi pada 100vh tanpa scrollbar, responsif di resolusi laptop/desktop.
   - Integrasi Better Auth:
     - Route handlers di `apps/hris/src/app/api/auth/[...all]/route.ts` dan `apps/sysmgmt/src/app/api/auth/[...all]/route.ts`.
@@ -553,6 +555,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Layar P-1A, P-1B, P-1C — HRIS App Shell & Dashboard Multiperan
+
 - **Status:** Selesai (Completed)
 - **Sumber Desain:** Stitch AI Screens:
   - P-1A: Shell HRIS — Admin HR (`e2ae48ce397a44bda712ef8d1543336c`)
@@ -563,14 +566,14 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Sidebar dinamis collapsible (`apps/hris/src/components/shell/app-sidebar.tsx`) dengan warna navy `#102E50`, logo monogram PSPK, dan filter menu otomatis berdasarkan role (Admin HR, Manajer, Staff).
     - Topbar terapung (`app-topbar.tsx`) dengan breadcrumbs dinamis, AppSwitcher, tombol notifikasi berpenghitung merah, dan UserNav.
     - AppSwitcher (`app-switcher.tsx`): Dropdown beralih antara HRIS (`:3001`) dan System Management (`:3002`).
-    - UserNav (`user-nav.tsx`): Menampilkan inisial avatar, nama, badge role institusi, dan tombol *Keluar* terhubung ke Better Auth `signOut()`.
+    - UserNav (`user-nav.tsx`): Menampilkan inisial avatar, nama, badge role institusi, dan tombol _Keluar_ terhubung ke Better Auth `signOut()`.
   - **Layout Terproteksi**:
     - `apps/hris/src/app/(app)/layout.tsx`: Memvalidasi sesi Better Auth di server via `getSession(headers)`. Pengguna tanpa sesi otomatis di-redirect ke `/login`.
     - `apps/hris/src/app/page.tsx`: Otomatis me-redirect pengguna ke `/dashboard` jika sudah login atau ke `/login` jika belum.
   - **Dashboard Adaptif Multiperan (`/dashboard`)**:
     - `apps/hris/src/app/(app)/dashboard/page.tsx`: Menggabungkan ketiga rancangan layar Stitch:
       - **Admin HR (P-1A)**: Direktori staf, tombol tambah pegawai & impor data Excel, 3 stat cards (148 pegawai aktif, 5 pengajuan cuti, 32 peneliti lapangan), dan search filter bar.
-      - **Manajer (P-1C)**: 4 metrik tim (pending, kapasitas aktif 87.5%, disetujui, respon) dan kartu daftar permohonan cuti anggota tim dengan aksi *Setujui* dan *Tolak*.
+      - **Manajer (P-1C)**: 4 metrik tim (pending, kapasitas aktif 87.5%, disetujui, respon) dan kartu daftar permohonan cuti anggota tim dengan aksi _Setujui_ dan _Tolak_.
       - **Karyawan / Staff (P-1B)**: Kartu identitas pegawai (Made Wirawan), 3 stat cards (sisa cuti 8 hari, presensi 98.5%, peneliti muda aktif), data induk pegawai, dan presensi masuk.
       - Dilengkapi quick perspective switcher di bagian atas untuk menguji ketiga perspektif tampilan.
   - **Hasil Pengujian**:
@@ -642,7 +645,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - **VERIFY**: Pegawai soft-deleted tidak muncul di query direktori aktif ✅
 - **Pembersihan Antarmuka Siap Produksi (Header & Dashboard)**:
   - Header (`app-topbar.tsx`): Menghapus seluruh tombol prototipe `Tampilan: Admin HR | Manajer | Staff` dan elemen trigger `HRIS PSPK [Aktif]`. Header kini bersih dan profesional hanya memuat breadcrumbs, notifikasi sistem, dan UserNav.
-  - Aksesibilitas Lintas Portal: Tautan menuju portal *System Management* ditempatkan rapi di dalam dropdown akun pengguna (`UserNav`).
+  - Aksesibilitas Lintas Portal: Tautan menuju portal _System Management_ ditempatkan rapi di dalam dropdown akun pengguna (`UserNav`).
   - Dashboard Eksekutif Admin HR (`dashboard/page.tsx`): Menghapus selector prototipe `Mode Tampilan Dashboard: Admin HR (P-1A) | ...`. Halaman diubah menjadi Server Component terhubung penuh ke database PostgreSQL dengan metrik pegawai aktif, masa percobaan, alert kontrak kerja $\le$ 30 hari, distribusi divisi, dan tabel pegawai terdaftar terkini.
 
 ---
@@ -662,7 +665,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - 19 Hari Libur Nasional & Cuti Bersama 2026 disimpan di tabel `Holiday`.
     - Saldo cuti tahun 2026 (`LeaveBalance`) untuk seluruh pegawai benih (Tahunan: 12, Sakit: 14, Penting: 5, Melahirkan: 90).
     - Data presensi contoh bulan September 2026 dan 1 pengajuan cuti berstatus `PENDING` untuk verifikasi approval.
-    - `today-attendance-card.tsx`: Jam digital interaktif multi-zona waktu dinamis (auto-detect zona browser seperti WITA/WIT/WIB + dropdown switcher zona waktu mandiri + dual-clock tersinkronisasi Waktu Lokal & Kantor Pusat WIB), konversi jam operasional kantor (09:00–17:00 WIB) ke jam lokal staf, status kehadiran harian, tombol *Catat Kehadiran Masuk* / *Catat Kehadiran Pulang*, dan catatan kerja. Stempel waktu berbasis `TIMESTAMPTZ` dengan proteksi offset UTC.
+    - `today-attendance-card.tsx`: Jam digital interaktif multi-zona waktu dinamis (auto-detect zona browser seperti WITA/WIT/WIB + dropdown switcher zona waktu mandiri + dual-clock tersinkronisasi Waktu Lokal & Kantor Pusat WIB), konversi jam operasional kantor (09:00–17:00 WIB) ke jam lokal staf, status kehadiran harian, tombol _Catat Kehadiran Masuk_ / _Catat Kehadiran Pulang_, dan catatan kerja. Stempel waktu berbasis `TIMESTAMPTZ` dengan proteksi offset UTC.
     - Widget ringkasan bulanan: Tepat Waktu, Terlambat, Izin/Cuti, dan Akumulasi Jam Kerja.
     - `attendance-table.tsx`: Tabel log kehadiran harian sebulan penuh dengan badge status berlabel warna, indikator zona waktu dinamis, dan catatan koreksi jika ada.
   - **H10 Rekap Absensi Staf & Koreksi HR (`/absensi/rekap`)**:
@@ -679,7 +682,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Deteksi otomatis sisa saldo dan validasi ketercukupan kuota sebelum submit.
     - Validasi dokumen lampiran untuk tipe cuti yang mewajibkan berkas (misal: Surat Dokter untuk Cuti Sakit).
   - **H13 Persetujuan Cuti (`/cuti/persetujuan`)**:
-    - `leave-approval-view.tsx`: Tab navigasi *Menunggu Persetujuan*, *Disetujui*, *Ditolak*, dan *Semua*.
+    - `leave-approval-view.tsx`: Tab navigasi _Menunggu Persetujuan_, _Disetujui_, _Ditolak_, dan _Semua_.
     - Menampilkan kartu/tabel permohonan dengan identitas pegawai, divisi, durasi hari kerja, dan alasan.
     - Modal persetujuan dan penolakan dengan catatan keputusan wajib.
     - **Transaksi Atomik (`approveLeaveRequest`)**:
@@ -712,6 +715,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Perombakan Beranda / Dashboard per Role (HRIS PSPK)
+
 - **Status:** Selesai (Completed)
 - **Implementasi:**
   - **Arsitektur Query Terproteksi (`apps/hris/src/server/queries/dashboard/`)**:
@@ -748,6 +752,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul HRIS: Pendaftaran Karyawan, Master Organisasi & Manajemen Mutasi Jabatan
+
 - **Status:** Selesai (Completed)
 - **Capaian:**
   - **Pendaftaran Karyawan Baru & Pembuatan Akun Otomatis (`/karyawan/baru`)**:
@@ -755,7 +760,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Pembuatan akun login otomatis pada skema `core.User` dan `core.Account` (`providerId: "credential"`) dengan password acak aman (13 karakter: kombinasi huruf besar, kecil, angka, dan simbol).
     - Otomatisasi penetapan role akun (`staff`, `manager`, `admin_hr`, `admin_it`).
     - Modul pengiriman kredensial via `nodemailer` (SMTP) dengan template email resmi PSPK dan fallback simulasi di layar Admin HR saat SMTP belum disetel.
-    - Tombol **"Buat NIP Otomatis"** berformat `PSPK-YYYYMM-XXX` dan pengecekan duplikasi NIP secara *real-time* (debounced 350ms) dengan indikator visual dan pencegahan *guard*.
+    - Tombol **"Buat NIP Otomatis"** berformat `PSPK-YYYYMM-XXX` dan pengecekan duplikasi NIP secara _real-time_ (debounced 350ms) dengan indikator visual dan pencegahan _guard_.
     - Perbaikan isolasi submit multi-step form (mencegah skip/submit saat menekan Enter atau navigasi ke langkah 4).
   - **Master Struktur Organisasi (`/karyawan/organisasi`)**:
     - CRUD Divisi / Departemen (Tambah, Ubah Nama, Hapus aman dengan validasi integritas).
@@ -763,7 +768,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Tampilan interaktif 2 kolom dengan filter pencarian instan dan kartu metrik statistik organisasi.
     - **Proteksi Integritas Hapus**: Menolak penghapusan divisi atau jabatan yang masih memiliki pegawai aktif di dalamnya.
   - **Manajemen Mutasi & Promosi Pegawai (`/karyawan/[id]`)**:
-    - Fitur **"Mutasi / Promosi Jabatan"** pada Tab 4 (*Jabatan & Tim*) di halaman detail pegawai.
+    - Fitur **"Mutasi / Promosi Jabatan"** pada Tab 4 (_Jabatan & Tim_) di halaman detail pegawai.
     - Modal mutasi terpadu: Kategori (Promosi, Rotasi, Demosi, Penyesuaian), Divisi Baru, Jabatan Baru, Atasan Baru (dengan pencegahan relasi melingkar/circular reporting), Tanggal Efektif, Nomor SK, dan Catatan.
     - **Lampiran Berkas SK (PDF Opsional)**: Penyimpanan berkas PDF SK mutasi (maks. 10MB) via `StorageProvider` ke disk lokal.
     - Route handler streaming aman untuk mengunduh/melihat berkas SK (`/api/documents/[...path]`).
@@ -774,12 +779,13 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Tata Kelola Akun & Hak Akses (RBAC Hibrida: HRIS & System Management)
+
 - **Status:** Selesai (Completed)
 - **Capaian:**
   - **Arsitektur Wewenang & Separation of Duties**:
     - **Super Admin**: Akses penuh ke seluruh peran (`staff`, `manager`, `admin_hr`, `admin_it`, `super_admin`).
     - **Admin IT**: Mengelola peran dan aktivasi operasional pengguna di System Management. Dilarang menugaskan atau mencabut peran Super Admin.
-    - **Admin HR**: Saat mendaftarkan karyawan baru di `/karyawan/baru`, dibatasi hanya memilih peran `staff` atau `manager` (mencegah *privilege escalation*).
+    - **Admin HR**: Saat mendaftarkan karyawan baru di `/karyawan/baru`, dibatasi hanya memilih peran `staff` atau `manager` (mencegah _privilege escalation_).
     - **Proteksi Anti-Lockout**: Sistem menolak pencabutan atau penonaktifan Super Admin terakhir, dan mencegah pengguna menonaktifkan akunnya sendiri.
   - **HRIS (`apps/hris`)**:
     - Tab baru **"Akun & Hak Akses"** pada detail pegawai (`/karyawan/[id]?tab=akun`).
@@ -805,6 +811,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Payroll & Penggajian (Role Admin HR)
+
 - **Status:** Selesai (Completed)
 - **Capaian:**
   - **Siklus Status Periode Penggajian**:
@@ -823,8 +830,8 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - **Ekspor Rekap Perbankan**:
     - Generator berkas CSV transfer perbankan siap upload (NIP, Nama, Bank, Nomor Rekening terdekripsi, Nominal Bersih).
   - **Master Komponen Gaji (`/payroll/komponen`)**:
-    - Konfigurasi master tunjangan (*Earnings*) dan potongan (*Deductions*).
-    - Pilihan metode kalkulasi: Nominal Tetap (*Fixed*), Persentase dari Gaji Pokok (*Percent of Base*), dan Input Manual.
+    - Konfigurasi master tunjangan (_Earnings_) dan potongan (_Deductions_).
+    - Pilihan metode kalkulasi: Nominal Tetap (_Fixed_), Persentase dari Gaji Pokok (_Percent of Base_), dan Input Manual.
   - **Kepatuhan Audit Log**:
     - Seluruh aksi kalkulasi massal, persetujuan, publikasi slip ke pegawai, penguncian permanen, dan ekspor data tercatat di `core.audit_logs`.
   - **Hasil Uji & Kualitas**:
@@ -834,23 +841,25 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - `pnpm build`: Standalone build berhasil untuk kedua aplikasi.
 
 ### Fitur Khusus: Dukungan PKWT Per Jam (Timesheet) & "No Work, No Pay"
+
 - **Status:** Selesai (Completed)
 - **Implementasi**:
   - Model data `hris.contracts` mendukung `wageType: HOURLY` dan tarif per jam `hourlyRate`.
   - Model data `hris.payslips` menyimpan snapshot `wageType`, `totalHours`, `hourlyRate`, dan `timesheetKey`.
-  - Logika kalkulasi: $\text{Upah Jam Kerja} = \text{Total Jam Kerja Valid} \times \text{Tarif per Jam}$. Jika jam kerja 0 (belum ada timesheet), upah Rp 0 (*No Work, No Pay*).
+  - Logika kalkulasi: $\text{Upah Jam Kerja} = \text{Total Jam Kerja Valid} \times \text{Tarif per Jam}$. Jika jam kerja 0 (belum ada timesheet), upah Rp 0 (_No Work, No Pay_).
   - Modal `TimesheetInputModal`: Admin HR dapat menginput jam kerja dan melampirkan berkas bukti spreadsheet/PDF yang sudah ditandatangani dan di-acc Project Lead per tanggal 20.
   - Tautan berkas bukti timesheet dapat langsung diunduh dari tabel maupun modal slip gaji melalui rute streaming aman `/api/documents/[...path]`.
   - Audit log tercatat otomatis untuk setiap pembaruan timesheet (`UPDATE PayslipTimesheet`).
-  - Arsitektur *future-proof*: saat modul pengisian timesheet mandiri staf dibangun di web HRIS, sistem payroll siap mengambil jam terverifikasi otomatis.
+  - Arsitektur _future-proof_: saat modul pengisian timesheet mandiri staf dibangun di web HRIS, sistem payroll siap mengambil jam terverifikasi otomatis.
 
 ## Modul Kinerja & Riset (Role Admin HR — Layar P-H20)
+
 - **Status:** Selesai (Completed)
 - **Capaian:**
   - **Manajemen Siklus Periode Kinerja (`PerformancePeriod`)**:
     - Alur status: Buka Pengisian (`OPEN`) $\leftrightarrow$ Kunci/Selesai (`CLOSED`).
     - Modal pembuatan periode baru (`PerformancePeriodModal`) yang secara otomatis menginisialisasi draf penilaian untuk seluruh pegawai aktif di organisasi dan menetapkan atasan langsung sebagai penilai utama.
-    - Periode awal terisi: *"Semester Ganjil 2026 — Riset & Advokasi Kebijakan"*.
+    - Periode awal terisi: _"Semester Ganjil 2026 — Riset & Advokasi Kebijakan"_.
   - **Dashboard Metrik & Ringkasan Lembaga (`PerformanceStatsCards`)**:
     - 4 kartu metrik utama: Total Pegawai Dievaluasi, Status Evaluasi Diri (Self-Review), Menunggu Penilaian Atasan (Manager-Review), serta Kinerja Selesai & Terkunci (Finalized).
     - Menghitung rata-rata skor lembaga secara agregat dan persentase kelengkapan target berbobot 100%.
@@ -861,8 +870,8 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Tampilan predikat nilai akhir (Sangat Baik $\ge 90$, Baik $\ge 80$, Cukup $\ge 70$, Perlu Perbaikan $< 70$).
   - **Modal Detail Review Komparatif & Penguncian Nilai (`PerformanceDetailModal`)**:
     - Menampilkan daftar sasaran kerja & riset (OKR): Judul target, deskripsi, bobot (%), target indikator, dan capaian riil.
-    - Tampilan komparasi berdampingan (*Side-by-Side*): Evaluasi Diri Staf (skor + refleksi mandiri) vs Penilaian Atasan (skor + catatan rekomendasi manajer).
-    - Fitur Finalisasi & Kunci Skor (*Locking*) resmi oleh Admin HR/Pimpinan (`finalizePerformanceReviewAction`).
+    - Tampilan komparasi berdampingan (_Side-by-Side_): Evaluasi Diri Staf (skor + refleksi mandiri) vs Penilaian Atasan (skor + catatan rekomendasi manajer).
+    - Fitur Finalisasi & Kunci Skor (_Locking_) resmi oleh Admin HR/Pimpinan (`finalizePerformanceReviewAction`).
   - **Fitur Ekspor Rekap Kinerja**:
     - Ekspor data evaluasi kinerja seluruh pegawai ke dalam format CSV untuk laporan berkala direksi.
   - **Kepatuhan RBAC & Audit Log**:
@@ -874,13 +883,14 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - `pnpm test`: Lolos (33 unit tests hijau).
     - `pnpm build`: Standalone build Next.js sukses untuk `@pspk/hris` dan `@pspk/sysmgmt`.
 - **Catatan Penting untuk Pengembangan Tahap Berikutnya**:
-  - *Portal Karyawan (Staff View)*: Mengembangkan antarmuka penyusunan target OKR mandiri dan pengisian form refleksi diri (*Self-Review*).
-  - *Portal Manajer (Manager View)*: Mengembangkan antarmuka penilaian bawahan langsung bagi kepala divisi riset (*Manager-Review*).
-  - *Integrasi Payroll*: Menghubungkan skor kinerja final semesteran sebagai variabel pengali bonus tahunan atau penyesuaian gaji berkala bila disepakati HR.
+  - _Portal Karyawan (Staff View)_: Mengembangkan antarmuka penyusunan target OKR mandiri dan pengisian form refleksi diri (_Self-Review_).
+  - _Portal Manajer (Manager View)_: Mengembangkan antarmuka penilaian bawahan langsung bagi kepala divisi riset (_Manager-Review_).
+  - _Integrasi Payroll_: Menghubungkan skor kinerja final semesteran sebagai variabel pengali bonus tahunan atau penyesuaian gaji berkala bila disepakati HR.
 
 ---
 
 ## Modul Notifikasi Terpadu (Semua Role — Layar P-C3)
+
 - **Status:** Selesai (Completed)
 - **Sumber Desain:** Stitch AI Screen P-C3 (`md/design_stitch.md`)
 - **Capaian:**
@@ -890,9 +900,9 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Migrasi `20260924055341_add_notifications` diaplikasikan ke database.
   - **Dropdown Live Topbar (`NotificationBell`)**:
     - Terintegrasi di navbar `app-topbar.tsx`.
-    - Badge hitungan notifikasi belum dibaca (*Unread Count Badge*) dengan animasi berdenyut dinamis.
+    - Badge hitungan notifikasi belum dibaca (_Unread Count Badge_) dengan animasi berdenyut dinamis.
     - Panel popover memuat 5 notifikasi terbaru, ikon kategori, badge tipe, waktu relatif format Bahasa Indonesia (`formatRelativeTime`), dan tombol "Tandai Semua Dibaca".
-    - Navigasi instan ke halaman penuh via tautan *"Lihat Semua Notifikasi"*.
+    - Navigasi instan ke halaman penuh via tautan _"Lihat Semua Notifikasi"_.
   - **Halaman Pusat Notifikasi Mandiri (`/notifikasi` — Layar P-C3)**:
     - Desain premium mengikuti PSPK Design System (Navy `#102E50`, Gold `#F2AF3E`, Maroon `#A8281C`, font Lora & Rubik).
     - **Pengelompokan Kronologis**: "Hari Ini", "Kemarin", dan "Sebelumnya" dengan pemisah seksi yang rapi.
@@ -902,12 +912,12 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
       - Bilah pencarian instan: Filter real-time judul atau isi pesan notifikasi.
     - **Kartu Metrik Ringkasan**: Total Notifikasi, Belum Dibaca, Cuti/Presensi, dan Payroll/Kinerja.
     - **Aksi Cepat & Optimistic UI**: Tombol "Tandai Semua Dibaca" dan per-item "Tandai Dibaca" yang memperbarui antarmuka secara instan.
-    - **Deep Linking**: Tautan langsung *"Lihat Dokumen Terkait"* yang mengarahkan pengguna ke modul target (mis. `/cuti`, `/kinerja`, `/slip-gaji`).
+    - **Deep Linking**: Tautan langsung _"Lihat Dokumen Terkait"_ yang mengarahkan pengguna ke modul target (mis. `/cuti`, `/kinerja`, `/slip-gaji`).
     - **Empty State Elegan**: Tampilan ramah ketika tidak ada notifikasi yang cocok dengan kriteria pencarian/filter.
-  - **Integrasi Pemicu (*Event Triggers*) Lintas Modul**:
-    - *Modul Cuti*: Pengajuan cuti baru mengirim notifikasi `ACTION_REQUIRED` ke Manajer atasan dan Admin HR; Persetujuan/penolakan cuti mengirim notifikasi ke pegawai pemohon.
-    - *Modul Payroll*: Publikasi siklus gaji (`publishPayrollAction`) mengirim notifikasi `SUCCESS` ke seluruh karyawan penerima slip gaji dengan tautan ke `/slip-gaji`.
-    - *Modul Kinerja*: Pembukaan periode review baru mengirim notifikasi ke seluruh staf aktif; Finalisasi evaluasi kinerja mengirim notifikasi ke pegawai terkait.
+  - **Integrasi Pemicu (_Event Triggers_) Lintas Modul**:
+    - _Modul Cuti_: Pengajuan cuti baru mengirim notifikasi `ACTION_REQUIRED` ke Manajer atasan dan Admin HR; Persetujuan/penolakan cuti mengirim notifikasi ke pegawai pemohon.
+    - _Modul Payroll_: Publikasi siklus gaji (`publishPayrollAction`) mengirim notifikasi `SUCCESS` ke seluruh karyawan penerima slip gaji dengan tautan ke `/slip-gaji`.
+    - _Modul Kinerja_: Pembukaan periode review baru mengirim notifikasi ke seluruh staf aktif; Finalisasi evaluasi kinerja mengirim notifikasi ke pegawai terkait.
   - **Hasil Uji & Kualitas (Quality Gate)**:
     - `pnpm typecheck`: 9/9 packages lolos (0 error).
     - `pnpm lint`: Lolos (0 error).
@@ -917,17 +927,18 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Fitur Umum: Navigasi & Error (Semua Role — Layar P-C4 & App Switcher)
+
 - **Status:** Selesai (Completed)
 - **Sumber Desain:** Stitch AI Screen P-C4 (`md/design_stitch.md`)
 - **Capaian:**
   - **Komponen Bersama di `@pspk/ui`**:
     - **`AppSwitcher`**: Pemindah portal ekosistem PSPK dengan kontrol hak akses cerdas.
-      - Menampilkan status portal aktif (*Sedang Aktif*).
+      - Menampilkan status portal aktif (_Sedang Aktif_).
       - Menampilkan peran akun saat ini.
-      - Deteksi hak akses: Jika akun adalah `super_admin` atau `admin_it`, portal *System Management* dapat diklik untuk beralih. Jika akun adalah staf/manajer biasa tanpa wewenang TI, opsi *System Management* ditampilkan dalam keadaan nonaktif dengan badge gembok dan keterangan *"Khusus Admin TI"*.
-    - **`NotFoundView` (404)**: Tampilan halaman tidak ditemukan dengan ikon garis `Compass`, badge status `404`, headline Lora, pesan ramah, tombol *"Kembali ke Beranda"*, dan tombol *"Halaman Sebelumnya"*.
-    - **`ForbiddenView` (403)**: Tampilan akses ditolak dengan ikon garis `ShieldAlert`, badge status `403` marun (`#A8281C`), rincian peran akun saat ini vs wewenang yang dibutuhkan, tombol *"Kembali ke Beranda"*, dan petunjuk eskalasi ke administrator.
-    - **`ServerErrorView` (500)**: Tampilan error boundary dengan ikon `AlertTriangle`, tombol *"Coba Muat Ulang"* (`reset()`), dan kode referensi digest.
+      - Deteksi hak akses: Jika akun adalah `super_admin` atau `admin_it`, portal _System Management_ dapat diklik untuk beralih. Jika akun adalah staf/manajer biasa tanpa wewenang TI, opsi _System Management_ ditampilkan dalam keadaan nonaktif dengan badge gembok dan keterangan _"Khusus Admin TI"_.
+    - **`NotFoundView` (404)**: Tampilan halaman tidak ditemukan dengan ikon garis `Compass`, badge status `404`, headline Lora, pesan ramah, tombol _"Kembali ke Beranda"_, dan tombol _"Halaman Sebelumnya"_.
+    - **`ForbiddenView` (403)**: Tampilan akses ditolak dengan ikon garis `ShieldAlert`, badge status `403` marun (`#A8281C`), rincian peran akun saat ini vs wewenang yang dibutuhkan, tombol _"Kembali ke Beranda"_, dan petunjuk eskalasi ke administrator.
+    - **`ServerErrorView` (500)**: Tampilan error boundary dengan ikon `AlertTriangle`, tombol _"Coba Muat Ulang"_ (`reset()`), dan kode referensi digest.
     - **`EmptyStateView`**: Tampilan standar untuk daftar/tabel data yang masih kosong.
   - **Integrasi pada Portal HRIS (`apps/hris`)**:
     - `AppSwitcher` terpasang rapi di topbar navigasi [`app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx) berdampingan dengan notification bell dan profil pengguna.
@@ -949,28 +960,29 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Layar P-C2 — Profil Saya & Keamanan Akun (`/profil` — Semua Role)
+
 - **Status:** Selesai (Completed)
 - **Sumber Desain:** Blueprint & Panduan Desain PSPK (Layar P-C2 — Profil Pengguna, Ganti Kata Sandi, & Keamanan Sesi)
 - **Deskripsi:** Halaman profil terpadu untuk semua peran (Staf Karyawan, Manajer, Admin HR, Super Admin) yang dapat diakses langsung dari menu navigasi profil pengguna (`UserNav`).
 - **Implementasi:**
   - **Endpoint & Routing**:
     - URL: `http://localhost:3001/profil` (in-shell protected route di `apps/hris/src/app/(app)/profil/page.tsx` & `loading.tsx`).
-    - Sinkronisasi URL Hash: navigasi tab otomatis membaca dan memperbarui hash (`#identitas`, `#keamanan`, `#sesi`). Tautan cepat dropdown *"Ganti Kata Sandi"* (`/profil#keamanan`) langsung membuka formulir keamanan.
+    - Sinkronisasi URL Hash: navigasi tab otomatis membaca dan memperbarui hash (`#identitas`, `#keamanan`, `#sesi`). Tautan cepat dropdown _"Ganti Kata Sandi"_ (`/profil#keamanan`) langsung membuka formulir keamanan.
   - **Komponen & Desain**:
     - **Header Profil**: Banner gradient PSPK Navy (`#102E50`), container avatar dengan tombol unggah foto kamera interaktif, nama lengkap Lora, email resmi, jabatan, departemen, serta deretan lencana peran sistem RBAC.
     - **Tab 1: Identitas & Kepegawaian** (`ProfileInfoTab`):
-      - Kartu resmi kepegawaian PSPK: NIP, nama lengkap KTP/SK, nama panggilan, email kerja, nomor kontak WhatsApp, departemen/divisi riset, jabatan/posisi, jenis hubungan kerja (PKWTT/PKWT/Magang), status kepegawaian, tanggal bergabung (*join date*), dan penghitungan otomatis masa kerja (tenure).
+      - Kartu resmi kepegawaian PSPK: NIP, nama lengkap KTP/SK, nama panggilan, email kerja, nomor kontak WhatsApp, departemen/divisi riset, jabatan/posisi, jenis hubungan kerja (PKWTT/PKWT/Magang), status kepegawaian, tanggal bergabung (_join date_), dan penghitungan otomatis masa kerja (tenure).
       - Kartu akun sistem & RBAC: email login, status akun, tanggal pendaftaran, dan daftar wewenang/peran.
       - Penanganan khusus untuk akun pengelola murni tanpa data kepegawaian internal HRIS dengan kartu penjelasan yang informatif.
     - **Tab 2: Keamanan & Kata Sandi** (`ChangePasswordTab`):
-      - Formulir ganti kata sandi dengan input sandi saat ini, sandi baru, dan konfirmasi sandi dengan tombol tampilkan/sembunyikan (*toggle visibility*).
-      - *Password Strength Meter*: Visualisasi kekuatan kata sandi 4 tingkat (*Lemah*, *Cukup*, *Kuat*, *Sangat Kuat*) dengan indikator warna dinamis.
-      - *Security Criteria Checklist* Real-time: Minimal 12 karakter, huruf besar & kecil, angka, karakter simbol khusus, dan kecocokan konfirmasi sandi.
-      - Fitur Pemutusan Sesi Otomatis: Mengubah kata sandi secara otomatis memutuskan seluruh sesi aktif di perangkat lain (*revoke other sessions*) demi keamanan akun.
+      - Formulir ganti kata sandi dengan input sandi saat ini, sandi baru, dan konfirmasi sandi dengan tombol tampilkan/sembunyikan (_toggle visibility_).
+      - _Password Strength Meter_: Visualisasi kekuatan kata sandi 4 tingkat (_Lemah_, _Cukup_, _Kuat_, _Sangat Kuat_) dengan indikator warna dinamis.
+      - _Security Criteria Checklist_ Real-time: Minimal 12 karakter, huruf besar & kecil, angka, karakter simbol khusus, dan kecocokan konfirmasi sandi.
+      - Fitur Pemutusan Sesi Otomatis: Mengubah kata sandi secara otomatis memutuskan seluruh sesi aktif di perangkat lain (_revoke other sessions_) demi keamanan akun.
     - **Tab 3: Riwayat Sesi Aktif** (`SessionHistoryTab`):
       - Menampilkan seluruh sesi aktif dari tabel `core.sessions`.
       - Pengurai User-Agent cerdas: Mendeteksi jenis perangkat (Laptop/Desktop vs Ponsel Pintar), sistem operasi (macOS, Windows, Linux, Android, iOS), dan peramban web (Chrome, Safari, Firefox, Edge, Opera).
-      - Menampilkan alamat IP klien, waktu login awal (*relative & exact*), masa berlaku sesi, dan badge pembeda hijau *"Sesi Perangkat Ini"* vs *"Perangkat Terhubung"*.
+      - Menampilkan alamat IP klien, waktu login awal (_relative & exact_), masa berlaku sesi, dan badge pembeda hijau _"Sesi Perangkat Ini"_ vs _"Perangkat Terhubung"_.
     - **Unggah & Ganti Foto Profil Langsung**:
       - Server Action `uploadAvatarAction` menerima berkas gambar (JPG, PNG, WEBP hingga 2MB), menyimpannya via `StorageProvider` (`avatars/...`), memperbarui `user.image` serta `employee.photoKey`, dan mencatat audit trail `UPDATE UserAvatar`.
       - Endpoint dokumen `apps/hris/src/app/api/documents/[...path]/route.ts` dikonfigurasi melayani berkas gambar dengan Content-Type yang tepat.
@@ -986,23 +998,24 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Penyelarasan & Integrasi Terpadu Modul Kehadiran & Cuti (Admin HR & Super Admin)
+
 - **Status:** Selesai (Completed)
 - **Deskripsi:** Mengatasi pemisahan rute kehadiran dan cuti pada role Admin HR dan Super Admin. Seluruh fitur kehadiran (rekap presensi lembaga, koreksi HR, absensi mandiri) dan fitur cuti (saldo pribadi, pengajuan, persetujuan, kalender bersama, pengaturan kuota & libur) kini disatukan ke dalam satu ekosistem navigasi terpadu.
 - **Implementasi:**
   - **Komponen Subnavigasi Terpadu (`AttendanceLeaveSubnav`)**:
     - Dibuat di `apps/hris/src/components/shell/attendance-leave-subnav.tsx`.
     - Menampilkan tab interaktif berbasis role & hak akses pengguna:
-      1. 📋 *Rekap Kehadiran* (`/absensi/rekap`) — Akses Admin HR, Super Admin, dan Manajer (monitoring presensi seluruh staf lembaga, filter divisi/periode, dan modal koreksi absensi manual HR).
-      2. ⏱️ *Presensi Saya* (`/absensi`) — Jam server real-time WIB, kartu check-in/out hari ini, dan riwayat presensi harian.
-      3. 🏖️ *Cuti Saya* (`/cuti`) — Saldo kuota cuti tahunan 2026 dan riwayat permohonan izin kerja.
-      4. ✅ *Persetujuan Cuti* (`/cuti/persetujuan`) — Verifikasi permohonan cuti tim/organisasi dengan badge dinamis jumlah pengajuan pending.
-      5. 📅 *Kalender Cuti* (`/cuti/kalender`) — Kalender bulanan jadwal cuti bersama dan hari libur nasional resmi.
-      6. ⚙️ *Pengaturan Kuota & Libur* (`/cuti/pengaturan`) — Pengelolaan master tipe cuti dan hari libur lembaga khusus Admin HR & Super Admin.
+      1. 📋 _Rekap Kehadiran_ (`/absensi/rekap`) — Akses Admin HR, Super Admin, dan Manajer (monitoring presensi seluruh staf lembaga, filter divisi/periode, dan modal koreksi absensi manual HR).
+      2. ⏱️ _Presensi Saya_ (`/absensi`) — Jam server real-time WIB, kartu check-in/out hari ini, dan riwayat presensi harian.
+      3. 🏖️ _Cuti Saya_ (`/cuti`) — Saldo kuota cuti tahunan 2026 dan riwayat permohonan izin kerja.
+      4. ✅ _Persetujuan Cuti_ (`/cuti/persetujuan`) — Verifikasi permohonan cuti tim/organisasi dengan badge dinamis jumlah pengajuan pending.
+      5. 📅 _Kalender Cuti_ (`/cuti/kalender`) — Kalender bulanan jadwal cuti bersama dan hari libur nasional resmi.
+      6. ⚙️ _Pengaturan Kuota & Libur_ (`/cuti/pengaturan`) — Pengelolaan master tipe cuti dan hari libur lembaga khusus Admin HR & Super Admin.
   - **Penyelarasan Sidebar (`app-sidebar.tsx`)**:
-    - Menu *"Kehadiran & Cuti"* untuk Admin HR kini langsung mengarahkan ke `/absensi/rekap` sebagai halaman kerja operasional utama HR.
+    - Menu _"Kehadiran & Cuti"_ untuk Admin HR kini langsung mengarahkan ke `/absensi/rekap` sebagai halaman kerja operasional utama HR.
     - Status aktif (`isActive`) menyala ketika pengguna berada di seluruh sub-rute `/absensi*` maupun `/cuti*`.
   - **Penyelarasan Breadcrumbs (`app-topbar.tsx`)**:
-    - Breadcrumb pada header secara konsisten menampilkan kategori *"Kehadiran & Cuti"* untuk semua sub-halaman di bawah `/absensi` dan `/cuti`.
+    - Breadcrumb pada header secara konsisten menampilkan kategori _"Kehadiran & Cuti"_ untuk semua sub-halaman di bawah `/absensi` dan `/cuti`.
   - **Pemasangan di Seluruh Halaman Terkait**:
     - Terpasang rapi dan menggantikan sub-tab hardcoded pada `/absensi/rekap`, `/absensi`, `/cuti`, `/cuti/persetujuan`, `/cuti/kalender`, dan `/cuti/pengaturan`.
   - **Hasil Uji & Kualitas (Quality Gate)**:
@@ -1015,8 +1028,9 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Pengaturan Jam Kerja & Toleransi Keterlambatan (Work Schedule & Grace Period)
+
 - **Status:** Selesai (Completed)
-- **Deskripsi:** Menghilangkan seluruh nilai jam kerja dan toleransi yang sebelumnya di-hardcode. Kini Admin HR dan Super Admin dapat mengonfigurasi jam masuk kerja resmi, jam pulang, toleransi keterlambatan (*grace period*), hari kerja aktif, dan jam fleksibel secara dinamis dengan audit log lengkap.
+- **Deskripsi:** Menghilangkan seluruh nilai jam kerja dan toleransi yang sebelumnya di-hardcode. Kini Admin HR dan Super Admin dapat mengonfigurasi jam masuk kerja resmi, jam pulang, toleransi keterlambatan (_grace period_), hari kerja aktif, dan jam fleksibel secara dinamis dengan audit log lengkap.
 - **Implementasi:**
   - **Skema & Migrasi Database (`@pspk/db`)**:
     - Model `WorkScheduleSetting` pada skema `hris` (`packages/db/prisma/schema/hris.prisma`).
@@ -1036,35 +1050,36 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Tab baru terdepan: `⏰ Jadwal Kerja & Jam Masuk` di dalam `apps/hris/src/components/cuti/leave-settings-view.tsx`.
     - Komponen interaktif `WorkScheduleSettingsView`:
       - Input nama kebijakan, jam masuk & pulang format `HH:mm` WIB.
-      - Quick preset buttons untuk toleransi: *0 Menit (Ketat)*, *5 Menit*, *10 Menit*, *15 Menit (Standar PSPK)*, *30 Menit*.
+      - Quick preset buttons untuk toleransi: _0 Menit (Ketat)_, _5 Menit_, _10 Menit_, _15 Menit (Standar PSPK)_, _30 Menit_.
       - Pilihan interaktif hari kerja aktif organisasi (Senin - Minggu) beserta tombol cepat 5 hari & 6 hari kerja.
-      - *Live Simulator & Timeline*: Menghitung otomatis batas tepat waktu, total durasi kerja harian, dan simulator uji coba jam check-in interaktif.
+      - _Live Simulator & Timeline_: Menghitung otomatis batas tepat waktu, total durasi kerja harian, dan simulator uji coba jam check-in interaktif.
   - **Sinkronisasi Antarmuka Karyawan (`/absensi`)**:
     - Kartu `TodayAttendanceCard` dan ringkasan bulanan di `apps/hris/src/app/(app)/absensi/page.tsx` menampilkan jadwal kerja kantor dan batas toleransi tepat waktu secara dinamis dari database.
 
 ---
 
 ## Peningkatan Multi-Zona Waktu (WIB, WITA, WIT) & Presensi Terdistribusi
+
 - **Status:** Selesai (Completed)
 - **Implementasi:**
   - **Perbaikan Format Jam Dinamis (`@pspk/shared/formatters.ts`)**:
-    - Memperbaiki bug pada `formatTimeInZone` dan `formatDateInZone` di mana `timeZone` tertimpa jika `options` dikirim, menyebabkan jam digital tetap membaca waktu lokal browser alih-alih zona yang dipilih pada *dropdown*.
+    - Memperbaiki bug pada `formatTimeInZone` dan `formatDateInZone` di mana `timeZone` tertimpa jika `options` dikirim, menyebabkan jam digital tetap membaca waktu lokal browser alih-alih zona yang dipilih pada _dropdown_.
     - Menambahkan unit test di `formatters.test.ts` memverifikasi ketepatan perbedaan jam WIB, WITA, dan WIT. Total 41 unit tests lulus 100%.
   - **Tagging Metadata Zona Presensi (`TodayAttendanceCard`)**:
-    - Tombol *Masuk Kerja (Check-In)* dan *Pulang Kerja (Check-Out)* otomatis menyematkan metadata zona waktu asal (mis. `[WITA]`) ke dalam `Attendance.notes` dan `core.audit_logs`.
-  - **Tampilan Waktu Ganda (*Dual-Time Display*) (`AttendanceTable`)**:
+    - Tombol _Masuk Kerja (Check-In)_ dan _Pulang Kerja (Check-Out)_ otomatis menyematkan metadata zona waktu asal (mis. `[WITA]`) ke dalam `Attendance.notes` dan `core.audit_logs`.
+  - **Tampilan Waktu Ganda (_Dual-Time Display_) (`AttendanceTable`)**:
     - Kolom Jam Masuk dan Jam Pulang pada tabel riwayat absensi kini menampilkan waktu dalam zona lokal karyawan (`13:20 WITA`) dan di bawahnya menyertakan konversi waktu kantor pusat (`12:20 WIB`) jika staf berada di luar zona WIB.
-    - Menghilangkan potensi salah paham (*dispute*) antara staf remote dan admin HR di kantor pusat Jakarta.
+    - Menghilangkan potensi salah paham (_dispute_) antara staf remote dan admin HR di kantor pusat Jakarta.
   - **Refactoring Layout Kartu Presensi & Tombol (`TodayAttendanceCard` & `/absensi`)**:
     - **Penyebab masalah sebelumnya**: Pada halaman `/absensi`, komponen `TodayAttendanceCard` ditempatkan dalam kolom sempit 5-span (`lg:col-span-5` ~400px), sehingga flex horizontal menyebabkan teks tombol `"Masuk Kerja (Check-In)"` patah menjadi 4 baris sempit dan tombol catatan tertekan.
     - **Perubahan Arsitektur Tampilan (Sesuai Blueprint P-H9)**:
-      - Menjadikan `TodayAttendanceCard` sebagai kartu *Hero* mandiri satu layar penuh (`col-span-12`) di bagian paling atas.
-      - Bagian atas kartu memuat *Meta Bar* elegan: tanggal, pemilih zona waktu (*timezone dropdown*), serta lencana status kehadiran (*Status Pill*) di pojok kanan.
+      - Menjadikan `TodayAttendanceCard` sebagai kartu _Hero_ mandiri satu layar penuh (`col-span-12`) di bagian paling atas.
+      - Bagian atas kartu memuat _Meta Bar_ elegan: tanggal, pemilih zona waktu (_timezone dropdown_), serta lencana status kehadiran (_Status Pill_) di pojok kanan.
       - Bagian tengah memisahkan secara proporsional antara panel jam digital tabular besar + konteks jadwal kantor di sebelah kiri, dan panel aksi presensi di sebelah kanan.
-      - Tombol aksi utama (*Check-In* / *Check-Out*) diberi aturan `whitespace-nowrap` dan `min-w-[210px]`, sehingga teks tidak akan pernah terpotong atau terlipat di layar mana pun.
-      - Tombol catatan (*+ Catatan*) ditingkatkan dari sekadar tautan teks tipis menjadi tombol sekunder berbentuk *pill* yang rapi dengan ikon `FileText` dan input terintegrasi yang bersih.
+      - Tombol aksi utama (_Check-In_ / _Check-Out_) diberi aturan `whitespace-nowrap` dan `min-w-[210px]`, sehingga teks tidak akan pernah terpotong atau terlipat di layar mana pun.
+      - Tombol catatan (_+ Catatan_) ditingkatkan dari sekadar tautan teks tipis menjadi tombol sekunder berbentuk _pill_ yang rapi dengan ikon `FileText` dan input terintegrasi yang bersih.
       - Di bawah kartu utama, ringkasan statistik bulanan (4 kartu metrik) dan kartu ketentuan jam kerja disandingkan secara seimbang dalam grid 8-4.
-    - **Berlaku di Semua Peran**: Perbaikan ini otomatis mempercantik tampilan presensi untuk seluruh peran (Staff, Manajer pada *dashboard* mereka, HR Admin, dan Super Admin).
+    - **Berlaku di Semua Peran**: Perbaikan ini otomatis mempercantik tampilan presensi untuk seluruh peran (Staff, Manajer pada _dashboard_ mereka, HR Admin, dan Super Admin).
   - **Hasil Uji & Kualitas**:
     - `pnpm typecheck`: 9/9 packages lolos (0 error).
     - `pnpm test`: 41 unit tests lolos (100%).
@@ -1074,16 +1089,17 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Audit Menyeluruh & Standardisasi Penanganan Zona Waktu Lintas Modul
+
 - **Status:** Selesai (Completed)
-- **Tujuan:** Memastikan seluruh modul penting (Presensi, Cuti, Kalender, Jadwal Kerja, Dasbor Multiperan, Log Audit, Koreksi HR, dan Karyawan) bebas dari masalah pergeseran tanggal/waktu (*timezone shift* / *offset bug*).
+- **Tujuan:** Memastikan seluruh modul penting (Presensi, Cuti, Kalender, Jadwal Kerja, Dasbor Multiperan, Log Audit, Koreksi HR, dan Karyawan) bebas dari masalah pergeseran tanggal/waktu (_timezone shift_ / _offset bug_).
 - **Temuan & Perbaikan yang Diterapkan:**
   1. **Dasbor Eksekutif HR (`apps/hris/src/server/queries/dashboard/hr-dashboard.ts`)**:
-     - *Masalah*: Angka "Hadir Hari Ini" bernilai 0 dan grafik 7 hari kosong untuk hari aktif meskipun staf dan HR telah presensi.
-     - *Penyebab*: `today.setHours(0, 0, 0, 0)` menghasilkan tengah malam lokal (WITA = `16:00:00.000Z` kemarin), sedangkan baris presensi tersimpan dengan tanggal UTC (`00:00:00.000Z`).
-     - *Solusi*: Menggunakan `toDateString(new Date())` dan `new Date(todayStr)` untuk mencocokkan tanggal UTC secara presisi, serta menyelaraskan perhitungan grafik 7 hari dan filter status kehadiran (`PRESENT`, `LATE`, `WFH`).
+     - _Masalah_: Angka "Hadir Hari Ini" bernilai 0 dan grafik 7 hari kosong untuk hari aktif meskipun staf dan HR telah presensi.
+     - _Penyebab_: `today.setHours(0, 0, 0, 0)` menghasilkan tengah malam lokal (WITA = `16:00:00.000Z` kemarin), sedangkan baris presensi tersimpan dengan tanggal UTC (`00:00:00.000Z`).
+     - _Solusi_: Menggunakan `toDateString(new Date())` dan `new Date(todayStr)` untuk mencocokkan tanggal UTC secara presisi, serta menyelaraskan perhitungan grafik 7 hari dan filter status kehadiran (`PRESENT`, `LATE`, `WFH`).
   2. **Dasbor Manajer (`apps/hris/src/server/queries/dashboard/manager-dashboard.ts` & `components/dashboard/manager-dashboard.tsx`)**:
      - Memperbaiki perhitungan kalender mingguan (Senin–Jumat) menggunakan `getUTCDay()`, `setUTCDate()`, dan `timeZone: "UTC"`.
-     - Menggantikan komparasi `toISOString().split("T")[0]` dengan `toDateString(d)` untuk memastikan highlight hari aktif (*isToday*) tidak melompat sebelum jam 07:00 pagi.
+     - Menggantikan komparasi `toISOString().split("T")[0]` dengan `toDateString(d)` untuk memastikan highlight hari aktif (_isToday_) tidak melompat sebelum jam 07:00 pagi.
   3. **Kueri Presensi & Rekap Bulanan (`apps/hris/src/server/queries/attendance.queries.ts`)**:
      - Menstandarkan batas awal dan akhir bulan menggunakan `Date.UTC(year, month - 1, 1, 0, 0, 0, 0)` dan `Date.UTC(year, month, 0, 23, 59, 59, 999)`.
   4. **Modul Cuti & Kalender Libur (`apps/hris/src/server/queries/leave.queries.ts`, `leave.service.ts`, `packages/shared/src/leave.ts`)**:
@@ -1104,20 +1120,23 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
-## Penyesuaian Hak Akses Tombol Pengalih Portal (*App Switcher & User Nav*)
+## Penyesuaian Hak Akses Tombol Pengalih Portal (_App Switcher & User Nav_)
+
 - **Status:** Selesai (Completed)
 - **Implementasi:**
-  - **Prinsip RBAC**: Tombol *AppSwitcher* (`Portal HRIS AKTIF ^`) dan tautan `System Management` di dropdown profil (`UserNav`) kini **hanya muncul bagi akun yang memang memiliki hak akses** (`super_admin` atau `admin_it`).
+  - **Prinsip RBAC**: Tombol _AppSwitcher_ (`Portal HRIS AKTIF ^`) dan tautan `System Management` di dropdown profil (`UserNav`) kini **hanya muncul bagi akun yang memang memiliki hak akses** (`super_admin` atau `admin_it`).
   - **Penyembunyian Bersih untuk Peran Non-IT**:
     - Akun dengan peran `admin_hr` (seperti Dewi Permata), `manager`, dan `staff` tidak lagi melihat tombol pengalih portal maupun item menu `System Management`.
-    - Menghilangkan dropdown tidak perlu yang sebelumnya menampilkan item terkunci (*lock* "Khusus Admin TI").
+    - Menghilangkan dropdown tidak perlu yang sebelumnya menampilkan item terkunci (_lock_ "Khusus Admin TI").
     - Mengintegrasikan pemeriksaan hak akses `canAccessSysmgmt` dari layout HRIS ke `AppTopbar` dan `UserNav`, serta `canAccessHris` di `SysmgmtNavbar`.
 - **Hasil Uji & Kualitas**:
   - `pnpm test`: 42/42 unit test lulus (100%).
   - `pnpm typecheck`: 9/9 package lolos tanpa error.
+
 ## Modul Kinerja & Riset — Implementasi Role Staf (Self-Review & Scorecard)
+
 - **Status:** Selesai (Completed)
-- **Tujuan:** Membuka akses evaluasi kinerja untuk peran Staf (Karyawan & Peneliti) dengan alur pengisian mandiri (*self-review*), peninjauan realisasi sasaran riset (OKR), visual stepper status, dan lembar rapor resmi (*scorecard*).
+- **Tujuan:** Membuka akses evaluasi kinerja untuk peran Staf (Karyawan & Peneliti) dengan alur pengisian mandiri (_self-review_), peninjauan realisasi sasaran riset (OKR), visual stepper status, dan lembar rapor resmi (_scorecard_).
 - **Rincian Implementasi:**
   1. **Validasi Skema Zod (`performance.schema.ts`)**:
      - `submitStaffSelfReviewSchema`: Validasi ID review, skor mandiri (0–100), teks refleksi minimal 10 karakter, dan array capaian aktual target kerja (`goalActuals`).
@@ -1126,13 +1145,13 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - `getStaffPerformancePeriods`: Mengambil riwayat periode evaluasi lampau yang diikuti oleh pegawai untuk arsip dan dropdown periode.
   3. **Server Action Terproteksi (`performance.actions.ts`)**:
      - `submitStaffSelfReviewAction`:
-       - *Server-Side Authorization & Ownership Check*: Memvalidasi sesi, permission `hris.performance.review:own`, dan memastikan review milik pegawai bersangkutan (`review.employeeId === session.employeeId`).
+       - _Server-Side Authorization & Ownership Check_: Memvalidasi sesi, permission `hris.performance.review:own`, dan memastikan review milik pegawai bersangkutan (`review.employeeId === session.employeeId`).
        - Validasi status transaksi: status review harus `DRAFT` dan periode harus `OPEN`.
        - Database transaction: memperbarui `actual` pada `PerformanceGoal`, menyimpan `selfScore` & `selfComment`, dan mengubah status ke `SELF_REVIEW`.
-       - *Audit Log*: Mencatat `writeAudit` dengan aksi `SUBMIT_SELF_REVIEW`.
-       - *Notifikasi In-App*: Mengirimkan notifikasi ke atasan penilai (`reviewerId`) bahwa staf telah menyelesaikan evaluasi mandiri.
+       - _Audit Log_: Mencatat `writeAudit` dengan aksi `SUBMIT_SELF_REVIEW`.
+       - _Notifikasi In-App_: Mengirimkan notifikasi ke atasan penilai (`reviewerId`) bahwa staf telah menyelesaikan evaluasi mandiri.
   4. **Antarmuka Pengguna Interaktif (UI)**:
-     - `StaffSelfReviewForm`: Formulir interaktif pengisian capaian per sasaran riset, slider & input numerik skor mandiri 0–100 dengan badge predikat dinamis (*Sangat Baik*, *Baik*, *Cukup*, *Perlu Peningkatan*), textarea refleksi diri, dan dialog konfirmasi sebelum submit.
+     - `StaffSelfReviewForm`: Formulir interaktif pengisian capaian per sasaran riset, slider & input numerik skor mandiri 0–100 dengan badge predikat dinamis (_Sangat Baik_, _Baik_, _Cukup_, _Perlu Peningkatan_), textarea refleksi diri, dan dialog konfirmasi sebelum submit.
      - **Manajemen Sasaran Mandiri (`AddGoalModal`)**: Dilengkapi tombol `+ Tambah Sasaran Riset` untuk memungkinkan staf mendaftarkan target riset mereka secara mandiri pada periode aktif, mengatur bobot %, target, dan satuan, lengkap dengan penghitung alokasi bobot total real-time (`Bobot: X% / 100%`) serta tombol hapus sasaran.
      - `PerformanceScorecard`: Tampilan rapor kinerja resmi khas brand PSPK (Navy & Gold) saat status `FINALIZED`, mencakup perbandingan 3 skor (Mandiri, Atasan, Resmi), rincian pencapaian target, dan catatan evaluasi kualitatif.
      - `StaffPerformanceView`: Visual stepper 4 tahap (`DRAFT` → `SELF_REVIEW` → `MANAGER_REVIEW` → `FINALIZED`), pemilih periode aktif/lampau, dan kontainer adaptif sesuai status review.
@@ -1151,15 +1170,16 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Penyesuaian Dinamis Atasan Langsung & Notifikasi Staf
+
 - **Status:** Selesai (Completed)
-- **Konteks:** Perubahan atasan langsung (*manager*) di tengah kontrak kerja yang sedang berjalan oleh Admin HR melalui form ubah pegawai (`/karyawan/[id]/ubah`).
+- **Konteks:** Perubahan atasan langsung (_manager_) di tengah kontrak kerja yang sedang berjalan oleh Admin HR melalui form ubah pegawai (`/karyawan/[id]/ubah`).
 - **Rincian Implementasi:**
   1. **Sinkronisasi Dinamis & Notifikasi Otomatis (`employee.service.ts`)**:
      - Deteksi otomatis perubahan atasan (`isManagerChanged` antara `data.managerId` dan `current.managerId`).
      - Notifikasi in-app otomatis dikirim ke akun staf bersangkutan (`core.Notification`):
-       *"Pembaruan Atasan Langsung: Atasan langsung Anda telah diperbarui menjadi [Nama Atasan] ([Jabatan]). Seluruh koordinasi dan proses evaluasi kinerja kini terhubung ke atasan baru."*
+       _"Pembaruan Atasan Langsung: Atasan langsung Anda telah diperbarui menjadi [Nama Atasan] ([Jabatan]). Seluruh koordinasi dan proses evaluasi kinerja kini terhubung ke atasan baru."_
      - Notifikasi in-app otomatis dikirim ke atasan baru:
-       *"Penetapan Anggota Tim Baru: [Nama Pegawai] kini telah ditetapkan berada di bawah supervisi/koordinasi Anda."*
+       _"Penetapan Anggota Tim Baru: [Nama Pegawai] kini telah ditetapkan berada di bawah supervisi/koordinasi Anda."_
      - Sinkronisasi instan penilai evaluasi kinerja (`PerformanceReview`): mereassign `reviewerId` ke atasan baru untuk evaluasi aktif yang belum difinalisasi (`DRAFT` / `SELF_REVIEW` pada periode `OPEN`).
      - Audit log mencatat riwayat perubahan `managerId` pada field `before` dan `after`.
   2. **Invalidasi Cache Instan (`employee.actions.ts`)**:
@@ -1170,15 +1190,17 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - **Modul Kinerja (`performance.queries.ts`)**: Penilai aktif otomatis mencerminkan atasan baru, baik saat evaluasi dibuat maupun sinkronisasi dinamis runtime.
 - **Hasil Verifikasi:**
   - `pnpm typecheck`: 9/9 packages lolos tanpa error.
+
 ---
 
 ## Modul Kalender — Penanda Hari Ini & Modal Rincian Ketidakhadiran (Cuti/Izin/Sakit)
+
 - **Status:** Selesai (Completed)
 - **Tujuan:** Menyediakan penanda visual yang tegas untuk tanggal hari ini, mempermudah navigasi kalender, memperbaiki pemotongan nama pegawai pada badge kalender, serta menampilkan dialog rincian lengkap saat entri izin/sakit/cuti diklik.
 - **Rincian Implementasi:**
   1. **Penyelarasan Kueri & Serialization Data (`leave.queries.ts`)**:
      - `getLeaveCalendarEvents` diperkaya dengan field detail permohonan: `reason`, `attachmentKey`, `status`, `decisionNote`, `decidedAt`, nama jabatan & divisi pemohon (`currentDepartment`, `currentPosition`), dan status berbayar (`leaveType.isPaid`).
-     - Seluruh data dikonversi secara aman ke *plain serializable object* (termasuk `Number(l.days)`) bebas error serialization Next.js.
+     - Seluruh data dikonversi secara aman ke _plain serializable object_ (termasuk `Number(l.days)`) bebas error serialization Next.js.
   2. **Komponen Modal Detail Cuti (`leave-detail-modal.tsx`)**:
      - Komponen modal baru dengan animasi fade-in & backdrop blur, penutup via tombol Esc atau klik backdrop.
      - Menampilkan identitas pemohon (Avatar inisial, Nama Lengkap, NIP, Departemen, Posisi/Jabatan).
@@ -1192,7 +1214,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
        - Angka tanggal dilingkari kontras warna navy dan teks gold PSPK (`#f2af3e`), disertai badge penanda `"Hari Ini"`.
      - **Tombol Pintas "Hari Ini"**: Tombol shortcut di header kalender untuk langsung melompat kembali ke bulan dan hari berjalan.
      - **Perbaikan Label Nama & Warna Pill**:
-       - Mengatasi pemotongan nama satu huruf (mis. *"I Made"* bukan hanya *"I"*).
+       - Mengatasi pemotongan nama satu huruf (mis. _"I Made"_ bukan hanya _"I"_).
        - Diferensiasi warna tematik: 🩺 Rose untuk Sakit, 🏖️ Biru untuk Cuti Tahunan, 📋 Ungu/Kuning untuk Izin/Penting.
        - Pill interaktif dengan cursor pointer dan trigger untuk membuka `LeaveDetailModal`.
      - **Penanganan Banyak Cuti**: Badge `+X lainnya` yang memunculkan daftar lengkap pegawai yang tidak hadir pada tanggal tersebut.
@@ -1204,6 +1226,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Perbaikan Penanganan & Tampilan IP Address Client (Riwayat Sesi & Audit Log)
+
 - **Status:** Selesai (Completed)
 - **Akar Masalah (Root Cause):**
   1. Pada lingkungan lokal Next.js, header `x-forwarded-for` mengirimkan `::1` (IPv6 loopback).
@@ -1237,10 +1260,11 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Peningkatan UX & Keamanan: Profil Atasan Langsung & Breadcrumb Staf
+
 - **Tanggal Selesai**: 30 September 2026
 - **Status**: Selesai ✅
 - **Latar Belakang & Masalah**:
-  - Tombol pada kartu *Atasan Langsung* di dashboard staf sebelumnya mengarah ke `/profil` (profil sendiri), membingungkan karyawan. Di sisi lain, halaman `/karyawan/[id]` memuat data sensitif (gaji, rekening, NIK) yang tidak boleh diakses oleh staf.
+  - Tombol pada kartu _Atasan Langsung_ di dashboard staf sebelumnya mengarah ke `/profil` (profil sendiri), membingungkan karyawan. Di sisi lain, halaman `/karyawan/[id]` memuat data sensitif (gaji, rekening, NIK) yang tidak boleh diakses oleh staf.
   - Teks breadcrumb topbar staf di `/dashboard` sebelumnya menampilkan `Profil Saya & Portofolio` padahal menu sidebar aktif adalah `Beranda`.
 - **Implementasi**:
   1. **Prisma Safe DTO (`staff-dashboard.ts`)**:
@@ -1263,6 +1287,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Slip Gaji Mandiri Karyawan (Role Staf)
+
 - **Tanggal Selesai**: 30 September 2026
 - **Status**: Selesai ✅
 - **Fokus Prioritas**: Role Staf (Self-service Slip Gaji, Keamanan Data Finansial, Arsip Digital & Siap Cetak A4)
@@ -1272,29 +1297,29 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Teruji dengan 2 unit test baru di `formatters.test.ts` (total 47 unit test hijau).
   2. **Query Server-Side Terisolasi (`payslip.queries.ts`)**:
      - `getMyPayslips`: Membaca seluruh arsip slip gaji milik karyawan bersangkutan dengan batasan mutlak status `PUBLISHED` atau `LOCKED`. Slip yang masih berstatus `DRAFT`/`CALCULATED`/`APPROVED` di modul HR terisolasi dan tidak bocor ke staf.
-     - `getMyPayslipDetail`: Mengambil rincian pendapatan (*Earnings*) dan potongan (*Deductions*), serta menerapkan *masking* nomor rekening bank (misal: `BCA •••• 5678`).
+     - `getMyPayslipDetail`: Mengambil rincian pendapatan (_Earnings_) dan potongan (_Deductions_), serta menerapkan _masking_ nomor rekening bank (misal: `BCA •••• 5678`).
      - Server Action `getMyPayslipDetailAction` di `payslip.actions.ts`.
   3. **Komponen Antarmuka Daftar Slip Gaji (`payslip-list-view.tsx`)**:
-     - 3 Kartu Metrik Utama (*Hero Cards*): Slip Gaji Terakhir, Akumulasi Bersih YTD, dan Total Dokumen Tersedia.
-     - Filter Bar interaktif: filter tahun dinamis dan filter jenis (*Gaji Reguler* / *THR*).
-     - Tabel arsip slip gaji dengan status badge, rincian bruto, potongan, dan nominal bersih (*Take Home Pay*).
-     - *Empty State* ramah jika belum ada slip yang dipublikasikan.
+     - 3 Kartu Metrik Utama (_Hero Cards_): Slip Gaji Terakhir, Akumulasi Bersih YTD, dan Total Dokumen Tersedia.
+     - Filter Bar interaktif: filter tahun dinamis dan filter jenis (_Gaji Reguler_ / _THR_).
+     - Tabel arsip slip gaji dengan status badge, rincian bruto, potongan, dan nominal bersih (_Take Home Pay_).
+     - _Empty State_ ramah jika belum ada slip yang dipublikasikan.
   4. **Komponen Modal Slip Gaji Resmi & Siap Cetak (`payslip-printable-modal.tsx`)**:
-     - Standar format dokumen resmi berlogo & berkop surat PSPK (*Pusat Studi Pendidikan dan Kebijakan*).
+     - Standar format dokumen resmi berlogo & berkop surat PSPK (_Pusat Studi Pendidikan dan Kebijakan_).
      - Badge kerahasiaan `RAHASIA / CONFIDENTIAL`.
-     - Tabel 2 kolom terstruktur: Penerimaan (*Earnings*) vs Potongan (*Deductions*).
-     - Kotak *Take Home Pay* tebal dengan kalimat terbilang rupiah.
+     - Tabel 2 kolom terstruktur: Penerimaan (_Earnings_) vs Potongan (_Deductions_).
+     - Kotak _Take Home Pay_ tebal dengan kalimat terbilang rupiah.
      - Fitur **Cetak / Unduh PDF** yang siap cetak selembar A4 (`@media print` CSS otomatis menyembunyikan sidebar dan backdrop modal).
   5. **Rute Server Component (`apps/hris/src/app/(app)/slip-gaji/page.tsx`)**:
      - Terhubung dengan proteksi sesi Better Auth & permission `hris.payslip.read:own`.
   6. **Integrasi Widget Beranda Staf (`staff-dashboard.tsx`)**:
-     - Kartu *Slip Gaji Terbaru* di dashboard staf kini dinamis menampilkan nominal *Take Home Pay* jika ada slip terbit dan tautan mulus ke `/slip-gaji`.
+     - Kartu _Slip Gaji Terbaru_ di dashboard staf kini dinamis menampilkan nominal _Take Home Pay_ jika ada slip terbit dan tautan mulus ke `/slip-gaji`.
   7. **Penyempurnaan Kontrak PKWT Per Jam (Timesheet)**:
      - Menampilkan skema kontrak "PKWT Per Jam", total jam kerja disetujui HR (`totalHours`), dan tarif per jam (`hourlyRate`) pada grid data slip gaji.
-     - Menambahkan banner informatif *Dasar Perhitungan Timesheet HR* pada dokumen cetak slip gaji (`{totalHours} Jam × {hourlyRate}/jam = {subtotal}`).
+     - Menambahkan banner informatif _Dasar Perhitungan Timesheet HR_ pada dokumen cetak slip gaji (`{totalHours} Jam × {hourlyRate}/jam = {subtotal}`).
      - Menambahkan badge jam kerja pada tabel riwayat slip dan kartu ringkasan slip terbaru.
   8. **Perbaikan Cetak / PDF Slip Gaji (Fix Blank White Page)**:
-     - **Akar Masalah:** Sebelumnya menggunakan `visibility: hidden` pada `body *` di dalam modal bersarang yang memiliki `position: fixed`, `overflow-y: auto`, `max-height`, dan `overflow: hidden`. Hal ini menyebabkan browser tetap menghitung dimensi konten halaman latar belakang (~2 lembar kosong) dan memotong (*clip*) elemen slip gaji menjadi kosong (blank putih).
+     - **Akar Masalah:** Sebelumnya menggunakan `visibility: hidden` pada `body *` di dalam modal bersarang yang memiliki `position: fixed`, `overflow-y: auto`, `max-height`, dan `overflow: hidden`. Hal ini menyebabkan browser tetap menghitung dimensi konten halaman latar belakang (~2 lembar kosong) dan memotong (_clip_) elemen slip gaji menjadi kosong (blank putih).
      - **Solusi Arsitektur:**
        - Memindahkan rendering modal ke level `document.body` menggunakan React `createPortal` (`#payslip-modal-portal`) dengan proteksi hidrasi `useSyncExternalStore`.
        - Menambahkan CSS `@media print` terpusat di `apps/hris/src/app/globals.css` dengan aturan `@page { size: A4 portrait; margin: 8mm 10mm; }`.
@@ -1302,7 +1327,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
        - Menghilangkan pembatasan `overflow`, `max-height`, bayangan, dan transform dialog saat dicetak, serta mengaktifkan `print-color-adjust: exact !important` untuk menjaga akurasi warna brand, logo, kop, stempel, dan tanda tangan elektronik.
        - Memastikan seluruh dokumen slip gaji pas secara rapi dalam **1 lembar kertas A4**.
      - **Penyempurnaan 1 Halaman A4 & Solusi Urutan Terbalik (2 Halaman):**
-       - **Penyebab:** Pada browser Chromium/Chrome, saat pengguna men-scroll modal slip gaji ke bawah sebelum menekan tombol cetak, elemen `#printable-payslip-sheet` memiliki nilai `scrollTop > 0`. Saat dialog cetak aktif, browser mulai mencetak dari posisi scroll tersebut ke Halaman 1 (bagian bawah slip gaji), sementara sisa konten atas (Kop Surat & Header) berbalik (*wrap*) ke Halaman 2. Selain itu, lebar cetak A4 (~718px) berada di bawah breakpoint `md` (768px), menyebabkan tabel penerimaan dan potongan tertumpuk ke bawah menjadi 1 kolom.
+       - **Penyebab:** Pada browser Chromium/Chrome, saat pengguna men-scroll modal slip gaji ke bawah sebelum menekan tombol cetak, elemen `#printable-payslip-sheet` memiliki nilai `scrollTop > 0`. Saat dialog cetak aktif, browser mulai mencetak dari posisi scroll tersebut ke Halaman 1 (bagian bawah slip gaji), sementara sisa konten atas (Kop Surat & Header) berbalik (_wrap_) ke Halaman 2. Selain itu, lebar cetak A4 (~718px) berada di bawah breakpoint `md` (768px), menyebabkan tabel penerimaan dan potongan tertumpuk ke bawah menjadi 1 kolom.
        - **Solusi & Perbaikan:**
          - Menambahkan reset scroll otomatis (`scrollTop = 0`) pada container slip gaji dan seluruh elemen wrapper sebelum `window.print()` dijalankan dan pada event `beforeprint`.
          - Mengunci tata letak 2 kolom berdampingan secara eksplisit pada `@media print` untuk rincian pendapatan & potongan (`.payslip-breakdown-grid`) serta ringkasan informasi karyawan (`.payslip-info-grid`).
@@ -1317,6 +1342,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Pengaturan Dokumen & Rekening Bank Operasional Penggajian PSPK
+
 - **Status:** Selesai (Completed)
 - **Implementasi:**
   1. **Model Prisma & Migrasi (`hris.payroll_settings`)**:
@@ -1331,9 +1357,9 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Server Actions `uploadPayrollBrandingAction()` dan `deletePayrollBrandingAction()` untuk upload logo institusi & header banner kop surat via `@pspk/storage` (maks. 2 MB, validasi MIME gambar).
   3. **Antarmuka Pengaturan HR (`/payroll/pengaturan`)**:
      - Tab 1: **Rekening Bank Pengirim** — pemilih bank populer / kustom, nomor rekening dengan tombol toggle sembunyikan/lihat digit asli, atas nama lembaga, kantor cabang, dan catatan transfer default.
-     - Tab 2: **Kop & Desain Dokumen Resmi** — 4 preset garis border kop surat (*Navy Solid*, *Navy & Gold Accent*, *Double Line*, *Clean Minimalist*), upload logo PNG/JPG/WEBP, upload banner kop memanjang, nama lembaga, alamat kantor, pejabat penandatangan, dan disclaimer legalitas.
+     - Tab 2: **Kop & Desain Dokumen Resmi** — 4 preset garis border kop surat (_Navy Solid_, _Navy & Gold Accent_, _Double Line_, _Clean Minimalist_), upload logo PNG/JPG/WEBP, upload banner kop memanjang, nama lembaga, alamat kantor, pejabat penandatangan, dan disclaimer legalitas.
      - **Live Preview Real-Time (`payroll-document-preview.tsx`)** — panel simulasi dokumen cetak A4 mini yang langsung merespons setiap perubahan form secara visual.
-     - Tombol akses cepat *"Pengaturan Dokumen & Bank"* pada header utama `/payroll`.
+     - Tombol akses cepat _"Pengaturan Dokumen & Bank"_ pada header utama `/payroll`.
   4. **Integrasi Dinamis ke Slip Gaji Karyawan (`PayslipPrintableModal`)**:
      - Modal slip gaji staf membaca dan menerapkan logo kustom, banner kop jika ada, nama lembaga dinamis, gaya border kop yang dipilih HR, informasi bank penyalur resmi PSPK, penandatangan resmi, dan teks disclaimer.
   5. **Peningkatan Resiliensi Prisma Dev Mode (`@pspk/db`)**:
@@ -1351,6 +1377,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Manajemen Anggota Tim Saya (Manajer / Lead Divisi) — Tahap 1 & 2
+
 - **Status:** Selesai (Tahap 1 & 2 dari 3)
 - **Implementasi:**
   1. **Tahap 1 — Ekstensi Parameter Query `getEmployeesDirectory`**:
@@ -1361,10 +1388,10 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   2. **Tahap 2 — Adaptasi Halaman UI & Pengkondisian Hak Akses (`/karyawan`)**:
      - Mengintegrasikan deteksi sesi dan peran (`getSession` + `getUserProfile`) di `apps/hris/src/app/(app)/karyawan/page.tsx`.
      - Mengaktifkan mode tim (`isTeamView`) secara otomatis ketika parameter `?view=team` aktif atau ketika pengguna adalah Manajer (non-HR).
-     - Menyesuaikan Header: Judul berubah menjadi **"Anggota Tim Saya"** dengan badge dinamis nama Divisi Manajer (mis. *Divisi Riset Kurikulum & Pembelajaran*).
+     - Menyesuaikan Header: Judul berubah menjadi **"Anggota Tim Saya"** dengan badge dinamis nama Divisi Manajer (mis. _Divisi Riset Kurikulum & Pembelajaran_).
      - Menyembunyikan tombol wewenang administratif HR tingkat organisasi (**"Tambah Pegawai"** dan **"Impor Excel"**).
      - Menyesuaikan `EmployeeFilterBar` dengan badge divisi yang terkunci pada mode tim dan menjaga parameter `?view=team` saat filter direset.
-     - Menyesuaikan `EmployeeTable`: Menyembunyikan tombol ubah data dan nonaktifkan pegawai untuk Manajer (hanya menampilkan tombol *"Lihat Detail Profil"*).
+     - Menyesuaikan `EmployeeTable`: Menyembunyikan tombol ubah data dan nonaktifkan pegawai untuk Manajer (hanya menampilkan tombol _"Lihat Detail Profil"_).
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.
@@ -1373,6 +1400,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Rekapitulasi Absensi Tim & Perbaikan Navigasi Sidebar (Manajer / Lead) — Tahap 1
+
 - **Status:** Selesai (Tahap 1 dari 2)
 - **Implementasi:**
   1. **Perbaikan Status Aktif Ganda pada Sidebar (`AppSidebar`)**:
@@ -1388,7 +1416,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Menyesuaikan komponen `AttendanceRekapView`:
        - Menyembunyikan kolom dan tombol **"Aksi HR: Koreksi"** untuk peran Manajer (koreksi absensi manual hanya dapat dilakukan oleh Admin HR / Super Admin).
        - Mengunci dropdown pilihan divisi menjadi badge divisi yang dipimpin manajer.
-       - Menampilkan label ringkasan tabel yang sesuai (mis. *"Rekapitulasi Kehadiran: X Anggota Tim Terdata"*).
+       - Menampilkan label ringkasan tabel yang sesuai (mis. _"Rekapitulasi Kehadiran: X Anggota Tim Terdata"_).
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.
@@ -1397,6 +1425,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Proteksi Detail Karyawan & Kerahasiaan Finansial (`/karyawan/[id]`) — Tahap 2 (Opsional Selesai)
+
 - **Status:** Selesai (Completed ✅)
 - **Implementasi:**
   1. **Proteksi Otorisasi Server di `/karyawan/[id]`**:
@@ -1412,36 +1441,40 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Manajer tetap dapat melihat tipe kontrak (PKWT, PKWTT, dll), tanggal mulai, tanggal berakhir, dan status aktif, namun nominal kompensasi finansial tidak dikirim ke client HTML.
   4. **Proteksi Aksi Administratif Organisasi**:
      - Tombol **"Ubah Profil"** pada kartu profil utama disembunyikan untuk peran Manajer (hanya tampil untuk Admin HR / Super Admin).
-     - Rute formulir edit [`/karyawan/[id]/ubah`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/ubah/page.tsx) diproteksi di sisi server: pengguna non-HR/Admin otomatis di-redirect kembali ke profil pegawai.
+     - Rute formulir edit [`/karyawan/[id]/ubah`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/ubah/page.tsx>) diproteksi di sisi server: pengguna non-HR/Admin otomatis di-redirect kembali ke profil pegawai.
      - Tombol **"Mutasi / Promosi Jabatan"** pada kartu riwayat jabatan disembunyikan untuk peran Manajer (`CareerHistoryCard` menerima properti `isHrOrAdmin`).
-     - Tombol tautan kembali (*Back Link*) disesuaikan: untuk Manajer bertuliskan *"Kembali ke Tim Saya"* dan mengarah ke `/karyawan?view=team`.
+     - Tombol tautan kembali (_Back Link_) disesuaikan: untuk Manajer bertuliskan _"Kembali ke Tim Saya"_ dan mengarah ke `/karyawan?view=team`.
 - **Hasil Verifikasi**:
   - `pnpm typecheck` lolos 9/9 package (0 error).
   - `pnpm lint` lolos dengan 0 error.
+
 ---
 
 ## Modul Kinerja — Tahap 1: Isolasi Skop Tim & Dasbor Kinerja Tim untuk Lead / Manajer
+
 - **Status:** Selesai (Completed)
 - **Capaian & Perubahan**:
   1. **Ekstensi Query Backend Berbasis Skop Tim**:
      - `getPerformanceOverviewStats` dan `getPerformanceReviewsByPeriod` pada [`performance.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/performance.queries.ts) kini mendukung parameter `teamManagerId`, `managerDepartmentId`, dan `excludeEmployeeId`.
      - Statistik ringkasan (Total Pegawai, Sasaran 100%, Evaluasi Mandiri, Review Atasan, Selesai, Rata-rata Skor) serta daftar pegawai yang dievaluasi otomatis terisolasi hanya untuk anggota divisi yang dipimpin manajer.
-  2. **Resolusi Peran & Tab Navigasi Ganda di Server Component ([`/kinerja/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kinerja/page.tsx))**:
+  2. **Resolusi Peran & Tab Navigasi Ganda di Server Component ([`/kinerja/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kinerja/page.tsx>))**:
      - Resolusi peran membedakan peran `admin`, `manager`, dan `staff` secara definitif, serta tetap mendukung pengujian peran melalui cookie preview Super Admin.
      - Untuk peran Manajer:
        - Default tampilan diarahkan ke **Kinerja Tim** (`?tab=team`), menampilkan dasbor monitoring dan tabel penilaian bawahan dalam divisinya.
        - Tersedia navigasi tab **Kinerja Saya** (`?tab=mine`), memungkinkan manajer mengisi evaluasi mandiri pribadinya untuk dinilai oleh Direktur / atasan langsungnya.
   3. **Adaptasi Header & Hak Akses Kontrol Periode**:
-     - Komponen `PerformanceHeader` menampilkan judul *"Kinerja Tim"* berserta lencana divisi manajer (mis. *Divisi Riset Kebijakan*).
-     - Tombol konfigurasi administratif tingkat organisasi (*"Buat Periode"* dan *"Tutup/Buka Periode"*) disembunyikan sepenuhnya dari pandangan manajer.
-     - Tombol *Ekspor Rekap* dan selektor periode tetap dapat digunakan oleh manajer.
+     - Komponen `PerformanceHeader` menampilkan judul _"Kinerja Tim"_ berserta lencana divisi manajer (mis. _Divisi Riset Kebijakan_).
+     - Tombol konfigurasi administratif tingkat organisasi (_"Buat Periode"_ dan _"Tutup/Buka Periode"_) disembunyikan sepenuhnya dari pandangan manajer.
+     - Tombol _Ekspor Rekap_ dan selektor periode tetap dapat digunakan oleh manajer.
   4. **Proteksi Finalisasi & Penguncian Nilai di Detail Modal**:
-     - Pada `PerformanceDetailModal`, form finalisasi skor resmi (*FinalizeReviewForm*) disembunyikan dari manajer dan digantikan indikator status progres yang informatif. Hak finalisasi dan penguncian nilai resmi tetap eksklusif di tangan Admin HR / Super Admin.
+     - Pada `PerformanceDetailModal`, form finalisasi skor resmi (_FinalizeReviewForm_) disembunyikan dari manajer dan digantikan indikator status progres yang informatif. Hak finalisasi dan penguncian nilai resmi tetap eksklusif di tangan Admin HR / Super Admin.
 - **Hasil Verifikasi**:
   - `pnpm typecheck`: 9/9 paket berhasil tanpa error.
+
 ---
 
 ## Modul Timesheet Freelance — Tahap 1: Desain Skema Database, Relasi Multi-Reviewer, RBAC, & Kueri Dasar
+
 - **Status:** Selesai (Completed)
 - **Capaian & Perubahan**:
   1. **Desain Skema Database Prisma ([`hris.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/hris.prisma))**:
@@ -1458,7 +1491,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - `getTimesheetSubmissionsForReviewer`: antrean timesheet tim yang ditugaskan ke atasan tertentu.
      - `getTimesheetSubmissionDetail`: detail pengajuan beserta daftar atasan dan status persetujuannya.
      - `getEligibleReviewers`: daftar atasan/lead yang berhak dipilih sebagai reviewer.
-     - `getTimesheetValidationForPayroll`: validasi *strict blocker* sebelum kalkulasi payroll, mengidentifikasi pegawai PKWT per jam yang timesheet-nya belum di-ACC beserta daftar nama atasan penilai yang belum menyelesaikan proses.
+     - `getTimesheetValidationForPayroll`: validasi _strict blocker_ sebelum kalkulasi payroll, mengidentifikasi pegawai PKWT per jam yang timesheet-nya belum di-ACC beserta daftar nama atasan penilai yang belum menyelesaikan proses.
 - **Hasil Verifikasi**:
   - `pnpm typecheck`: 9/9 paket berhasil (0 error).
   - `pnpm --filter @pspk/hris lint`: 0 error.
@@ -1467,12 +1500,13 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Timesheet Freelance — Tahap 2: Portal Staf & Formulir Pengajuan Jam Kerja Freelance
+
 - **Status:** Selesai (Completed)
 - **Capaian & Fitur yang Diterapkan**:
   1. **Server Actions Terproteksi ([`timesheet.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/timesheet.actions.ts))**:
      - `submitTimesheetAction`:
        - Validasi skema input dengan Zod (bulan 1-12, tahun, judul min 5 karakter, valid URL Google Spreadsheet, total jam kerja > 0 & <= 744 jam, minimal memilih 1 atasan reviewer).
-       - Pencegahan *self-selection*: Pegawai dilarang memilih dirinya sendiri sebagai reviewer.
+       - Pencegahan _self-selection_: Pegawai dilarang memilih dirinya sendiri sebagai reviewer.
        - Pencegahan duplikasi pengajuan: Memastikan belum ada timesheet berstatus `APPROVED` pada bulan dan tahun yang sama.
        - Transaksi Prisma atomik: Menyimpan `TimesheetSubmission` dan seluruh entri `TimesheetReviewer`.
        - Notifikasi In-App otomatis: Mengirim notifikasi ke seluruh lead/atasan terpilih bahwa ada pengajuan timesheet baru yang perlu di-review.
@@ -1484,20 +1518,20 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - **Formulir Pengajuan Modal ([`timesheet-submission-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-submission-modal.tsx))**:
        - Input Bulan & Tahun periode kerja.
        - Input Judul ringkas pekerjaan.
-       - Input URL Google Spreadsheet dilengkapi tombol helper *"Uji Buka Link"* (membuka tab baru untuk memastikan link spreadsheet dapat diakses/tidak restricted).
+       - Input URL Google Spreadsheet dilengkapi tombol helper _"Uji Buka Link"_ (membuka tab baru untuk memastikan link spreadsheet dapat diakses/tidak restricted).
        - Input Total Jam Kerja (angka desimal).
        - Multi-Select Atasan Penilai / Lead Reviewer dengan pencarian instan (nama/NIP/divisi) dan lencana terpilih yang mudah dihapus/dipilih kembali.
        - Catatan / Deskripsi pekerjaan.
-       - Tombol *"Kumpulkan Timesheet"* dan *"Batal"*.
+       - Tombol _"Kumpulkan Timesheet"_ dan _"Batal"_.
      - **Tabel Riwayat & Status Penilai ([`timesheet-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-table.tsx))**:
        - Filter status & pencarian judul/keterangan.
        - Tautan langsung ke Google Spreadsheet.
-       - Indikator status per reviewer (*pills* status masing-masing atasan penilai).
+       - Indikator status per reviewer (_pills_ status masing-masing atasan penilai).
        - Tombol aksi detail dan pembatalan (jika masih `PENDING`).
      - **Modal Detail Status Multi-Reviewer ([`timesheet-detail-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/timesheet-detail-modal.tsx))**: Memeriksa status transparansi proses review tiap atasan penilai lengkap beserta catatan evaluasi dan waktu ACC/review.
-     - **Halaman Utama ([`/timesheet/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/page.tsx))**: Server component memuat data pengajuan karyawan aktif, kontrak aktif (`wageType`, `hourlyRate`), dan daftar reviewer yang memenuhi syarat.
+     - **Halaman Utama ([`/timesheet/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/page.tsx>))**: Server component memuat data pengajuan karyawan aktif, kontrak aktif (`wageType`, `hourlyRate`), dan daftar reviewer yang memenuhi syarat.
   3. **Integrasi Navigasi App Shell ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx))**:
-     - Menambahkan rute dan ikon `Clock` untuk *"Timesheet Saya"* pada menu staf dan menu personal manajer.
+     - Menambahkan rute dan ikon `Clock` untuk _"Timesheet Saya"_ pada menu staf dan menu personal manajer.
      - Memastikan `isNavActive` mengisolasi rute `/timesheet` agar tidak bentrok dengan `/timesheet/persetujuan`.
 - **Hasil Verifikasi**:
   - `pnpm --filter @pspk/hris typecheck`: 0 error.
@@ -1507,13 +1541,14 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Timesheet Freelance — Tahap 3: Portal Persetujuan Manajer / Lead (`/timesheet/persetujuan`)
+
 - **Status:** Selesai (Completed)
 - **Capaian & Fitur yang Diterapkan**:
   1. **Server Actions Review & Konsolidasi Status Multi-Lead ([`timesheet.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/timesheet.actions.ts))**:
      - `startTimesheetReviewAction`:
        - Mengubah status reviewer dari `PENDING` $\to$ `IN_REVIEW`.
        - Mengubah parent `TimesheetSubmission.status` menjadi `IN_REVIEW` (jika sebelumnya `PENDING`), sehingga staf langsung mengetahui lembar kerjanya sedang dicek.
-       - Mengirimkan In-App Notification kepada staf: *"Atasan [Nama] mulai memeriksa timesheet [Judul]"*.
+       - Mengirimkan In-App Notification kepada staf: _"Atasan [Nama] mulai memeriksa timesheet [Judul]"_.
        - Pencatatan Audit Trail (`UPDATE TimesheetReviewer`).
      - `submitReviewDecisionAction`:
        - Mendukung keputusan `APPROVE` (ACC) atau `REJECT` (Tolak / Minta Revisi).
@@ -1528,22 +1563,22 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   2. **Komponen Antarmuka Persetujuan Timesheet Atasan**:
      - **Kartu Statistik Antrean Review ([`timesheet-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-view.tsx))**: Menampilkan jumlah antrean Menunggu Review (beserta total jam tertunda), Sudah Di-ACC (beserta total jam disetujui), Ditolak/Perlu Revisi, dan Total Tugas Review.
      - **Tabel Daftar Tugas Review Tim ([`timesheet-approval-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-table.tsx))**:
-       - Filter Segmented Tabs: *"Butuh Review"* (default), *"Sudah Disetujui (ACC)"*, *"Ditolak"*, dan *"Semua"*.
+       - Filter Segmented Tabs: _"Butuh Review"_ (default), _"Sudah Disetujui (ACC)"_, _"Ditolak"_, dan _"Semua"_.
        - Fitur pencarian instan nama pegawai freelance, NIP, judul proyek, atau divisi.
        - Kolom Status Review Saya vs Status Rekan Penilai Lainnya (menampilkan dots & status masing-masing reviewer).
        - Tautan langsung ke Google Spreadsheet.
-       - Tombol aksi *"Review"* / *"Lihat"*.
+       - Tombol aksi _"Review"_ / _"Lihat"_.
      - **Modal Interaktif Keputusan Review ([`timesheet-approval-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-modal.tsx))**:
        - Ringkasan profil pegawai freelance, periode kerja, dan jam kerja.
-       - Banner interaktif Google Spreadsheet dengan tombol *"Buka Sheet"*.
-       - Tombol aksi *"Mulai Review"* bila status masih pending.
+       - Banner interaktif Google Spreadsheet dengan tombol _"Buka Sheet"_.
+       - Tombol aksi _"Mulai Review"_ bila status masih pending.
        - Daftar status rekan atasan penilai lainnya (transparansi multi-lead).
        - Field catatan evaluasi/apresiasi/alasan revisi.
-       - Tombol *"Setujui Timesheet (ACC)"* dan *"Tolak / Perlu Revisi"* (dengan konfirmasi modal aman).
-     - **Halaman Utama Rute ([`/timesheet/persetujuan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/persetujuan/page.tsx))**: Server component dengan proteksi otorisasi peran Manajer, Admin HR, atau Super Admin.
+       - Tombol _"Setujui Timesheet (ACC)"_ dan _"Tolak / Perlu Revisi"_ (dengan konfirmasi modal aman).
+     - **Halaman Utama Rute ([`/timesheet/persetujuan/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/persetujuan/page.tsx>))**: Server component dengan proteksi otorisasi peran Manajer, Admin HR, atau Super Admin.
   3. **Integrasi Navigasi App Shell ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx))**:
-     - Menambahkan NavItem *"Persetujuan Timesheet"* pada menu "Tim & Approval" milik Manajer.
-     - Menambahkan NavItem *"Timesheet Freelance"* pada menu navigasi Admin HR.
+     - Menambahkan NavItem _"Persetujuan Timesheet"_ pada menu "Tim & Approval" milik Manajer.
+     - Menambahkan NavItem _"Timesheet Freelance"_ pada menu navigasi Admin HR.
      - Memperbarui `isNavActive` agar rute `/timesheet/persetujuan` tidak tertukar dengan `/timesheet`.
 - **Hasil Verifikasi**:
   - `pnpm --filter @pspk/hris typecheck`: 0 error (TypeScript strict lolos).
@@ -1554,6 +1589,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ---
 
 ## Modul Timesheet Freelance — Tahap 4: Integrasi Validasi Blocker Payroll HR & Injeksi Jam Kerja ke Payslip
+
 - **Status:** Selesai (Completed)
 - **Capaian & Fitur yang Diterapkan**:
   1. **Strict Blocker Validasi Payroll ([`payroll.service.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/payroll.service.ts))**:
@@ -1564,14 +1600,14 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Sistem mengambil timesheet resmi berstatus `APPROVED` pada bulan dan tahun periode terkait.
      - Nilai jam kerja (`totalHours`) otomatis diinjeksikan ke `Payslip.totalHours`.
      - Tarif per jam (`hourlyRate`) diambil dari kontrak kerja aktif.
-     - Upah jam kerja dihitung secara presisi: `Math.round(totalHours * hourlyRate)` dan dimasukkan ke baris slip gaji (`PayslipLine`) bertipe `EARNING`: *"Upah Jam Kerja Timesheet (X jam @ Rp Y)"*.
+     - Upah jam kerja dihitung secara presisi: `Math.round(totalHours * hourlyRate)` dan dimasukkan ke baris slip gaji (`PayslipLine`) bertipe `EARNING`: _"Upah Jam Kerja Timesheet (X jam @ Rp Y)"_.
      - ID Periode Payroll otomatis ditautkan ke `TimesheetSubmission.payrollPeriodId`.
      - Link dokumen Google Spreadsheet timesheet resmi disimpan pada kolom `Payslip.timesheetKey`.
   3. **Antarmuka Detail Penggajian HR ([`payroll-detail-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/payroll-detail-view.tsx))**:
      - Menambahkan **Widget Validasi Timesheet Freelance**:
        - Status Terverifikasi (Hijau): Menampilkan lencana ACC lengkap jika seluruh staf freelance telah disetujui.
-       - Status Peringatan Blocker (Kuning/Amber): Menampilkan daftar staf yang belum mengumpulkan atau masih tertahan di atasan penilai tertentu, lengkap dengan tombol langsung ke *"Halaman Persetujuan"*.
-     - Pada baris slip gaji staf per jam, tautan `timesheetKey` kini mendeteksi tautan Google Spreadsheet eksternal dan menampilkan tombol langsung *"Buka Google Sheet"*.
+       - Status Peringatan Blocker (Kuning/Amber): Menampilkan daftar staf yang belum mengumpulkan atau masih tertahan di atasan penilai tertentu, lengkap dengan tombol langsung ke _"Halaman Persetujuan"_.
+     - Pada baris slip gaji staf per jam, tautan `timesheetKey` kini mendeteksi tautan Google Spreadsheet eksternal dan menampilkan tombol langsung _"Buka Google Sheet"_.
   4. **Slip Gaji Cetak & Resepsi Pegawai ([`payslip-printable-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/slip-gaji/payslip-printable-modal.tsx))**:
      - Slip gaji resmi menampilkan rincian total jam disetujui, tarif kontrak per jam, dan komponen pendapatan berbasis timesheet.
 - **Hasil Verifikasi**:
@@ -1585,19 +1621,19 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 ## Modul Timesheet Freelance — Penyelarasan Peran & Alur Kerja Manajer vs Staf Lepas
 
 - **Latar Belakang & Masalah**:
-  - Pada pengujian sebagai akun Manajer/Atasan (`Dr. Budi Rahardjo`), di menu personal sidebar sebelumnya muncul tautan *"Timesheet Saya"*. Saat dibuka, manajer diarahkan ke halaman pengajuan timesheet kosong dengan tombol *"Ajukan Timesheet Baru"*.
+  - Pada pengujian sebagai akun Manajer/Atasan (`Dr. Budi Rahardjo`), di menu personal sidebar sebelumnya muncul tautan _"Timesheet Saya"_. Saat dibuka, manajer diarahkan ke halaman pengajuan timesheet kosong dengan tombol _"Ajukan Timesheet Baru"_.
   - Sesuai regulasi ketenagakerjaan dan SOP PSPK, manajer dan pegawai bulanan tetap **tidak menyetor timesheet jam kerja**, melainkan bertindak sebagai **Reviewer / Approver** atas timesheet staf freelance bawahan/proyek.
 - **Penyempurnaan yang Diimplementasikan**:
   1. **Penyelarasan Menu Navigasi Sidebar ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx))**:
-     - Menu *"Timesheet Saya"* disembunyikan dari Menu Personal Manajer dan Menu Karyawan Staf Bulanan Tetap. Menu ini sekarang **hanya tampil jika pegawai memiliki kontrak aktif bertipe PKWT Per Jam / Freelance (`wageType === "HOURLY"`)**.
-     - Menambahkan lencana (badge) indikator jumlah antrean pada menu *"Persetujuan Timesheet"* (Manajer) dan *"Timesheet Freelance"* (Admin HR) jika terdapat pengajuan yang berstatus `PENDING` atau `IN_REVIEW`.
-  2. **Smart Redirect & Proteksi Halaman ([`/timesheet/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/page.tsx))**:
+     - Menu _"Timesheet Saya"_ disembunyikan dari Menu Personal Manajer dan Menu Karyawan Staf Bulanan Tetap. Menu ini sekarang **hanya tampil jika pegawai memiliki kontrak aktif bertipe PKWT Per Jam / Freelance (`wageType === "HOURLY"`)**.
+     - Menambahkan lencana (badge) indikator jumlah antrean pada menu _"Persetujuan Timesheet"_ (Manajer) dan _"Timesheet Freelance"_ (Admin HR) jika terdapat pengajuan yang berstatus `PENDING` atau `IN_REVIEW`.
+  2. **Smart Redirect & Proteksi Halaman ([`/timesheet/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/timesheet/page.tsx>))**:
      - Jika pengguna dengan peran Manajer / Lead / Reviewer mengakses rute `/timesheet`, sistem secara otomatis me-redirect ke `/timesheet/persetujuan` (pusat tugas persetujuan atasan).
      - Jika pegawai bulanan tetap non-reviewer mengakses rute `/timesheet`, sistem menampilkan kartu informasi edukatif bahwa pencatatan kehadiran mereka dilakukan melalui Absensi Harian (bukan timesheet).
   3. **Integrasi Dashboard Tim Manajer ([`manager-dashboard.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/dashboard/manager-dashboard.tsx), [`manager-dashboard.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/dashboard/manager-dashboard.ts))**:
-     - Menambahkan kartu statistik ke-4: *"Antrean Timesheet Freelance"* yang menampilkan jumlah timesheet tim yang menunggu ACC manajer.
-     - Menambahkan banner/kartu peringatan aksi cepat jika terdapat timesheet staf freelance yang tertunda, lengkap dengan nama pegawai, total jam, judul tugas, dan tombol langsung *"Buka & Berikan ACC"*.
-  4. **Shell Props & Layout ([`layout.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/layout.tsx), [`shell-container.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/shell-container.tsx))**:
+     - Menambahkan kartu statistik ke-4: _"Antrean Timesheet Freelance"_ yang menampilkan jumlah timesheet tim yang menunggu ACC manajer.
+     - Menambahkan banner/kartu peringatan aksi cepat jika terdapat timesheet staf freelance yang tertunda, lengkap dengan nama pegawai, total jam, judul tugas, dan tombol langsung _"Buka & Berikan ACC"_.
+  4. **Shell Props & Layout ([`layout.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/layout.tsx>), [`shell-container.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/shell-container.tsx))**:
      - Menghitung `pendingTimesheetsCount` dan `isHourlyEmployee` secara dinamis dari database untuk sesi aktif.
 
 ---
@@ -1606,7 +1642,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 - **Masalah Visual**:
   - Pada modal pratinjau dan cetak slip gaji ([`payslip-printable-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/slip-gaji/payslip-printable-modal.tsx)), baris identitas pegawai dan rekening menggunakan `flex justify-between` tanpa lebar label yang terkunci.
-  - Nilai yang panjang (misalnya jabatan *"Kepala Divisi Kebijakan Kurikulum"* atau divisi *"Divisi Lingkar Studi Kebijakan Pendidikan (LSKP)"*) menyebabkan label *"Posisi / Jabatan:"* dan *"Divisi Kerja:"* terhimpit serta terpotong patah menjadi 2 baris terpisah secara canggung. Posisi titik dua (`:`) juga melompat-lompat tidak lurus vertikal.
+  - Nilai yang panjang (misalnya jabatan _"Kepala Divisi Kebijakan Kurikulum"_ atau divisi _"Divisi Lingkar Studi Kebijakan Pendidikan (LSKP)"_) menyebabkan label _"Posisi / Jabatan:"_ dan _"Divisi Kerja:"_ terhimpit serta terpotong patah menjadi 2 baris terpisah secara canggung. Posisi titik dua (`:`) juga melompat-lompat tidak lurus vertikal.
 - **Penyempurnaan**:
   1. Mengubah struktur kartu data menjadi **tata letak tabel kunci-nilai murni** dengan sel label berkategori `whitespace-nowrap w-1` dan perataan `align-top`.
   2. Seluruh tanda titik dua (`:`) kini sejajar lurus secara vertikal dalam satu kolom rapi.
@@ -1626,7 +1662,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
        - Email: `superadmin@pspk.id`
        - Password: `Superadmin321!`
        - Role: `super_admin`
-  - Sistem sekarang berada dalam kondisi *clean-slate* murni untuk pengujian input manual satu per satu dari antarmuka web.
+  - Sistem sekarang berada dalam kondisi _clean-slate_ murni untuk pengujian input manual satu per satu dari antarmuka web.
 
 ---
 
@@ -1651,7 +1687,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - **Pembersihan Skrip Uji Coba**:
     - Menghapus skrip coba-coba di folder `scratch/` (`test-timesheet-payroll.ts`, `seed-performance.ts`, `test-organization-flow.ts`, `seed-notifications.ts`, `verify_dashboards.ts`).
     - Menghapus skrip sementara `scripts/wipe-data.ts`.
-  - Repo kini berstatus *clean-slate*, rapi, dan siap untuk penginputan data produksi secara manual dari UI oleh administrator.
+  - Repo kini berstatus _clean-slate_, rapi, dan siap untuk penginputan data produksi secara manual dari UI oleh administrator.
 
 ## Modul Karyawan & Kontrak — Pengaturan Master Tipe Ikatan Kerja (CRUD)
 
@@ -1659,20 +1695,20 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - Tim HR memerlukan fleksibilitas penuh untuk menyesuaikan skema ikatan kerja (Pegawai Tetap, PKWT Berjangka, Freelance Jam Kerja/Timesheet, Magang, atau skema baru lainnya) secara mandiri lewat antarmuka web tanpa bergantung pada pengembang teknis.
 - **Penyempurnaan & Fitur yang Diimplementasikan**:
   1. **Halaman Master Khusus (`/karyawan/ikatan-kerja`)**:
-     - Menyediakan dasbor tersendiri ([`ikatan-kerja/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/ikatan-kerja/page.tsx)) yang dilengkapi kartu metrik (Total Ikatan Kerja, Skema Per Jam, Skema Bulanan Tetap) dan tabel interaktif CRUD lengkap.
-     - HR dapat mencari, menambah tipe baru (kode, nama, kategori, skema upah, tarif acuan per jam, deskripsi), mengubah data, mengaktifkan/menonaktifkan status (*toggle*), serta menghapus tipe ikatan kerja (dilengkapi proteksi otomatis: jika sudah memiliki kontrak aktif, sistem akan mengarsipkan/menonaktifkan tipe tersebut tanpa menghapus data historis pegawai).
+     - Menyediakan dasbor tersendiri ([`ikatan-kerja/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/ikatan-kerja/page.tsx>)) yang dilengkapi kartu metrik (Total Ikatan Kerja, Skema Per Jam, Skema Bulanan Tetap) dan tabel interaktif CRUD lengkap.
+     - HR dapat mencari, menambah tipe baru (kode, nama, kategori, skema upah, tarif acuan per jam, deskripsi), mengubah data, mengaktifkan/menonaktifkan status (_toggle_), serta menghapus tipe ikatan kerja (dilengkapi proteksi otomatis: jika sudah memiliki kontrak aktif, sistem akan mengarsipkan/menonaktifkan tipe tersebut tanpa menghapus data historis pegawai).
   2. **Aksesibilitas Menu & Navigasi**:
-     - **Sidebar HR Admin**: Ditambahkan menu **Tipe Ikatan Kerja** dengan ikon *Briefcase* di bawah kelompok *Manajemen Organisasi* ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)).
-     - **Direktori Pegawai (`/karyawan`)**: Ditambahkan tombol pintas **Tipe Ikatan Kerja** di bilah aksi atas berdampingan dengan Struktur Organisasi ([`karyawan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/page.tsx)).
-     - **Struktur Organisasi (`/karyawan/organisasi`)**: Mendukung *deep-link* `?tab=employmentTypes` untuk langsung membuka tab Master Ikatan Kerja ([`organisasi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/organisasi/page.tsx)).
+     - **Sidebar HR Admin**: Ditambahkan menu **Tipe Ikatan Kerja** dengan ikon _Briefcase_ di bawah kelompok _Manajemen Organisasi_ ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)).
+     - **Direktori Pegawai (`/karyawan`)**: Ditambahkan tombol pintas **Tipe Ikatan Kerja** di bilah aksi atas berdampingan dengan Struktur Organisasi ([`karyawan/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/page.tsx>)).
+     - **Struktur Organisasi (`/karyawan/organisasi`)**: Mendukung _deep-link_ `?tab=employmentTypes` untuk langsung membuka tab Master Ikatan Kerja ([`organisasi/page.tsx`](<file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/organisasi/page.tsx>)).
   3. **Integrasi Form Pendaftaran Pegawai (`/karyawan/baru` & `/karyawan/[id]/ubah`)**:
-     - Pada Langkah 3 (*Kontrak Kerja & Kompensasi*) di [`wizard-employee-form.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/wizard-employee-form.tsx):
-       - Ditambahkan tombol **"+ Tambah Tipe Baru"**: Membuka modal ringkas *in-place*. Setelah disimpan, tipe baru langsung muncul pada daftar pilihan kartu dan tercentang otomatis tanpa mereset atau kehilangan input form yang telah diisi sebelumnya.
+     - Pada Langkah 3 (_Kontrak Kerja & Kompensasi_) di [`wizard-employee-form.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/wizard-employee-form.tsx):
+       - Ditambahkan tombol **"+ Tambah Tipe Baru"**: Membuka modal ringkas _in-place_. Setelah disimpan, tipe baru langsung muncul pada daftar pilihan kartu dan tercentang otomatis tanpa mereset atau kehilangan input form yang telah diisi sebelumnya.
        - Ditambahkan tautan cepat **"Pengaturan Ikatan Kerja ↗"** ke tab baru agar HR dapat mengelola seluruh daftar master kapan saja.
   4. **Penyempurnaan Backend & Relasi Data**:
      - Memperbaiki sinkronisasi data kontrak aktif pegawai pada fungsi `updateEmployee` di [`employee.service.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/services/employee.service.ts) agar perubahan tipe ikatan kerja, tarif, dan gaji pada mode ubah pegawai langsung tersimpan ke tabel `employment_contracts`.
      - Menyertakan relasi `employmentTypeMaster` pada query `getEmployeesDirectory` dan `getEmployeeById` di [`employee.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/employee.queries.ts).
-     - Menjamin serialisasi tanggal ISO aman lintas batasan *Server Action* di [`employment-type.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/employment-type.actions.ts).
+     - Menjamin serialisasi tanggal ISO aman lintas batasan _Server Action_ di [`employment-type.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/employment-type.actions.ts).
 
 ---
 
@@ -1693,8 +1729,3 @@ pnpm lint          # ESLint
 pnpm typecheck     # TypeScript check di seluruh workspace
 pnpm build         # Next.js standalone build
 ```
-
-
-
-
-

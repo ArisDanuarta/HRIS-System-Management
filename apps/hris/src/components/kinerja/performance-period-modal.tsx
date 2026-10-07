@@ -180,7 +180,8 @@ export function PerformancePeriodModal({
 
           {/* Info Tambahan */}
           <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-200/80 text-[11px] text-amber-800 leading-relaxed">
-            💡 Sistem akan secara otomatis menginisialisasi draf penilaian untuk seluruh pegawai aktif di database dan menetapkan atasan langsung sebagai penilai utama.
+            💡 Sistem akan secara otomatis menginisialisasi draf penilaian untuk seluruh pegawai
+            aktif di database dan menetapkan atasan langsung sebagai penilai utama.
           </div>
 
           {/* Footer Buttons */}

@@ -63,16 +63,23 @@ export async function getAllUsers(filter?: GetUsersFilter) {
 }
 
 export async function getUserStats() {
-  const [totalUsers, activeUsers, superAdminCount, adminHrCount, adminItCount, managerCount, staffCount] =
-    await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { isActive: true } }),
-      prisma.userRole.count({ where: { role: { key: "super_admin" }, user: { isActive: true } } }),
-      prisma.userRole.count({ where: { role: { key: "admin_hr" } } }),
-      prisma.userRole.count({ where: { role: { key: "admin_it" } } }),
-      prisma.userRole.count({ where: { role: { key: "manager" } } }),
-      prisma.userRole.count({ where: { role: { key: "staff" } } }),
-    ]);
+  const [
+    totalUsers,
+    activeUsers,
+    superAdminCount,
+    adminHrCount,
+    adminItCount,
+    managerCount,
+    staffCount,
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { isActive: true } }),
+    prisma.userRole.count({ where: { role: { key: "super_admin" }, user: { isActive: true } } }),
+    prisma.userRole.count({ where: { role: { key: "admin_hr" } } }),
+    prisma.userRole.count({ where: { role: { key: "admin_it" } } }),
+    prisma.userRole.count({ where: { role: { key: "manager" } } }),
+    prisma.userRole.count({ where: { role: { key: "staff" } } }),
+  ]);
 
   return {
     totalUsers,

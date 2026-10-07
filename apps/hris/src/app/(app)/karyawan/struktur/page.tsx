@@ -13,7 +13,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Bagan Struktur Organisasi — HRIS PSPK",
-  description: "Visualisasi peta hierarki kepemimpinan, rantai koordinasi, dan struktur tim di lingkungan PSPK.",
+  description:
+    "Visualisasi peta hierarki kepemimpinan, rantai koordinasi, dan struktur tim di lingkungan PSPK.",
 };
 
 export default async function StrukturOrganisasiPage() {
@@ -73,7 +74,8 @@ export default async function StrukturOrganisasiPage() {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Visualisasi pohon hierarki berjenjang, rantai koordinasi vertikal, dan formasi kepemimpinan seluruh unit kerja PSPK.
+            Visualisasi pohon hierarki berjenjang, rantai koordinasi vertikal, dan formasi
+            kepemimpinan seluruh unit kerja PSPK.
           </p>
         </div>
       </div>

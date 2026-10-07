@@ -109,9 +109,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
   const initial = displayName ? displayName.charAt(0).toUpperCase() : "U";
   const department = profile.employee?.department;
   const position = profile.employee?.position;
-  const isHrOrAdmin = profile.roles.some(
-    (r) => r.key === "super_admin" || r.key === "admin_hr",
-  );
+  const isHrOrAdmin = profile.roles.some((r) => r.key === "super_admin" || r.key === "admin_hr");
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto pb-12">
@@ -159,11 +157,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
               <div className="relative group shrink-0 -mt-14 md:-mt-16 z-10">
                 <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#102e50] border-4 border-white shadow-md overflow-hidden flex items-center justify-center text-white text-3xl font-bold font-heading">
                   {avatarUrl ? (
-                    <img
-                      src={avatarUrl}
-                      alt={displayName}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                   ) : (
                     <span>{initial}</span>
                   )}
@@ -342,8 +336,8 @@ export function ProfileView({ profile }: ProfileViewProps) {
       {/* 2. TAB CONTENT VIEW */}
       <div>
         {activeTab === "identitas" && <ProfileInfoTab profile={profile} />}
-        {activeTab === "dokumen" && (
-          profile.employee ? (
+        {activeTab === "dokumen" &&
+          (profile.employee ? (
             <EmployeeDocumentsCard
               employeeId={profile.employee.id}
               employeeName={displayName}
@@ -355,11 +349,11 @@ export function ProfileView({ profile }: ProfileViewProps) {
           ) : (
             <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-500">
               <p className="text-sm">
-                Akun ini belum ditautkan ke profil kepegawaian resmi untuk membuka arsip berkas digital.
+                Akun ini belum ditautkan ke profil kepegawaian resmi untuk membuka arsip berkas
+                digital.
               </p>
             </div>
-          )
-        )}
+          ))}
         {activeTab === "keamanan" && <ChangePasswordTab />}
         {activeTab === "sesi" && <SessionHistoryTab sessions={profile.sessions} />}
       </div>

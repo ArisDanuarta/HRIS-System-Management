@@ -187,9 +187,7 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
   ).length;
 
   const attendancePercentage =
-    totalActiveEmployees > 0
-      ? Math.round((presentTodayCount / totalActiveEmployees) * 100)
-      : 0;
+    totalActiveEmployees > 0 ? Math.round((presentTodayCount / totalActiveEmployees) * 100) : 0;
 
   // Process 7-day attendance trend
   const trendDays: {
@@ -235,8 +233,7 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
   const contractStats = {
     PERMANENT: contractsByType.find((c) => c.type === "PERMANENT")?._count.id || 0,
     FIXED_TERM: contractsByType.find((c) => c.type === "FIXED_TERM")?._count.id || 0,
-    PART_TIME_PROJECT:
-      contractsByType.find((c) => c.type === "PART_TIME_PROJECT")?._count.id || 0,
+    PART_TIME_PROJECT: contractsByType.find((c) => c.type === "PART_TIME_PROJECT")?._count.id || 0,
   };
 
   return {

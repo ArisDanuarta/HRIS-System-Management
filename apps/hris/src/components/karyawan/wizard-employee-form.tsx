@@ -190,9 +190,7 @@ export function WizardEmployeeForm({
     workEmail: initialData?.workEmail || "",
     personalEmail: initialData?.personalEmail || "",
     phone: initialData?.phone || "",
-    birthDate: initialData?.birthDate
-      ? toDateString(initialData.birthDate)
-      : "",
+    birthDate: initialData?.birthDate ? toDateString(initialData.birthDate) : "",
     birthPlace: initialData?.birthPlace || "",
     gender: initialData?.gender || "MALE",
     maritalStatus: initialData?.maritalStatus || "SINGLE",
@@ -205,9 +203,7 @@ export function WizardEmployeeForm({
     currentDepartmentId: initialData?.currentDepartmentId || (departments[0]?.id ?? ""),
     currentPositionId: initialData?.currentPositionId || "",
     managerId: initialData?.managerId || "",
-    joinDate: initialData?.joinDate
-      ? toDateString(initialData.joinDate)
-      : toDateString(new Date()),
+    joinDate: initialData?.joinDate ? toDateString(initialData.joinDate) : toDateString(new Date()),
     status: initialData?.status || "ACTIVE",
 
     // Step 3: Contract
@@ -337,17 +333,23 @@ export function WizardEmployeeForm({
       }
       const emailTrimmed = formData.workEmail.trim().toLowerCase();
       if (!emailTrimmed || !emailTrimmed.includes("@") || !emailTrimmed.endsWith("@pspk.id")) {
-        setServerError("Email kantor wajib menggunakan domain resmi @pspk.id (contoh: nama@pspk.id).");
+        setServerError(
+          "Email kantor wajib menggunakan domain resmi @pspk.id (contoh: nama@pspk.id).",
+        );
         return false;
       }
       if (mode === "create" && formData.createUserAccount) {
         const personalTrimmed = formData.personalEmail.trim().toLowerCase();
         if (!personalTrimmed || !personalTrimmed.includes("@")) {
-          setServerError("Email pribadi wajib diisi untuk pengiriman kredensial akun & kata sandi baru.");
+          setServerError(
+            "Email pribadi wajib diisi untuk pengiriman kredensial akun & kata sandi baru.",
+          );
           return false;
         }
         if (personalTrimmed.endsWith("@pspk.id")) {
-          setServerError("Email pribadi harus merupakan email pribadi (bukan email kantor @pspk.id).");
+          setServerError(
+            "Email pribadi harus merupakan email pribadi (bukan email kantor @pspk.id).",
+          );
           return false;
         }
       }
@@ -357,7 +359,9 @@ export function WizardEmployeeForm({
         return false;
       }
       if (nipStatus && !nipStatus.available) {
-        setServerError("Nomor Induk Pegawai (NIP) sudah terdaftar di sistem. Harap gunakan NIP yang berbeda.");
+        setServerError(
+          "Nomor Induk Pegawai (NIP) sudah terdaftar di sistem. Harap gunakan NIP yang berbeda.",
+        );
         return false;
       }
       if (!formData.currentDepartmentId) {
@@ -384,7 +388,9 @@ export function WizardEmployeeForm({
     } else if (step === 4) {
       if (mode === "create" && formData.createUserAccount) {
         if (!formData.personalEmail.trim() || !formData.personalEmail.includes("@")) {
-          setServerError("Email pribadi pada Langkah 1 wajib diisi untuk pengiriman informasi akun & kata sandi.");
+          setServerError(
+            "Email pribadi pada Langkah 1 wajib diisi untuk pengiriman informasi akun & kata sandi.",
+          );
           return false;
         }
       }
@@ -433,13 +439,13 @@ export function WizardEmployeeForm({
           employmentType: newType.category as EmploymentType,
           wageType: newType.wageType,
           hourlyRate:
-            newType.wageType === "HOURLY"
-              ? (newType.defaultHourlyRate ?? 30000)
-              : prev.hourlyRate,
+            newType.wageType === "HOURLY" ? (newType.defaultHourlyRate ?? 30000) : prev.hourlyRate,
         }));
 
         setIsQuickCreateModalOpen(false);
-        setQuickCreateSuccess(`Tipe ikatan kerja '${newType.name}' berhasil ditambahkan dan langsung dipilih.`);
+        setQuickCreateSuccess(
+          `Tipe ikatan kerja '${newType.name}' berhasil ditambahkan dan langsung dipilih.`,
+        );
         setQuickCreateForm({
           code: "",
           name: "",
@@ -451,7 +457,9 @@ export function WizardEmployeeForm({
         setTimeout(() => setQuickCreateSuccess(null), 5000);
       }
     } catch (err: unknown) {
-      setQuickCreateError(err instanceof Error ? err.message : "Gagal menambahkan tipe ikatan kerja.");
+      setQuickCreateError(
+        err instanceof Error ? err.message : "Gagal menambahkan tipe ikatan kerja.",
+      );
     } finally {
       setQuickCreatePending(false);
     }
@@ -523,7 +531,8 @@ export function WizardEmployeeForm({
         bankAccount: formData.bankAccount.trim() || undefined,
         bankAccountName: formData.bankAccountName.trim() || undefined,
         createUserAccount: formData.createUserAccount,
-        accountRole: (formData.accountRole || "staff") as "staff" | "manager" | "admin_hr" | "admin_it",
+        accountRole: (formData.accountRole || "staff") as
+          "staff" | "manager" | "admin_hr" | "admin_it",
       };
 
       const res = await createEmployeeAction(payload);
@@ -587,7 +596,8 @@ export function WizardEmployeeForm({
         bankAccount: formData.bankAccount.trim() || undefined,
         bankAccountName: formData.bankAccountName?.trim() || undefined,
         createUserAccount: formData.createUserAccount,
-        accountRole: (formData.accountRole || "staff") as "staff" | "manager" | "admin_hr" | "admin_it",
+        accountRole: (formData.accountRole || "staff") as
+          "staff" | "manager" | "admin_hr" | "admin_it",
       };
 
       const res = await updateEmployeeAction(payload);
@@ -603,10 +613,30 @@ export function WizardEmployeeForm({
   };
 
   const defaultRoles: RoleOption[] = [
-    { id: "1", key: "staff", name: "Karyawan (Staff)", description: "Akses mandiri (self-service) data pribadi, presensi, cuti, slip gaji" },
-    { id: "2", key: "manager", name: "Manajer / Atasan", description: "Persetujuan cuti tim, melihat kinerja & presensi bawahan langsung" },
-    { id: "3", key: "admin_hr", name: "Admin HR", description: "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll)" },
-    { id: "4", key: "admin_it", name: "Admin IT", description: "Pengelolaan user, inventaris aset, lisensi, dokumen & audit log" },
+    {
+      id: "1",
+      key: "staff",
+      name: "Karyawan (Staff)",
+      description: "Akses mandiri (self-service) data pribadi, presensi, cuti, slip gaji",
+    },
+    {
+      id: "2",
+      key: "manager",
+      name: "Manajer / Atasan",
+      description: "Persetujuan cuti tim, melihat kinerja & presensi bawahan langsung",
+    },
+    {
+      id: "3",
+      key: "admin_hr",
+      name: "Admin HR",
+      description: "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll)",
+    },
+    {
+      id: "4",
+      key: "admin_it",
+      name: "Admin IT",
+      description: "Pengelolaan user, inventaris aset, lisensi, dokumen & audit log",
+    },
   ];
   const allRoles = roles && roles.length > 0 ? roles : defaultRoles;
   const availableRoles = isSuperAdmin
@@ -749,13 +779,17 @@ export function WizardEmployeeForm({
                 className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
               <span className="text-[11px] text-slate-400 mt-1 block">
-                Wajib berakhiran <strong className="text-slate-600">@pspk.id</strong> (digunakan untuk login akun pegawai).
+                Wajib berakhiran <strong className="text-slate-600">@pspk.id</strong> (digunakan
+                untuk login akun pegawai).
               </span>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Email Pribadi {formData.createUserAccount && <span className="text-[#A8281C]">* (Wajib untuk Akun)</span>}
+                Email Pribadi{" "}
+                {formData.createUserAccount && (
+                  <span className="text-[#A8281C]">* (Wajib untuk Akun)</span>
+                )}
               </label>
               <input
                 type="email"
@@ -955,7 +989,8 @@ export function WizardEmployeeForm({
                 </span>
               ) : (
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  Format standar: PSPK-YYYYMM-XXX (klik tombol di atas untuk membuat NIP urut otomatis)
+                  Format standar: PSPK-YYYYMM-XXX (klik tombol di atas untuk membuat NIP urut
+                  otomatis)
                 </span>
               )}
             </div>
@@ -1137,7 +1172,8 @@ export function WizardEmployeeForm({
                                 ? (et.defaultHourlyRate ?? 30000)
                                 : prev.hourlyRate,
                             baseSalary:
-                              et.wageType === "MONTHLY" && (!prev.baseSalary || prev.baseSalary === 0)
+                              et.wageType === "MONTHLY" &&
+                              (!prev.baseSalary || prev.baseSalary === 0)
                                 ? 10000000
                                 : prev.baseSalary,
                           }))
@@ -1195,7 +1231,9 @@ export function WizardEmployeeForm({
                 </select>
               )}
               {!formData.employmentTypeId && employmentTypesList.length > 0 && (
-                <p className="text-[11px] text-[#A8281C] mt-1.5">Pilih tipe ikatan kerja terlebih dahulu</p>
+                <p className="text-[11px] text-[#A8281C] mt-1.5">
+                  Pilih tipe ikatan kerja terlebih dahulu
+                </p>
               )}
             </div>
 
@@ -1312,7 +1350,9 @@ export function WizardEmployeeForm({
                 name="nik"
                 value={formData.nik}
                 onChange={handleChange}
-                placeholder={initialData?.hasNik ? "Sudah terenkripsi (isi untuk mengubah)" : "16 digit NIK"}
+                placeholder={
+                  initialData?.hasNik ? "Sudah terenkripsi (isi untuk mengubah)" : "16 digit NIK"
+                }
                 maxLength={20}
                 className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
@@ -1327,7 +1367,11 @@ export function WizardEmployeeForm({
                 name="npwp"
                 value={formData.npwp}
                 onChange={handleChange}
-                placeholder={initialData?.hasNpwp ? "Sudah terenkripsi (isi untuk mengubah)" : "15 / 16 digit NPWP"}
+                placeholder={
+                  initialData?.hasNpwp
+                    ? "Sudah terenkripsi (isi untuk mengubah)"
+                    : "15 / 16 digit NPWP"
+                }
                 maxLength={25}
                 className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
@@ -1360,7 +1404,11 @@ export function WizardEmployeeForm({
                 name="bankAccount"
                 value={formData.bankAccount}
                 onChange={handleChange}
-                placeholder={initialData?.hasBankAccount ? "Sudah terenkripsi (isi untuk mengubah)" : "Nomor rekening payroll"}
+                placeholder={
+                  initialData?.hasBankAccount
+                    ? "Sudah terenkripsi (isi untuk mengubah)"
+                    : "Nomor rekening payroll"
+                }
                 className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
             </div>
@@ -1401,7 +1449,10 @@ export function WizardEmployeeForm({
                       </span>
                     </label>
                     <span className="text-xs text-slate-600 mt-0.5">
-                      Sistem akan membuat akun login aktif dengan email kantor ({formData.workEmail || "nama@pspk.id"}), menghasilkan kata sandi sementara secara otomatis, dan mengirimkannya ke email pribadi ({formData.personalEmail || "email pribadi"}).
+                      Sistem akan membuat akun login aktif dengan email kantor (
+                      {formData.workEmail || "nama@pspk.id"}), menghasilkan kata sandi sementara
+                      secara otomatis, dan mengirimkannya ke email pribadi (
+                      {formData.personalEmail || "email pribadi"}).
                     </span>
                   </div>
                 </div>
@@ -1410,7 +1461,8 @@ export function WizardEmployeeForm({
                   <div className="pt-3 border-t border-slate-200/80 flex flex-col gap-4 animate-in fade-in duration-150">
                     <div>
                       <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Pilih Hak Akses / Peran Sistem (Role) <span className="text-[#A8281C]">*</span>
+                        Pilih Hak Akses / Peran Sistem (Role){" "}
+                        <span className="text-[#A8281C]">*</span>
                       </label>
                       <select
                         name="accountRole"
@@ -1425,7 +1477,8 @@ export function WizardEmployeeForm({
                         ))}
                       </select>
                       <span className="text-[11px] text-slate-500 mt-1 block">
-                        Peran ini menentukan hak akses serta menu yang dapat dibuka oleh staf di dalam portal.
+                        Peran ini menentukan hak akses serta menu yang dapat dibuka oleh staf di
+                        dalam portal.
                       </span>
                     </div>
 
@@ -1437,26 +1490,34 @@ export function WizardEmployeeForm({
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 pt-1">
                         <div>
-                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Email Login Kantor</span>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                            Email Login Kantor
+                          </span>
                           <span className="font-mono font-semibold text-slate-800 text-xs">
                             {formData.workEmail || "(Wajib diisi di Langkah 1)"}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Kata Sandi Awal</span>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                            Kata Sandi Awal
+                          </span>
                           <span className="text-slate-700 font-semibold text-xs flex items-center gap-1">
                             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
                             Auto-generated aman (≥ 6 karakter)
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Tujuan Pengiriman Kredensial</span>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                            Tujuan Pengiriman Kredensial
+                          </span>
                           <span className="font-semibold text-slate-800 text-xs">
                             {formData.personalEmail || "(Wajib diisi di Langkah 1)"}
                           </span>
                         </div>
                         <div>
-                          <span className="text-slate-400 block text-[10px] uppercase font-bold">Notifikasi Email</span>
+                          <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                            Notifikasi Email
+                          </span>
                           <span className="text-emerald-700 font-medium text-xs">
                             Otomatis terkirim ke email pribadi saat pendaftaran berhasil
                           </span>
@@ -1514,7 +1575,13 @@ export function WizardEmployeeForm({
                 className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg text-xs font-semibold bg-[#feba48] text-[#102E50] hover:bg-[#e5a63d] transition-all cursor-pointer active:scale-[0.98] shadow-xs disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>{isSubmitting ? "Menyimpan..." : mode === "create" ? "Daftarkan Pegawai" : "Simpan Perubahan"}</span>
+                <span>
+                  {isSubmitting
+                    ? "Menyimpan..."
+                    : mode === "create"
+                      ? "Daftarkan Pegawai"
+                      : "Simpan Perubahan"}
+                </span>
               </button>
             )}
           </div>
@@ -1534,7 +1601,8 @@ export function WizardEmployeeForm({
                   Pendaftaran Pegawai & Akun Berhasil!
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Data pegawai {createdCredentials.fullName} ({createdCredentials.employeeNo}) telah tersimpan.
+                  Data pegawai {createdCredentials.fullName} ({createdCredentials.employeeNo}) telah
+                  tersimpan.
                 </p>
               </div>
             </div>
@@ -1557,7 +1625,9 @@ export function WizardEmployeeForm({
                 </div>
 
                 <div className="flex items-center justify-between p-2.5 bg-white rounded-lg border border-amber-200 bg-amber-50/30">
-                  <span className="text-slate-500 font-sans text-[11px]">Kata Sandi Sementara:</span>
+                  <span className="text-slate-500 font-sans text-[11px]">
+                    Kata Sandi Sementara:
+                  </span>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-amber-900 bg-amber-100/80 px-2 py-0.5 rounded font-mono">
                       {createdCredentials.temporaryPassword}
@@ -1574,7 +1644,11 @@ export function WizardEmployeeForm({
                       className="p-1 text-slate-500 hover:text-[#102E50] hover:bg-slate-100 rounded transition-colors cursor-pointer"
                       title="Salin Kata Sandi"
                     >
-                      {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                      {copied ? (
+                        <Check className="w-4 h-4 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -1610,7 +1684,11 @@ export function WizardEmployeeForm({
                 }}
                 className="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
                 <span>{copied ? "Tersalin!" : "Salin Semua Info"}</span>
               </button>
 
@@ -1727,7 +1805,8 @@ export function WizardEmployeeForm({
                     onChange={(e) =>
                       setQuickCreateForm((prev) => ({
                         ...prev,
-                        category: e.target.value as "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT",
+                        category: e.target.value as
+                          "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT",
                       }))
                     }
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white"

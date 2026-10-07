@@ -204,9 +204,7 @@ export async function createPosition(data: CreatePositionInput, actor: ActorCont
   });
 
   if (existing) {
-    throw new Error(
-      `Jabatan "${trimmedTitle}" sudah terdaftar pada divisi ${department.name}.`,
-    );
+    throw new Error(`Jabatan "${trimmedTitle}" sudah terdaftar pada divisi ${department.name}.`);
   }
 
   const position = await prisma.position.create({
@@ -227,7 +225,11 @@ export async function createPosition(data: CreatePositionInput, actor: ActorCont
     action: "CREATE",
     entityType: "Position",
     entityId: position.id,
-    after: { title: position.title, departmentId: position.departmentId, isUnitHead: position.isUnitHead },
+    after: {
+      title: position.title,
+      departmentId: position.departmentId,
+      isUnitHead: position.isUnitHead,
+    },
     ip: actor.ip,
     userAgent: actor.userAgent,
   });
@@ -279,7 +281,11 @@ export async function updatePosition(data: UpdatePositionInput, actor: ActorCont
     entityType: "Position",
     entityId: updated.id,
     before: { title: current.title, departmentId: current.departmentId },
-    after: { title: updated.title, departmentId: updated.departmentId, isUnitHead: updated.isUnitHead },
+    after: {
+      title: updated.title,
+      departmentId: updated.departmentId,
+      isUnitHead: updated.isUnitHead,
+    },
     ip: actor.ip,
     userAgent: actor.userAgent,
   });

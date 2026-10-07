@@ -3,14 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { formatRupiah } from "@pspk/shared";
-import {
-  Plus,
-  TrendingUp,
-  TrendingDown,
-  Edit2,
-  Calendar,
-  Layers,
-} from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, Edit2, Calendar, Layers } from "lucide-react";
 import { SalaryComponentModal, SalaryComponentItem } from "./salary-component-modal";
 
 interface SalaryComponentsTableProps {
@@ -165,8 +158,8 @@ export function SalaryComponentsTable({ components }: SalaryComponentsTableProps
                       {c.calcType === "PERCENT_OF_BASE"
                         ? `${c.defaultValue}% dari Pokok`
                         : c.calcType === "MANUAL"
-                        ? "Sesuai Input"
-                        : formatRupiah(c.defaultValue)}
+                          ? "Sesuai Input"
+                          : formatRupiah(c.defaultValue)}
                     </td>
 
                     {/* Status */}

@@ -187,7 +187,8 @@ export async function submitTimesheetAction(rawInput: SubmitTimesheetInput) {
     }
     return {
       ok: false as const,
-      error: err instanceof Error ? err.message : "Terjadi kesalahan sistem saat menyimpan pengajuan.",
+      error:
+        err instanceof Error ? err.message : "Terjadi kesalahan sistem saat menyimpan pengajuan.",
     };
   }
 }
@@ -209,13 +210,17 @@ export async function cancelTimesheetSubmissionAction(submissionId: string) {
     }
 
     if (submission.employeeId !== actor.employeeId) {
-      return { ok: false as const, error: "Anda tidak memiliki hak untuk membatalkan pengajuan ini." };
+      return {
+        ok: false as const,
+        error: "Anda tidak memiliki hak untuk membatalkan pengajuan ini.",
+      };
     }
 
     if (submission.status !== "PENDING" && submission.status !== "REVISION_REQUESTED") {
       return {
         ok: false as const,
-        error: "Hanya timesheet dengan status Menunggu (Pending) atau Perlu Revisi yang dapat dibatalkan.",
+        error:
+          "Hanya timesheet dengan status Menunggu (Pending) atau Perlu Revisi yang dapat dibatalkan.",
       };
     }
 
@@ -370,7 +375,10 @@ export async function submitReviewDecisionAction(input: SubmitReviewDecisionInpu
     const actor = await getActor();
     const validated = SubmitReviewDecisionSchema.parse(input);
 
-    if (validated.decision === "REJECT" && (!validated.notes || validated.notes.trim().length < 5)) {
+    if (
+      validated.decision === "REJECT" &&
+      (!validated.notes || validated.notes.trim().length < 5)
+    ) {
       return {
         ok: false as const,
         error: "Mohon sertakan catatan alasan penolakan/revisi minimal 5 karakter.",
@@ -536,4 +544,3 @@ export async function submitReviewDecisionAction(input: SubmitReviewDecisionInpu
     };
   }
 }
-

@@ -49,18 +49,14 @@ interface LeaveRequestFormProps {
   holidays: { date: Date | string }[];
 }
 
-export function LeaveRequestForm({
-  leaveTypes,
-  balances,
-  holidays,
-}: LeaveRequestFormProps) {
+export function LeaveRequestForm({ leaveTypes, balances, holidays }: LeaveRequestFormProps) {
   const router = useRouter();
 
   const [leaveTypeId, setLeaveTypeId] = useState<string>(leaveTypes[0]?.id || "");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [reason, setReason] = useState<string>("");
-  
+
   // File upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [attachmentKey, setAttachmentKey] = useState<string>("");
@@ -84,10 +80,7 @@ export function LeaveRequestForm({
     : selectedType?.defaultQuotaDays || 0;
 
   // Extract holiday date strings
-  const holidayDates = useMemo(
-    () => holidays.map((h) => toDateString(h.date)),
-    [holidays],
-  );
+  const holidayDates = useMemo(() => holidays.map((h) => toDateString(h.date)), [holidays]);
 
   // Compute calculated working days live
   const calculatedDays = useMemo(() => {
@@ -125,13 +118,7 @@ export function LeaveRequestForm({
 
   const validateAndProcessFile = (file: File) => {
     setUploadError(null);
-    const allowedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/jpg",
-      "image/png",
-      "image/webp",
-    ];
+    const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/webp"];
     const isAllowedExt = /\.(pdf|jpg|jpeg|png|webp)$/i.test(file.name);
 
     if (!allowedTypes.includes(file.type) && !isAllowedExt) {
@@ -199,7 +186,9 @@ export function LeaveRequestForm({
     }
 
     if (calculatedDays <= 0) {
-      setError("Rentang tanggal yang dipilih tidak memuat hari kerja aktif (hanya akhir pekan / hari libur).");
+      setError(
+        "Rentang tanggal yang dipilih tidak memuat hari kerja aktif (hanya akhir pekan / hari libur).",
+      );
       return;
     }
 
@@ -216,7 +205,9 @@ export function LeaveRequestForm({
     }
 
     if (selectedType?.requiresAttachment && !attachmentKey) {
-      setError(`Jenis cuti ${selectedType.name} mewajibkan pengunggahan berkas lampiran pendukung (surat dokter/keterangan).`);
+      setError(
+        `Jenis cuti ${selectedType.name} mewajibkan pengunggahan berkas lampiran pendukung (surat dokter/keterangan).`,
+      );
       return;
     }
 
@@ -241,7 +232,10 @@ export function LeaveRequestForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-[#dee9fc] shadow-sm p-6 sm:p-8 flex flex-col gap-6 max-w-2xl mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white rounded-2xl border border-[#dee9fc] shadow-sm p-6 sm:p-8 flex flex-col gap-6 max-w-2xl mx-auto"
+    >
       {/* Form Title & Back Link */}
       <div className="flex items-center justify-between pb-4 border-b border-[#dee9fc]">
         <div className="flex items-center gap-3">
@@ -345,21 +339,21 @@ export function LeaveRequestForm({
             isBalanceExceeded
               ? "bg-red-50 border-red-200 text-red-900"
               : calculatedDays > 0
-              ? "bg-[#eff4ff] border-[#dee9fc] text-[#102e50]"
-              : "bg-amber-50 border-amber-200 text-amber-900"
+                ? "bg-[#eff4ff] border-[#dee9fc] text-[#102e50]"
+                : "bg-amber-50 border-amber-200 text-amber-900"
           }`}
         >
           <Info className="w-5 h-5 shrink-0 mt-0.5" />
           <div className="flex flex-col gap-1">
-            <span className="font-bold">
-              Total Durasi: {calculatedDays} Hari Kerja
-            </span>
+            <span className="font-bold">Total Durasi: {calculatedDays} Hari Kerja</span>
             <p className="text-[11px] leading-relaxed opacity-90">
-              Sistem secara otomatis mengecualikan hari Sabtu, Minggu, dan Hari Libur Nasional resmi PSPK.
+              Sistem secara otomatis mengecualikan hari Sabtu, Minggu, dan Hari Libur Nasional resmi
+              PSPK.
             </p>
             {isBalanceExceeded && (
               <span className="font-bold text-red-700 text-xs mt-1">
-                ⚠️ Jumlah hari kerja yang diajukan ({calculatedDays} hari) melebihi sisa saldo cuti Anda ({remainingQuota} hari).
+                ⚠️ Jumlah hari kerja yang diajukan ({calculatedDays} hari) melebihi sisa saldo cuti
+                Anda ({remainingQuota} hari).
               </span>
             )}
           </div>
@@ -389,7 +383,9 @@ export function LeaveRequestForm({
             <span>Lampiran Surat Keterangan</span>
             {selectedType?.requiresAttachment && <span className="text-red-500">*</span>}
           </label>
-          <span className="text-[11px] text-slate-400 font-normal">PDF / JPG / PNG (Maks 10MB)</span>
+          <span className="text-[11px] text-slate-400 font-normal">
+            PDF / JPG / PNG (Maks 10MB)
+          </span>
         </div>
 
         {/* Hidden File Input */}

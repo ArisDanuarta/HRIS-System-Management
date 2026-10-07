@@ -41,10 +41,5 @@ export default async function SlipGajiPage({ searchParams }: SlipGajiPageProps) 
     kind: kindFilter,
   });
 
-  return (
-    <PayslipListView
-      summary={summary}
-      employeeName={session.user.name || "Karyawan"}
-    />
-  );
+  return <PayslipListView summary={summary} employeeName={session.user.name || "Karyawan"} />;
 }

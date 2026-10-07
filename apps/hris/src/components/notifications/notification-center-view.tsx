@@ -45,10 +45,10 @@ export function NotificationCenterView({
   // Mark single notification as read
   const handleMarkAsRead = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
+
     // Optimistic UI update
     setNotifications((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isRead: true } : item))
+      prev.map((item) => (item.id === id ? { ...item, isRead: true } : item)),
     );
     setUnreadCount((prev) => Math.max(0, prev - 1));
 
@@ -247,8 +247,8 @@ export function NotificationCenterView({
               Pusat Notifikasi
             </h1>
             <p className="text-sm text-slate-600 max-w-2xl">
-              Pantau seluruh pengajuan persetujuan, pembaruan status cuti, penerbitan gaji,
-              serta pengingat kontrak dan evaluasi kinerja secara terpadu.
+              Pantau seluruh pengajuan persetujuan, pembaruan status cuti, penerbitan gaji, serta
+              pengingat kontrak dan evaluasi kinerja secara terpadu.
             </p>
           </div>
 
@@ -600,9 +600,7 @@ function NotificationGroupSection({
                     </span>
 
                     {/* Type Badge */}
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-md ${typeBadge.className}`}
-                    >
+                    <span className={`text-[10px] px-2 py-0.5 rounded-md ${typeBadge.className}`}>
                       {typeBadge.label}
                     </span>
 

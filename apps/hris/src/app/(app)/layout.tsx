@@ -8,11 +8,7 @@ import { RoleViewType } from "@/components/shell/app-sidebar";
 
 export const dynamic = "force-dynamic";
 
-export default async function AppProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AppProtectedLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
 
@@ -35,7 +31,8 @@ export default async function AppProtectedLayout({
   const cookieStore = await cookies();
   const previewCookie = cookieStore.get("pspk_role_view")?.value;
   const activePreviewRole =
-    isSuperAdmin && (previewCookie === "admin_hr" || previewCookie === "manager" || previewCookie === "staff")
+    isSuperAdmin &&
+    (previewCookie === "admin_hr" || previewCookie === "manager" || previewCookie === "staff")
       ? (previewCookie as RoleViewType)
       : null;
 
@@ -48,8 +45,8 @@ export default async function AppProtectedLayout({
       activePreviewRole === "admin_hr"
         ? "Admin HR (Pratinjau)"
         : activePreviewRole === "manager"
-        ? "Manajer (Pratinjau)"
-        : "Staf (Pratinjau)";
+          ? "Manajer (Pratinjau)"
+          : "Staf (Pratinjau)";
   } else if (roleKeys.includes("super_admin") || roleKeys.includes("admin_hr")) {
     initialRole = "admin_hr";
     roleDisplayName = roleKeys.includes("super_admin") ? "Super Admin" : "Admin HR";

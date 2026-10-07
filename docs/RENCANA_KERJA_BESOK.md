@@ -10,6 +10,7 @@
 Berdasarkan audit komprehensif role Admin HR dan manajemen kepegawaian, terdapat beberapa fitur penyempurnaan yang perlu diselesaikan sebelum beralih penuh ke Fase 3:
 
 ### A. Manajemen Karyawan (`/karyawan`)
+
 1. **Tab Dokumen Karyawan di `/karyawan/[id]`:**
    - Menambahkan tab "Dokumen" pada profil pegawai.
    - Fitur unggah dan pratinjau dokumen penting: KTP, NPWP, Ijazah, dan Kontrak Kerja fisik/PDF.
@@ -22,11 +23,12 @@ Berdasarkan audit komprehensif role Admin HR dan manajemen kepegawaian, terdapat
    - Membangun halaman bagan hierarki organisasi sederhana yang menampilkan hubungan divisi, unit kerja riset, jabatan, serta atasan dan bawahan langsung.
 
 ### B. Modul Absensi & Cuti (`/absensi`, `/cuti`)
+
 1. **Fitur Ekspor Data CSV di Rekap Absensi (`/absensi/rekap`):**
    - Mengaktifkan tombol "Ekspor Data (CSV)" di header rekap absensi agar menghasilkan file CSV unduhan secara dinamis sesuai filter tahun, bulan, dan divisi yang dipilih.
    - Mencatat aktivitas ekspor ke dalam `audit_logs` (`EVENT: EXPORT_ATTENDANCE`).
 2. **Override Keputusan Cuti oleh Admin HR (`/cuti/persetujuan`):**
-   - Memberikan hak kepada Admin HR / Super Admin pada tab "Semua Pengajuan" untuk mengubah (*override*) status permohonan yang sudah diputuskan (`APPROVED` / `REJECTED`).
+   - Memberikan hak kepada Admin HR / Super Admin pada tab "Semua Pengajuan" untuk mengubah (_override_) status permohonan yang sudah diputuskan (`APPROVED` / `REJECTED`).
    - Mewajibkan pengisian alasan override minimal 5 karakter demi kepatuhan audit trail.
 3. **Penyesuaian Saldo Cuti Individu (`/cuti/pengaturan`):**
    - Menambahkan tab/antarmuka penyesuaian saldo cuti tahunan per karyawan di `/cuti/pengaturan` (untuk hak cuti istimewa atau carry-over tahun sebelumnya).

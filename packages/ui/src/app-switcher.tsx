@@ -85,9 +85,7 @@ export function AppSwitcher({
               Portal Ekosistem PSPK
             </span>
             {userRoleName && (
-              <span className="text-[10px] font-semibold text-slate-400">
-                {userRoleName}
-              </span>
+              <span className="text-[10px] font-semibold text-slate-400">{userRoleName}</span>
             )}
           </div>
 
@@ -172,9 +170,7 @@ export function AppSwitcher({
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-slate-600">
-                      System Management
-                    </span>
+                    <span className="text-xs font-semibold text-slate-600">System Management</span>
                     <span className="text-[9px] font-bold text-amber-900 bg-amber-100/90 border border-amber-200 px-1.5 py-0.2 rounded">
                       Khusus Admin TI
                     </span>

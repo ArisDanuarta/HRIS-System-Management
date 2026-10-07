@@ -13,10 +13,7 @@ import {
   FileSpreadsheet,
 } from "lucide-react";
 import { formatDate } from "@pspk/shared";
-import {
-  TimesheetApprovalItem,
-  TimesheetApprovalModal,
-} from "./timesheet-approval-modal";
+import { TimesheetApprovalItem, TimesheetApprovalModal } from "./timesheet-approval-modal";
 
 interface TimesheetApprovalTableProps {
   items: TimesheetApprovalItem[];
@@ -46,9 +43,11 @@ export function TimesheetApprovalTable({
   initialSubmissionId,
 }: TimesheetApprovalTableProps) {
   const [search, setSearch] = useState("");
-  const [filterTab, setFilterTab] = useState<"ALL" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED">("NEEDS_REVIEW");
-  const [selectedSubmission, setSelectedSubmission] = useState<TimesheetApprovalItem | null>(
-    () => (initialSubmissionId ? items.find((i) => i.id === initialSubmissionId) || null : null),
+  const [filterTab, setFilterTab] = useState<"ALL" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED">(
+    "NEEDS_REVIEW",
+  );
+  const [selectedSubmission, setSelectedSubmission] = useState<TimesheetApprovalItem | null>(() =>
+    initialSubmissionId ? items.find((i) => i.id === initialSubmissionId) || null : null,
   );
   const [prevInitialId, setPrevInitialId] = useState(initialSubmissionId);
 
@@ -193,7 +192,9 @@ export function TimesheetApprovalTable({
                 filteredItems.map((sub) => {
                   const myReview = sub.reviewers.find((r) => r.reviewerId === currentEmployeeId);
                   const myStatus = myReview?.status || "PENDING";
-                  const otherReviewers = sub.reviewers.filter((r) => r.reviewerId !== currentEmployeeId);
+                  const otherReviewers = sub.reviewers.filter(
+                    (r) => r.reviewerId !== currentEmployeeId,
+                  );
 
                   return (
                     <tr key={sub.id} className="hover:bg-slate-50/70 transition-colors">
@@ -278,16 +279,28 @@ export function TimesheetApprovalTable({
                                 className="flex items-center gap-1.5 text-[11px] text-slate-600"
                               >
                                 {r.status === "APPROVED" && (
-                                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" title="ACC" />
+                                  <span
+                                    className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"
+                                    title="ACC"
+                                  />
                                 )}
                                 {r.status === "IN_REVIEW" && (
-                                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" title="Sedang dicek" />
+                                  <span
+                                    className="w-2 h-2 rounded-full bg-blue-500 shrink-0"
+                                    title="Sedang dicek"
+                                  />
                                 )}
                                 {r.status === "PENDING" && (
-                                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" title="Menunggu" />
+                                  <span
+                                    className="w-2 h-2 rounded-full bg-amber-400 shrink-0"
+                                    title="Menunggu"
+                                  />
                                 )}
                                 {r.status === "REJECTED" && (
-                                  <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" title="Ditolak" />
+                                  <span
+                                    className="w-2 h-2 rounded-full bg-rose-500 shrink-0"
+                                    title="Ditolak"
+                                  />
                                 )}
                                 <span className="truncate max-w-[140px]">{r.reviewerName}</span>
                               </div>
@@ -308,7 +321,11 @@ export function TimesheetApprovalTable({
                           }`}
                         >
                           <Check className="w-3.5 h-3.5" />
-                          <span>{myStatus === "PENDING" || myStatus === "IN_REVIEW" ? "Review" : "Lihat"}</span>
+                          <span>
+                            {myStatus === "PENDING" || myStatus === "IN_REVIEW"
+                              ? "Review"
+                              : "Lihat"}
+                          </span>
                         </button>
                       </td>
                     </tr>

@@ -286,15 +286,16 @@ export async function getAllEmployeeLeaveBalances(year: number = 2026): Promise<
   balances: EmployeeLeaveBalanceOverview[];
   defaultLeaveType: { id: string; name: string } | null;
 }> {
-  const annualLeaveType = (await prisma.leaveType.findFirst({
-    where: {
-      OR: [
-        { name: { contains: "Tahunan", mode: "insensitive" } },
-        { name: { contains: "Annual", mode: "insensitive" } },
-      ],
-      isActive: true,
-    },
-  })) || (await prisma.leaveType.findFirst({ where: { isActive: true } }));
+  const annualLeaveType =
+    (await prisma.leaveType.findFirst({
+      where: {
+        OR: [
+          { name: { contains: "Tahunan", mode: "insensitive" } },
+          { name: { contains: "Annual", mode: "insensitive" } },
+        ],
+        isActive: true,
+      },
+    })) || (await prisma.leaveType.findFirst({ where: { isActive: true } }));
 
   const defaultLeaveTypeId = annualLeaveType?.id || "";
   const defaultLeaveTypeName = annualLeaveType?.name || "Cuti Tahunan";

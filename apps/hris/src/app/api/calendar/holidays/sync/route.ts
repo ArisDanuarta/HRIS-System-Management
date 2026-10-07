@@ -21,8 +21,7 @@ export async function POST(req: Request) {
 
   const isCronAuthorized =
     Boolean(expectedCronSecret) &&
-    (cronSecretHeader === expectedCronSecret ||
-      authHeader === `Bearer ${expectedCronSecret}`);
+    (cronSecretHeader === expectedCronSecret || authHeader === `Bearer ${expectedCronSecret}`);
 
   let actorUserId: string | null = null;
   let actorEmail = "system@cron.internal";
@@ -30,10 +29,7 @@ export async function POST(req: Request) {
   if (!isCronAuthorized) {
     const session = await getSession(reqHeaders);
     if (!session?.user) {
-      return Response.json(
-        { error: "Akses ditolak: Autentikasi diperlukan." },
-        { status: 401 },
-      );
+      return Response.json({ error: "Akses ditolak: Autentikasi diperlukan." }, { status: 401 });
     }
 
     const authCtx = await getAuthContext(session.user.id);

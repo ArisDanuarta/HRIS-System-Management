@@ -125,15 +125,15 @@ export async function calculatePeriodPayroll(
       const totalHours = approvedTs
         ? Number(approvedTs.totalHours)
         : existingTimesheet?.totalHours
-        ? Number(existingTimesheet.totalHours)
-        : 0;
+          ? Number(existingTimesheet.totalHours)
+          : 0;
 
       const effectiveHourlyRate =
         contractHourlyRate > 0
           ? contractHourlyRate
           : existingTimesheet?.hourlyRate && Number(existingTimesheet.hourlyRate) > 0
-          ? Number(existingTimesheet.hourlyRate)
-          : 0;
+            ? Number(existingTimesheet.hourlyRate)
+            : 0;
 
       const timesheetKey = approvedTs
         ? approvedTs.spreadsheetUrl
@@ -194,9 +194,7 @@ export async function calculatePeriodPayroll(
       }
 
       // 2. Komponen Organisasi & Komponen Khusus Pegawai
-      const empComponentMap = new Map(
-        emp.salaryComponents.map((sc) => [sc.componentId, sc]),
-      );
+      const empComponentMap = new Map(emp.salaryComponents.map((sc) => [sc.componentId, sc]));
 
       for (const comp of masterComponents) {
         const empOverride = empComponentMap.get(comp.id);
@@ -434,7 +432,9 @@ export async function revertPayrollPeriod(periodId: string) {
 
   if (!period) throw new Error("Periode penggajian tidak ditemukan.");
   if (period.status === "LOCKED") {
-    throw new Error("Periode yang telah dikunci permanen (LOCKED) tidak dapat dikembalikan ke Draf.");
+    throw new Error(
+      "Periode yang telah dikunci permanen (LOCKED) tidak dapat dikembalikan ke Draf.",
+    );
   }
   if (period.status === "DRAFT") {
     throw new Error("Periode sudah berada pada status Draf Awal.");
@@ -495,7 +495,15 @@ export async function generatePayrollBankExport(periodId: string) {
   const periodLabel = `${monthNames[period.month - 1]} ${period.year}`;
 
   const rows = [
-    ["No", "NIP", "Nama Pegawai", "Nama Bank", "Nomor Rekening", "Nominal Transfer (Rp)", "Keterangan"],
+    [
+      "No",
+      "NIP",
+      "Nama Pegawai",
+      "Nama Bank",
+      "Nomor Rekening",
+      "Nominal Transfer (Rp)",
+      "Keterangan",
+    ],
   ];
 
   period.payslips.forEach((p, idx) => {
@@ -582,10 +590,10 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
     input.hourlyRate && input.hourlyRate > 0
       ? input.hourlyRate
       : activeContract?.hourlyRate
-      ? Number(activeContract.hourlyRate)
-      : payslip.hourlyRate
-      ? Number(payslip.hourlyRate)
-      : 0;
+        ? Number(activeContract.hourlyRate)
+        : payslip.hourlyRate
+          ? Number(payslip.hourlyRate)
+          : 0;
 
   if (effectiveHourlyRate <= 0) {
     throw new Error("Tarif upah per jam belum ditentukan pada kontrak pegawai.");
@@ -721,4 +729,3 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
 
   return updated;
 }
-

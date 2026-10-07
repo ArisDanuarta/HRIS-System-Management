@@ -45,7 +45,8 @@ export function ExpiringContractAlert({ count }: ExpiringContractAlertProps) {
             </span>
           </div>
           <p className="text-xs text-amber-900/80 mt-0.5">
-            Terdapat {count} pegawai riset berbasis kontrak yang masa berlakunya akan berakhir dalam tempo ≤ 30 hari. Segera lakukan peninjauan perpanjangan atau penyelesaian penugasan.
+            Terdapat {count} pegawai riset berbasis kontrak yang masa berlakunya akan berakhir dalam
+            tempo ≤ 30 hari. Segera lakukan peninjauan perpanjangan atau penyelesaian penugasan.
           </p>
         </div>
       </div>

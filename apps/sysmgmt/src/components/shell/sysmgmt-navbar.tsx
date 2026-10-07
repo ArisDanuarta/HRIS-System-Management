@@ -6,15 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { AppSwitcher } from "@pspk/ui";
 import { signOut } from "@pspk/auth/client";
-import {
-  Users,
-  Layers,
-  FileText,
-  History,
-  LogOut,
-  ChevronDown,
-  ShieldCheck,
-} from "lucide-react";
+import { Users, Layers, FileText, History, LogOut, ChevronDown, ShieldCheck } from "lucide-react";
 
 interface SysmgmtNavbarProps {
   user: {
@@ -120,8 +112,8 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
                       item.active
                         ? "bg-[#102E50]/10 text-[#102E50]"
                         : item.badge
-                        ? "text-slate-400 hover:text-slate-500 cursor-not-allowed"
-                        : "text-slate-600 hover:text-[#102E50] hover:bg-slate-100/70"
+                          ? "text-slate-400 hover:text-slate-500 cursor-not-allowed"
+                          : "text-slate-600 hover:text-[#102E50] hover:bg-slate-100/70"
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -164,9 +156,7 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
                   <span className="text-xs font-bold text-slate-800 leading-tight">
                     {user.name}
                   </span>
-                  <span className="text-[10px] text-amber-700 font-medium">
-                    {user.roleName}
-                  </span>
+                  <span className="text-[10px] text-amber-700 font-medium">{user.roleName}</span>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>

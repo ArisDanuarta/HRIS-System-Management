@@ -2,13 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Briefcase,
-  ArrowRightLeft,
-  FileText,
-  Download,
-  Building2,
-} from "lucide-react";
+import { Briefcase, ArrowRightLeft, FileText, Download, Building2 } from "lucide-react";
 import { TransferPositionModal } from "./transfer-position-modal";
 import { formatDate } from "@pspk/shared";
 
@@ -106,9 +100,7 @@ export function CareerHistoryCard({
                     </span>
                     <span className="text-slate-400">s/d</span>
                     {hist.endDate ? (
-                      <span className="font-mono text-slate-600">
-                        {formatDate(hist.endDate)}
-                      </span>
+                      <span className="font-mono text-slate-600">{formatDate(hist.endDate)}</span>
                     ) : (
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         Posisi Saat Ini

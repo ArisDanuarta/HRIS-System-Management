@@ -77,7 +77,8 @@ export default async function OrganisasiPage({ searchParams }: OrganisasiPagePro
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Kelola master data divisi/departemen kerja, daftar formasi jabatan riset, serta master tipe ikatan kerja di lingkungan PSPK.
+            Kelola master data divisi/departemen kerja, daftar formasi jabatan riset, serta master
+            tipe ikatan kerja di lingkungan PSPK.
           </p>
         </div>
       </div>
@@ -92,4 +93,3 @@ export default async function OrganisasiPage({ searchParams }: OrganisasiPagePro
     </div>
   );
 }
-

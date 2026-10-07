@@ -48,7 +48,9 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
   const nikEnc = data.nik && data.nik.trim() !== "" ? encryptField(data.nik.trim()) : null;
   const npwpEnc = data.npwp && data.npwp.trim() !== "" ? encryptField(data.npwp.trim()) : null;
   const bankAccountEnc =
-    data.bankAccount && data.bankAccount.trim() !== "" ? encryptField(data.bankAccount.trim()) : null;
+    data.bankAccount && data.bankAccount.trim() !== ""
+      ? encryptField(data.bankAccount.trim())
+      : null;
 
   // 3. Database transaction
   const result = await prisma.$transaction(async (tx) => {
@@ -193,8 +195,8 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
           data.wageType === "HOURLY"
             ? null
             : data.baseSalary !== undefined && data.baseSalary !== null
-            ? data.baseSalary
-            : null,
+              ? data.baseSalary
+              : null,
         status: "ACTIVE",
         notes: data.contractNotes?.trim() || "Kontrak kerja awal saat pendaftaran pegawai",
       },
@@ -421,14 +423,16 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
               : null,
           wageType: data.wageType || "MONTHLY",
           hourlyRate: data.wageType === "HOURLY" && data.hourlyRate ? data.hourlyRate : null,
-          startDate: data.contractStartDate ? new Date(data.contractStartDate) : activeContract.startDate,
+          startDate: data.contractStartDate
+            ? new Date(data.contractStartDate)
+            : activeContract.startDate,
           endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
           baseSalary:
             data.wageType === "HOURLY"
               ? null
               : data.baseSalary !== undefined && data.baseSalary !== null
-              ? data.baseSalary
-              : null,
+                ? data.baseSalary
+                : null,
           notes: data.contractNotes?.trim() || activeContract.notes,
         },
       });
@@ -449,8 +453,8 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
             data.wageType === "HOURLY"
               ? null
               : data.baseSalary !== undefined && data.baseSalary !== null
-              ? data.baseSalary
-              : null,
+                ? data.baseSalary
+                : null,
           status: "ACTIVE",
           notes: data.contractNotes?.trim() || "Kontrak kerja diperbarui oleh HR",
         },

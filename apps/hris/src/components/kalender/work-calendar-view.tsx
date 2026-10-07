@@ -76,8 +76,11 @@ export function WorkCalendarView({
     meetings: WorkCalendarMeeting[];
   } | null>(null);
   const [selectedLeaveDetail, setSelectedLeaveDetail] = useState<WorkCalendarLeave | null>(null);
-  const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<WorkCalendarMeeting | null>(null);
-  const [selectedObservanceDetail, setSelectedObservanceDetail] = useState<WorkCalendarObservance | null>(null);
+  const [selectedMeetingDetail, setSelectedMeetingDetail] = useState<WorkCalendarMeeting | null>(
+    null,
+  );
+  const [selectedObservanceDetail, setSelectedObservanceDetail] =
+    useState<WorkCalendarObservance | null>(null);
   const [isSyncingHolidays, setIsSyncingHolidays] = useState(false);
   const [isSyncingGoogle, setIsSyncingGoogle] = useState(false);
   const [isDisconnectingGoogle, setIsDisconnectingGoogle] = useState(false);
@@ -214,7 +217,11 @@ export function WorkCalendarView({
 
   // --- Putuskan Koneksi Google Calendar ---
   const handleDisconnectGoogle = async () => {
-    if (!window.confirm("Apakah Anda yakin ingin memutuskan sambungan akun Google Calendar? Agenda rapat dari Google akan dihapus dari kalender HRIS.")) {
+    if (
+      !window.confirm(
+        "Apakah Anda yakin ingin memutuskan sambungan akun Google Calendar? Agenda rapat dari Google akan dihapus dari kalender HRIS.",
+      )
+    ) {
       return;
     }
     try {
@@ -306,12 +313,28 @@ export function WorkCalendarView({
   const getLeavePillConfig = (typeName: string) => {
     const lower = typeName.toLowerCase();
     if (lower.includes("sakit"))
-      return { bg: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100", dot: "bg-rose-500", label: "Sakit" };
+      return {
+        bg: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100",
+        dot: "bg-rose-500",
+        label: "Sakit",
+      };
     if (lower.includes("tahunan"))
-      return { bg: "bg-[#eff4ff] text-[#102e50] border-[#dee9fc] hover:bg-blue-100", dot: "bg-blue-600", label: "Tahunan" };
+      return {
+        bg: "bg-[#eff4ff] text-[#102e50] border-[#dee9fc] hover:bg-blue-100",
+        dot: "bg-blue-600",
+        label: "Tahunan",
+      };
     if (lower.includes("melahirkan"))
-      return { bg: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100", dot: "bg-purple-600", label: "Melahirkan" };
-    return { bg: "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100", dot: "bg-amber-600", label: "Penting" };
+      return {
+        bg: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
+        dot: "bg-purple-600",
+        label: "Melahirkan",
+      };
+    return {
+      bg: "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100",
+      dot: "bg-amber-600",
+      label: "Penting",
+    };
   };
 
   return (
@@ -353,7 +376,9 @@ export function WorkCalendarView({
                   className="px-2.5 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100 text-xs font-semibold transition-all cursor-pointer disabled:opacity-60 flex items-center gap-1.5"
                   title="Sinkronkan agenda meeting Google Meet terbaru"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isSyncingGoogle ? "animate-spin text-blue-600" : ""}`} />
+                  <RefreshCw
+                    className={`w-3.5 h-3.5 ${isSyncingGoogle ? "animate-spin text-blue-600" : ""}`}
+                  />
                   <span className="hidden md:inline">Sync Meeting</span>
                 </button>
                 <button
@@ -428,7 +453,9 @@ export function WorkCalendarView({
               className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-60 active:scale-95"
               title={`Sinkronkan libur nasional ${currentYear} dari Google Calendar`}
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncingHolidays ? "animate-spin text-emerald-700" : "text-emerald-700"}`} />
+              <RefreshCw
+                className={`w-3.5 h-3.5 ${isSyncingHolidays ? "animate-spin text-emerald-700" : "text-emerald-700"}`}
+              />
               {isSyncingHolidays ? "Menyinkronkan..." : "Sync Libur Nasional"}
             </button>
           )}
@@ -485,7 +512,9 @@ export function WorkCalendarView({
           <div className="grid grid-cols-7 gap-1.5">
             {daysArray.map((day, idx) => {
               if (day === null) {
-                return <div key={`empty-${idx}`} className="h-28 md:h-32 rounded-xl bg-slate-50/40" />;
+                return (
+                  <div key={`empty-${idx}`} className="h-28 md:h-32 rounded-xl bg-slate-50/40" />
+                );
               }
 
               const dateStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -494,13 +523,18 @@ export function WorkCalendarView({
               const dayLeaves = getLeavesForDate(dateStr);
               const dayMeetings = getMeetingsForDate(dateStr);
               const isWeekend = idx % 7 === 0 || idx % 7 === 6;
-              const isToday = currentYear === todayYear && currentMonth === todayMonth && day === todayDay;
+              const isToday =
+                currentYear === todayYear && currentMonth === todayMonth && day === todayDay;
 
               // Terapkan filter aktif
-              const showHoliday = (activeFilter === "all" || activeFilter === "holiday") && !!holiday;
-              const showObservances = (activeFilter === "all" || activeFilter === "observance") ? dayObservances : [];
-              const filteredLeaves = activeFilter === "all" || activeFilter === "leave" ? dayLeaves : [];
-              const filteredMeetings = activeFilter === "all" || activeFilter === "meeting" ? dayMeetings : [];
+              const showHoliday =
+                (activeFilter === "all" || activeFilter === "holiday") && !!holiday;
+              const showObservances =
+                activeFilter === "all" || activeFilter === "observance" ? dayObservances : [];
+              const filteredLeaves =
+                activeFilter === "all" || activeFilter === "leave" ? dayLeaves : [];
+              const filteredMeetings =
+                activeFilter === "all" || activeFilter === "meeting" ? dayMeetings : [];
 
               const hasContent =
                 showHoliday ||
@@ -529,12 +563,12 @@ export function WorkCalendarView({
                     isToday
                       ? "border-2 border-[#102e50] bg-gradient-to-b from-[#eff4ff]/70 to-white shadow-sm ring-2 ring-[#102e50]/10"
                       : holiday
-                      ? "bg-red-50/70 border-red-200 hover:border-red-300"
-                      : dayObservances.length > 0
-                      ? "bg-amber-50/30 border-amber-200/90 hover:border-amber-400/80"
-                      : isWeekend
-                      ? "bg-slate-50/70 border-slate-200"
-                      : "bg-white border-slate-200 hover:border-[#102e50]/40"
+                        ? "bg-red-50/70 border-red-200 hover:border-red-300"
+                        : dayObservances.length > 0
+                          ? "bg-amber-50/30 border-amber-200/90 hover:border-amber-400/80"
+                          : isWeekend
+                            ? "bg-slate-50/70 border-slate-200"
+                            : "bg-white border-slate-200 hover:border-[#102e50]/40"
                   }`}
                 >
                   {/* Day number & status tags */}
@@ -545,8 +579,8 @@ export function WorkCalendarView({
                           isToday
                             ? "w-6 h-6 rounded-full bg-[#102e50] text-[#f2af3e] flex items-center justify-center text-xs shadow-xs"
                             : isWeekend || holiday
-                            ? "text-[#a8281c]"
-                            : "text-slate-800"
+                              ? "text-[#a8281c]"
+                              : "text-slate-800"
                         }`}
                       >
                         {day}
@@ -620,7 +654,11 @@ export function WorkCalendarView({
                       >
                         <Video className="w-2.5 h-2.5 text-indigo-600 shrink-0" />
                         <span className="truncate">
-                          {!m.isAllDay && <span className="opacity-75 font-normal mr-0.5">{formatMeetingTime(m.startAt)}</span>}
+                          {!m.isAllDay && (
+                            <span className="opacity-75 font-normal mr-0.5">
+                              {formatMeetingTime(m.startAt)}
+                            </span>
+                          )}
                           {m.title}
                         </span>
                       </div>
@@ -642,9 +680,17 @@ export function WorkCalendarView({
                       );
                     })}
 
-                    {filteredLeaves.length + filteredMeetings.length + (showObservances.length > 1 ? showObservances.length - 1 : 0) > 2 && (
+                    {filteredLeaves.length +
+                      filteredMeetings.length +
+                      (showObservances.length > 1 ? showObservances.length - 1 : 0) >
+                      2 && (
                       <span className="text-[9px] font-bold text-[#102e50] px-1">
-                        +{filteredLeaves.length + filteredMeetings.length + (showObservances.length > 1 ? showObservances.length - 1 : 0) - 2} lainnya
+                        +
+                        {filteredLeaves.length +
+                          filteredMeetings.length +
+                          (showObservances.length > 1 ? showObservances.length - 1 : 0) -
+                          2}{" "}
+                        lainnya
                       </span>
                     )}
                   </div>
@@ -657,7 +703,9 @@ export function WorkCalendarView({
           <div className="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center flex-wrap gap-3 md:gap-4">
               <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-3.5 rounded-full bg-[#102e50] flex items-center justify-center text-[#f2af3e] text-[8px] font-bold">★</span>
+                <span className="w-3.5 h-3.5 rounded-full bg-[#102e50] flex items-center justify-center text-[#f2af3e] text-[8px] font-bold">
+                  ★
+                </span>
                 <span className="text-slate-600">Hari Ini</span>
               </div>
               <div className="flex items-center gap-1.5">
@@ -709,8 +757,12 @@ export function WorkCalendarView({
                       selectedDayData.observances.length > 0
                         ? `${selectedDayData.observances.length} peringatan nasional`
                         : null,
-                      selectedDayData.meetings.length > 0 ? `${selectedDayData.meetings.length} meeting` : null,
-                      selectedDayData.leaves.length > 0 ? `${selectedDayData.leaves.length} cuti tim` : null,
+                      selectedDayData.meetings.length > 0
+                        ? `${selectedDayData.meetings.length} meeting`
+                        : null,
+                      selectedDayData.leaves.length > 0
+                        ? `${selectedDayData.leaves.length} cuti tim`
+                        : null,
                     ]
                       .filter(Boolean)
                       .join(" · ") || "Hari kerja normal"}
@@ -732,10 +784,14 @@ export function WorkCalendarView({
                 <div className="p-3 rounded-xl bg-red-50 border border-red-200">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-[#a8281c] uppercase tracking-wide">
-                      {selectedDayData.holiday.isCollectiveLeave ? "Cuti Bersama" : "Hari Libur Nasional"}
+                      {selectedDayData.holiday.isCollectiveLeave
+                        ? "Cuti Bersama"
+                        : "Hari Libur Nasional"}
                     </span>
                   </div>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{selectedDayData.holiday.name}</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                    {selectedDayData.holiday.name}
+                  </p>
                 </div>
               )}
 
@@ -756,7 +812,9 @@ export function WorkCalendarView({
                           <span className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-200/90 text-amber-950 mb-1">
                             {obs.categoryLabel}
                           </span>
-                          <h4 className="text-sm font-bold text-slate-900 leading-snug">{obs.name}</h4>
+                          <h4 className="text-sm font-bold text-slate-900 leading-snug">
+                            {obs.name}
+                          </h4>
                         </div>
                       </div>
                       <p className="text-xs text-slate-700 leading-relaxed bg-white/80 p-2.5 rounded-lg border border-amber-200/60">
@@ -791,7 +849,9 @@ export function WorkCalendarView({
                         <p className="text-xs font-bold text-indigo-950 truncate">{m.title}</p>
                         <p className="text-[11px] text-indigo-700 mt-0.5 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {m.isAllDay ? "Sepanjang hari" : `${formatMeetingTime(m.startAt)} – ${formatMeetingTime(m.endAt)} WIB`}
+                          {m.isAllDay
+                            ? "Sepanjang hari"
+                            : `${formatMeetingTime(m.startAt)} – ${formatMeetingTime(m.endAt)} WIB`}
                         </p>
                       </div>
                       {m.meetUrl && (
@@ -830,9 +890,13 @@ export function WorkCalendarView({
                         className="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-[#102e50] hover:bg-[#f8fafd] transition-all flex items-center justify-between gap-3 group cursor-pointer"
                       >
                         <div className="min-w-0">
-                          <p className="text-xs font-bold text-[#102e50] truncate">{l.employee.fullName}</p>
+                          <p className="text-xs font-bold text-[#102e50] truncate">
+                            {l.employee.fullName}
+                          </p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${conf.bg}`}>
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border ${conf.bg}`}
+                            >
                               {l.leaveType.name}
                             </span>
                             <span className="text-[11px] text-slate-500">·</span>
@@ -850,7 +914,9 @@ export function WorkCalendarView({
                 selectedDayData.observances.length === 0 &&
                 selectedDayData.leaves.length === 0 &&
                 selectedDayData.meetings.length === 0 && (
-                  <p className="text-sm text-slate-500 text-center py-4">Tidak ada event atau peringatan pada hari ini.</p>
+                  <p className="text-sm text-slate-500 text-center py-4">
+                    Tidak ada event atau peringatan pada hari ini.
+                  </p>
                 )}
             </div>
 
@@ -882,7 +948,8 @@ export function WorkCalendarView({
                     Hari Peringatan Nasional
                   </span>
                   <h3 className="text-sm font-bold text-[#102e50] font-heading">
-                    {selectedObservanceDetail.day} {MONTHS[selectedObservanceDetail.month - 1]} {selectedObservanceDetail.year}
+                    {selectedObservanceDetail.day} {MONTHS[selectedObservanceDetail.month - 1]}{" "}
+                    {selectedObservanceDetail.year}
                   </h3>
                 </div>
               </div>
@@ -904,7 +971,9 @@ export function WorkCalendarView({
                 </h4>
               </div>
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Makna & Sejarah Peringatan</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Makna & Sejarah Peringatan
+                </p>
                 <p className="text-xs text-slate-700 leading-relaxed bg-amber-50/40 p-3 rounded-xl border border-amber-200/80">
                   {selectedObservanceDetail.description}
                 </p>
@@ -953,7 +1022,9 @@ export function WorkCalendarView({
             <div className="p-5 space-y-3">
               <div>
                 <p className="text-xs text-slate-500">Judul Agenda</p>
-                <p className="text-sm font-bold text-slate-900 mt-0.5">{selectedMeetingDetail.title}</p>
+                <p className="text-sm font-bold text-slate-900 mt-0.5">
+                  {selectedMeetingDetail.title}
+                </p>
               </div>
 
               <div>
@@ -1031,37 +1102,47 @@ export function WorkCalendarView({
                   <>
                     <div>
                       <p className="text-xs text-slate-500">Karyawan</p>
-                      <p className="text-sm font-bold text-[#102e50] mt-0.5">{selectedLeaveDetail.employee.fullName}</p>
+                      <p className="text-sm font-bold text-[#102e50] mt-0.5">
+                        {selectedLeaveDetail.employee.fullName}
+                      </p>
                       {selectedLeaveDetail.employee.position && (
                         <p className="text-xs text-slate-500">
-                          {selectedLeaveDetail.employee.position} · {selectedLeaveDetail.employee.department ?? ""}
+                          {selectedLeaveDetail.employee.position} ·{" "}
+                          {selectedLeaveDetail.employee.department ?? ""}
                         </p>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <p className="text-xs text-slate-500">Jenis Cuti</p>
-                        <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold border ${conf.bg}`}>
+                        <span
+                          className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold border ${conf.bg}`}
+                        >
                           {selectedLeaveDetail.leaveType.name}
                         </span>
                       </div>
                       <div>
                         <p className="text-xs text-slate-500">Durasi</p>
-                        <p className="text-sm font-bold text-slate-800 mt-0.5">{selectedLeaveDetail.days} Hari Kerja</p>
+                        <p className="text-sm font-bold text-slate-800 mt-0.5">
+                          {selectedLeaveDetail.days} Hari Kerja
+                        </p>
                       </div>
                     </div>
                     <div>
                       <p className="text-xs text-slate-500">Tanggal</p>
                       <p className="text-sm font-semibold text-slate-800 mt-0.5">
                         {toDateString(selectedLeaveDetail.startDate)}
-                        {toDateString(selectedLeaveDetail.startDate) !== toDateString(selectedLeaveDetail.endDate) &&
+                        {toDateString(selectedLeaveDetail.startDate) !==
+                          toDateString(selectedLeaveDetail.endDate) &&
                           ` – ${toDateString(selectedLeaveDetail.endDate)}`}
                       </p>
                     </div>
                     {selectedLeaveDetail.reason && (
                       <div>
                         <p className="text-xs text-slate-500">Keterangan</p>
-                        <p className="text-sm text-slate-700 mt-0.5">{selectedLeaveDetail.reason}</p>
+                        <p className="text-sm text-slate-700 mt-0.5">
+                          {selectedLeaveDetail.reason}
+                        </p>
                       </div>
                     )}
                   </>

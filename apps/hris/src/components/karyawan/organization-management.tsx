@@ -24,11 +24,7 @@ import {
   updatePositionAction,
   deletePositionAction,
 } from "@/server/actions/organization.actions";
-import {
-  DepartmentType,
-  DEPT_TYPE_LABEL,
-  TYPE_ORDER,
-} from "@/server/schemas/organization.schema";
+import { DepartmentType, DEPT_TYPE_LABEL, TYPE_ORDER } from "@/server/schemas/organization.schema";
 
 export interface DepartmentItem {
   id: string;
@@ -57,10 +53,7 @@ interface OrganizationManagementProps {
 }
 
 // Badge tipe unit
-const TYPE_STYLE: Record<
-  DepartmentType,
-  { bg: string; text: string; border: string }
-> = {
+const TYPE_STYLE: Record<DepartmentType, { bg: string; text: string; border: string }> = {
   GOVERNANCE: {
     bg: "bg-purple-50",
     text: "text-purple-700",
@@ -94,13 +87,9 @@ function DeptTypeBadge({ type }: { type: DepartmentType }) {
   );
 }
 
-export function OrganizationManagement({
-  initialDepartments,
-}: OrganizationManagementProps) {
+export function OrganizationManagement({ initialDepartments }: OrganizationManagementProps) {
   const [departments, setDepartments] = useState<DepartmentItem[]>(initialDepartments);
-  const [selectedDeptId, setSelectedDeptId] = useState<string>(
-    initialDepartments[0]?.id || "",
-  );
+  const [selectedDeptId, setSelectedDeptId] = useState<string>(initialDepartments[0]?.id || "");
   const [deptSearch, setDeptSearch] = useState("");
   const [posSearch, setPosSearch] = useState("");
   const [deptTypeFilter, setDeptTypeFilter] = useState<DepartmentType | "ALL">("ALL");
@@ -187,9 +176,7 @@ export function OrganizationManagement({
           _count: { employees: 0, positions: 0 },
           positions: [],
         };
-        setDepartments((prev) =>
-          [...prev, newDept].sort((a, b) => a.name.localeCompare(b.name)),
-        );
+        setDepartments((prev) => [...prev, newDept].sort((a, b) => a.name.localeCompare(b.name)));
         setSelectedDeptId(newDept.id);
         setDeptModal({ isOpen: false, mode: "create", name: "", type: "INITIATIVE" });
         showFeedback("success", `Divisi "${newDept.name}" berhasil ditambahkan.`);
@@ -285,7 +272,13 @@ export function OrganizationManagement({
             return d;
           }),
         );
-        setPosModal({ isOpen: false, mode: "create", title: "", departmentId: "", isUnitHead: false });
+        setPosModal({
+          isOpen: false,
+          mode: "create",
+          title: "",
+          departmentId: "",
+          isUnitHead: false,
+        });
         showFeedback("success", `Jabatan "${newPos.title}" berhasil ditambahkan.`);
       } else {
         showFeedback("error", res.error || "Gagal menambahkan jabatan.");
@@ -314,7 +307,13 @@ export function OrganizationManagement({
             return d;
           }),
         );
-        setPosModal({ isOpen: false, mode: "edit", title: "", departmentId: "", isUnitHead: false });
+        setPosModal({
+          isOpen: false,
+          mode: "edit",
+          title: "",
+          departmentId: "",
+          isUnitHead: false,
+        });
         showFeedback("success", `Jabatan berhasil diperbarui.`);
       } else {
         showFeedback("error", res.error || "Gagal memperbarui jabatan.");
@@ -795,7 +794,9 @@ export function OrganizationManagement({
                   className="w-4 h-4 rounded accent-[#102E50]"
                 />
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-slate-700">Jabatan Pimpinan Unit</span>
+                  <span className="text-xs font-semibold text-slate-700">
+                    Jabatan Pimpinan Unit
+                  </span>
                   <span className="text-[10px] text-slate-400">
                     Tandai jika jabatan ini adalah pimpinan / kepala pada unit/divisi ini
                   </span>
@@ -838,8 +839,9 @@ export function OrganizationManagement({
                   Hapus {deleteConfirm.type === "department" ? "Divisi" : "Jabatan"}?
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Apakah Anda yakin ingin menghapus <strong>&ldquo;{deleteConfirm.name}&rdquo;</strong>?
-                  Tindakan ini tidak dapat dibatalkan.
+                  Apakah Anda yakin ingin menghapus{" "}
+                  <strong>&ldquo;{deleteConfirm.name}&rdquo;</strong>? Tindakan ini tidak dapat
+                  dibatalkan.
                 </p>
               </div>
             </div>

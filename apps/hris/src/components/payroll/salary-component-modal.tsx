@@ -75,9 +75,7 @@ function SalaryComponentForm({
 }) {
   const [code, setCode] = useState(component ? component.code : "");
   const [name, setName] = useState(component ? component.name : "");
-  const [type, setType] = useState<"EARNING" | "DEDUCTION">(
-    component ? component.type : "EARNING",
-  );
+  const [type, setType] = useState<"EARNING" | "DEDUCTION">(component ? component.type : "EARNING");
   const [calcType, setCalcType] = useState<"FIXED" | "PERCENT_OF_BASE" | "MANUAL">(
     component ? component.calcType : "FIXED",
   );
@@ -202,9 +200,7 @@ function SalaryComponentForm({
           </label>
           <select
             value={calcType}
-            onChange={(e) =>
-              setCalcType(e.target.value as "FIXED" | "PERCENT_OF_BASE" | "MANUAL")
-            }
+            onChange={(e) => setCalcType(e.target.value as "FIXED" | "PERCENT_OF_BASE" | "MANUAL")}
             className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
           >
             <option value="FIXED">Nominal Tetap (Rp)</option>
@@ -238,7 +234,10 @@ function SalaryComponentForm({
             onChange={(e) => setIsActive(e.target.checked)}
             className="w-4 h-4 rounded text-[#102E50] border-slate-300 focus:ring-[#102E50]"
           />
-          <label htmlFor="isActiveComp" className="text-xs font-medium text-slate-700 cursor-pointer">
+          <label
+            htmlFor="isActiveComp"
+            className="text-xs font-medium text-slate-700 cursor-pointer"
+          >
             Aktifkan komponen ini dalam kalkulasi otomatis
           </label>
         </div>

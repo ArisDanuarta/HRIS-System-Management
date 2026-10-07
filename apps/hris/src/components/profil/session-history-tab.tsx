@@ -69,10 +69,11 @@ export function SessionHistoryTab({ sessions }: SessionHistoryTabProps) {
         <div className="text-xs leading-relaxed space-y-1">
           <p className="font-bold text-sm text-[#102e50]">Pengelolaan Sesi Terpusat PSPK</p>
           <p className="text-blue-900">
-            Daftar di bawah mencatat seluruh perangkat atau peramban yang sedang terhubung ke akun Anda.
-            Jika Anda mencurigai adanya perangkat yang tidak dikenali, segera ganti kata sandi Anda di tab{" "}
-            <span className="font-semibold text-[#102e50]">Keamanan & Kata Sandi</span>. Sistem akan
-            secara otomatis memutuskan (*revoke*) semua sesi lain dan hanya menyisakan sesi yang sedang Anda gunakan saat ini.
+            Daftar di bawah mencatat seluruh perangkat atau peramban yang sedang terhubung ke akun
+            Anda. Jika Anda mencurigai adanya perangkat yang tidak dikenali, segera ganti kata sandi
+            Anda di tab <span className="font-semibold text-[#102e50]">Keamanan & Kata Sandi</span>.
+            Sistem akan secara otomatis memutuskan (*revoke*) semua sesi lain dan hanya menyisakan
+            sesi yang sedang Anda gunakan saat ini.
           </p>
         </div>
       </div>
@@ -153,7 +154,8 @@ export function SessionHistoryTab({ sessions }: SessionHistoryTabProps) {
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
-                          Masuk: {formatRelativeTime(session.createdAt)} ({formatDateTime(session.createdAt)})
+                          Masuk: {formatRelativeTime(session.createdAt)} (
+                          {formatDateTime(session.createdAt)})
                         </span>
                       </div>
                     </div>
@@ -181,7 +183,8 @@ export function SessionHistoryTab({ sessions }: SessionHistoryTabProps) {
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
           <span>
-            Ingin mengeluarkan semua perangkat selain perangkat ini sekaligus? Cukup lakukan pergantian kata sandi akun.
+            Ingin mengeluarkan semua perangkat selain perangkat ini sekaligus? Cukup lakukan
+            pergantian kata sandi akun.
           </span>
         </div>
       </div>

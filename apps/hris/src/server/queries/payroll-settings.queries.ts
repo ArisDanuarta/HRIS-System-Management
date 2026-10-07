@@ -68,8 +68,7 @@ export type DbWithPayrollSetting = {
   };
 };
 
-export const getPayrollDb = (): DbWithPayrollSetting =>
-  prisma as unknown as DbWithPayrollSetting;
+export const getPayrollDb = (): DbWithPayrollSetting => prisma as unknown as DbWithPayrollSetting;
 
 /**
  * Mengambil pengaturan penggajian & dokumen resmi aktif
@@ -123,12 +122,8 @@ export async function getPayrollSettings(): Promise<PayrollSettingsData> {
   const headerBannerUrl = setting.headerBannerKey
     ? `/api/documents/${setting.headerBannerKey}`
     : null;
-  const signatureUrl = setting.signatureKey
-    ? `/api/documents/${setting.signatureKey}`
-    : null;
-  const stampUrl = setting.stampKey
-    ? `/api/documents/${setting.stampKey}`
-    : null;
+  const signatureUrl = setting.signatureKey ? `/api/documents/${setting.signatureKey}` : null;
+  const stampUrl = setting.stampKey ? `/api/documents/${setting.stampKey}` : null;
 
   return {
     id: setting.id,

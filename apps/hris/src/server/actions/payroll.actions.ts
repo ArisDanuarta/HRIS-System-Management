@@ -363,7 +363,8 @@ export async function revertPayrollAction(input: { periodId: string }) {
     if (!actor.isSuperAdmin && !actor.isAdminHr) {
       return {
         ok: false as const,
-        error: "Hanya Admin HR atau Super Admin yang berwenang mengembalikan status periode penggajian.",
+        error:
+          "Hanya Admin HR atau Super Admin yang berwenang mengembalikan status periode penggajian.",
       };
     }
 
@@ -640,4 +641,3 @@ export async function updatePayslipTimesheetAction(formData: FormData) {
     };
   }
 }
-

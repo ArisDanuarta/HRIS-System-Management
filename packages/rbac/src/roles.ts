@@ -19,7 +19,8 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
   {
     key: "admin_hr",
     name: "Admin HR",
-    description: "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll, kinerja, rekrutmen)",
+    description:
+      "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll, kinerja, rekrutmen)",
     isSystem: true,
     permissions: [
       "hris.employee.read:all",

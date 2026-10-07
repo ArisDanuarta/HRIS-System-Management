@@ -50,7 +50,9 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
   const fixedTermPct =
     totalContracts > 0 ? Math.round((data.contractStats.FIXED_TERM / totalContracts) * 100) : 0;
   const projectPct =
-    totalContracts > 0 ? Math.round((data.contractStats.PART_TIME_PROJECT / totalContracts) * 100) : 0;
+    totalContracts > 0
+      ? Math.round((data.contractStats.PART_TIME_PROJECT / totalContracts) * 100)
+      : 0;
 
   return (
     <div className="flex flex-col gap-6 max-w-[1440px] mx-auto pb-12 w-full animate-in fade-in duration-200">
@@ -69,7 +71,8 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
                 </span>
               </p>
               <p className="text-[11px] text-slate-300 mt-0.5">
-                Kelola hak akses RBAC, pengguna sistem, inventaris aset, dan audit trail di portal System Management.
+                Kelola hak akses RBAC, pengguna sistem, inventaris aset, dan audit trail di portal
+                System Management.
               </p>
             </div>
           </div>
@@ -139,7 +142,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-emerald-700 font-semibold">Organisasi Keseluruhan</span>
-            <Link href="/karyawan" className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1">
+            <Link
+              href="/karyawan"
+              className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1"
+            >
               <span>Direktori</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
@@ -165,8 +171,13 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
             </div>
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-emerald-700 font-bold">{data.attendancePercentage}% Presensi</span>
-            <Link href="/absensi/rekap" className="text-emerald-800 font-bold hover:underline inline-flex items-center gap-1">
+            <span className="text-emerald-700 font-bold">
+              {data.attendancePercentage}% Presensi
+            </span>
+            <Link
+              href="/absensi/rekap"
+              className="text-emerald-800 font-bold hover:underline inline-flex items-center gap-1"
+            >
               <span>Rekap</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
@@ -201,7 +212,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-[#805600] font-medium">Seluruh Departemen</span>
-            <Link href="/cuti/persetujuan" className="text-amber-700 font-bold hover:underline inline-flex items-center gap-1">
+            <Link
+              href="/cuti/persetujuan"
+              className="text-amber-700 font-bold hover:underline inline-flex items-center gap-1"
+            >
               <span>Evaluasi</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
@@ -226,7 +240,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-[#ba1a1a] font-semibold">Perlu Tinjauan PKWT</span>
-            <Link href="/karyawan?expiring=true" className="text-[#ba1a1a] font-bold hover:underline inline-flex items-center gap-1">
+            <Link
+              href="/karyawan?expiring=true"
+              className="text-[#ba1a1a] font-bold hover:underline inline-flex items-center gap-1"
+            >
               <span>Tinjau</span>
               <ArrowRight className="w-3 h-3" />
             </Link>
@@ -275,7 +292,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
                 const leaveHeight = (day.leave / maxDayCount) * 100;
 
                 return (
-                  <div key={day.dateStr} className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                  <div
+                    key={day.dateStr}
+                    className="flex-1 flex flex-col items-center gap-2 h-full justify-end"
+                  >
                     <div className="w-full max-w-[36px] flex flex-col-reverse items-center gap-0.5 h-full justify-start">
                       {/* Bar 1: Hadir */}
                       <div
@@ -331,7 +351,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
                   <span className="text-xs text-slate-500">Pegawai</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#102e50] rounded-full" style={{ width: `${permanentPct}%` }} />
+                  <div
+                    className="h-full bg-[#102e50] rounded-full"
+                    style={{ width: `${permanentPct}%` }}
+                  />
                 </div>
               </div>
 
@@ -347,7 +370,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
                   <span className="text-xs text-slate-500">Pegawai</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#f2af3e] rounded-full" style={{ width: `${fixedTermPct}%` }} />
+                  <div
+                    className="h-full bg-[#f2af3e] rounded-full"
+                    style={{ width: `${fixedTermPct}%` }}
+                  />
                 </div>
               </div>
 
@@ -363,7 +389,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
                   <span className="text-xs text-slate-500">Pegawai</span>
                 </div>
                 <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-500 rounded-full" style={{ width: `${projectPct}%` }} />
+                  <div
+                    className="h-full bg-blue-500 rounded-full"
+                    style={{ width: `${projectPct}%` }}
+                  />
                 </div>
               </div>
             </div>
@@ -423,7 +452,10 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
             </div>
 
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <Link href="/karyawan?expiring=true" className="text-[#102e50] font-bold hover:underline">
+              <Link
+                href="/karyawan?expiring=true"
+                className="text-[#102e50] font-bold hover:underline"
+              >
                 Kelola Kontrak
               </Link>
               <Link href="/cuti/persetujuan" className="text-[#805600] font-bold hover:underline">

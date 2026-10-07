@@ -17,7 +17,7 @@ export interface NotificationItem {
  */
 export async function getUserNotifications(
   userId: string,
-  options?: { unreadOnly?: boolean; category?: string; limit?: number }
+  options?: { unreadOnly?: boolean; category?: string; limit?: number },
 ): Promise<NotificationItem[]> {
   const { unreadOnly, category, limit = 50 } = options || {};
 

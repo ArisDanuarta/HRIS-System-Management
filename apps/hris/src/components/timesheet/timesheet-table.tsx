@@ -40,7 +40,9 @@ const MONTH_NAMES = [
 export function TimesheetTable({ submissions }: TimesheetTableProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [selectedSubmission, setSelectedSubmission] = useState<TimesheetSubmissionItem | null>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<TimesheetSubmissionItem | null>(
+    null,
+  );
   const [detailOpen, setDetailOpen] = useState(false);
   const [cancelingId, setCancelingId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -51,9 +53,7 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
       if (search.trim() !== "") {
         const q = search.toLowerCase().trim();
         const matchTitle = s.title.toLowerCase().includes(q);
-        const matchReviewer = s.reviewers.some((r) =>
-          r.reviewerName.toLowerCase().includes(q),
-        );
+        const matchReviewer = s.reviewers.some((r) => r.reviewerName.toLowerCase().includes(q));
         if (!matchTitle && !matchReviewer) return false;
       }
 
@@ -117,9 +117,7 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">
-            {st}
-          </span>
+          <span className="px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-600">{st}</span>
         );
     }
   };
@@ -184,17 +182,15 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
                       </div>
                       <p className="font-medium text-slate-600">Belum ada pengajuan timesheet</p>
                       <p className="text-[11px] text-slate-400">
-                        Klik tombol &ldquo;Ajukan Timesheet Baru&rdquo; untuk mengirimkan laporan jam kerja Google Spreadsheet Anda.
+                        Klik tombol &ldquo;Ajukan Timesheet Baru&rdquo; untuk mengirimkan laporan
+                        jam kerja Google Spreadsheet Anda.
                       </p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filteredSubmissions.map((s) => (
-                  <tr
-                    key={s.id}
-                    className="hover:bg-slate-50/60 transition-colors group"
-                  >
+                  <tr key={s.id} className="hover:bg-slate-50/60 transition-colors group">
                     {/* 1. Periode & Judul */}
                     <td className="py-3 px-4">
                       <div>
@@ -210,7 +206,8 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
                     {/* 2. Total Jam */}
                     <td className="py-3 px-4 text-center">
                       <span className="font-mono font-bold text-slate-900 text-sm bg-slate-100/80 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                        {s.totalHours} <span className="text-[10px] font-normal text-slate-500">Jam</span>
+                        {s.totalHours}{" "}
+                        <span className="text-[10px] font-normal text-slate-500">Jam</span>
                       </span>
                     </td>
 
@@ -238,10 +235,10 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
                               r.status === "APPROVED"
                                 ? "bg-emerald-50 text-emerald-800 border-emerald-200"
                                 : r.status === "IN_REVIEW"
-                                ? "bg-amber-50 text-amber-800 border-amber-200"
-                                : r.status === "REJECTED"
-                                ? "bg-rose-50 text-rose-800 border-rose-200"
-                                : "bg-slate-100 text-slate-600 border-slate-200"
+                                  ? "bg-amber-50 text-amber-800 border-amber-200"
+                                  : r.status === "REJECTED"
+                                    ? "bg-rose-50 text-rose-800 border-rose-200"
+                                    : "bg-slate-100 text-slate-600 border-slate-200"
                             }`}
                           >
                             {r.status === "APPROVED" ? (
@@ -256,9 +253,7 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
                     </td>
 
                     {/* 5. Status Keseluruhan */}
-                    <td className="py-3 px-4 text-center">
-                      {getStatusBadge(s.status)}
-                    </td>
+                    <td className="py-3 px-4 text-center">{getStatusBadge(s.status)}</td>
 
                     {/* 6. Aksi */}
                     <td className="py-3 px-4 text-right">

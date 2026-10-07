@@ -165,5 +165,3 @@ export function getLeaveOverrideImpact(
     description: "Perubahan status ini tidak memengaruhi saldo cuti pegawai.",
   };
 }
-
-

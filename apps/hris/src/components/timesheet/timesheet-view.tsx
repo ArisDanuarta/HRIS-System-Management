@@ -54,7 +54,8 @@ export function TimesheetView({
             </span>
           </div>
           <p className="text-xs text-slate-500">
-            Kumpulkan laporan jam kerja Google Spreadsheet kepada Lead / Atasan proyek untuk diverifikasi dan diteruskan ke penggajian.
+            Kumpulkan laporan jam kerja Google Spreadsheet kepada Lead / Atasan proyek untuk
+            diverifikasi dan diteruskan ke penggajian.
           </p>
         </div>
 

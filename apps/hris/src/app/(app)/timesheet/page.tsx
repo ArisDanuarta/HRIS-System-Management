@@ -90,7 +90,9 @@ export default async function TimesheetPage() {
               Portal Timesheet Freelance
             </h1>
             <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-              Pengumpulan jam kerja via Google Spreadsheet hanya berlaku bagi staf freelance dan pegawai kontrak PKWT per jam. Akun Anda saat ini tercatat dengan skema <strong className="text-slate-800">Gaji Bulanan Tetap</strong>.
+              Pengumpulan jam kerja via Google Spreadsheet hanya berlaku bagi staf freelance dan
+              pegawai kontrak PKWT per jam. Akun Anda saat ini tercatat dengan skema{" "}
+              <strong className="text-slate-800">Gaji Bulanan Tetap</strong>.
             </p>
           </div>
 
@@ -99,8 +101,14 @@ export default async function TimesheetPage() {
               <span>Ketentuan Presensi & Penggajian Anda:</span>
             </div>
             <ul className="list-disc list-inside space-y-1 text-slate-600">
-              <li>Pencatatan kehadiran harian Anda dilakukan melalui menu Absensi Harian (Clock-in / Clock-out).</li>
-              <li>Gaji pokok dan tunjangan bulanan Anda dihitung otomatis pada periode penggajian tanpa perlu menyetor timesheet jam kerja.</li>
+              <li>
+                Pencatatan kehadiran harian Anda dilakukan melalui menu Absensi Harian (Clock-in /
+                Clock-out).
+              </li>
+              <li>
+                Gaji pokok dan tunjangan bulanan Anda dihitung otomatis pada periode penggajian
+                tanpa perlu menyetor timesheet jam kerja.
+              </li>
             </ul>
           </div>
 
@@ -140,4 +148,3 @@ export default async function TimesheetPage() {
     />
   );
 }
-

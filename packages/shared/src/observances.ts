@@ -1,6 +1,6 @@
 /**
  * Modul Hari Peringatan Nasional & Hari Besar Indonesia
- * 
+ *
  * Menyediakan database kurasi lengkap peringatan nasional di Indonesia (non-libur maupun hari bersejarah),
  * terutama bidang pendidikan, kebijakan, kebangsaan, sosial, dan profesi.
  */
