@@ -7,17 +7,25 @@ import {
   getUserStats,
   getAllSystemRoles,
 } from "@/server/queries/user.queries";
+import { getRoleMatrixData } from "@/server/queries/role.queries";
 import { UserManagementTable } from "@/components/users/user-management-table";
-import { ShieldCheck, ShieldAlert, Key } from "lucide-react";
+import { UserGovernanceSubnav } from "@/components/shell/user-governance-subnav";
+import { ShieldCheck, ShieldAlert, Key, Shield, Users, Layers, Info } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Manajemen Pengguna & RBAC — PSPK System Management",
-  description: "Kelola akun login pengguna, peran sistem, dan status aktif",
+  title: "Tata Kelola Pengguna & Hak Akses — PSPK System Management",
+  description: "Kelola akun pengguna, matriks peran RBAC, dan status aktivasi",
 };
 
-export default async function UserManagementPage() {
+interface UserManagementPageProps {
+  searchParams?: Promise<{ tab?: string }>;
+}
+
+export default async function UserManagementPage({
+  searchParams,
+}: UserManagementPageProps) {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
 
@@ -55,11 +63,18 @@ export default async function UserManagementPage() {
     );
   }
 
-  const [users, stats, allRoles] = await Promise.all([
-    getAllUsers(),
+  const resolvedParams = searchParams ? await searchParams : {};
+  const activeTab = resolvedParams.tab === "roles" ? "roles" : "users";
+
+  // Muat data statistik bersama
+  const [stats, allRoles] = await Promise.all([
     getUserStats(),
     getAllSystemRoles(),
   ]);
+
+  // Muat data sesuai tab aktif
+  const users = activeTab === "users" ? await getAllUsers() : [];
+  const matrixData = activeTab === "roles" ? await getRoleMatrixData() : null;
 
   return (
     <div className="space-y-6">
@@ -68,7 +83,7 @@ export default async function UserManagementPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-xl font-bold text-slate-900 font-serif">
-              Manajemen Pengguna & Hak Akses
+              Tata Kelola Pengguna & Hak Akses
             </h1>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
               <ShieldCheck className="w-3 h-3 text-amber-600" />
@@ -76,8 +91,8 @@ export default async function UserManagementPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500">
-            Kelola akun pengguna, status aktivasi login, dan penugasan peran sistem (Super Admin,
-            Admin IT, Admin HR, Manajer, Staf).
+            Kelola akun pengguna, status aktivasi login, dan matriks wewenang peran sistem (Super
+            Admin, Admin IT, Admin HR, Manajer, Staf).
           </p>
         </div>
 
@@ -96,15 +111,123 @@ export default async function UserManagementPage() {
         </div>
       </div>
 
-      {/* Tabel Pengguna Interaktif */}
-      <UserManagementTable
-        users={users}
-        stats={stats}
-        allRoles={allRoles}
-        currentUserId={session.user.id}
-        isSuperAdmin={isSuperAdmin}
-        isAdminIt={isAdminIt}
+      {/* Sub-Navigasi Tab: [Akun Pengguna] & [Matriks Peran & Hak Akses] */}
+      <UserGovernanceSubnav
+        activeTab={activeTab}
+        userCount={stats.totalUsers}
+        roleCount={allRoles.length}
       />
+
+      {/* Konten Tab 1: Akun Pengguna */}
+      {activeTab === "users" && (
+        <UserManagementTable
+          users={users}
+          stats={stats}
+          allRoles={allRoles}
+          currentUserId={session.user.id}
+          isSuperAdmin={isSuperAdmin}
+          isAdminIt={isAdminIt}
+        />
+      )}
+
+      {/* Konten Tab 2: Matriks Peran & Hak Akses (RBAC) */}
+      {activeTab === "roles" && matrixData && (
+        <div className="space-y-6">
+          {/* Ringkasan Analitik RBAC */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Total Peran Sistem
+                </span>
+                <Shield className="w-4 h-4 text-[#102E50]" />
+              </div>
+              <p className="text-2xl font-bold text-slate-900 mt-2 font-serif">
+                {matrixData.stats.totalRoles}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">Peran terdaftar di skema core</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Total Izin Sistem
+                </span>
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              </div>
+              <p className="text-2xl font-bold text-slate-900 mt-2 font-serif">
+                {matrixData.stats.totalPermissions}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {matrixData.stats.totalHrisPermissions} HRIS + {matrixData.stats.totalSysmgmtPermissions} SysMgmt
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Pengguna Ditugaskan
+                </span>
+                <Users className="w-4 h-4 text-blue-600" />
+              </div>
+              <p className="text-2xl font-bold text-slate-900 mt-2 font-serif">
+                {matrixData.stats.totalAssignedUsers}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">Total asosiasi peran aktif</p>
+            </div>
+
+            <div className="bg-white rounded-xl p-4 border border-slate-200/90 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Kategori Modul
+                </span>
+                <Layers className="w-4 h-4 text-amber-600" />
+              </div>
+              <p className="text-2xl font-bold text-slate-900 mt-2 font-serif">
+                {matrixData.categories.length}
+              </p>
+              <p className="text-[11px] text-slate-400 mt-1">Area fungsional terpetakan</p>
+            </div>
+          </div>
+
+          {/* Kartu Ringkasan Peran Cepat */}
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            {matrixData.roles.map((r) => (
+              <div
+                key={r.id}
+                className="bg-white rounded-xl p-3.5 border border-slate-200/90 shadow-2xs flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-900">{r.name}</span>
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">
+                      {r.userCount} user
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                    {r.description || "Peran operasional sistem"}
+                  </p>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                  <span className="text-slate-400">Total Akses:</span>
+                  <span className="font-bold text-[#102E50]">{r.permissionCount} izin</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Wadah Siap untuk Komponen Matriks Grid Interaktif (Sub-Tahap A3) */}
+          <div className="bg-amber-50/60 rounded-xl p-4 border border-amber-200/80 flex items-start gap-3">
+            <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-800 space-y-1">
+              <p className="font-bold">Sub-Navigasi & Wadah Matriks RBAC Berhasil Terintegrasi</p>
+              <p className="text-amber-700/90 leading-relaxed">
+                Struktur tab telah aktif dan parameter URL <code className="bg-white px-1 py-0.5 rounded border border-amber-200 font-mono text-[11px]">?tab=roles</code> berhasil membaca data dari layer server queries. Pada sub-tahap berikutnya (Sub-Tahap A3), tabel matriks grid interaktif lengkap dengan pencarian dan filter modul akan dipasang di sini.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
