@@ -2,6 +2,51 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## Tahap B (System Management & HRIS): Tata Kelola Modul Sistem & Feature Flags Dinamis — 2026-10-07
+
+- **Status:** Selesai
+- **Scope & Arsitektur:**
+  1. **Model Database & Migrasi Prisma ([`core.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/core.prisma)):**
+     - Model `SystemSetting` pada skema `core` (`key`, `value`, `description`, `updatedAt`, `updatedBy`).
+     - Migrasi `20261007085936_add_system_settings` diterapkan ke PostgreSQL.
+     - Seeding 6 modul standar PSPK:
+       - `org_chart` (Bagan Struktur Pohon Organisasi - default: Aktif)
+       - `organization_structure` (Master Kelola Divisi & Jabatan - default: Aktif)
+       - `performance` (Evaluasi Kinerja Riset & OKR - default: Aktif)
+       - `timesheet` (Timesheet Lembar Jam Kerja Freelance - default: Aktif)
+       - `recruitment` (Portal Rekrutmen & Pelamar - default: Nonaktif)
+       - `training` (Pelatihan & Pengembangan Pegawai - default: Nonaktif)
+     - Helper `@pspk/db/src/modules.ts`: `getModuleFlags(prisma)` dan `isModuleActive(flags, key)` dengan fallback aman jika koneksi/tabel kosong.
+     - Unit test [`modules.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/src/modules.test.ts) (3 pengujian).
+  2. **Query & Server Actions di System Management:**
+     - [`module.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/module.queries.ts): `getSystemModulesConfig()` menyusun daftar modul dengan status aktif dan metadata lengkap.
+     - [`module.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/module.actions.ts):
+       - `toggleModuleAction`: Mengubah status aktif modul dengan proteksi izin `sysmgmt.module.toggle` dan audit log `MODULE_STATUS_UPDATE`.
+       - `resetAllModulesToDefaultAction`: Mengembalikan seluruh modul ke standar awal PSPK dengan audit log `MODULES_RESET_DEFAULT`.
+     - Unit tests [`module.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/module.queries.test.ts) (2 pengujian) & [`module.actions.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/module.actions.test.ts) (5 pengujian).
+  3. **Antarmuka Tata Kelola Modul di System Management:**
+     - Subnavigasi Tata Kelola Pengguna ([`user-governance-subnav.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/user-governance-subnav.tsx)) dilengkapi tab `"Tata Kelola Modul"` (`/pengguna?tab=modules`).
+     - Komponen grid kartu modul interaktif ([`module-governance-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/modules/module-governance-view.tsx)):
+       - Toggle switch instan per modul dengan indikator status aktif/nonaktif.
+       - Badge penanda `Wajib / Inti` atau `Opsional`.
+       - Filter pencarian instan dan penyaring status (*Semua, Aktif, Nonaktif*).
+       - Modal konfirmasi reset ke default PSPK.
+  4. **Integrasi Reaktif di HRIS (`apps/hris`):**
+     - **Navigasi Sidebar:** Mengondisikan menu Bagan Organisasi, Struktur Organisasi, Kinerja, dan Timesheet agar tidak muncul jika dinonaktifkan di seluruh kelompok peran (Admin HR, Manajer Tim, Staf, Layanan Mandiri).
+     - **Route Guards Halaman:**
+       - `/karyawan/struktur` (Bagan Organisasi) $\to$ redirect `/karyawan` jika nonaktif.
+       - `/karyawan/organisasi` (Struktur Organisasi) $\to$ redirect `/karyawan` jika nonaktif.
+       - `/kinerja` (Kinerja & Riset) $\to$ redirect `/dashboard` jika nonaktif.
+       - `/timesheet` & `/timesheet/persetujuan` (Timesheet) $\to$ redirect `/dashboard` jika nonaktif.
+     - **Direktori Pegawai (`/karyawan`):** Tombol pintasan "Bagan Organisasi" dan "Struktur Organisasi" otomatis disembunyikan jika modul dinonaktifkan.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket tanpa error
+  - `pnpm lint`: ✅ Lolos 0 error di seluruh workspace
+  - `pnpm test`: ✅ Lolos 13 test suite (92 tests lolos 100%)
+  - `pnpm build`: ✅ Lolos standalone production build untuk `@pspk/hris` dan `@pspk/sysmgmt`
+
+---
+
 ## Tahap A-Lanjutan (System Management): Mode Edit Interaktif Matriks RBAC & Fleksibilitas Keterangan Izin — 2026-10-07
 
 - **Status:** Selesai

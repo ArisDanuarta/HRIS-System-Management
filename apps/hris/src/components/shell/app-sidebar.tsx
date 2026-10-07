@@ -24,6 +24,7 @@ import {
   Network,
   CalendarRange,
 } from "lucide-react";
+import { ModuleFlags, isModuleActive } from "@pspk/db";
 
 export type RoleViewType = "admin_hr" | "manager" | "staff";
 
@@ -36,6 +37,7 @@ export interface AppSidebarProps {
   remainingLeaveDays?: number;
   pendingTimesheetsCount?: number;
   isHourlyEmployee?: boolean;
+  moduleFlags?: ModuleFlags;
 }
 
 export function AppSidebar({
@@ -47,8 +49,15 @@ export function AppSidebar({
   remainingLeaveDays = 8,
   pendingTimesheetsCount = 0,
   isHourlyEmployee = false,
+  moduleFlags,
 }: AppSidebarProps) {
   const pathname = usePathname();
+
+  // Visibilitas Modul Dinamis Berdasarkan Konfigurasi Sistem
+  const showOrgChart = isModuleActive(moduleFlags || {}, "org_chart");
+  const showOrgStructure = isModuleActive(moduleFlags || {}, "organization_structure");
+  const showPerformance = isModuleActive(moduleFlags || {}, "performance");
+  const showTimesheet = isModuleActive(moduleFlags || {}, "timesheet");
 
   const isNavActive = (href: string) => {
     if (href === "/dashboard") {
@@ -154,7 +163,7 @@ export function AppSidebar({
           isActive={isNavActive("/slip-gaji")}
           isCollapsed={isCollapsed}
         />
-        {isHourlyEmployee && (
+        {isHourlyEmployee && showTimesheet && (
           <NavItem
             href="/timesheet"
             label="Timesheet Saya"
@@ -163,7 +172,7 @@ export function AppSidebar({
             isCollapsed={isCollapsed}
           />
         )}
-        {includeKinerja && (
+        {includeKinerja && showPerformance && (
           <NavItem
             href="/kinerja"
             label="Kinerja Saya"
@@ -254,20 +263,24 @@ export function AppSidebar({
                   </span>
                 }
               />
-              <NavItem
-                href="/karyawan/struktur"
-                label="Bagan Organisasi"
-                icon={<Network className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/karyawan/struktur")}
-                isCollapsed={isCollapsed}
-              />
-              <NavItem
-                href="/karyawan/organisasi"
-                label="Struktur Organisasi"
-                icon={<Building2 className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/karyawan/organisasi")}
-                isCollapsed={isCollapsed}
-              />
+              {showOrgChart && (
+                <NavItem
+                  href="/karyawan/struktur"
+                  label="Bagan Organisasi"
+                  icon={<Network className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/karyawan/struktur")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
+              {showOrgStructure && (
+                <NavItem
+                  href="/karyawan/organisasi"
+                  label="Struktur Organisasi"
+                  icon={<Building2 className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/karyawan/organisasi")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
               <NavItem
                 href="/karyawan/ikatan-kerja"
                 label="Tipe Ikatan Kerja"
@@ -296,27 +309,31 @@ export function AppSidebar({
                 isActive={isNavActive("/payroll")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/timesheet/persetujuan"
-                label="Timesheet Freelance"
-                icon={<Clock className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/timesheet/persetujuan")}
-                isCollapsed={isCollapsed}
-                badge={
-                  pendingTimesheetsCount > 0 ? (
-                    <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
-                      {pendingTimesheetsCount}
-                    </span>
-                  ) : undefined
-                }
-              />
-              <NavItem
-                href="/kinerja"
-                label="Kinerja Organisasi"
-                icon={<TrendingUp className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/kinerja")}
-                isCollapsed={isCollapsed}
-              />
+              {showTimesheet && (
+                <NavItem
+                  href="/timesheet/persetujuan"
+                  label="Timesheet Freelance"
+                  icon={<Clock className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/timesheet/persetujuan")}
+                  isCollapsed={isCollapsed}
+                  badge={
+                    pendingTimesheetsCount > 0 ? (
+                      <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
+                        {pendingTimesheetsCount}
+                      </span>
+                    ) : undefined
+                  }
+                />
+              )}
+              {showPerformance && (
+                <NavItem
+                  href="/kinerja"
+                  label="Kinerja Organisasi"
+                  icon={<TrendingUp className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/kinerja")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
             </nav>
 
             {renderPersonalSection(false)}
@@ -358,13 +375,15 @@ export function AppSidebar({
                 isActive={isNavActive("/karyawan")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/karyawan/struktur"
-                label="Bagan Organisasi"
-                icon={<Network className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/karyawan/struktur")}
-                isCollapsed={isCollapsed}
-              />
+              {showOrgChart && (
+                <NavItem
+                  href="/karyawan/struktur"
+                  label="Bagan Organisasi"
+                  icon={<Network className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/karyawan/struktur")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
               <NavItem
                 href="/cuti/persetujuan"
                 label="Persetujuan Cuti"
@@ -386,27 +405,31 @@ export function AppSidebar({
                 isActive={pathname.startsWith("/absensi/rekap")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/timesheet/persetujuan"
-                label="Persetujuan Timesheet"
-                icon={<Clock className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/timesheet/persetujuan")}
-                isCollapsed={isCollapsed}
-                badge={
-                  pendingTimesheetsCount > 0 ? (
-                    <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
-                      {pendingTimesheetsCount}
-                    </span>
-                  ) : undefined
-                }
-              />
-              <NavItem
-                href="/kinerja"
-                label="Kinerja Tim"
-                icon={<LineChart className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/kinerja")}
-                isCollapsed={isCollapsed}
-              />
+              {showTimesheet && (
+                <NavItem
+                  href="/timesheet/persetujuan"
+                  label="Persetujuan Timesheet"
+                  icon={<Clock className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/timesheet/persetujuan")}
+                  isCollapsed={isCollapsed}
+                  badge={
+                    pendingTimesheetsCount > 0 ? (
+                      <span className="bg-[#feba48] text-[#102e50] text-[11px] px-2 py-0.5 rounded-full font-bold shadow-xs">
+                        {pendingTimesheetsCount}
+                      </span>
+                    ) : undefined
+                  }
+                />
+              )}
+              {showPerformance && (
+                <NavItem
+                  href="/kinerja"
+                  label="Kinerja Tim"
+                  icon={<LineChart className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/kinerja")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
             </nav>
 
             {renderPersonalSection(false)}
@@ -441,13 +464,15 @@ export function AppSidebar({
                 isActive={isNavActive("/kalender")}
                 isCollapsed={isCollapsed}
               />
-              <NavItem
-                href="/karyawan/struktur"
-                label="Bagan Organisasi"
-                icon={<Network className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/karyawan/struktur")}
-                isCollapsed={isCollapsed}
-              />
+              {showOrgChart && (
+                <NavItem
+                  href="/karyawan/struktur"
+                  label="Bagan Organisasi"
+                  icon={<Network className="w-5 h-5 shrink-0" />}
+                  isActive={isNavActive("/karyawan/struktur")}
+                  isCollapsed={isCollapsed}
+                />
+              )}
             </nav>
 
             {renderPersonalSection(true)}

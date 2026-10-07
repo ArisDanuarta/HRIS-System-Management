@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile, getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
+import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import { getTimesheetSubmissionsForReviewer } from "@/server/queries/timesheet.queries";
 import { TimesheetApprovalView } from "@/components/timesheet/approval/timesheet-approval-view";
 import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee-notice";
@@ -22,6 +23,12 @@ export default async function TimesheetApprovalPage(props: {
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  // Route Guard: Pastikan modul Timesheet aktif
+  const moduleFlags = await getModuleFlags(prisma);
+  if (!isModuleActive(moduleFlags, "timesheet")) {
+    redirect("/dashboard");
   }
 
   const searchParams = await props.searchParams;

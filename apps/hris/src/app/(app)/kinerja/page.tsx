@@ -2,6 +2,7 @@ import React from "react";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile, getAuthContext } from "@pspk/auth";
+import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import {
   getPerformancePeriods,
   getActivePerformancePeriod,
@@ -34,6 +35,12 @@ export default async function PerformancePage({ searchParams }: PageProps) {
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  // Route Guard: Pastikan modul Kinerja aktif
+  const moduleFlags = await getModuleFlags(prisma);
+  if (!isModuleActive(moduleFlags, "performance")) {
+    redirect("/dashboard");
   }
 
   const [ctx, userProfile] = await Promise.all([

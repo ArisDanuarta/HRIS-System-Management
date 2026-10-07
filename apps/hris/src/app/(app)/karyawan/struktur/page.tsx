@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ArrowLeft, Building2 } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
+import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import { getOrgChartData } from "@/server/queries/org-chart.queries";
 import { OrgChartView } from "@/components/karyawan/org-chart-view";
 
@@ -21,6 +22,12 @@ export default async function StrukturOrganisasiPage() {
 
   if (!session || !session.user) {
     redirect("/login");
+  }
+
+  // Route Guard: Pastikan modul Bagan Organisasi aktif
+  const moduleFlags = await getModuleFlags(prisma);
+  if (!isModuleActive(moduleFlags, "org_chart")) {
+    redirect("/karyawan");
   }
 
   const userProfile = await getUserProfile(session.user.id);

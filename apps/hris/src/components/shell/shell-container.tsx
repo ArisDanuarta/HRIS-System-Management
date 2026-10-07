@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { ModuleFlags } from "@pspk/db";
 import { AppSidebar, RoleViewType } from "./app-sidebar";
 import { AppTopbar } from "./app-topbar";
 
@@ -20,6 +21,7 @@ export interface ShellContainerProps {
   isHourlyEmployee?: boolean;
   isSuperAdmin?: boolean;
   canAccessSysmgmt?: boolean;
+  moduleFlags?: ModuleFlags;
   children: React.ReactNode;
 }
 
@@ -33,6 +35,7 @@ export function ShellContainer({
   isHourlyEmployee = false,
   isSuperAdmin = false,
   canAccessSysmgmt = false,
+  moduleFlags,
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -68,6 +71,7 @@ export function ShellContainer({
         remainingLeaveDays={remainingLeaveDays}
         pendingTimesheetsCount={pendingTimesheetsCount}
         isHourlyEmployee={isHourlyEmployee}
+        moduleFlags={moduleFlags}
       />
 
       {/* Top Header with Superadmin Switcher */}

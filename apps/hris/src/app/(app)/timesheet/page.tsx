@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile, getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
-import { prisma } from "@pspk/db";
+import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import { Clock, Fingerprint, LayoutDashboard, AlertCircle } from "lucide-react";
 import {
   getTimesheetSubmissionsByEmployee,
@@ -26,6 +26,12 @@ export default async function TimesheetPage() {
 
   if (!session?.user) {
     redirect("/login");
+  }
+
+  // Route Guard: Pastikan modul Timesheet aktif
+  const moduleFlags = await getModuleFlags(prisma);
+  if (!isModuleActive(moduleFlags, "timesheet")) {
+    redirect("/dashboard");
   }
 
   const [ctx, userProfile] = await Promise.all([

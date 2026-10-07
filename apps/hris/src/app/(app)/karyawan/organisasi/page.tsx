@@ -1,6 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowLeft, Network } from "lucide-react";
+import { redirect } from "next/navigation";
+import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import { getOrgStructureDetail } from "@/server/queries/employee.queries";
 import { getEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { OrganizationPageView } from "@/components/karyawan/organization-page-view";
@@ -17,6 +19,12 @@ interface OrganisasiPageProps {
 }
 
 export default async function OrganisasiPage({ searchParams }: OrganisasiPageProps) {
+  // Route Guard: Pastikan modul Struktur Organisasi aktif
+  const moduleFlags = await getModuleFlags(prisma);
+  if (!isModuleActive(moduleFlags, "organization_structure")) {
+    redirect("/karyawan");
+  }
+
   const params = await searchParams;
   const initialTab = params?.tab === "employmentTypes" ? "employmentTypes" : "structure";
 
@@ -38,13 +46,15 @@ export default async function OrganisasiPage({ searchParams }: OrganisasiPagePro
         </Link>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/karyawan/struktur"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102E50] bg-[#eff4ff] border border-[#dee9fc] px-3 py-1.5 rounded-lg shadow-2xs hover:bg-[#dee9fc] transition-colors"
-          >
-            <Network className="w-3.5 h-3.5 text-[#102E50]" />
-            <span>Visual Bagan Pohon Organisasi ↗</span>
-          </Link>
+          {isModuleActive(moduleFlags, "org_chart") && (
+            <Link
+              href="/karyawan/struktur"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102E50] bg-[#eff4ff] border border-[#dee9fc] px-3 py-1.5 rounded-lg shadow-2xs hover:bg-[#dee9fc] transition-colors"
+            >
+              <Network className="w-3.5 h-3.5 text-[#102E50]" />
+              <span>Visual Bagan Pohon Organisasi ↗</span>
+            </Link>
+          )}
 
           <Link
             href="/karyawan/ikatan-kerja"
