@@ -2,6 +2,38 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## Tahap A (System Management): Optimalisasi RBAC, Sub-Navigasi Tata Kelola & Matriks Grid Hak Akses — 2026-10-07
+
+- **Status:** Selesai
+- **Scope & Arsitektur:**
+  1. **Server & Data Query Layer RBAC ([`apps/sysmgmt/src/server/queries/role.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/role.queries.ts)):**
+     - Parser kunci permission terstandarisasi (`parsePermissionKey`) format `<modul>.<resource>.<aksi>:<scope>`.
+     - Kamus `RESOURCE_METADATA` memetakan 56+ permission ke 19 kategori modul berbahasa Indonesia.
+     - Query `getRolesWithPermissions()` dan `getRoleMatrixData()` menyusun data 2D matriks peran silang dengan lookup akses $O(1)$.
+     - Unit test [`role.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/role.queries.test.ts) (4 skenario) memverifikasi seluruh permission terpetakan tanpa celah.
+  2. **Sub-Navigasi Tata Kelola Pengguna ([`user-governance-subnav.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/user-governance-subnav.tsx)):**
+     - Tab navigasi terpadu: `Akun Pengguna` (`/pengguna`) dan `Matriks Peran & Hak Akses` (`/pengguna?tab=roles`).
+     - Siap untuk tab lanjutan `Tata Kelola Modul` pada Tahap B.
+     - Integrasi pada Server Component [`pengguna/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/%28app%29/pengguna/page.tsx) dengan pembacaan dinamis parameter URL `searchParams`.
+  3. **Komponen Visual Matriks Grid RBAC Interaktif ([`role-matrix-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/roles/role-matrix-view.tsx)):**
+     - Visualisasi tabel 2D silang 5 Peran Sistem (`Super Admin`, `Admin IT`, `Admin HR`, `Manajer`, `Staf`) $\times$ 56 Permission.
+     - Accordion buka/tutup per kategori modul dan kontrol cepat "Buka Semua" / "Tutup Semua".
+     - Bilah pencarian instan realtime dan filter tab modul (*Semua*, *HRIS*, *System Management*).
+     - Lencana wewenang berwarna ramah pengguna: Penuh (`:all`), Tim (`:team`), Mandiri (`:own`), Khusus (`:sync/:connect/:hr`), dan Terkunci (`—`).
+  4. **Proteksi Keamanan Backend & Audit Logging ([`user.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/user.actions.ts) & [`can.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/can.test.ts)):**
+     - Penegakan `assertCan(actor.authCtx, "sysmgmt.user.manage")` di seluruh server actions mutasi.
+     - Proteksi Super Admin terakhir (tidak bisa di-demote atau dinonaktifkan jika `count <= 1`).
+     - Pencegahan self-lockout dan hierarki perlindungan akun root dari Admin IT.
+     - Pencatatan transaksi audit log atomik ke `core.audit_logs`.
+     - Unit test `can.test.ts` bertambah 3 pengujian wewenang `sysmgmt`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket
+  - `pnpm lint`: ✅ Lolos 0 error di seluruh workspace
+  - `pnpm test`: ✅ Lolos 9 test suite (77 tests)
+  - `pnpm build`: ✅ Lolos standalone production build untuk `@pspk/hris` dan `@pspk/sysmgmt`
+
+---
+
 ## Tahap 6 (Penyempurnaan Saldo Cuti): Saldo Kuota Cuti Dinamis & Auto-Provisioning Tipe Cuti — 2026-10-06
 
 - **Status:** Selesai
