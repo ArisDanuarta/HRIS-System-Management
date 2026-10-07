@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { prisma, writeAudit } from "@pspk/db";
 import { getSession, getAuthContext, hashPassword } from "@pspk/auth";
+import { assertCan, ForbiddenError } from "@pspk/rbac";
 import { extractClientIp } from "@pspk/shared";
 import { generateSecureTemporaryPassword } from "../services/password.service";
 
@@ -46,6 +47,7 @@ export async function updateUserRolesSysAction(input: {
 }) {
   try {
     const actor = await getActorInfo();
+    assertCan(actor.authCtx, "sysmgmt.user.manage");
 
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
@@ -161,6 +163,9 @@ export async function updateUserRolesSysAction(input: {
       message: `Peran untuk ${targetUser.name || targetUser.email} berhasil diperbarui menjadi: ${validRoles.map((r) => r.name).join(", ")}.`,
     };
   } catch (err: unknown) {
+    if (err instanceof ForbiddenError) {
+      return { ok: false as const, error: err.message };
+    }
     console.error("updateUserRolesSysAction error:", err);
     return {
       ok: false as const,
@@ -178,6 +183,7 @@ export async function toggleUserStatusAction(input: {
 }) {
   try {
     const actor = await getActorInfo();
+    assertCan(actor.authCtx, "sysmgmt.user.manage");
 
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
@@ -267,6 +273,9 @@ export async function toggleUserStatusAction(input: {
       message: `Akun ${targetUser.name || targetUser.email} berhasil ${input.isActive ? "diaktifkan" : "dinonaktifkan"}.`,
     };
   } catch (err: unknown) {
+    if (err instanceof ForbiddenError) {
+      return { ok: false as const, error: err.message };
+    }
     console.error("toggleUserStatusAction error:", err);
     return {
       ok: false as const,
@@ -281,6 +290,7 @@ export async function toggleUserStatusAction(input: {
 export async function resetUserPasswordAction(input: { userId: string }) {
   try {
     const actor = await getActorInfo();
+    assertCan(actor.authCtx, "sysmgmt.user.manage");
 
     if (!actor.isSuperAdmin && !actor.isAdminIt) {
       return {
@@ -375,6 +385,9 @@ export async function resetUserPasswordAction(input: { userId: string }) {
       },
     };
   } catch (err: unknown) {
+    if (err instanceof ForbiddenError) {
+      return { ok: false as const, error: err.message };
+    }
     console.error("resetUserPasswordAction error:", err);
     return {
       ok: false as const,

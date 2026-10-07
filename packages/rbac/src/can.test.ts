@@ -63,4 +63,48 @@ describe("RBAC can() & assertCan()", () => {
       assertCan(staffContext, "hris.leave.approve", { ownerEmployeeId: "emp-other" });
     }).toThrowError(ForbiddenError);
   });
+
+  describe("System Management RBAC Permissions", () => {
+    const itAdminContext: AuthContext = {
+      userId: "u-it-1",
+      employeeId: null,
+      roles: ["admin_it"],
+      permissions: new Set([
+        "sysmgmt.dashboard.read:all",
+        "sysmgmt.user.read:all",
+        "sysmgmt.user.manage:all",
+        "sysmgmt.role.read:all",
+        "sysmgmt.role.manage:all",
+      ]),
+    };
+
+    const superAdminContext: AuthContext = {
+      userId: "u-super-1",
+      employeeId: null,
+      roles: ["super_admin"],
+      permissions: new Set(),
+    };
+
+    it("permits Admin IT to manage users and view role matrix", () => {
+      expect(can(itAdminContext, "sysmgmt.user.manage")).toBe(true);
+      expect(can(itAdminContext, "sysmgmt.role.read")).toBe(true);
+      expect(can(itAdminContext, "sysmgmt.role.manage")).toBe(true);
+    });
+
+    it("permits Super Admin to perform all sysmgmt operations via wildcard/shortcut", () => {
+      expect(can(superAdminContext, "sysmgmt.user.manage")).toBe(true);
+      expect(can(superAdminContext, "sysmgmt.role.manage")).toBe(true);
+      expect(can(superAdminContext, "sysmgmt.role.read")).toBe(true);
+    });
+
+    it("denies Staff and HR Admin from managing IT roles in system management", () => {
+      expect(can(staffContext, "sysmgmt.user.manage")).toBe(false);
+      expect(can(staffContext, "sysmgmt.role.manage")).toBe(false);
+      expect(can(adminContext, "sysmgmt.role.manage")).toBe(false);
+
+      expect(() => {
+        assertCan(staffContext, "sysmgmt.role.manage");
+      }).toThrowError(ForbiddenError);
+    });
+  });
 });
