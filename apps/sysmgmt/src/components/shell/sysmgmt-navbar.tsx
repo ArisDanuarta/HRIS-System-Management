@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { AppSwitcher } from "@pspk/ui";
 import { signOut } from "@pspk/auth/client";
@@ -82,10 +83,13 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
           <div className="flex items-center gap-6">
             <Link href="/pengguna" className="flex items-center gap-3">
               <div className="h-9 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-center">
-                <img
+                <Image
                   src="/images/logo_pspk_horizontal_trimmed.png"
                   alt="Logo Resmi PSPK"
+                  width={120}
+                  height={24}
                   className="h-6 w-auto object-contain"
+                  priority
                 />
               </div>
               <span className="text-slate-300 font-light">|</span>
