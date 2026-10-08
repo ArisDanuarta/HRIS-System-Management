@@ -2,13 +2,17 @@ import React from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
+import { prisma, getModuleFlags } from "@pspk/db";
 import { SysmgmtNavbar } from "@/components/shell/sysmgmt-navbar";
 
 export const dynamic = "force-dynamic";
 
 export default async function SysmgmtProtectedLayout({ children }: { children: React.ReactNode }) {
   const reqHeaders = await headers();
-  const session = await getSession(reqHeaders);
+  const [session, moduleFlags] = await Promise.all([
+    getSession(reqHeaders),
+    getModuleFlags(prisma),
+  ]);
 
   if (!session || !session.user) {
     redirect("/login");
@@ -48,7 +52,7 @@ export default async function SysmgmtProtectedLayout({ children }: { children: R
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
-      <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} />
+      <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} moduleFlags={moduleFlags} />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
   );

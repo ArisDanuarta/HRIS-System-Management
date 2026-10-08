@@ -17,6 +17,8 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
+import { ModuleFlags, isModuleActive } from "@pspk/db";
+
 interface SysmgmtNavbarProps {
   user: {
     id: string;
@@ -26,9 +28,10 @@ interface SysmgmtNavbarProps {
     roleKey?: string;
   };
   canAccessHris?: boolean;
+  moduleFlags?: ModuleFlags;
 }
 
-export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProps) {
+export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: SysmgmtNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -46,25 +49,29 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
     }
   };
 
-  const navItems = [
+  const isAssetEnabled = !moduleFlags || isModuleActive(moduleFlags, "asset_management");
+
+  const allNavItems = [
     {
       name: "Dashboard",
       href: "/dashboard",
       icon: LayoutDashboard,
       active: pathname === "/dashboard",
+      show: true,
     },
     {
       name: "Pengguna & Hak Akses",
       href: "/pengguna",
       icon: Users,
       active: pathname.startsWith("/pengguna"),
+      show: true,
     },
     {
       name: "Inventaris Aset",
       href: "/aset",
       icon: Layers,
       active: pathname.startsWith("/aset"),
-      badge: "Fase 6",
+      show: isAssetEnabled,
     },
     {
       name: "Dokumen & SOP",
@@ -72,6 +79,7 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
       icon: FileText,
       active: pathname.startsWith("/dokumen"),
       badge: "Fase 7",
+      show: true,
     },
     {
       name: "Buku Besar Audit Log",
@@ -79,8 +87,11 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
       icon: History,
       active: pathname.startsWith("/audit"),
       badge: "Fase 8",
+      show: true,
     },
   ];
+
+  const navItems = allNavItems.filter((item) => item.show);
 
   return (
     <header className="bg-white border-b border-slate-200/90 sticky top-0 z-40">
