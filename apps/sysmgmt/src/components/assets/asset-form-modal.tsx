@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SerializedAsset } from "@/server/queries/asset.queries";
 import { createAssetAction, updateAssetAction } from "@/server/actions/asset.actions";
@@ -37,85 +37,60 @@ const COMMON_ASSET_TYPES = [
   "Lainnya",
 ];
 
-export function AssetFormModal({
-  isOpen,
+function AssetFormInnerModal({
   onClose,
   asset,
   suggestedTagIt,
   suggestedTagNonIt,
-}: AssetFormModalProps) {
+}: {
+  onClose: () => void;
+  asset?: SerializedAsset | null;
+  suggestedTagIt: string;
+  suggestedTagNonIt: string;
+}) {
   const router = useRouter();
   const isEdit = Boolean(asset);
 
-  const [category, setCategory] = useState<"IT" | "NON_IT">("IT");
-  const [type, setType] = useState("Laptop");
-  const [customType, setCustomType] = useState("");
-  const [name, setName] = useState("");
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [serialNumber, setSerialNumber] = useState("");
-  const [assetTag, setAssetTag] = useState("");
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [purchasePrice, setPurchasePrice] = useState<number | "">("");
-  const [status, setStatus] = useState<"IN_STOCK" | "ASSIGNED" | "MAINTENANCE" | "RETIRED" | "LOST">(
-    "IN_STOCK",
+  const [category, setCategory] = useState<"IT" | "NON_IT">(asset?.category || "IT");
+  const [type, setType] = useState(() => {
+    if (!asset) return "Laptop";
+    return COMMON_ASSET_TYPES.includes(asset.type) ? asset.type : "Lainnya";
+  });
+  const [customType, setCustomType] = useState(() => {
+    if (!asset) return "";
+    return COMMON_ASSET_TYPES.includes(asset.type) ? "" : asset.type;
+  });
+  const [name, setName] = useState(asset?.name || "");
+  const [brand, setBrand] = useState(asset?.brand || "");
+  const [model, setModel] = useState(asset?.model || "");
+  const [serialNumber, setSerialNumber] = useState(asset?.serialNumber || "");
+  const [assetTag, setAssetTag] = useState(() => {
+    if (asset?.assetTag) return asset.assetTag;
+    return suggestedTagIt;
+  });
+  const [purchaseDate, setPurchaseDate] = useState(() => {
+    if (asset?.purchaseDate) {
+      return new Date(asset.purchaseDate).toISOString().split("T")[0] || "";
+    }
+    return new Date().toISOString().split("T")[0] || "";
+  });
+  const [purchasePrice, setPurchasePrice] = useState<number | "">(
+    asset?.purchasePrice !== undefined && asset?.purchasePrice !== null
+      ? asset.purchasePrice
+      : "",
   );
-  const [location, setLocation] = useState("");
-  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<"IN_STOCK" | "ASSIGNED" | "MAINTENANCE" | "RETIRED" | "LOST">(
+    asset?.status || "IN_STOCK",
+  );
+  const [location, setLocation] = useState(asset?.location || "Kantor PSPK");
+  const [notes, setNotes] = useState(asset?.notes || "");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Inisialisasi data form saat modal dibuka
-  useEffect(() => {
-    if (!isOpen) return;
-
-    if (asset) {
-      setCategory(asset.category);
-      if (COMMON_ASSET_TYPES.includes(asset.type)) {
-        setType(asset.type);
-        setCustomType("");
-      } else {
-        setType("Lainnya");
-        setCustomType(asset.type);
-      }
-      setName(asset.name);
-      setBrand(asset.brand || "");
-      setModel(asset.model || "");
-      setSerialNumber(asset.serialNumber || "");
-      setAssetTag(asset.assetTag);
-      setPurchaseDate(
-        asset.purchaseDate ? new Date(asset.purchaseDate).toISOString().split("T")[0] || "" : "",
-      );
-      setPurchasePrice(asset.purchasePrice ?? "");
-      setStatus(asset.status);
-      setLocation(asset.location || "");
-      setNotes(asset.notes || "");
-    } else {
-      // Mode tambah baru
-      setCategory("IT");
-      setType("Laptop");
-      setCustomType("");
-      setName("");
-      setBrand("");
-      setModel("");
-      setSerialNumber("");
-      setAssetTag(suggestedTagIt);
-      setPurchaseDate(new Date().toISOString().split("T")[0] || "");
-      setPurchasePrice("");
-      setStatus("IN_STOCK");
-      setLocation("Kantor PSPK");
-      setNotes("");
-    }
-    setErrorMsg(null);
-  }, [isOpen, asset, suggestedTagIt]);
-
-  if (!isOpen) return null;
-
   const handleCategoryChange = (newCat: "IT" | "NON_IT") => {
     setCategory(newCat);
     if (!isEdit) {
-      // Ganti saran tag sesuai kategori
       setAssetTag(newCat === "IT" ? suggestedTagIt : suggestedTagNonIt);
       if (newCat === "NON_IT" && type === "Laptop") {
         setType("Meja Kerja");
@@ -434,7 +409,11 @@ export function AssetFormModal({
               </label>
               <select
                 value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
+                onChange={(e) =>
+                  setStatus(
+                    e.target.value as "IN_STOCK" | "ASSIGNED" | "MAINTENANCE" | "RETIRED" | "LOST",
+                  )
+                }
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-[#102E50] focus:border-transparent outline-none"
               >
                 <option value="IN_STOCK">Tersedia di Gudang (IN_STOCK)</option>
@@ -505,4 +484,9 @@ export function AssetFormModal({
       </div>
     </div>
   );
+}
+
+export function AssetFormModal(props: AssetFormModalProps) {
+  if (!props.isOpen) return null;
+  return <AssetFormInnerModal key={props.asset?.id || "new-asset"} {...props} />;
 }
