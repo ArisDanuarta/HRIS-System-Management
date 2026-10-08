@@ -59,6 +59,16 @@ export interface AssetStats {
   nonItTotal: number;
 }
 
+export interface ActiveEmployeeOption {
+  id: string;
+  employeeNo: string;
+  fullName: string;
+  nickname: string | null;
+  workEmail: string;
+  departmentName: string;
+  positionTitle: string;
+}
+
 /**
  * Mengambil daftar inventaris aset dengan filter kategori, status, pencarian, dan pagination.
  */
