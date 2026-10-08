@@ -49,8 +49,29 @@ export const checkinAssetSchema = z.object({
   notes: z.string().optional().nullable(),
 });
 
+export const importAssetRowSchema = z.object({
+  assetTag: z.string().optional().nullable(),
+  name: z.string().min(2, "Nama aset minimal 2 karakter"),
+  category: assetCategorySchema.default("IT"),
+  type: z.string().min(1, "Tipe/jenis aset wajib diisi"),
+  brand: z.string().optional().nullable(),
+  model: z.string().optional().nullable(),
+  serialNumber: z.string().optional().nullable(),
+  status: assetStatusSchema.default("IN_STOCK"),
+  purchaseDate: z.string().optional().nullable(),
+  purchasePrice: z.number().min(0, "Harga pembelian tidak boleh negatif").optional().nullable(),
+  location: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export const importAssetsBatchSchema = z.object({
+  rows: z.array(importAssetRowSchema).min(1, "Minimal 1 baris aset untuk diimpor"),
+});
+
 export type CreateAssetInput = z.input<typeof createAssetSchema>;
 export type UpdateAssetInput = z.input<typeof updateAssetSchema>;
 export type DeleteAssetInput = z.input<typeof deleteAssetSchema>;
 export type CheckoutAssetInput = z.input<typeof checkoutAssetSchema>;
 export type CheckinAssetInput = z.input<typeof checkinAssetSchema>;
+export type ImportAssetRowInput = z.input<typeof importAssetRowSchema>;
+export type ImportAssetsBatchInput = z.input<typeof importAssetsBatchSchema>;

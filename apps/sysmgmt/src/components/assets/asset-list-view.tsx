@@ -8,6 +8,8 @@ import { AssetFormModal } from "./asset-form-modal";
 import { AssetDeleteModal } from "./asset-delete-modal";
 import { AssetCheckoutModal } from "./asset-checkout-modal";
 import { AssetCheckinModal } from "./asset-checkin-modal";
+import { AssetExcelImporterModal } from "./asset-excel-importer-modal";
+import { exportAssetsToXlsx } from "@/lib/excel-asset-templates";
 import { formatRupiah } from "@pspk/shared";
 import {
   Package,
@@ -28,6 +30,8 @@ import {
   UserCheck,
   RotateCcw,
   Eye,
+  FileSpreadsheet,
+  Upload,
 } from "lucide-react";
 
 interface AssetListViewProps {
@@ -44,6 +48,7 @@ interface AssetListViewProps {
   suggestedTagIt: string;
   suggestedTagNonIt: string;
   canWrite: boolean;
+  canImport?: boolean;
   isAssignmentModuleActive: boolean;
   employees?: ActiveEmployeeOption[];
   initialFilters: {
@@ -60,6 +65,7 @@ export function AssetListView({
   suggestedTagIt,
   suggestedTagNonIt,
   canWrite,
+  canImport = false,
   isAssignmentModuleActive,
   employees = [],
   initialFilters,
@@ -74,6 +80,7 @@ export function AssetListView({
 
   // State Modal
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<SerializedAsset | null>(null);
   const [deletingAsset, setDeletingAsset] = useState<SerializedAsset | null>(null);
   const [checkoutAsset, setCheckoutAsset] = useState<SerializedAsset | null>(null);
@@ -171,7 +178,30 @@ export function AssetListView({
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {/* Ekspor Excel */}
+          <button
+            type="button"
+            onClick={() => exportAssetsToXlsx(assets)}
+            title="Unduh daftar inventaris aset ke berkas Microsoft Excel (.xlsx)"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 hover:text-[#102E50] text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="hidden sm:inline">Ekspor Excel</span>
+          </button>
+
+          {/* Impor Excel */}
+          {canImport && (
+            <button
+              type="button"
+              onClick={() => setIsImportModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold rounded-lg transition-colors shadow-2xs"
+            >
+              <Upload className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Impor Excel</span>
+            </button>
+          )}
+
           <Link
             href="/pengguna?tab=modules"
             className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 hover:text-[#102E50] text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
@@ -639,6 +669,16 @@ export function AssetListView({
         isOpen={Boolean(checkinAsset)}
         onClose={() => setCheckinAsset(null)}
         asset={checkinAsset}
+      />
+
+      {/* Modal Impor Excel Massal */}
+      <AssetExcelImporterModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={() => {
+          setIsImportModalOpen(false);
+          router.refresh();
+        }}
       />
     </div>
   );

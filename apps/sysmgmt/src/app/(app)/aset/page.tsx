@@ -54,6 +54,7 @@ export default async function AssetPage({ searchParams }: AssetPageProps) {
   // Periksa izin baca aset
   const canRead = can(authCtx, "sysmgmt.asset.read:all");
   const canWrite = can(authCtx, "sysmgmt.asset.write:all");
+  const canImport = can(authCtx, "sysmgmt.asset.import:all") || canWrite;
 
   if (!canRead) {
     return (
@@ -108,6 +109,7 @@ export default async function AssetPage({ searchParams }: AssetPageProps) {
       suggestedTagIt={nextTagIt}
       suggestedTagNonIt={nextTagNonIt}
       canWrite={canWrite}
+      canImport={canImport}
       isAssignmentModuleActive={isAssignmentModuleActive}
       employees={employees}
       initialFilters={{

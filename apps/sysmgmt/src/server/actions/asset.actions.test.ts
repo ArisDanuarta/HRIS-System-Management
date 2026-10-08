@@ -5,6 +5,7 @@ import {
   deleteAssetAction,
   checkoutAssetAction,
   checkinAssetAction,
+  importAssetsBatchAction,
 } from "./asset.actions";
 
 // Mock next/headers & next/cache
@@ -42,6 +43,7 @@ const mockTx = {
     update: vi.fn(),
   },
   asset: {
+    create: vi.fn(),
     update: vi.fn(),
   },
 };
@@ -53,6 +55,8 @@ vi.mock("@pspk/db", async () => {
     prisma: {
       asset: {
         findUnique: vi.fn(),
+        findMany: vi.fn().mockResolvedValue([]),
+        findFirst: vi.fn().mockResolvedValue(null),
         create: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),
@@ -299,6 +303,115 @@ describe("asset.actions.ts", () => {
           data: { status: "IN_STOCK" },
         }),
       );
+    });
+  });
+
+  describe("importAssetsBatchAction", () => {
+    it("harus menolak jika baris data kosong", async () => {
+      const result = await importAssetsBatchAction({
+        rows: [],
+      });
+
+      expect(result.ok).toBe(false);
+    });
+
+    it("harus mendeteksi tag duplikat di database dan menandainya di failedRows", async () => {
+      const db = await import("@pspk/db");
+
+      vi.mocked(db.prisma.asset.findMany).mockResolvedValueOnce([
+        { assetTag: "PSPK-IT-2026-0001" },
+      ] as never);
+
+      const result = await importAssetsBatchAction({
+        rows: [
+          {
+            assetTag: "PSPK-IT-2026-0001",
+            name: "MacBook Air M2",
+            category: "IT",
+            type: "Laptop",
+            location: "Gudang IT",
+          },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.importedCount).toBe(0);
+        expect(result.failedRows).toHaveLength(1);
+        expect(result.failedRows[0]?.reason).toContain("sudah terdaftar di database");
+      }
+    });
+
+    it("harus mendeteksi tag duplikat di dalam batch yang sama", async () => {
+      const db = await import("@pspk/db");
+
+      vi.mocked(db.prisma.asset.findMany).mockResolvedValueOnce([] as never);
+
+      const result = await importAssetsBatchAction({
+        rows: [
+          {
+            assetTag: "PSPK-IT-2026-9999",
+            name: "Monitor Dell A",
+            category: "IT",
+            type: "Monitor",
+            location: "Lantai 2",
+          },
+          {
+            assetTag: "PSPK-IT-2026-9999",
+            name: "Monitor Dell B",
+            category: "IT",
+            type: "Monitor",
+            location: "Lantai 2",
+          },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.importedCount).toBe(1);
+        expect(result.failedRows).toHaveLength(1);
+        expect(result.failedRows[0]?.reason).toContain("duplikat di dalam berkas impor");
+      }
+    });
+
+    it("harus berhasil auto-generate tag dan menyimpan aset via $transaction", async () => {
+      const db = await import("@pspk/db");
+
+      vi.mocked(db.prisma.asset.findMany).mockResolvedValueOnce([] as never);
+      vi.mocked(db.prisma.asset.findFirst).mockResolvedValueOnce(null); // latest IT tag
+      vi.mocked(db.prisma.asset.findFirst).mockResolvedValueOnce(null); // latest Non-IT tag
+
+      const result = await importAssetsBatchAction({
+        rows: [
+          {
+            name: "Meja Kerja Stramm",
+            category: "NON_IT",
+            type: "Meja Kerja",
+            location: "Area Riset",
+            purchasePrice: 4500000,
+          },
+          {
+            name: "Lenovo ThinkPad T14",
+            category: "IT",
+            type: "Laptop",
+            location: "Gudang IT",
+            serialNumber: "SN12345678",
+          },
+        ],
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.importedCount).toBe(2);
+        expect(result.failedRows).toHaveLength(0);
+        expect(mockTx.asset.create).toHaveBeenCalledTimes(2);
+        expect(db.writeAudit).toHaveBeenCalledWith(
+          expect.objectContaining({
+            action: "IMPORT",
+            entityType: "Asset",
+          }),
+        );
+      }
     });
   });
 });

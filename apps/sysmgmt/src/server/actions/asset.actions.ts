@@ -12,11 +12,13 @@ import {
   deleteAssetSchema,
   checkoutAssetSchema,
   checkinAssetSchema,
+  importAssetsBatchSchema,
   CreateAssetInput,
   UpdateAssetInput,
   DeleteAssetInput,
   CheckoutAssetInput,
   CheckinAssetInput,
+  ImportAssetsBatchInput,
 } from "../schemas/asset.schema";
 
 async function getActorInfo() {
@@ -457,6 +459,217 @@ export async function checkinAssetAction(rawInput: CheckinAssetInput) {
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Terjadi kesalahan saat mencatat pengembalian aset.";
+    return { ok: false as const, error: message };
+  }
+}
+
+export interface FailedImportRow {
+  row: number;
+  name: string;
+  assetTag?: string;
+  reason: string;
+}
+
+/**
+ * Server Action: Impor massal data aset dari spreadsheet Excel (.xlsx).
+ * Menangani validasi tag unik, auto-generate tag jika kosong, batch insert, dan audit log.
+ */
+export async function importAssetsBatchAction(rawInput: ImportAssetsBatchInput) {
+  try {
+    const actor = await getActorInfo();
+    const parsed = importAssetsBatchSchema.parse(rawInput);
+    const { rows } = parsed;
+
+    if (rows.length === 0) {
+      return { ok: false as const, error: "Tidak ada baris data aset untuk diimpor." };
+    }
+
+    const currentYear = new Date().getFullYear();
+    const failedRows: FailedImportRow[] = [];
+    const validRowsToCreate: Array<{
+      category: "IT" | "NON_IT";
+      type: string;
+      name: string;
+      brand: string | null;
+      model: string | null;
+      serialNumber: string | null;
+      assetTag: string;
+      purchaseDate: Date | null;
+      purchasePrice: number | null;
+      status: "IN_STOCK" | "ASSIGNED" | "MAINTENANCE" | "RETIRED" | "LOST";
+      location: string | null;
+      notes: string | null;
+    }> = [];
+
+    // Kumpulkan tag aset yang sudah ada di database untuk deteksi duplikasi
+    const existingAssets = await prisma.asset.findMany({
+      select: { assetTag: true },
+    });
+    const existingTags = new Set(existingAssets.map((a) => a.assetTag.toUpperCase()));
+
+    // Kumpulkan sequence tertinggi terkini untuk auto-generate tag
+    const prefixIt = `PSPK-IT-${currentYear}-`;
+    const prefixNonIt = `PSPK-NON_IT-${currentYear}-`;
+
+    const [latestItTag, latestNonItTag] = await Promise.all([
+      prisma.asset.findFirst({
+        where: { assetTag: { startsWith: prefixIt } },
+        orderBy: { assetTag: "desc" },
+        select: { assetTag: true },
+      }),
+      prisma.asset.findFirst({
+        where: { assetTag: { startsWith: prefixNonIt } },
+        orderBy: { assetTag: "desc" },
+        select: { assetTag: true },
+      }),
+    ]);
+
+    const getSeqFromTag = (tag: string | null | undefined): number => {
+      if (!tag) return 0;
+      const m = tag.match(/-(\d+)$/);
+      return m && m[1] ? parseInt(m[1], 10) : 0;
+    };
+
+    let nextItSeq = getSeqFromTag(latestItTag?.assetTag);
+    let nextNonItSeq = getSeqFromTag(latestNonItTag?.assetTag);
+
+    const batchTagsInFlight = new Set<string>();
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i]!;
+      const rowNum = i + 1; // 1-indexed
+
+      let targetTag = (row.assetTag || "").trim();
+
+      if (targetTag.length > 0) {
+        const upperTag = targetTag.toUpperCase();
+        if (existingTags.has(upperTag)) {
+          failedRows.push({
+            row: rowNum,
+            name: row.name,
+            assetTag: targetTag,
+            reason: `Tag aset "${targetTag}" sudah terdaftar di database.`,
+          });
+          continue;
+        }
+
+        if (batchTagsInFlight.has(upperTag)) {
+          failedRows.push({
+            row: rowNum,
+            name: row.name,
+            assetTag: targetTag,
+            reason: `Tag aset "${targetTag}" duplikat di dalam berkas impor ini.`,
+          });
+          continue;
+        }
+
+        batchTagsInFlight.add(upperTag);
+      } else {
+        // Auto-generate tag berurutan
+        let generatedTag = "";
+        if (row.category === "IT") {
+          do {
+            nextItSeq += 1;
+            generatedTag = `${prefixIt}${String(nextItSeq).padStart(4, "0")}`;
+          } while (
+            existingTags.has(generatedTag.toUpperCase()) ||
+            batchTagsInFlight.has(generatedTag.toUpperCase())
+          );
+        } else {
+          do {
+            nextNonItSeq += 1;
+            generatedTag = `${prefixNonIt}${String(nextNonItSeq).padStart(4, "0")}`;
+          } while (
+            existingTags.has(generatedTag.toUpperCase()) ||
+            batchTagsInFlight.has(generatedTag.toUpperCase())
+          );
+        }
+
+        targetTag = generatedTag;
+        batchTagsInFlight.add(targetTag.toUpperCase());
+      }
+
+      // Validasi tanggal
+      let parsedDate: Date | null = null;
+      if (row.purchaseDate) {
+        const d = new Date(row.purchaseDate);
+        if (!isNaN(d.getTime())) {
+          parsedDate = d;
+        }
+      }
+
+      validRowsToCreate.push({
+        category: row.category,
+        type: row.type.trim(),
+        name: row.name.trim(),
+        brand: row.brand ? row.brand.trim() : null,
+        model: row.model ? row.model.trim() : null,
+        serialNumber: row.serialNumber ? row.serialNumber.trim() : null,
+        assetTag: targetTag,
+        purchaseDate: parsedDate,
+        purchasePrice:
+          row.purchasePrice !== undefined && row.purchasePrice !== null ? row.purchasePrice : null,
+        status: row.status || "IN_STOCK",
+        location: row.location ? row.location.trim() : null,
+        notes: row.notes ? row.notes.trim() : null,
+      });
+    }
+
+    // Eksekusi insert massal dalam transaksi
+    let importedCount = 0;
+    if (validRowsToCreate.length > 0) {
+      await prisma.$transaction(async (tx) => {
+        for (const item of validRowsToCreate) {
+          await tx.asset.create({
+            data: {
+              category: item.category,
+              type: item.type,
+              name: item.name,
+              brand: item.brand,
+              model: item.model,
+              serialNumber: item.serialNumber,
+              assetTag: item.assetTag,
+              purchaseDate: item.purchaseDate,
+              purchasePrice: item.purchasePrice,
+              status: item.status,
+              location: item.location,
+              notes: item.notes,
+            },
+          });
+          importedCount += 1;
+        }
+      });
+    }
+
+    // Tulis Audit Log
+    await writeAudit({
+      actorUserId: actor.userId,
+      actorEmail: actor.email,
+      app: "sysmgmt",
+      action: "IMPORT",
+      entityType: "Asset",
+      entityId: "batch",
+      after: {
+        totalSubmitted: rows.length,
+        importedCount,
+        failedCount: failedRows.length,
+      },
+      ip: actor.ip,
+      userAgent: actor.userAgent,
+    });
+
+    revalidatePath("/aset");
+    revalidatePath("/dashboard");
+
+    return {
+      ok: true as const,
+      importedCount,
+      failedRows,
+      totalProcessed: rows.length,
+    };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Terjadi kesalahan saat memproses impor massal aset.";
     return { ok: false as const, error: message };
   }
 }
