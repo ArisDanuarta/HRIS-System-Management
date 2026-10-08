@@ -6,7 +6,16 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { AppSwitcher } from "@pspk/ui";
 import { signOut } from "@pspk/auth/client";
-import { Users, Layers, FileText, History, LogOut, ChevronDown, ShieldCheck } from "lucide-react";
+import {
+  Users,
+  Layers,
+  FileText,
+  History,
+  LogOut,
+  ChevronDown,
+  ShieldCheck,
+  LayoutDashboard,
+} from "lucide-react";
 
 interface SysmgmtNavbarProps {
   user: {
@@ -38,6 +47,12 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
   };
 
   const navItems = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+      active: pathname === "/dashboard",
+    },
     {
       name: "Pengguna & Hak Akses",
       href: "/pengguna",
@@ -73,7 +88,7 @@ export function SysmgmtNavbar({ user, canAccessHris = false }: SysmgmtNavbarProp
         <div className="flex items-center justify-between h-16">
           {/* Sisi Kiri: Logo PSPK & Judul Sistem */}
           <div className="flex items-center gap-6">
-            <Link href="/pengguna" className="flex items-center gap-3">
+            <Link href="/dashboard" className="flex items-center gap-3">
               <div className="h-9 px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-2xs flex items-center justify-center">
                 <Image
                   src="/images/logo_pspk_horizontal_trimmed.png"

@@ -9,7 +9,7 @@ export default async function HomePage() {
   const session = await getSession(reqHeaders);
 
   if (session && session.user) {
-    redirect("/pengguna");
+    redirect("/dashboard");
   } else {
     redirect("/login");
   }
