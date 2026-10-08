@@ -1,4 +1,4 @@
-import React from "react";
+import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getSession, getAuthContext } from "@pspk/auth";
@@ -65,12 +65,12 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
         <p className="text-xs text-slate-500 leading-relaxed mb-6">
           Anda tidak memiliki wewenang untuk melihat detail data aset ini.
         </p>
-        <a
+        <Link
           href="/aset"
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#102E50] text-white text-xs font-semibold rounded-lg hover:bg-[#1a4473] transition-colors"
         >
           Kembali ke Direktori Aset
-        </a>
+        </Link>
       </div>
     );
   }

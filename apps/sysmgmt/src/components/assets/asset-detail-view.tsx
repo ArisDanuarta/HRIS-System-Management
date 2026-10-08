@@ -15,9 +15,7 @@ import { formatRupiah, formatDate, formatDateTime } from "@pspk/shared";
 import {
   ArrowLeft,
   Package,
-  Laptop,
   CheckCircle2,
-  Clock,
   Wrench,
   AlertCircle,
   MapPin,
@@ -25,14 +23,8 @@ import {
   Trash2,
   UserCheck,
   RotateCcw,
-  Calendar,
   User,
-  ShieldCheck,
   History,
-  FileText,
-  Building2,
-  Tag,
-  Hash,
 } from "lucide-react";
 
 interface AssetDetailViewProps {

@@ -11,7 +11,6 @@ import {
   AlertCircle,
   CheckCircle2,
   Calendar,
-  ClipboardList,
 } from "lucide-react";
 
 interface AssetCheckoutModalProps {

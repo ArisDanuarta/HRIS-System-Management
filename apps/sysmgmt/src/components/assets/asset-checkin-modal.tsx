@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   Calendar,
   User,
-  Package,
 } from "lucide-react";
 
 interface AssetCheckinModalProps {
