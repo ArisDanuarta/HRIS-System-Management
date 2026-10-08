@@ -108,7 +108,11 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
         action: "UPDATE",
         entityType: "UserRole",
         entityId: "user-2",
+        before: null,
+        after: null,
         ip: "127.0.0.1",
+        userAgent: "Mozilla/5.0",
+        requestId: "req-123",
       },
     ]);
 
