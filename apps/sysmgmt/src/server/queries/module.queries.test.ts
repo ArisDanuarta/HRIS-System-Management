@@ -24,15 +24,21 @@ describe("module.queries.ts", () => {
 
     const data = await getModuleGovernanceData();
 
-    expect(data.modules.length).toBe(6);
-    expect(data.stats.total).toBe(6);
-    // Secara default: 4 modul aktif (org_chart, org_struct, performance, timesheet), 2 nonaktif (recruitment, training)
-    expect(data.stats.activeCount).toBe(4);
+    expect(data.modules.length).toBe(8);
+    expect(data.stats.total).toBe(8);
+    // Secara default: 6 modul aktif (org_chart, org_struct, performance, timesheet, asset_management, asset_assignment), 2 nonaktif (recruitment, training)
+    expect(data.stats.activeCount).toBe(6);
     expect(data.stats.inactiveCount).toBe(2);
 
     const orgChart = data.modules.find((m) => m.moduleKey === "org_chart");
     expect(orgChart?.isEnabled).toBe(true);
     expect(orgChart?.updatedAt).toBeNull();
+
+    const assetMgmt = data.modules.find((m) => m.moduleKey === "asset_management");
+    expect(assetMgmt?.isEnabled).toBe(true);
+
+    const assetAss = data.modules.find((m) => m.moduleKey === "asset_assignment");
+    expect(assetAss?.isEnabled).toBe(true);
   });
 
   it("harus menimpa status modul sesuai record di database", async () => {

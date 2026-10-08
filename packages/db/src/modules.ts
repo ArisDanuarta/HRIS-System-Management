@@ -95,6 +95,32 @@ export const SYSTEM_MODULE_DEFINITIONS: SystemModuleDefinition[] = [
     affectedRoutes: ["/pelatihan"],
     impactDescription: "Mengontrol visibilitas dan ketersediaan modul pelatihan organisasi.",
   },
+  {
+    key: "module.asset_management.enabled",
+    moduleKey: "asset_management",
+    name: "Inventaris Aset Lembaga",
+    category: "sysmgmt",
+    description:
+      "Master katalog inventaris aset IT & Non-IT, nomor seri, status fisik, dan lokasi penempatan.",
+    defaultEnabled: true,
+    affectedNavItems: ["Inventaris Aset (/aset)"],
+    affectedRoutes: ["/aset"],
+    impactDescription:
+      "Mengontrol visibilitas dan ketersediaan portal inventaris aset lembaga di System Management.",
+  },
+  {
+    key: "module.asset_assignment.enabled",
+    moduleKey: "asset_assignment",
+    name: "Serah Terima & Peminjaman Aset",
+    category: "sysmgmt",
+    description:
+      "Alur serah terima perangkat ke staf, pencatatan kondisi fisik keluar/masuk, dan riwayat peminjaman.",
+    defaultEnabled: true,
+    affectedNavItems: ["Tombol Serah Terima Aset", "Tab Aset di Profil Pegawai HRIS"],
+    affectedRoutes: ["/aset/[id] (Tab Riwayat Peminjaman)"],
+    impactDescription:
+      "Jika dinonaktifkan, inventaris aset tetap berjalan normal sebagai katalog gudang tanpa alur peminjaman ke staf.",
+  },
 ];
 
 export type ModuleFlags = Record<string, boolean>;

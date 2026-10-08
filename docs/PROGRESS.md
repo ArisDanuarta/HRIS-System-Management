@@ -2,6 +2,31 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 1] Shell & Dashboard System Management (`apps/sysmgmt`) — 2026-10-08
+
+- **Status:** Selesai
+- **Scope & Solusi:**
+  1. **Backend Aggregator & Queries ([`dashboard.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/dashboard.queries.ts)):**
+     - Fungsi `getSysmgmtDashboardStats()` merangkum metrik ringkasan lintas skema database: total pengguna & verifikasi, total aset & utilisasi peminjaman, lisensi software & persentase kursi, dokumen/SOP aktif & draft, serta 10 feed log audit sistem terkini.
+     - Penanganan database kosong yang tangguh (*clean slate resilience*): kalkulasi utilisasi lisensi software dicegah dari *division by zero* / `NaN`.
+     - Unit tests [`dashboard.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/dashboard.queries.test.ts) (3 skenario pengujian lolos 100%).
+  2. **Rute & Proteksi Halaman ([`dashboard/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/dashboard/page.tsx)):**
+     - Halaman Dashboard dilindungi autentikasi sesi dan RBAC server-side (`sysmgmt.dashboard.read:all`, `sysmgmt.user.*`).
+     - Halaman root [`page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/page.tsx) otomatis mengarahkan (`redirect`) sesi yang valid ke `/dashboard`.
+     - Menu Dashboard pada navbar [`SysmgmtNavbar`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx) diaktifkan penuh tanpa badge "Coming Soon".
+  3. **Antarmuka Visual Eksekutif TI ([`dashboard-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/dashboard/dashboard-view.tsx)):**
+     - Sesuai spesifikasi Layar S1 (`md/design_stitch.md`):
+       - Header eksekutif dengan salam personal dan status kesehatan sistem real-time.
+       - 4 Kartu Statistik Metrik: Pengguna Sistem (dengan rasio 2FA/login), Inventaris Aset (dengan rasio peminjaman), Lisensi Software (dengan progress bar alokasi kursi), dan Dokumen & SOP (dengan rasio draft vs aktif).
+       - Bilah Akses Cepat (*Quick Action Pills*): Tambah Pengguna Baru, Catat Aset, Input Lisensi, Unggah SOP, dan Audit Log.
+       - Grid 12-kolom: Feed Log Audit Sistem Terkini (8-kolom) dengan badge aksi warna-warni, serta Panel Status Infrastruktur & Layanan PSPK (4-kolom).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket tanpa error
+  - `pnpm lint`: ✅ Lolos 0 error
+  - `pnpm test`: ✅ Lolos 14 test suite (95 tests lolos 100%)
+
+---
+
 ## Tahap B (System Management & HRIS): Tata Kelola Modul Sistem & Feature Flags Dinamis — 2026-10-07
 
 - **Status:** Selesai

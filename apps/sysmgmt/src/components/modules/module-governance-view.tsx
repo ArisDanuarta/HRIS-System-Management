@@ -24,6 +24,8 @@ import {
   ExternalLink,
   Layers,
   Sparkles,
+  Package,
+  ArrowLeftRight,
 } from "lucide-react";
 
 interface ModuleGovernanceViewProps {
@@ -37,6 +39,8 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   timesheet: Clock,
   recruitment: UserPlus,
   training: GraduationCap,
+  asset_management: Package,
+  asset_assignment: ArrowLeftRight,
 };
 
 export function ModuleGovernanceView({ governanceData }: ModuleGovernanceViewProps) {
