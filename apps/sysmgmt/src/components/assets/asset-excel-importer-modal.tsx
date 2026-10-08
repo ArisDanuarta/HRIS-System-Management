@@ -14,14 +14,12 @@ import {
   Info,
   Check,
   AlertTriangle,
-  Layers,
-  ArrowRight,
 } from "lucide-react";
 import {
   importAssetsBatchAction,
-  ImportAssetsBatchInput,
   FailedImportRow,
 } from "@/server/actions/asset.actions";
+import { ImportAssetsBatchInput } from "@/server/schemas/asset.schema";
 import { downloadAssetTemplateXlsx } from "@/lib/excel-asset-templates";
 import { formatRupiah } from "@pspk/shared";
 
