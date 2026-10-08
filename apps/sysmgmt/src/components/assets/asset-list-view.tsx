@@ -3,9 +3,11 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SerializedAsset, AssetStats } from "@/server/queries/asset.queries";
+import { SerializedAsset, AssetStats, ActiveEmployeeOption } from "@/server/queries/asset.queries";
 import { AssetFormModal } from "./asset-form-modal";
 import { AssetDeleteModal } from "./asset-delete-modal";
+import { AssetCheckoutModal } from "./asset-checkout-modal";
+import { AssetCheckinModal } from "./asset-checkin-modal";
 import { formatRupiah } from "@pspk/shared";
 import {
   Package,
@@ -23,6 +25,9 @@ import {
   ChevronRight,
   User,
   AlertCircle,
+  UserCheck,
+  RotateCcw,
+  Eye,
 } from "lucide-react";
 
 interface AssetListViewProps {
@@ -40,6 +45,7 @@ interface AssetListViewProps {
   suggestedTagNonIt: string;
   canWrite: boolean;
   isAssignmentModuleActive: boolean;
+  employees?: ActiveEmployeeOption[];
   initialFilters: {
     category: string;
     status: string;
@@ -55,6 +61,7 @@ export function AssetListView({
   suggestedTagNonIt,
   canWrite,
   isAssignmentModuleActive,
+  employees = [],
   initialFilters,
 }: AssetListViewProps) {
   const router = useRouter();
@@ -69,6 +76,8 @@ export function AssetListView({
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingAsset, setEditingAsset] = useState<SerializedAsset | null>(null);
   const [deletingAsset, setDeletingAsset] = useState<SerializedAsset | null>(null);
+  const [checkoutAsset, setCheckoutAsset] = useState<SerializedAsset | null>(null);
+  const [checkinAsset, setCheckinAsset] = useState<SerializedAsset | null>(null);
 
   // Handler update filter URL
   const applyFilters = (newCat?: string, newStat?: string, newSearch?: string, newPage?: number) => {
