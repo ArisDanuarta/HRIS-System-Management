@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { getSession, getUserProfile } from "@pspk/auth";
+import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import {
   ArrowLeft,
   Edit,
@@ -16,6 +17,7 @@ import {
   UserCheck,
   KeyRound,
   FolderArchive,
+  Laptop,
 } from "lucide-react";
 import {
   getEmployeeById,
@@ -28,6 +30,10 @@ import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
 import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
 import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-role-card";
 import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
+import {
+  EmployeeAssetsCard,
+  SerializedEmployeeAssetAssignment,
+} from "@/components/karyawan/employee-assets-card";
 
 export const dynamic = "force-dynamic";
 
@@ -61,15 +67,72 @@ export default async function EmployeeDetailPage({
   const managerTeamInfo =
     isManager && currentActorEmployee ? await getManagerTeamInfo(currentActorEmployee.id) : null;
 
-  const [employee, departments, managers] = await Promise.all([
+  const [employee, departments, managers, moduleFlags] = await Promise.all([
     getEmployeeById(id),
     getOrgStructureData(),
     getManagersList(),
+    getModuleFlags(prisma),
   ]);
 
   if (!employee) {
     notFound();
   }
+
+  const isAssetAssignmentActive = isModuleActive(moduleFlags, "asset_assignment");
+
+  const rawAssetAssignments = isAssetAssignmentActive
+    ? await prisma.assetAssignment.findMany({
+        where: { employeeId: id },
+        include: { asset: true },
+        orderBy: { assignedAt: "desc" },
+      })
+    : [];
+
+  const activeAssets: SerializedEmployeeAssetAssignment[] = rawAssetAssignments
+    .filter((a) => a.returnedAt === null)
+    .map((a) => ({
+      id: a.id,
+      assignedAt: a.assignedAt,
+      returnedAt: a.returnedAt,
+      conditionOut: a.conditionOut,
+      conditionIn: a.conditionIn,
+      notes: a.notes,
+      asset: {
+        id: a.asset.id,
+        assetTag: a.asset.assetTag,
+        name: a.asset.name,
+        category: a.asset.category,
+        type: a.asset.type,
+        brand: a.asset.brand,
+        model: a.asset.model,
+        serialNumber: a.asset.serialNumber,
+        location: a.asset.location,
+        status: a.asset.status,
+      },
+    }));
+
+  const returnedAssets: SerializedEmployeeAssetAssignment[] = rawAssetAssignments
+    .filter((a) => a.returnedAt !== null)
+    .map((a) => ({
+      id: a.id,
+      assignedAt: a.assignedAt,
+      returnedAt: a.returnedAt,
+      conditionOut: a.conditionOut,
+      conditionIn: a.conditionIn,
+      notes: a.notes,
+      asset: {
+        id: a.asset.id,
+        assetTag: a.asset.assetTag,
+        name: a.asset.name,
+        category: a.asset.category,
+        type: a.asset.type,
+        brand: a.asset.brand,
+        model: a.asset.model,
+        serialNumber: a.asset.serialNumber,
+        location: a.asset.location,
+        status: a.asset.status,
+      },
+    }));
 
   // Proteksi Akses Berbasis Peran:
   // 1. Super Admin, Admin HR, dan Admin IT memiliki akses institusi penuh
@@ -94,7 +157,12 @@ export default async function EmployeeDetailPage({
   }
 
   // Sanitasi Tab: Tab data sensitif dan akun hanya diizinkan untuk Admin HR / Super Admin
-  const effectiveTab = !isHrOrAdmin && (tab === "sensitif" || tab === "akun") ? "biodata" : tab;
+  let effectiveTab = tab;
+  if (!isHrOrAdmin && (tab === "sensitif" || tab === "akun")) {
+    effectiveTab = "biodata";
+  } else if (tab === "aset" && !isAssetAssignmentActive) {
+    effectiveTab = "biodata";
+  }
 
   const initial = employee.fullName.charAt(0).toUpperCase();
 
@@ -237,6 +305,20 @@ export default async function EmployeeDetailPage({
           <FolderArchive className="w-4 h-4 text-[#102E50]" />
           <span>Dokumen & Berkas ({employee.documents?.length || 0})</span>
         </Link>
+
+        {isAssetAssignmentActive && (
+          <Link
+            href={`/karyawan/${employee.id}?tab=aset`}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+              effectiveTab === "aset"
+                ? "border-[#102E50] text-[#102E50] bg-white"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Laptop className="w-4 h-4 text-[#102E50]" />
+            <span>Aset yang Dibawa ({activeAssets.length})</span>
+          </Link>
+        )}
 
         {isHrOrAdmin && (
           <Link
@@ -639,6 +721,16 @@ export default async function EmployeeDetailPage({
           documents={employee.documents || []}
           canUpload={isHrOrAdmin || currentActorEmployee?.id === employee.id}
           canDelete={isHrOrAdmin || currentActorEmployee?.id === employee.id}
+          isHrOrAdmin={isHrOrAdmin}
+        />
+      )}
+
+      {/* TAB 7: ASET & FASILITAS KERJA (Modular Feature Flag) */}
+      {isAssetAssignmentActive && effectiveTab === "aset" && (
+        <EmployeeAssetsCard
+          employeeName={employee.fullName}
+          activeAssignments={activeAssets}
+          returnedAssignments={returnedAssets}
           isHrOrAdmin={isHrOrAdmin}
         />
       )}

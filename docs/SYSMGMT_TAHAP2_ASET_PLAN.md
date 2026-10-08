@@ -75,9 +75,9 @@ Tahap 2 dibagi menjadi **5 Sub-Tahapan Terukur**:
      - `deleteAssetAction`: Hapus aset aman (dicegah jika sedang dipinjam).
   5. Membuat Unit Tests: `apps/sysmgmt/src/server/actions/asset.actions.test.ts` & `asset.queries.test.ts`.
 * **Crosscheck & Checklist Verifikasi:**
-  - [ ] Validasi tag aset unik (`assetTag`).
-  - [ ] Serialisasi nilai `purchasePrice` (Prisma Decimal) ke angka/string yang aman.
-  - [ ] Pengujian unit lolos via `pnpm test`.
+  - [x] Validasi tag aset unik (`assetTag`).
+  - [x] Serialisasi nilai `purchasePrice` (Prisma Decimal) ke angka/string yang aman.
+  - [x] Pengujian unit lolos via `pnpm test`.
 
 ---
 
@@ -100,9 +100,9 @@ Tahap 2 dibagi menjadi **5 Sub-Tahapan Terukur**:
   5. Memperbarui navbar [`SysmgmtNavbar`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx):
      - Menghilangkan badge nonaktif pada menu *"Inventaris Aset"* (`/aset`), menjadikannya menu aktif penuh.
 * **Crosscheck & Checklist Verifikasi:**
-  - [ ] CRUD data aset tersimpan aman di database PostgreSQL.
-  - [ ] Desain visual konsisten dengan brand identity PSPK (Navy & Gold).
-  - [ ] Validasi form client-side & server-side mencegah data tag duplikat.
+  - [x] CRUD data aset tersimpan aman di database PostgreSQL.
+  - [x] Desain visual konsisten dengan brand identity PSPK (Navy & Gold).
+  - [x] Validasi form client-side & server-side mencegah data tag duplikat.
 
 ---
 
@@ -126,9 +126,9 @@ Tahap 2 dibagi menjadi **5 Sub-Tahapan Terukur**:
        - Kolom pemegang barang di tabel digantikan status gudang.
        - Tab riwayat peminjaman disembunyikan.
 * **Crosscheck & Checklist Verifikasi:**
-  - [ ] Aset yang sedang `ASSIGNED` tidak bisa dipinjamkan ke staf lain (mencegah double-checkout).
-  - [ ] Aset yang di-checkout otomatis mengupdate status di database dalam `$transaction`.
-  - [ ] Mengubah status feature flag di `/pengguna?tab=modules` langsung merespons tampilan modul aset secara instan.
+  - [x] Aset yang sedang `ASSIGNED` tidak bisa dipinjamkan ke staf lain (mencegah double-checkout).
+  - [x] Aset yang di-checkout otomatis mengupdate status di database dalam `$transaction`.
+  - [x] Mengubah status feature flag di `/pengguna?tab=modules` langsung merespons tampilan modul aset secara instan.
 
 ---
 
@@ -143,8 +143,8 @@ Tahap 2 dibagi menjadi **5 Sub-Tahapan Terukur**:
      - Pratinjau tabel baris sebelum eksekusi transaksi (deteksi tag duplikat, format harga, dll).
   3. Server action impor massal: `importAssetsBatchAction` dengan transaksi batch dan audit trail `IMPORT_ASSETS`.
 * **Crosscheck & Checklist Verifikasi:**
-  - [ ] Parser membaca file `.xlsx` biner tanpa masalah regional delimiter.
-  - [ ] Laporan detail baris yang berhasil diimpor dan baris yang gagal.
+  - [x] Parser membaca file `.xlsx` biner tanpa masalah regional delimiter.
+  - [x] Laporan detail baris yang berhasil diimpor dan baris yang gagal.
 
 ---
 
@@ -162,5 +162,5 @@ Tahap 2 dibagi menjadi **5 Sub-Tahapan Terukur**:
      - `pnpm --filter @pspk/sysmgmt build` dan `pnpm --filter @pspk/hris build`.
   3. Memperbarui dokumentasi kemajuan di [`docs/PROGRESS.md`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/docs/PROGRESS.md).
 * **Crosscheck & Checklist Verifikasi:**
-  - [ ] 0 error TypeScript dan ESLint di seluruh workspace.
-  - [ ] Keterkaitan HRIS $\leftrightarrow$ Sysmgmt terverifikasi tanpa *circular dependency*.
+  - [x] 0 error TypeScript dan ESLint di seluruh workspace.
+  - [x] Keterkaitan HRIS $\leftrightarrow$ Sysmgmt terverifikasi tanpa *circular dependency*.

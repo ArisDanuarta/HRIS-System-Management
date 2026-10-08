@@ -2,6 +2,40 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 2] Modul Inventaris & Manajemen Aset Lembaga (`apps/sysmgmt` & `apps/hris`) — 2026-10-08
+
+- **Status:** Selesai (100% Seluruh Sub-Tahap 2A s.d 2E)
+- **Scope & Solusi Modular:**
+  1. **Arsitektur Modular & Feature Flags ([`@pspk/db/src/modules.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/src/modules.ts)):**
+     - Mendaftarkan dua feature flags: `module.asset_management.enabled` (Modul Inti Inventaris Aset) dan `module.asset_assignment.enabled` (Alur Serah Terima / Peminjaman Staf).
+     - Jika sub-modul serah terima dinonaktifkan di Tata Kelola Modul (`/pengguna?tab=modules`), sistem berjalan 100% normal sebagai katalog & inventaris gudang kantor (tombol peminjaman dan tab serah terima disembunyikan secara bersih).
+  2. **Backend Query, Schemas & Server Actions:**
+     - [`asset.schema.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/schemas/asset.schema.ts): Skema Zod untuk CRUD aset, penyerahan (*checkout*), pengembalian (*checkin*), dan impor massal (*batch import*).
+     - [`asset.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/asset.queries.ts): `getAssetsDirectory()` dengan filter multi-dimensi, `getAssetById()` dengan riwayat peminjaman, `getAssetStats()`, `getNextAssetTag()`, dan `getActiveEmployeesForAssignment()`.
+     - [`asset.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/asset.actions.ts): `createAssetAction`, `updateAssetAction`, `deleteAssetAction`, `checkoutAssetAction`, `checkinAssetAction`, dan `importAssetsBatchAction` dilengkapi proteksi transaksi `$transaction` dan pencatatan audit log terperinci.
+  3. **Antarmuka Direktori & Formulir Aset (`/aset`):**
+     - [`asset-list-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-list-view.tsx): 4 Kartu Ringkasan Metrik (Total Unit, Tersedia di Gudang, Sedang Dipinjam, Dalam Servis), tab filter Perangkat IT vs Fasilitas Non-IT, dropdown status, pencarian instan, dan paginasi.
+     - [`asset-form-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-form-modal.tsx): Modal tambah & ubah aset dengan helper auto-generate tag resmi PSPK (`PSPK-IT-YYYY-XXXX` / `PSPK-NON_IT-YYYY-XXXX`), nomor seri, tanggal beli, format harga Rupiah, dan lokasi fisik.
+     - [`asset-delete-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-delete-modal.tsx): Konfirmasi hapus aset yang aman (mencegah penghapusan aset yang sedang aktif dipinjam).
+  4. **Sub-Modul Serah Terima & Detail Aset (`/aset/[id]`):**
+     - [`asset-checkout-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-checkout-modal.tsx): Form serah terima barang ke pegawai aktif dari `hris.employees`, mencatat tanggal penyerahan, dan kondisi fisik awal (`conditionOut`).
+     - [`asset-checkin-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-checkin-modal.tsx): Form pengembalian barang, mencatat kondisi fisik masuk (`conditionIn`), dan menentukan status lanjutan aset (`IN_STOCK`, `MAINTENANCE`, `RETIRED`).
+     - [`asset-detail-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-detail-view.tsx): Tampilan spesifikasi perangkat lengkap, riwayat kronologis peminjaman, serta status penempatan fisik dan kartu identitas pemegang saat ini.
+  5. **Generator Template Excel & Wizard Impor Massal (.xlsx):**
+     - [`excel-asset-templates.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/lib/excel-asset-templates.ts): Generator template resmi 3 sheet (`Data Aset`, `Panduan Pengisian`, `Kamus Kategori & Tipe`) dan helper ekspor katalog aset ke spreadsheet Excel.
+     - [`asset-excel-importer-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-excel-importer-modal.tsx): Area drag & drop berkas Excel, parser tabel, pratinjau validasi baris siap vs bermasalah, serta eksekusi transaksi massal ber-audit trail.
+  6. **Integrasi Balik di HRIS (`apps/hris`):**
+     - Menambahkan Tab *"Aset yang Dibawa"* pada halaman detail pegawai ([`karyawan/[id]/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/karyawan/[id]/page.tsx)).
+     - Komponen [`EmployeeAssetsCard`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/karyawan/employee-assets-card.tsx) menyajikan daftar perangkat TI/fasilitas yang aktif dibawa oleh staf beserta riwayat pengembalian lampau (sangat penting untuk proses *offboarding/resign*).
+     - Tab dan query secara otomatis bersifat kondisional mengikuti status feature flag `module.asset_assignment.enabled`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 9 paket monorepo tanpa error
+  - `pnpm lint`: ✅ Lolos 0 error di seluruh workspace
+  - `pnpm test`: ✅ Lolos 16 test suite (112 tests lolos 100%)
+  - `pnpm build`: ✅ Build produksi `@pspk/sysmgmt` dan `@pspk/hris` berhasil sempurna
+
+---
+
 ## [Tahap 1] Shell & Dashboard System Management (`apps/sysmgmt`) — 2026-10-08
 
 - **Status:** Selesai
