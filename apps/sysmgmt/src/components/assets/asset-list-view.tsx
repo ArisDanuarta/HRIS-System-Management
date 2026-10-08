@@ -508,6 +508,42 @@ export function AssetListView({
                       {/* Aksi */}
                       <td className="py-3.5 px-4 align-top text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Tombol Serah Terima / Pengembalian (Hanya jika sub-modul assignment aktif) */}
+                          {canWrite && isAssignmentModuleActive && (
+                            <>
+                              {asset.status === "IN_STOCK" && (
+                                <button
+                                  type="button"
+                                  onClick={() => setCheckoutAsset(asset)}
+                                  title="Serah Terima ke Pegawai"
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded text-[11px] font-semibold transition-colors shadow-2xs"
+                                >
+                                  <UserCheck className="w-3 h-3" />
+                                  <span>Pinjamkan</span>
+                                </button>
+                              )}
+                              {asset.status === "ASSIGNED" && (
+                                <button
+                                  type="button"
+                                  onClick={() => setCheckinAsset(asset)}
+                                  title="Terima Pengembalian Aset"
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded text-[11px] font-semibold transition-colors shadow-2xs"
+                                >
+                                  <RotateCcw className="w-3 h-3" />
+                                  <span>Kembali</span>
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          <Link
+                            href={`/aset/${asset.id}`}
+                            title="Lihat Detail & Riwayat Aset"
+                            className="p-1.5 text-slate-400 hover:text-[#102E50] rounded-md hover:bg-slate-100 transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </Link>
+
                           {canWrite && (
                             <>
                               <button
@@ -588,6 +624,21 @@ export function AssetListView({
         isOpen={Boolean(deletingAsset)}
         onClose={() => setDeletingAsset(null)}
         asset={deletingAsset}
+      />
+
+      {/* Modal Checkout / Serah Terima */}
+      <AssetCheckoutModal
+        isOpen={Boolean(checkoutAsset)}
+        onClose={() => setCheckoutAsset(null)}
+        asset={checkoutAsset}
+        employees={employees}
+      />
+
+      {/* Modal Checkin / Pengembalian */}
+      <AssetCheckinModal
+        isOpen={Boolean(checkinAsset)}
+        onClose={() => setCheckinAsset(null)}
+        asset={checkinAsset}
       />
     </div>
   );

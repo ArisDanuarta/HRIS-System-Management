@@ -8,6 +8,7 @@ import {
   getAssetsDirectory,
   getAssetStats,
   getNextAssetTag,
+  getActiveEmployeesForAssignment,
 } from "@/server/queries/asset.queries";
 import { AssetListView } from "@/components/assets/asset-list-view";
 import { ShieldAlert } from "lucide-react";
@@ -84,7 +85,9 @@ export default async function AssetPage({ searchParams }: AssetPageProps) {
   const searchParam = resolvedParams.q || "";
   const pageParam = Math.max(1, parseInt(resolvedParams.page || "1", 10) || 1);
 
-  const [assetsData, stats, nextTagIt, nextTagNonIt] = await Promise.all([
+  const isAssignmentModuleActive = isModuleActive(moduleFlags, "asset_assignment");
+
+  const [assetsData, stats, nextTagIt, nextTagNonIt, employees] = await Promise.all([
     getAssetsDirectory({
       category: categoryParam,
       status: statusParam,
@@ -95,9 +98,8 @@ export default async function AssetPage({ searchParams }: AssetPageProps) {
     getAssetStats(),
     getNextAssetTag("IT"),
     getNextAssetTag("NON_IT"),
+    isAssignmentModuleActive ? getActiveEmployeesForAssignment() : Promise.resolve([]),
   ]);
-
-  const isAssignmentModuleActive = isModuleActive(moduleFlags, "asset_assignment");
 
   return (
     <AssetListView
@@ -107,6 +109,7 @@ export default async function AssetPage({ searchParams }: AssetPageProps) {
       suggestedTagNonIt={nextTagNonIt}
       canWrite={canWrite}
       isAssignmentModuleActive={isAssignmentModuleActive}
+      employees={employees}
       initialFilters={{
         category: categoryParam,
         status: statusParam,
