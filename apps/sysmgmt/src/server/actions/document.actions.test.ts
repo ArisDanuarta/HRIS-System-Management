@@ -154,7 +154,7 @@ describe("document.actions.ts", () => {
       expect(writeAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "CREATE",
-          entity: "Document",
+          entityType: "Document",
         }),
       );
     });
@@ -163,8 +163,10 @@ describe("document.actions.ts", () => {
   describe("uploadDocumentVersionAction", () => {
     it("berhasil mengunggah versi baru dengan kenaikan nomor versi", async () => {
       const { prisma, writeAudit } = await import("@pspk/db");
+      const validDocId = "e4a77918-2947-4977-8025-a1c6e144a29a";
+
       (prisma.document.findUnique as any).mockResolvedValueOnce({
-        id: "doc-uuid-1",
+        id: validDocId,
         code: "SOP-IT-001",
         visibility: "ALL_STAFF",
         versions: [{ versionNo: 1 }],
@@ -174,7 +176,7 @@ describe("document.actions.ts", () => {
         type: "application/pdf",
       });
       const formData = new FormData();
-      formData.set("documentId", "doc-uuid-1");
+      formData.set("documentId", validDocId);
       formData.set("changeNote", "Pembaruan jadwal snapshot mingguan");
       formData.set("file", fakeFile);
 
@@ -183,13 +185,13 @@ describe("document.actions.ts", () => {
           documentVersion: {
             create: vi.fn().mockResolvedValue({
               id: "ver-uuid-2",
-              documentId: "doc-uuid-1",
+              documentId: validDocId,
               versionNo: 2,
               fileName: "backup_sop_v2.pdf",
             }),
           },
           document: {
-            update: vi.fn().mockResolvedValue({ id: "doc-uuid-1" }),
+            update: vi.fn().mockResolvedValue({ id: validDocId }),
           },
         }),
       );
@@ -201,7 +203,7 @@ describe("document.actions.ts", () => {
       expect(writeAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "CREATE",
-          entity: "DocumentVersion",
+          entityType: "DocumentVersion",
         }),
       );
     });
@@ -238,7 +240,7 @@ describe("document.actions.ts", () => {
       expect(writeAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "UPDATE",
-          entity: "Document",
+          entityType: "Document",
         }),
       );
     });

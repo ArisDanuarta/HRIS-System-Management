@@ -32,6 +32,8 @@ async function getAuthenticatedUser(): Promise<{
   userId: string;
   userEmail: string;
   userName: string;
+  ip: string;
+  userAgent: string;
   authCtx: AuthContext;
 }> {
   const reqHeaders = await headers();
@@ -46,10 +48,15 @@ async function getAuthenticatedUser(): Promise<{
     throw new Error("Pengguna tidak aktif atau hak akses tidak valid.");
   }
 
+  const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+  const userAgent = reqHeaders.get("user-agent") || "unknown";
+
   return {
     userId: session.user.id,
     userEmail: session.user.email || "system@pspk.id",
     userName: session.user.name || "Administrator",
+    ip,
+    userAgent,
     authCtx,
   };
 }
@@ -213,11 +220,12 @@ export async function createDocumentAction(formData: FormData) {
     // Audit log
     await writeAudit({
       actorUserId: userId,
+      actorEmail: userEmail,
       app: "sysmgmt",
       action: "CREATE",
-      entity: "Document",
+      entityType: "Document",
       entityId: result.doc.id,
-      details: {
+      after: {
         code: result.doc.code,
         title: result.doc.title,
         category: result.doc.category,
@@ -228,6 +236,8 @@ export async function createDocumentAction(formData: FormData) {
         sha256,
         uploader: userName,
       },
+      ip,
+      userAgent,
     });
 
     revalidatePath("/dokumen");
@@ -366,11 +376,12 @@ export async function uploadDocumentVersionAction(formData: FormData) {
 
     await writeAudit({
       actorUserId: userId,
+      actorEmail: userEmail,
       app: "sysmgmt",
       action: "CREATE",
-      entity: "DocumentVersion",
+      entityType: "DocumentVersion",
       entityId: result.id,
-      details: {
+      after: {
         documentId: doc.id,
         code: doc.code,
         versionNo: nextVersionNo,
@@ -380,6 +391,8 @@ export async function uploadDocumentVersionAction(formData: FormData) {
         changeNote: parsed.data.changeNote,
         uploader: userName,
       },
+      ip,
+      userAgent,
     });
 
     revalidatePath(`/dokumen`);
@@ -405,7 +418,7 @@ export async function uploadDocumentVersionAction(formData: FormData) {
  */
 export async function updateDocumentMetadataAction(formData: FormData) {
   try {
-    const { userId, userName, authCtx } = await getAuthenticatedUser();
+    const { userId, userEmail, userName, ip, userAgent, authCtx } = await getAuthenticatedUser();
 
     const hasManageAll = can(authCtx, "sysmgmt.document.manage:all");
     const hasManageHr = can(authCtx, "sysmgmt.document.manage:hr");
@@ -466,11 +479,12 @@ export async function updateDocumentMetadataAction(formData: FormData) {
 
     await writeAudit({
       actorUserId: userId,
+      actorEmail: userEmail,
       app: "sysmgmt",
       action: "UPDATE",
-      entity: "Document",
+      entityType: "Document",
       entityId: updated.id,
-      details: {
+      after: {
         code: updated.code,
         title: updated.title,
         category: updated.category,
@@ -478,6 +492,8 @@ export async function updateDocumentMetadataAction(formData: FormData) {
         status: updated.status,
         updater: userName,
       },
+      ip,
+      userAgent,
     });
 
     revalidatePath(`/dokumen`);
@@ -502,7 +518,7 @@ export async function updateDocumentMetadataAction(formData: FormData) {
  */
 export async function archiveDocumentAction(id: string, reason?: string) {
   try {
-    const { userId, userName, authCtx } = await getAuthenticatedUser();
+    const { userId, userEmail, userName, ip, userAgent, authCtx } = await getAuthenticatedUser();
 
     const hasManageAll = can(authCtx, "sysmgmt.document.manage:all");
     const hasManageHr = can(authCtx, "sysmgmt.document.manage:hr");
@@ -542,17 +558,21 @@ export async function archiveDocumentAction(id: string, reason?: string) {
 
     await writeAudit({
       actorUserId: userId,
+      actorEmail: userEmail,
       app: "sysmgmt",
       action: "UPDATE",
-      entity: "Document",
+      entityType: "Document",
       entityId: doc.id,
-      details: {
+      before: { status: doc.status },
+      after: {
         code: doc.code,
         previousStatus: doc.status,
         newStatus: "ARCHIVED",
         reason: parsed.data.reason || "Pengarsipan manual oleh administrator",
         archivedBy: userName,
       },
+      ip,
+      userAgent,
     });
 
     revalidatePath(`/dokumen`);
@@ -577,7 +597,7 @@ export async function archiveDocumentAction(id: string, reason?: string) {
  */
 export async function deleteDocumentAction(id: string) {
   try {
-    const { userId, userName, authCtx } = await getAuthenticatedUser();
+    const { userId, userEmail, userName, ip, userAgent, authCtx } = await getAuthenticatedUser();
 
     if (!can(authCtx, "sysmgmt.document.manage:all")) {
       return {
@@ -602,7 +622,7 @@ export async function deleteDocumentAction(id: string) {
 
     // Bersihkan file fisik di storage
     const storage = getStorageProvider();
-    for (const v of doc.versions) {
+    for (const v of doc.versions || []) {
       try {
         await storage.delete(v.fileKey);
       } catch (storageErr) {
@@ -616,15 +636,18 @@ export async function deleteDocumentAction(id: string) {
 
     await writeAudit({
       actorUserId: userId,
+      actorEmail: userEmail,
       app: "sysmgmt",
       action: "DELETE",
-      entity: "Document",
+      entityType: "Document",
       entityId: doc.id,
-      details: {
+      after: {
         code: doc.code,
         title: doc.title,
         deletedBy: userName,
       },
+      ip,
+      userAgent,
     });
 
     revalidatePath("/dokumen");

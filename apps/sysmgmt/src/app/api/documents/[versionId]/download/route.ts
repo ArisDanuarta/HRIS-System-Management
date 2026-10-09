@@ -81,13 +81,17 @@ export async function GET(
     const dispositionType = isPreview ? "inline" : "attachment";
 
     // Catat audit log pengunduhan / akses berkas
+    const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
     await writeAudit({
       actorUserId: session.user.id,
+      actorEmail: session.user.email || "system@pspk.id",
       app: "sysmgmt",
       action: isPreview ? "VIEW" : "EXPORT",
-      entity: "DocumentVersion",
+      entityType: "DocumentVersion",
       entityId: version.id,
-      details: {
+      after: {
         documentId: version.document.id,
         documentCode: version.document.code,
         versionNo: version.versionNo,
@@ -95,6 +99,8 @@ export async function GET(
         sizeBytes: version.sizeBytes,
         mode: isPreview ? "preview" : "download",
       },
+      ip,
+      userAgent,
     });
 
     const safeFileName = encodeURIComponent(version.fileName).replace(/['()]/g, escape);
