@@ -84,9 +84,9 @@ Tahap 3 dibagi menjadi **4 Sub-Tahapan Terukur**:
      - `apps/sysmgmt/src/server/actions/license.actions.test.ts`
 
 * **Checklist Verifikasi:**
-  - [ ] Enkripsi dan dekripsi menggunakan AES-256-GCM dari `@pspk/shared`.
-  - [ ] Kunci lisensi plain text **tidak pernah** masuk ke dalam detail audit log.
-  - [ ] Seluruh unit test query & action lolos 100%.
+  - [x] Enkripsi dan dekripsi menggunakan AES-256-GCM dari `@pspk/shared`.
+  - [x] Kunci lisensi plain text **tidak pernah** masuk ke dalam detail audit log.
+  - [x] Seluruh unit test query & action lolos 100%.
 
 ---
 

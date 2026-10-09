@@ -244,7 +244,19 @@ describe("license.actions.ts", () => {
         updatedAt: new Date(),
       });
 
-      vi.mocked(db.prisma.softwareLicense.delete).mockResolvedValueOnce({} as any);
+      vi.mocked(db.prisma.softwareLicense.delete).mockResolvedValueOnce({
+        id: "lic-del",
+        name: "Old Software",
+        vendor: "Old Vendor",
+        licenseKeyEnc: null,
+        seatsTotal: 10,
+        seatsUsed: 0,
+        purchaseDate: null,
+        expiresAt: null,
+        notes: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
 
       const res = await deleteLicenseAction({ id: "lic-del" });
 

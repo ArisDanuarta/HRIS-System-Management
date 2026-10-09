@@ -2,6 +2,31 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 3] Modul Manajemen Lisensi Perangkat Lunak (`apps/sysmgmt`) — 2026-10-09
+
+- **Status:** Dalam Pengerjaan (Sub-Tahap 3A Selesai 100%)
+- **Scope & Arsitektur Backend (Sub-Tahap 3A):**
+  1. **Skema Validasi Zod ([`license.schema.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/schemas/license.schema.ts)):**
+     - `createLicenseSchema`: Validasi data input nama lisensi, vendor penyedia, alokasi kursi (`seatsTotal`, `seatsUsed`), tanggal pembelian & kedaluwarsa, kunci lisensi mentah, dan catatan.
+     - `updateLicenseSchema`: Dukungan pembaruan lisensi aman, termasuk toggle `clearLicenseKey` untuk mencabut kunci.
+     - `revealLicenseKeySchema` & `deleteLicenseSchema`: Skema terproteksi untuk alur unmask kunci dan penghapusan record.
+  2. **Query Database & Agregasi Statistik ([`license.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/license.queries.ts)):**
+     - `getLicensesDirectory()`: Menampilkan daftar lisensi dengan filter pencarian instan (nama/vendor/catatan), filter status (`EXPIRING_SOON`, `EXPIRED`, `FULL`, `AVAILABLE`, `PERPETUAL`), filter vendor, sortir utilisasi, dan paginasi. Kunci produk tetap masked (`hasLicenseKey: boolean`), tidak pernah diekspos di daftar.
+     - `getLicenseStats()`: Menghitung total lisensi, total kursi dialokasikan, utilisasi global %, jumlah lisensi segera kedaluwarsa (≤ 30 hari), sudah kedaluwarsa, dan kuota kritis (≥ 80%).
+     - `getLicenseById()`: Serialisasi record lisensi tunggal.
+  3. **Server Actions & Keamanan Kunci Terenkripsi ([`license.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/license.actions.ts)):**
+     - `createLicenseAction`: Enkripsi AES-256-GCM pada kunci produk via `encryptField()` dari `@pspk/shared`, proteksi izin `sysmgmt.license.manage:all`, audit log `CREATE SoftwareLicense` (tanpa membocorkan plain key ke dalam detail log).
+     - `updateLicenseAction`: Pembaruan data lisensi dan kunci dengan audit log `UPDATE SoftwareLicense`.
+     - `revealLicenseKeyAction`: Dekripsi kunci via `decryptField()`, wajib izin `sysmgmt.license.manage:all`, dan mewajibkan pencatatan kejadian audit `VIEW_SENSITIVE` dengan detail entitas dan alasan penelusuran.
+     - `deleteLicenseAction`: Hapus lisensi aman dengan audit log `DELETE SoftwareLicense`.
+  4. **Verifikasi Kualitas & Unit Tests:**
+     - [`license.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/license.queries.test.ts): 4 pengujian unit kalkulasi utilisasi, status kedaluwarsa, penyaring filter, dan kalkulasi statistik.
+     - [`license.actions.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/license.actions.test.ts): 5 pengujian alur enkripsi `CREATE`, `UPDATE`, dekripsi ter-audit `VIEW_SENSITIVE`, dan `DELETE`.
+     - `pnpm test`: ✅ 18 test suite (121 tests lolos 100%).
+     - `pnpm typecheck` & `pnpm lint`: ✅ 0 error di seluruh monorepo.
+
+---
+
 ## [Tahap 2] Modul Inventaris & Manajemen Aset Lembaga (`apps/sysmgmt` & `apps/hris`) — 2026-10-08
 
 - **Status:** Selesai (100% Seluruh Sub-Tahap 2A s.d 2E)
