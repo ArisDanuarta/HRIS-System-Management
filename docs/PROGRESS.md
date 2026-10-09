@@ -4,7 +4,17 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## [Tahap 3] Modul Manajemen Lisensi Perangkat Lunak (`apps/sysmgmt`) — 2026-10-09
 
-- **Status:** Dalam Pengerjaan (Sub-Tahap 3A Selesai 100%)
+- **Status:** Dalam Pengerjaan (Sub-Tahap 3A & 3B Selesai 100%)
+- **Scope & Solusi Sub-Tahap 3B (Antarmuka Direktori & Tabel Lisensi):**
+  1. **Rute Server Component ([`lisensi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/lisensi/page.tsx)):**
+     - Proteksi sesi login dan verifikasi hak akses RBAC `sysmgmt.license.read:all` (tampilan fallback ramah pengguna jika tidak berwenang).
+     - Fetch data paralel query direktori dan agregasi statistik dengan parameter URL dinamis (`q`, `status`, `vendor`, `page`).
+  2. **Antarmuka Direktori & 4 Kartu Metrik Ringkasan ([`license-list-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/licenses/license-list-view.tsx)):**
+     - Header eksekutif dengan deskripsi modul dan tombol pintasan "Tambah Lisensi".
+     - 4 Kartu Indikator Metrik: Total Lisensi (aktif vs kedaluwarsa), Alokasi Kursi Global (dengan visual progress bar real-time), Kuota Kritis (&ge; 80%), dan Peringatan Kedaluwarsa (≤ 30 hari atau expired).
+     - Toolbar penyaring terpadu: pencarian instan (nama/vendor/catatan), filter status (`ALL`, `EXPIRING_SOON`, `EXPIRED`, `FULL`, `AVAILABLE`, `PERPETUAL`), filter vendor unik dinamis, dan tombol reset.
+  3. **Tabel Interaktif Lisensi Software ([`license-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/licenses/license-table.tsx)):**
+     - Menampilkan nama tools, vendor badge, alokasi kursi staf dengan progress bar adaptif (hijau `<80%`, kuning `80-99%`, merah `100%`), tanggal masa berlaku dengan badge status presisi, masking kunci produk (`••••••••••••`) dengan tombol pemicu "Buka Kunci" ter-audit, serta pagination kontrol.
 - **Scope & Arsitektur Backend (Sub-Tahap 3A):**
   1. **Skema Validasi Zod ([`license.schema.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/schemas/license.schema.ts)):**
      - `createLicenseSchema`: Validasi data input nama lisensi, vendor penyedia, alokasi kursi (`seatsTotal`, `seatsUsed`), tanggal pembelian & kedaluwarsa, kunci lisensi mentah, dan catatan.

@@ -117,9 +117,9 @@ Tahap 3 dibagi menjadi **4 Sub-Tahapan Terukur**:
        - **Aksi**: Menu dropdown (Ubah Data, Hapus Lisensi).
 
 * **Checklist Verifikasi:**
-  - [ ] Progress bar utilisasi kursi memiliki warna adaptif sesuai rasio.
-  - [ ] Badge kedaluwarsa menghitung selisih hari dengan akurat (≤ 30 hari = amber, < 0 hari = rose).
-  - [ ] Antarmuka responsif dan selaras dengan standar desain PSPK.
+  - [x] Progress bar utilisasi kursi memiliki warna adaptif sesuai rasio.
+  - [x] Badge kedaluwarsa menghitung selisih hari dengan akurat (≤ 30 hari = amber, < 0 hari = rose).
+  - [x] Antarmuka responsif dan selaras dengan standar desain PSPK.
 
 ---
 
