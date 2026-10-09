@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DocumentVisibility, DocumentStatus } from "@pspk/db";
+import { DocumentStatus } from "@pspk/db";
 import {
   createDocumentAction,
   uploadDocumentVersionAction,
@@ -48,6 +48,34 @@ vi.mock("@pspk/storage", () => ({
   getStorageProvider: vi.fn(() => mockStorageProvider),
 }));
 
+const mockTx = {
+  document: {
+    create: vi.fn().mockResolvedValue({
+      id: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      code: "SOP-IT-001",
+      title: "SOP Backup Data",
+      category: "SOP IT & Keamanan",
+      visibility: "ALL_STAFF",
+      status: "ACTIVE",
+    }),
+    update: vi.fn().mockResolvedValue({
+      id: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      code: "SOP-IT-001",
+      title: "SOP Backup Data",
+      currentVersionId: "ver-uuid-1",
+    }),
+  },
+  documentVersion: {
+    create: vi.fn().mockResolvedValue({
+      id: "ver-uuid-1",
+      documentId: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      versionNo: 1,
+      fileName: "backup_sop.pdf",
+      sizeBytes: 1024,
+    }),
+  },
+};
+
 vi.mock("@pspk/db", async () => {
   const actual = await vi.importActual<typeof import("@pspk/db")>("@pspk/db");
   return {
@@ -64,34 +92,8 @@ vi.mock("@pspk/db", async () => {
         create: vi.fn(),
         findUnique: vi.fn(),
       },
-      $transaction: vi.fn((callback) =>
-        callback({
-          document: {
-            create: vi.fn().mockResolvedValue({
-              id: "doc-uuid-1",
-              code: "SOP-IT-001",
-              title: "SOP Backup Data",
-              category: "SOP IT & Keamanan",
-              visibility: "ALL_STAFF",
-              status: "ACTIVE",
-            }),
-            update: vi.fn().mockResolvedValue({
-              id: "doc-uuid-1",
-              code: "SOP-IT-001",
-              title: "SOP Backup Data",
-              currentVersionId: "ver-uuid-1",
-            }),
-          },
-          documentVersion: {
-            create: vi.fn().mockResolvedValue({
-              id: "ver-uuid-1",
-              documentId: "doc-uuid-1",
-              versionNo: 1,
-              fileName: "backup_sop.pdf",
-              sizeBytes: 1024,
-            }),
-          },
-        }),
+      $transaction: vi.fn(async (callback: (tx: typeof mockTx) => Promise<unknown>) =>
+        callback(mockTx),
       ),
     },
     writeAudit: vi.fn().mockResolvedValue(undefined),
@@ -117,8 +119,10 @@ describe("document.actions.ts", () => {
     });
 
     it("menolak jika kode dokumen duplikat", async () => {
-      const { prisma } = await import("@pspk/db");
-      (prisma.document.findUnique as any).mockResolvedValueOnce({ id: "existing-id" });
+      const db = await import("@pspk/db");
+      vi.mocked(db.prisma.document.findUnique).mockResolvedValueOnce({
+        id: "existing-id",
+      } as never);
 
       const fakeFile = new File(["dummy content"], "sop.pdf", { type: "application/pdf" });
       const formData = new FormData();
@@ -134,8 +138,8 @@ describe("document.actions.ts", () => {
     });
 
     it("berhasil mengunggah dokumen baru dan versi 1", async () => {
-      const { prisma, writeAudit } = await import("@pspk/db");
-      (prisma.document.findUnique as any).mockResolvedValueOnce(null);
+      const db = await import("@pspk/db");
+      vi.mocked(db.prisma.document.findUnique).mockResolvedValueOnce(null);
 
       const fakeFile = new File(["dummy pdf bytes"], "backup_sop.pdf", {
         type: "application/pdf",
@@ -151,7 +155,7 @@ describe("document.actions.ts", () => {
 
       expect(res.success).toBe(true);
       expect(mockStorageProvider.put).toHaveBeenCalledTimes(1);
-      expect(writeAudit).toHaveBeenCalledWith(
+      expect(db.writeAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "CREATE",
           entityType: "Document",
@@ -162,15 +166,15 @@ describe("document.actions.ts", () => {
 
   describe("uploadDocumentVersionAction", () => {
     it("berhasil mengunggah versi baru dengan kenaikan nomor versi", async () => {
-      const { prisma, writeAudit } = await import("@pspk/db");
+      const db = await import("@pspk/db");
       const validDocId = "e4a77918-2947-4977-8025-a1c6e144a29a";
 
-      (prisma.document.findUnique as any).mockResolvedValueOnce({
+      vi.mocked(db.prisma.document.findUnique).mockResolvedValueOnce({
         id: validDocId,
         code: "SOP-IT-001",
         visibility: "ALL_STAFF",
         versions: [{ versionNo: 1 }],
-      });
+      } as never);
 
       const fakeFile = new File(["dummy pdf v2 bytes"], "backup_sop_v2.pdf", {
         type: "application/pdf",
@@ -180,27 +184,25 @@ describe("document.actions.ts", () => {
       formData.set("changeNote", "Pembaruan jadwal snapshot mingguan");
       formData.set("file", fakeFile);
 
-      (prisma.$transaction as any).mockImplementationOnce((callback: any) =>
-        callback({
-          documentVersion: {
-            create: vi.fn().mockResolvedValue({
-              id: "ver-uuid-2",
-              documentId: validDocId,
-              versionNo: 2,
-              fileName: "backup_sop_v2.pdf",
-            }),
-          },
-          document: {
-            update: vi.fn().mockResolvedValue({ id: validDocId }),
-          },
-        }),
-      );
+      mockTx.documentVersion.create.mockResolvedValueOnce({
+        id: "ver-uuid-2",
+        documentId: validDocId,
+        versionNo: 2,
+        fileName: "backup_sop_v2.pdf",
+        sizeBytes: 2048,
+        mimeType: "application/pdf",
+        sha256: "mock-sha-2",
+        changeNote: "Pembaruan jadwal snapshot mingguan",
+        effectiveDate: new Date(),
+        createdById: "user-admin-1",
+        createdAt: new Date(),
+      });
 
       const res = await uploadDocumentVersionAction(formData);
 
       expect(res.success).toBe(true);
       expect(mockStorageProvider.put).toHaveBeenCalledTimes(1);
-      expect(writeAudit).toHaveBeenCalledWith(
+      expect(db.writeAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "CREATE",
           entityType: "DocumentVersion",
@@ -211,23 +213,26 @@ describe("document.actions.ts", () => {
 
   describe("updateDocumentMetadataAction", () => {
     it("berhasil memperbarui metadata dokumen", async () => {
-      const { prisma, writeAudit } = await import("@pspk/db");
-      (prisma.document.findUnique as any).mockResolvedValueOnce({
-        id: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      const db = await import("@pspk/db");
+      const validDocId = "e4a77918-2947-4977-8025-a1c6e144a29a";
+
+      vi.mocked(db.prisma.document.findUnique).mockResolvedValueOnce({
+        id: validDocId,
         code: "SOP-IT-001",
         visibility: "ALL_STAFF",
-      });
-      (prisma.document.update as any).mockResolvedValueOnce({
-        id: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      } as never);
+
+      vi.mocked(db.prisma.document.update).mockResolvedValueOnce({
+        id: validDocId,
         code: "SOP-IT-001",
         title: "SOP Backup & Disaster Recovery",
         category: "SOP IT & Keamanan",
         visibility: "IT_ONLY",
         status: "ACTIVE",
-      });
+      } as never);
 
       const formData = new FormData();
-      formData.set("id", "e4a77918-2947-4977-8025-a1c6e144a29a");
+      formData.set("id", validDocId);
       formData.set("title", "SOP Backup & Disaster Recovery");
       formData.set("category", "SOP IT & Keamanan");
       formData.set("visibility", "IT_ONLY");
@@ -236,8 +241,8 @@ describe("document.actions.ts", () => {
       const res = await updateDocumentMetadataAction(formData);
 
       expect(res.success).toBe(true);
-      expect(prisma.document.update).toHaveBeenCalledTimes(1);
-      expect(writeAudit).toHaveBeenCalledWith(
+      expect(db.prisma.document.update).toHaveBeenCalledTimes(1);
+      expect(db.writeAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "UPDATE",
           entityType: "Document",
@@ -248,52 +253,57 @@ describe("document.actions.ts", () => {
 
   describe("archiveDocumentAction", () => {
     it("berhasil mengubah status dokumen menjadi ARCHIVED", async () => {
-      const { prisma, writeAudit } = await import("@pspk/db");
-      (prisma.document.findUnique as any).mockResolvedValueOnce({
-        id: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      const db = await import("@pspk/db");
+      const validDocId = "e4a77918-2947-4977-8025-a1c6e144a29a";
+
+      vi.mocked(db.prisma.document.findUnique).mockResolvedValueOnce({
+        id: validDocId,
         code: "SOP-IT-001",
         status: "ACTIVE",
         visibility: "ALL_STAFF",
-      });
-      (prisma.document.update as any).mockResolvedValueOnce({
-        id: "e4a77918-2947-4977-8025-a1c6e144a29a",
-        status: "ARCHIVED",
-      });
+      } as never);
 
-      const res = await archiveDocumentAction(
-        "e4a77918-2947-4977-8025-a1c6e144a29a",
-        "Digantikan oleh kebijakan baru",
-      );
+      vi.mocked(db.prisma.document.update).mockResolvedValueOnce({
+        id: validDocId,
+        status: "ARCHIVED",
+      } as never);
+
+      const res = await archiveDocumentAction(validDocId, "Digantikan oleh kebijakan baru");
 
       expect(res.success).toBe(true);
-      expect(prisma.document.update).toHaveBeenCalledWith(
+      expect(db.prisma.document.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: { status: DocumentStatus.ARCHIVED },
         }),
       );
-      expect(writeAudit).toHaveBeenCalledTimes(1);
+      expect(db.writeAudit).toHaveBeenCalledTimes(1);
     });
   });
 
   describe("deleteDocumentAction", () => {
     it("menghapus dokumen dan membersihkan file storage", async () => {
-      const { prisma, writeAudit } = await import("@pspk/db");
-      (prisma.document.findUnique as any).mockResolvedValueOnce({
-        id: "e4a77918-2947-4977-8025-a1c6e144a29a",
+      const db = await import("@pspk/db");
+      const validDocId = "e4a77918-2947-4977-8025-a1c6e144a29a";
+
+      vi.mocked(db.prisma.document.findUnique).mockResolvedValueOnce({
+        id: validDocId,
         code: "SOP-IT-001",
         title: "SOP Backup Data",
         versions: [{ fileKey: "sysmgmt/documents/sop_it_001/v1.pdf" }],
-      });
-      (prisma.document.delete as any).mockResolvedValueOnce({ id: "e4a77918-2947-4977-8025-a1c6e144a29a" });
+      } as never);
 
-      const res = await deleteDocumentAction("e4a77918-2947-4977-8025-a1c6e144a29a");
+      vi.mocked(db.prisma.document.delete).mockResolvedValueOnce({
+        id: validDocId,
+      } as never);
+
+      const res = await deleteDocumentAction(validDocId);
 
       expect(res.success).toBe(true);
       expect(mockStorageProvider.delete).toHaveBeenCalledWith(
         "sysmgmt/documents/sop_it_001/v1.pdf",
       );
-      expect(prisma.document.delete).toHaveBeenCalledTimes(1);
-      expect(writeAudit).toHaveBeenCalledTimes(1);
+      expect(db.prisma.document.delete).toHaveBeenCalledTimes(1);
+      expect(db.writeAudit).toHaveBeenCalledTimes(1);
     });
   });
 });

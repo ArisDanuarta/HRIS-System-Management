@@ -4,8 +4,6 @@ import {
   canUserViewDocument,
   getAllowedVisibilitiesForRoles,
   getDocumentsDirectory,
-  getDocumentById,
-  getDocumentStats,
   getNextDocumentCode,
 } from "./document.queries";
 
@@ -112,8 +110,8 @@ describe("document.queries.ts", () => {
         },
       ];
 
-      (prisma.document.count as any).mockResolvedValue(1);
-      (prisma.document.findMany as any).mockResolvedValue(mockDocs);
+      vi.mocked(prisma.document.count).mockResolvedValueOnce(1);
+      vi.mocked(prisma.document.findMany).mockResolvedValueOnce(mockDocs as never);
 
       const result = await getDocumentsDirectory({}, ["staff"]);
 
@@ -129,10 +127,10 @@ describe("document.queries.ts", () => {
   describe("getNextDocumentCode", () => {
     it("menghasilkan kode sequential berdasarkan kategori SOP HR", async () => {
       const { prisma } = await import("@pspk/db");
-      (prisma.document.findMany as any).mockResolvedValue([
+      vi.mocked(prisma.document.findMany).mockResolvedValueOnce([
         { code: "SOP-HR-001" },
         { code: "SOP-HR-002" },
-      ]);
+      ] as never);
 
       const nextCode = await getNextDocumentCode("SOP HR & Kepegawaian");
       expect(nextCode).toBe("SOP-HR-003");
@@ -140,7 +138,7 @@ describe("document.queries.ts", () => {
 
     it("menghasilkan kode default jika belum ada dokumen sebelumnya", async () => {
       const { prisma } = await import("@pspk/db");
-      (prisma.document.findMany as any).mockResolvedValue([]);
+      vi.mocked(prisma.document.findMany).mockResolvedValueOnce([] as never);
 
       const nextCode = await getNextDocumentCode("Kebijakan Lembaga");
       expect(nextCode).toBe("KBJ-001");

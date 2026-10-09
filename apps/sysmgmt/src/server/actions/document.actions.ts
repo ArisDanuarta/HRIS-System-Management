@@ -82,7 +82,7 @@ function getSafeFileExtension(fileName: string, mimeType: string): string {
  */
 export async function createDocumentAction(formData: FormData) {
   try {
-    const { userId, userEmail, userName, authCtx } = await getAuthenticatedUser();
+    const { userId, userEmail, userName, ip, userAgent, authCtx } = await getAuthenticatedUser();
 
     // Verifikasi Hak Kelola Dokumen
     const hasManageAll = can(authCtx, "sysmgmt.document.manage:all");
@@ -262,7 +262,7 @@ export async function createDocumentAction(formData: FormData) {
  */
 export async function uploadDocumentVersionAction(formData: FormData) {
   try {
-    const { userId, userEmail, userName, authCtx } = await getAuthenticatedUser();
+    const { userId, userEmail, userName, ip, userAgent, authCtx } = await getAuthenticatedUser();
 
     const hasManageAll = can(authCtx, "sysmgmt.document.manage:all");
     const hasManageHr = can(authCtx, "sysmgmt.document.manage:hr");

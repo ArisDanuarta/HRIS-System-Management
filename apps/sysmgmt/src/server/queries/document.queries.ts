@@ -1,4 +1,4 @@
-import { prisma, DocumentVisibility, DocumentStatus } from "@pspk/db";
+import { prisma, Prisma, DocumentVisibility, DocumentStatus } from "@pspk/db";
 
 export interface DocumentDirectoryItem {
   id: string;
@@ -148,7 +148,7 @@ export async function getDocumentsDirectory(
   const allowedVisibilities = getAllowedVisibilitiesForRoles(userRoles);
 
   // Bangun klausa where
-  const where: any = {};
+  const where: Prisma.DocumentWhereInput = {};
 
   // 1. Visibilitas Guard
   if (params.visibility && params.visibility !== "ALL") {
