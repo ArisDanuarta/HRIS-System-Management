@@ -164,8 +164,8 @@ Tahap 3 dibagi menjadi **4 Sub-Tahapan Terukur**:
   4. Memperbarui catatan progres di `docs/PROGRESS.md`.
 
 * **Checklist Verifikasi:**
-  - [ ] Menu navbar `/lisensi` aktif dan menyorot rute aktif dengan tepat.
-  - [ ] Seluruh skenario pengujian unit & integrasi lolos tanpa regresi.
+  - [x] Menu navbar `/lisensi` aktif dan menyorot rute aktif dengan tepat.
+  - [x] Seluruh skenario pengujian unit & integrasi lolos tanpa regresi.
 
 ---
 

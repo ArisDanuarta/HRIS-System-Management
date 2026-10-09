@@ -9,6 +9,7 @@ import { signOut } from "@pspk/auth/client";
 import {
   Users,
   Layers,
+  KeyRound,
   FileText,
   History,
   LogOut,
@@ -72,6 +73,13 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
       icon: Layers,
       active: pathname.startsWith("/aset"),
       show: isAssetEnabled,
+    },
+    {
+      name: "Lisensi Software",
+      href: "/lisensi",
+      icon: KeyRound,
+      active: pathname.startsWith("/lisensi"),
+      show: true,
     },
     {
       name: "Dokumen & SOP",

@@ -102,8 +102,15 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
             href="/pengguna?tab=roles"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
           >
-            <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
             <span>Matriks Hak Akses (RBAC)</span>
+          </Link>
+          <Link
+            href="/lisensi"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+            <span>Lisensi Software</span>
           </Link>
           <Link
             href="/pengguna?tab=modules"
