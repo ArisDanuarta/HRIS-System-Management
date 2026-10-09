@@ -1,5 +1,4 @@
-import { prisma } from "@pspk/db";
-import { DocumentVisibility, DocumentStatus } from "@prisma/client";
+import { prisma, DocumentVisibility, DocumentStatus } from "@pspk/db";
 
 export interface DocumentDirectoryItem {
   id: string;

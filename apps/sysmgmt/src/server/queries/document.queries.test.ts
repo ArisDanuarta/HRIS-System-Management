@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DocumentVisibility, DocumentStatus } from "@prisma/client";
+import { DocumentVisibility, DocumentStatus } from "@pspk/db";
 import {
   canUserViewDocument,
   getAllowedVisibilitiesForRoles,

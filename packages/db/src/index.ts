@@ -60,6 +60,10 @@ export {
   AttendanceSource,
   LeaveStatus,
   ContractStatus,
+  AssetCategory,
+  AssetStatus,
+  DocumentVisibility,
+  DocumentStatus,
 } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./audit";

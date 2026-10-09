@@ -3,11 +3,10 @@
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import crypto from "node:crypto";
-import { prisma, writeAudit } from "@pspk/db";
+import { prisma, writeAudit, DocumentVisibility, DocumentStatus } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { can, AuthContext } from "@pspk/rbac";
 import { getStorageProvider } from "@pspk/storage";
-import { DocumentVisibility, DocumentStatus } from "@prisma/client";
 import {
   createDocumentSchema,
   uploadDocumentVersionSchema,
