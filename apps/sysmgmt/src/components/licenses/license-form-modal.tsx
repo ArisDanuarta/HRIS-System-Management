@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SerializedSoftwareLicense } from "@/server/queries/license.queries";
 import {
@@ -43,63 +43,43 @@ const COMMON_VENDORS = [
   "DigitalOcean",
 ];
 
-export function LicenseFormModal({
-  isOpen,
+function LicenseFormInnerModal({
   onClose,
   initialData,
-}: LicenseFormModalProps) {
+}: {
+  onClose: () => void;
+  initialData?: SerializedSoftwareLicense | null;
+}) {
   const router = useRouter();
   const isEditing = Boolean(initialData);
 
-  const [name, setName] = useState("");
-  const [vendor, setVendor] = useState("");
-  const [seatsTotal, setSeatsTotal] = useState<number | string>(1);
-  const [seatsUsed, setSeatsUsed] = useState<number | string>(0);
-  const [purchaseDate, setPurchaseDate] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
+  const [name, setName] = useState(initialData?.name || "");
+  const [vendor, setVendor] = useState(initialData?.vendor || "");
+  const [seatsTotal, setSeatsTotal] = useState<number | string>(
+    initialData ? initialData.seatsTotal : 1,
+  );
+  const [seatsUsed, setSeatsUsed] = useState<number | string>(
+    initialData ? initialData.seatsUsed : 0,
+  );
+  const [purchaseDate, setPurchaseDate] = useState(() => {
+    if (initialData?.purchaseDate) {
+      return new Date(initialData.purchaseDate).toISOString().split("T")[0] || "";
+    }
+    return "";
+  });
+  const [expiresAt, setExpiresAt] = useState(() => {
+    if (initialData?.expiresAt) {
+      return new Date(initialData.expiresAt).toISOString().split("T")[0] || "";
+    }
+    return "";
+  });
   const [licenseKey, setLicenseKey] = useState("");
   const [clearLicenseKey, setClearLicenseKey] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(initialData?.notes || "");
 
   const [showKeyText, setShowKeyText] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (initialData) {
-      setName(initialData.name);
-      setVendor(initialData.vendor || "");
-      setSeatsTotal(initialData.seatsTotal);
-      setSeatsUsed(initialData.seatsUsed);
-      setPurchaseDate(
-        initialData.purchaseDate
-          ? new Date(initialData.purchaseDate).toISOString().split("T")[0] || ""
-          : "",
-      );
-      setExpiresAt(
-        initialData.expiresAt
-          ? new Date(initialData.expiresAt).toISOString().split("T")[0] || ""
-          : "",
-      );
-      setLicenseKey("");
-      setClearLicenseKey(false);
-      setNotes(initialData.notes || "");
-    } else {
-      setName("");
-      setVendor("");
-      setSeatsTotal(1);
-      setSeatsUsed(0);
-      setPurchaseDate("");
-      setExpiresAt("");
-      setLicenseKey("");
-      setClearLicenseKey(false);
-      setNotes("");
-    }
-    setErrorMsg(null);
-    setShowKeyText(false);
-  }, [initialData, isOpen]);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -415,5 +395,21 @@ export function LicenseFormModal({
         </form>
       </div>
     </div>
+  );
+}
+
+export function LicenseFormModal({
+  isOpen,
+  onClose,
+  initialData,
+}: LicenseFormModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <LicenseFormInnerModal
+      key={initialData?.id || "new-license"}
+      onClose={onClose}
+      initialData={initialData}
+    />
   );
 }

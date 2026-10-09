@@ -8,6 +8,9 @@ import {
   LicensesDirectoryResult,
 } from "@/server/queries/license.queries";
 import { LicenseTable } from "./license-table";
+import { LicenseFormModal } from "./license-form-modal";
+import { LicenseKeyRevealModal } from "./license-key-reveal-modal";
+import { LicenseDeleteModal } from "./license-delete-modal";
 import {
   KeyRound,
   Plus,
@@ -30,10 +33,6 @@ interface LicenseListViewProps {
     vendor: string;
     page: number;
   };
-  onAddLicense?: () => void;
-  onEditLicense?: (license: SerializedSoftwareLicense) => void;
-  onDeleteLicense?: (license: SerializedSoftwareLicense) => void;
-  onRevealKey?: (license: SerializedSoftwareLicense) => void;
 }
 
 export function LicenseListView({
@@ -41,10 +40,6 @@ export function LicenseListView({
   stats,
   canManage,
   initialFilters,
-  onAddLicense,
-  onEditLicense,
-  onDeleteLicense,
-  onRevealKey,
 }: LicenseListViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,6 +47,12 @@ export function LicenseListView({
   const [searchInput, setSearchInput] = useState(initialFilters.search);
   const [selectedStatus, setSelectedStatus] = useState(initialFilters.status);
   const [selectedVendor, setSelectedVendor] = useState(initialFilters.vendor);
+
+  // State Modal
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingLicense, setEditingLicense] = useState<SerializedSoftwareLicense | null>(null);
+  const [deletingLicense, setDeletingLicense] = useState<SerializedSoftwareLicense | null>(null);
+  const [revealingLicense, setRevealingLicense] = useState<SerializedSoftwareLicense | null>(null);
 
   const applyFilters = (
     newSearch?: string,
@@ -122,7 +123,10 @@ export function LicenseListView({
           <div className="flex items-center gap-2.5">
             <button
               type="button"
-              onClick={onAddLicense}
+              onClick={() => {
+                setEditingLicense(null);
+                setIsFormModalOpen(true);
+              }}
               className="inline-flex items-center gap-2 px-4 py-2 bg-[#102E50] hover:bg-[#1a4473] text-white text-xs font-semibold rounded-xl transition-colors shadow-xs"
             >
               <Plus className="w-4 h-4" />
@@ -302,9 +306,16 @@ export function LicenseListView({
       <LicenseTable
         licenses={licensesData.licenses}
         canManage={canManage}
-        onEditLicense={onEditLicense}
-        onDeleteLicense={onDeleteLicense}
-        onRevealKey={onRevealKey}
+        onEditLicense={(license) => {
+          setEditingLicense(license);
+          setIsFormModalOpen(true);
+        }}
+        onDeleteLicense={(license) => {
+          setDeletingLicense(license);
+        }}
+        onRevealKey={(license) => {
+          setRevealingLicense(license);
+        }}
         pagination={{
           page: licensesData.page,
           totalPages: licensesData.totalPages,
@@ -312,6 +323,30 @@ export function LicenseListView({
           limit: licensesData.limit,
         }}
         onPageChange={(newPage) => applyFilters(searchInput, selectedStatus, selectedVendor, newPage)}
+      />
+
+      {/* Modal Form Tambah / Ubah Lisensi */}
+      <LicenseFormModal
+        isOpen={isFormModalOpen}
+        onClose={() => {
+          setIsFormModalOpen(false);
+          setEditingLicense(null);
+        }}
+        initialData={editingLicense}
+      />
+
+      {/* Modal Buka Kunci Lisensi (Audited VIEW_SENSITIVE) */}
+      <LicenseKeyRevealModal
+        isOpen={Boolean(revealingLicense)}
+        onClose={() => setRevealingLicense(null)}
+        license={revealingLicense}
+      />
+
+      {/* Modal Hapus Lisensi */}
+      <LicenseDeleteModal
+        isOpen={Boolean(deletingLicense)}
+        onClose={() => setDeletingLicense(null)}
+        license={deletingLicense}
       />
     </div>
   );

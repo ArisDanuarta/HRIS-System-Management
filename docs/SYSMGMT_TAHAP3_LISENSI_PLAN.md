@@ -142,9 +142,9 @@ Tahap 3 dibagi menjadi **4 Sub-Tahapan Terukur**:
      - Dialog konfirmasi hapus aman dengan detail nama lisensi dan jumlah kursi aktif.
 
 * **Checklist Verifikasi:**
-  - [ ] Aksi buka kunci berhasil memanggil `revealLicenseKeyAction` dan mencatat entri log `VIEW_SENSITIVE`.
-  - [ ] Fitur salin kunci ke clipboard berjalan mulus dengan notifikasi toast.
-  - [ ] Form tambah & ubah menangani nilai tanggal dan enkripsi dengan aman.
+  - [x] Aksi buka kunci berhasil memanggil `revealLicenseKeyAction` dan mencatat entri log `VIEW_SENSITIVE`.
+  - [x] Fitur salin kunci ke clipboard berjalan mulus dengan notifikasi toast.
+  - [x] Form tambah & ubah menangani nilai tanggal dan enkripsi dengan aman.
 
 ---
 

@@ -4,7 +4,16 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## [Tahap 3] Modul Manajemen Lisensi Perangkat Lunak (`apps/sysmgmt`) — 2026-10-09
 
-- **Status:** Dalam Pengerjaan (Sub-Tahap 3A & 3B Selesai 100%)
+- **Status:** Dalam Pengerjaan (Sub-Tahap 3A, 3B, & 3C Selesai 100%)
+- **Scope & Solusi Sub-Tahap 3C (Modal Form Tambah/Ubah, Buka Kunci Ter-Audit, & Hapus):**
+  1. **Modal Formulir Lisensi ([`license-form-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/licenses/license-form-modal.tsx)):**
+     - Mendukung mode Tambah dan mode Ubah dengan arsitektur `LicenseFormInnerModal` (bebas cascading renders effect).
+     - Input vendor dengan daftar rekomendasi cepat (*Google Cloud, Zoom, Microsoft, Figma, JetBrains, Canva, OpenAI, dll*), kapasitas kursi total & terpakai, tanggal beli/kedaluwarsa (opsional untuk lisensi lifetime), input kunci produk dengan toggle mata sembunyikan/tampilkan, serta checkbox hapus kunci tersimpan saat edit.
+  2. **Modal Buka Kunci Ter-Audit ([`license-key-reveal-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/licenses/license-key-reveal-modal.tsx)):**
+     - Langkah 1: Peringatan keamanan tegas bahwa pembukaan kunci dicatat dalam audit log `VIEW_SENSITIVE` dengan input alasan pembukaan.
+     - Langkah 2: Menampilkan kunci terdekripsi dalam wadah monospaced gelap kontras tinggi, tombol salin ke clipboard dengan feedback visual `Tersalin!`.
+  3. **Modal Hapus Lisensi Aman ([`license-delete-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/licenses/license-delete-modal.tsx)):**
+     - Dialog konfirmasi hapus aman dengan rincian nama lisensi, vendor, dan alokasi kursi aktif, memicu Server Action `deleteLicenseAction` ber-audit trail.
 - **Scope & Solusi Sub-Tahap 3B (Antarmuka Direktori & Tabel Lisensi):**
   1. **Rute Server Component ([`lisensi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/lisensi/page.tsx)):**
      - Proteksi sesi login dan verifikasi hak akses RBAC `sysmgmt.license.read:all` (tampilan fallback ramah pengguna jika tidak berwenang).
