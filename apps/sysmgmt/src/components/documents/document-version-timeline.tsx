@@ -2,12 +2,11 @@
 
 import React from "react";
 import { DocumentVersionDetail } from "@/server/queries/document.queries";
-import { formatDate, formatDateTime } from "@pspk/shared";
+import { formatDate } from "@pspk/shared";
 import {
   History,
   Download,
   Calendar,
-  User,
   CheckCircle2,
   FileText,
   FileCode,
@@ -15,8 +14,6 @@ import {
   File,
   Plus,
   MessageSquareText,
-  Clock,
-  ShieldCheck,
 } from "lucide-react";
 
 interface DocumentVersionTimelineProps {
@@ -98,7 +95,8 @@ export function DocumentVersionTimeline({
           <div className="relative pl-6 space-y-8 before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200">
             {versions.map((ver, idx) => {
               const isCurrent =
-                ver.isCurrent || (idx === 0 && !versions.some((v) => v.isCurrent));
+                ver.isCurrent ||
+                (currentVersionId ? ver.id === currentVersionId : idx === 0);
               const FileIconComponent = getFileIcon(ver.mimeType, ver.fileName);
               const downloadUrl = `/api/documents/${ver.id}/download`;
 

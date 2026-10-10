@@ -16,7 +16,6 @@ import {
   Calendar,
   User,
   HardDrive,
-  Hash,
 } from "lucide-react";
 
 interface DocumentPreviewCardProps {
@@ -114,7 +113,7 @@ export function DocumentPreviewCard({ version, code }: DocumentPreviewCardProps)
         <div className="flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-slate-500" />
           <span className="text-xs font-bold text-slate-800 uppercase tracking-wider font-serif">
-            Berkas Versi Terkini (v{version.versionNo})
+            {code} • Berkas Terkini (v{version.versionNo})
           </span>
         </div>
         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
