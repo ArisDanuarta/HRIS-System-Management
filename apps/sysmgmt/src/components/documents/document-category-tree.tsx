@@ -8,7 +8,6 @@ import {
   RotateCcw,
   SlidersHorizontal,
   FolderOpen,
-  Filter,
 } from "lucide-react";
 
 interface DocumentCategoryFilterProps {
