@@ -86,7 +86,6 @@ export function DocumentTable({
   documents,
   pagination,
   onPageChange,
-  canManage: _canManage,
 }: DocumentTableProps) {
   if (documents.length === 0) {
     return (
