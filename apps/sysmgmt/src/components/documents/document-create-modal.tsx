@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DocumentVisibility, DocumentStatus } from "@pspk/db";
 import {
@@ -11,9 +11,6 @@ import {
   X,
   UploadCloud,
   FileText,
-  FileCode,
-  FileSpreadsheet,
-  File,
   AlertCircle,
   Loader2,
   Sparkles,
@@ -57,15 +54,6 @@ export function DocumentCreateModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Ambil saran kode otomatis saat kategori berubah
-  useEffect(() => {
-    if (isOpen && category && !code) {
-      handleSuggestCode(category);
-    }
-  }, [isOpen, category]);
-
-  if (!isOpen) return null;
-
   const handleSuggestCode = async (cat: string) => {
     setIsLoadingCode(true);
     try {
@@ -77,6 +65,8 @@ export function DocumentCreateModal({
       setIsLoadingCode(false);
     }
   };
+
+  if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
