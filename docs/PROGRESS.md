@@ -2,6 +2,77 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 4] Modul Dokumen Kebijakan & SOP Lembaga (Layar S8 & S9) (`apps/sysmgmt`) — 2026-10-10
+
+- **Status:** Selesai (100% Seluruh Sub-Tahap 4A s.d 4E)
+- **Scope & Solusi Sub-Tahap 4E (Navigasi Navbar, Quick Action Dashboard & Quality Gate):**
+  1. **Navigasi Utama Sysmgmt ([`sysmgmt-navbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx)):**
+     - Mengaktifkan menu *"Dokumen & SOP"* (`/dokumen`, ikon `FileText`) secara penuh dengan menghapus penanda roadmap `"Fase 7"` dan mengaktifkan highlight rute aktif.
+  2. **Dashboard Eksekutif TI ([`dashboard-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/dashboard/dashboard-view.tsx)):**
+     - Menambahkan pintasan *"Dokumen & SOP"* pada bilah Aksi Cepat (*Quick Action Pills*) dan memastikan kartu metrik ringkasan dokumen terhubung langsung ke repositori `/dokumen`.
+  3. **Quality Gate Monorepo:**
+     - `pnpm typecheck`: ✅ Lolos 9 paket monorepo (0 error).
+     - `pnpm lint`: ✅ 0 error, 0 warning di seluruh workspace.
+     - `pnpm test`: ✅ 31 test suite (200 tests lolos 100%).
+     - `pnpm build`: ✅ Build produksi `@pspk/sysmgmt` sukses dengan rute dinamis `/dokumen` dan `/dokumen/[id]`.
+- **Scope & Solusi Sub-Tahap 4D (Dialog Modal Interaktif Dokumen):**
+  1. **Modal Unggah Dokumen Baru ([`document-create-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-create-modal.tsx)):**
+     - Formulir registrasi kebijakan/SOP baru: kategori dokumen, fitur *"Saran Otomatis"* kode (`getNextDocumentCodeAction`), judul, hak akses visibilitas (*Semua Staf, Manajer, Khusus HR, Khusus IT*), status (*Aktif/Draf*), tanggal efektif, dan catatan rilis awal.
+     - Dropzone berkas file versi awal (`v1`) dengan batas 25 MB (PDF, DOCX, XLSX).
+  2. **Modal Unggah Versi Baru ([`document-new-version-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-new-version-modal.tsx)):**
+     - Menghitung otomatis target nomor versi berikutnya (`vCurrent + 1`).
+     - Dropzone berkas revisi baru, tanggal efektif versi baru, dan input wajib *Catatan Perubahan / Poin Revisi* untuk rekam jejak audit amandemen kebijakan.
+  3. **Modal Ubah Metadata Dokumen ([`document-edit-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-edit-modal.tsx)):**
+     - Pembaruan judul, kategori, visibilitas hak akses, dan status (*Aktif, Draf, Diarsipkan*). Kode registrasi dipertahankan *read-only* demi integritas penomoran dokumen resmi lembaga.
+  4. **Modal Arsip & Hapus Permanen ([`document-archive-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-archive-modal.tsx)):**
+     - Mode Arsip: Mengalihkan status dokumen menjadi `ARCHIVED` via `archiveDocumentAction` dengan input alasan pengarsipan.
+     - Mode Hapus: Khusus Super Admin / Admin IT via `deleteDocumentAction` dengan pengaman ketik ulang kode dokumen untuk mencegah penghapusan tidak disengaja. Aksi ini membersihkan record database dan berkas fisik di disk storage.
+- **Scope & Solusi Sub-Tahap 4C (Layar S9: Detail Dokumen, Pratinjau & Riwayat Versi `/dokumen/[id]`):**
+  1. **Rute Server Component ([`dokumen/[id]/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/dokumen/[id]/page.tsx)):**
+     - Dynamic metadata per dokumen, proteksi autentikasi, verifikasi hak akses visibilitas pengguna, pemanggilan `getDocumentById()`, dan penanganan `notFound()`.
+  2. **Kartu Pratinjau Berkas Terkini ([`document-preview-card.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-preview-card.tsx)):**
+     - Hero card berkas aktif: format icon, ukuran file, tanggal efektif, nama & email pengunggah, tombol unduh berkas, tombol pratinjau tab baru (`?preview=true`), dan kotak verifikasi checksum SHA-256 dengan tombol salin hash ke clipboard.
+  3. **Garis Waktu Riwayat Versi (*Vertical Timeline Stepper*) ([`document-version-timeline.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-version-timeline.tsx)):**
+     - Menghubungkan seluruh iterasi versi (`vCurrent` $\to$ `v2` $\to$ `v1`) secara kronologis dengan pembeda visual versi aktif vs arsip lampau.
+     - Menampilkan kotak catatan revisi (*change notes*), info berkas, dan tombol unduh mandiri pada setiap kartu versi lampau.
+  4. **Kontainer Utama ([`document-detail-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-detail-view.tsx)):**
+     - Breadcrumbs navigasi, header detail dengan badge kode tebal, klasifikasi, status, visibilitas, tombol aksi pengelola (*Unggah Versi Baru, Ubah, Arsip, Hapus*), dan sidebar informasi tata kelola lembaga.
+- **Scope & Solusi Sub-Tahap 4B (Layar S8: Antarmuka Direktori & Repositori Dokumen `/dokumen`):**
+  1. **Rute Server Component ([`dokumen/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/dokumen/page.tsx)):**
+     - Proteksi sesi login dan verifikasi hak akses RBAC `sysmgmt.document.read:own`, `:team`, `:all`.
+     - Filter visibilitas otomatis berbasis peran pengguna (*Staff* hanya melihat `ALL_STAFF`, *Manager* melihat `ALL_STAFF` + `MANAGERS`, *Admin HR* melihat `HR_ONLY`, dsb.).
+     - Fetching paralel query direktori dan statistik metrik dengan URL query params dinamis.
+  2. **Kartu Metrik & Panel Kategori ([`document-stats-cards.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-stats-cards.tsx) & [`document-category-tree.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-category-tree.tsx)):**
+     - 4 Kartu metrik: Total Dokumen Aktif, Kebijakan Lembaga (SK & Regulasi), SOP Operasional, dan Dokumen Akses Terbatas.
+     - Category pills navigasi horisontal, bilah pencarian instan (kode/judul), dropdown status (*Aktif, Draf, Diarsipkan*), filter visibilitas hak akses, dan tombol reset.
+  3. **Tabel Interaktif Dokumen & SOP ([`document-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-table.tsx)):**
+     - Kolom kode registrasi unik (mis. `SOP-HR-001`), kategori, judul dokumen, badge nomor versi terkini (`v1`, `v2`, dll.), deteksi format berkas (PDF, DOCX, XLSX), ukuran berkas, badge visibilitas peran, status aktif, tanggal berlaku, dan tombol aksi unduh langsung/detail.
+- **Scope & Arsitektur Backend (Sub-Tahap 4A):**
+  1. **Enum & Schema Validasi Zod ([`document.schema.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/schemas/document.schema.ts)):**
+     - Ekspor runtime enum `DocumentVisibility` dan `DocumentStatus` pada `@pspk/db`.
+     - Skema validasi `createDocumentSchema`, `uploadDocumentVersionSchema`, `updateDocumentMetadataSchema`, `archiveDocumentSchema`, dan `deleteDocumentSchema`.
+  2. **Query Database & Guard Visibilitas ([`document.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/document.queries.ts)):**
+     - `canUserViewDocument()` & `getAllowedVisibilitiesForRoles()`: Penjaga hak akses visibilitas multi-role di application layer.
+     - `getDocumentsDirectory()`: Kueri pencarian, filter multi-dimensi, pemetaan versi terkini beserta `currentVersionId`, dan paginasi.
+     - `getDocumentById()`: Mengambil dokumen beserta riwayat versi lengkap terurut kronologis (`versionNo DESC`).
+     - `getDocumentStats()`: Agregasi metrik dokumen.
+     - `getNextDocumentCode()`: Auto-generator penomoran kode dokumen unik berurutan berdasarkan kategori.
+  3. **Server Actions & Penyimpanan Berkas ([`document.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/document.actions.ts)):**
+     - `createDocumentAction`: Simpan berkas fisik ke disk via `@pspk/storage`, hitung SHA-256 hash & ukuran, buat `Document` dan `DocumentVersion (v1)` via `$transaction`, catat audit log `CREATE Document`.
+     - `uploadDocumentVersionAction`: Simpan berkas versi baru, naikkan nomor versi (`vCurrent + 1`), mutasi `currentVersionId`, catat audit log `CREATE DocumentVersion`.
+     - `updateDocumentMetadataAction`: Mutasi judul, kategori, visibilitas, status ber-audit trail.
+     - `archiveDocumentAction`: Alihkan status ke `ARCHIVED` ber-audit trail.
+     - `deleteDocumentAction`: Hapus dokumen aman dan pembersihan berkas fisik storage ber-audit trail.
+     - `getNextDocumentCodeAction`: Server action wrapper untuk saran kode otomatis.
+  4. **Endpoint Streaming Terautentikasi ([`api/documents/[versionId]/download/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/api/documents/[versionId]/download/route.ts)):**
+     - Streaming file aman via Web `ReadableStream` dengan verifikasi sesi aktif, pengecekan otorisasi visibilitas dokumen, dukungan `?preview=true` (inline) dan attachment download, serta pencatatan audit log `DOWNLOAD`/`VIEW DocumentVersion`.
+  5. **Pengujian Unit (Unit Tests):**
+     - [`document.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/document.queries.test.ts): 10 skenario pengujian RBAC visibility filter, auto-generator kode dokumen, dan pemetaan versi terkini.
+     - [`document.actions.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/document.actions.test.ts): 7 skenario pengujian Server Actions ber-audit trail dan penanganan berkas.
+     - `pnpm test`: ✅ 200 tests lolos 100%.
+
+---
+
 ## [Tahap 3] Modul Manajemen Lisensi Perangkat Lunak (`apps/sysmgmt`) — 2026-10-09
 
 - **Status:** Selesai (100% Seluruh Sub-Tahap 3A s.d 3D)

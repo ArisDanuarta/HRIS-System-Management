@@ -86,7 +86,6 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
       href: "/dokumen",
       icon: FileText,
       active: pathname.startsWith("/dokumen"),
-      badge: "Fase 7",
       show: true,
     },
     {

@@ -113,6 +113,13 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
             <span>Lisensi Software</span>
           </Link>
           <Link
+            href="/dokumen"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
+          >
+            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Dokumen & SOP</span>
+          </Link>
+          <Link
             href="/pengguna?tab=modules"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
           >
