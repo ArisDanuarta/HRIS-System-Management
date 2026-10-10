@@ -7,6 +7,7 @@ export interface DocumentDirectoryItem {
   category: string;
   visibility: DocumentVisibility;
   status: DocumentStatus;
+  currentVersionId: string | null;
   createdAt: Date;
   updatedAt: Date;
   currentVersionNo: number;
@@ -200,6 +201,7 @@ export async function getDocumentsDirectory(
           orderBy: { versionNo: "desc" },
           take: 1,
           select: {
+            id: true,
             versionNo: true,
             fileName: true,
             sizeBytes: true,
@@ -223,6 +225,7 @@ export async function getDocumentsDirectory(
       category: doc.category,
       visibility: doc.visibility,
       status: doc.status,
+      currentVersionId: doc.currentVersionId || latestVersion?.id || null,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
       currentVersionNo: latestVersion ? latestVersion.versionNo : 1,
