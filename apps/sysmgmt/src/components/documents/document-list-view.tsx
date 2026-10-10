@@ -10,10 +10,10 @@ import { DocumentVisibility } from "@pspk/db";
 import { DocumentStatsCards } from "./document-stats-cards";
 import { DocumentCategoryTree } from "./document-category-tree";
 import { DocumentTable } from "./document-table";
+import { DocumentCreateModal } from "./document-create-modal";
 import {
   FolderArchive,
   Plus,
-  FileUp,
 } from "lucide-react";
 
 interface DocumentListViewProps {
@@ -190,31 +190,12 @@ export function DocumentListView({
         canManage={canManage}
       />
 
-      {/* Placeholder info jika modal create dipicu sebelum Tahap 4D */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-            <div className="w-12 h-12 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center mb-4">
-              <FileUp className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900 font-serif mb-1">
-              Unggah Dokumen Baru (Tahap 4D)
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed mb-6">
-              Modal formulir lengkap pengunggahan dokumen dan berkas versi awal (v1) disiapkan pada Sub-Tahap 4D. Backend actions dan endpoint storage sudah 100% siap.
-            </p>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsCreateModalOpen(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal Unggah Dokumen Baru */}
+      <DocumentCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        allowedVisibilities={allowedVisibilities}
+      />
     </div>
   );
 }

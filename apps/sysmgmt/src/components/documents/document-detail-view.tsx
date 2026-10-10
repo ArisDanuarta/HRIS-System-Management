@@ -7,6 +7,9 @@ import { DocumentVisibility, DocumentStatus } from "@pspk/db";
 import { formatDate, formatDateTime } from "@pspk/shared";
 import { DocumentPreviewCard } from "./document-preview-card";
 import { DocumentVersionTimeline } from "./document-version-timeline";
+import { DocumentNewVersionModal } from "./document-new-version-modal";
+import { DocumentEditModal } from "./document-edit-modal";
+import { DocumentArchiveModal } from "./document-archive-modal";
 import {
   ArrowLeft,
   Download,
@@ -23,7 +26,6 @@ import {
   Layers,
   Calendar,
   Building2,
-  FileUp,
 } from "lucide-react";
 
 interface DocumentDetailViewProps {
@@ -256,39 +258,48 @@ export function DocumentDetailView({
         </div>
       </div>
 
-      {/* Placeholder dialogs untuk Sub-Tahap 4D */}
-      {(isNewVersionModalOpen || isEditModalOpen || isArchiveModalOpen || isDeleteModalOpen) && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
-            <div className="w-12 h-12 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center mb-4">
-              <FileUp className="w-6 h-6" />
-            </div>
-            <h3 className="text-base font-bold text-slate-900 font-serif mb-1">
-              {isNewVersionModalOpen && "Unggah Versi Baru (Tahap 4D)"}
-              {isEditModalOpen && "Ubah Metadata Dokumen (Tahap 4D)"}
-              {isArchiveModalOpen && "Arsipkan Dokumen (Tahap 4D)"}
-              {isDeleteModalOpen && "Hapus Dokumen (Tahap 4D)"}
-            </h3>
-            <p className="text-xs text-slate-500 leading-relaxed mb-6">
-              Formulir interaktif ini disiapkan pada Sub-Tahap 4D. Backend actions, file storage put, dan auto-versioning sudah 100% siap.
-            </p>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsNewVersionModalOpen(false);
-                  setIsEditModalOpen(false);
-                  setIsArchiveModalOpen(false);
-                  setIsDeleteModalOpen(false);
-                }}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-              >
-                Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal Unggah Versi Baru */}
+      <DocumentNewVersionModal
+        isOpen={isNewVersionModalOpen}
+        onClose={() => setIsNewVersionModalOpen(false)}
+        documentId={doc.id}
+        documentCode={doc.code}
+        documentTitle={doc.title}
+        currentLatestVersionNo={doc.currentVersion?.versionNo || 1}
+      />
+
+      {/* Modal Ubah Metadata */}
+      <DocumentEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        document={doc}
+        allowedVisibilities={[
+          DocumentVisibility.ALL_STAFF,
+          DocumentVisibility.MANAGERS,
+          DocumentVisibility.HR_ONLY,
+          DocumentVisibility.IT_ONLY,
+        ]}
+      />
+
+      {/* Modal Arsip Dokumen */}
+      <DocumentArchiveModal
+        isOpen={isArchiveModalOpen}
+        onClose={() => setIsArchiveModalOpen(false)}
+        documentId={doc.id}
+        documentCode={doc.code}
+        documentTitle={doc.title}
+        mode="archive"
+      />
+
+      {/* Modal Hapus Dokumen Permanen */}
+      <DocumentArchiveModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        documentId={doc.id}
+        documentCode={doc.code}
+        documentTitle={doc.title}
+        mode="delete"
+      />
     </div>
   );
 }
