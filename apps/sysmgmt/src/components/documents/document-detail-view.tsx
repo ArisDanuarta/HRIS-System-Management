@@ -23,7 +23,6 @@ import {
   Layers,
   Calendar,
   Building2,
-  ShieldCheck,
   FileUp,
 } from "lucide-react";
 
@@ -42,6 +41,7 @@ export function DocumentDetailView({
   const [isNewVersionModalOpen, setIsNewVersionModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const downloadActiveUrl = doc.currentVersion
     ? `/api/documents/${doc.currentVersion.id}/download`
@@ -188,6 +188,18 @@ export function DocumentDetailView({
                 <Archive className="w-3.5 h-3.5" />
                 <span>Arsip</span>
               </button>
+
+              {canDelete && (
+                <button
+                  type="button"
+                  onClick={() => setIsDeleteModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
+                  title="Hapus Dokumen Permanen"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Hapus</span>
+                </button>
+              )}
             </>
           )}
         </div>
@@ -245,7 +257,7 @@ export function DocumentDetailView({
       </div>
 
       {/* Placeholder dialogs untuk Sub-Tahap 4D */}
-      {(isNewVersionModalOpen || isEditModalOpen || isArchiveModalOpen) && (
+      {(isNewVersionModalOpen || isEditModalOpen || isArchiveModalOpen || isDeleteModalOpen) && (
         <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
             <div className="w-12 h-12 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center mb-4">
@@ -255,6 +267,7 @@ export function DocumentDetailView({
               {isNewVersionModalOpen && "Unggah Versi Baru (Tahap 4D)"}
               {isEditModalOpen && "Ubah Metadata Dokumen (Tahap 4D)"}
               {isArchiveModalOpen && "Arsipkan Dokumen (Tahap 4D)"}
+              {isDeleteModalOpen && "Hapus Dokumen (Tahap 4D)"}
             </h3>
             <p className="text-xs text-slate-500 leading-relaxed mb-6">
               Formulir interaktif ini disiapkan pada Sub-Tahap 4D. Backend actions, file storage put, dan auto-versioning sudah 100% siap.
@@ -266,6 +279,7 @@ export function DocumentDetailView({
                   setIsNewVersionModalOpen(false);
                   setIsEditModalOpen(false);
                   setIsArchiveModalOpen(false);
+                  setIsDeleteModalOpen(false);
                 }}
                 className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
