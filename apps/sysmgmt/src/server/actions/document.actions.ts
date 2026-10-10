@@ -665,3 +665,12 @@ export async function deleteDocumentAction(id: string) {
     };
   }
 }
+
+/**
+ * Server Action: Dapatkan saran nomor kode dokumen berikutnya secara dinamis.
+ */
+export async function getNextDocumentCodeAction(category: string): Promise<string> {
+  const { getNextDocumentCode } = await import("../queries/document.queries");
+  return getNextDocumentCode(category);
+}
+
