@@ -181,13 +181,36 @@ export async function createDocumentAction(formData: FormData) {
       ? new Date(parsed.data.effectiveDate)
       : new Date();
 
+    // Sinkronisasi categoryId jika terdapat DocumentCategory yang cocok
+    let matchedCategoryId: string | null = null;
+    let finalCategoryName = parsed.data.category;
+
+    try {
+      const dbCat = await prisma.documentCategory.findFirst({
+        where: {
+          OR: [
+            { id: parsed.data.category },
+            { name: { equals: parsed.data.category, mode: "insensitive" } },
+          ],
+        },
+        select: { id: true, name: true },
+      });
+      if (dbCat) {
+        matchedCategoryId = dbCat.id;
+        finalCategoryName = dbCat.name;
+      }
+    } catch {
+      // Abaikan jika query kategori gagal
+    }
+
     // Transaksi database: Buat Document + Versi 1
     const result = await prisma.$transaction(async (tx) => {
       const doc = await tx.document.create({
         data: {
           code: parsed.data.code,
           title: parsed.data.title,
-          category: parsed.data.category,
+          category: finalCategoryName,
+          categoryId: matchedCategoryId,
           visibility: parsed.data.visibility,
           status: parsed.data.status,
           ownerId: userId,
@@ -467,11 +490,33 @@ export async function updateDocumentMetadataAction(formData: FormData) {
       };
     }
 
+    let matchedCategoryId: string | null = null;
+    let finalCategoryName = parsed.data.category;
+
+    try {
+      const dbCat = await prisma.documentCategory.findFirst({
+        where: {
+          OR: [
+            { id: parsed.data.category },
+            { name: { equals: parsed.data.category, mode: "insensitive" } },
+          ],
+        },
+        select: { id: true, name: true },
+      });
+      if (dbCat) {
+        matchedCategoryId = dbCat.id;
+        finalCategoryName = dbCat.name;
+      }
+    } catch {
+      // Abaikan jika pencarian gagal
+    }
+
     const updated = await prisma.document.update({
       where: { id: parsed.data.id },
       data: {
         title: parsed.data.title,
-        category: parsed.data.category,
+        category: finalCategoryName,
+        categoryId: matchedCategoryId,
         visibility: parsed.data.visibility,
         status: parsed.data.status,
       },

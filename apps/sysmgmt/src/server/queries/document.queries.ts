@@ -378,21 +378,55 @@ export async function getDocumentStats(
 
 /**
  * Memberikan saran kode dokumen otomatis berikutnya berdasarkan kategori.
+ * Membaca codePrefix dari master data DocumentCategory database dengan fallback heuristik.
  */
 export async function getNextDocumentCode(category: string): Promise<string> {
-  const cleanCat = (category || "").toLowerCase();
+  const cleanCat = (category || "").trim();
   let prefix = "SOP-";
 
-  if (cleanCat.includes("hr") || cleanCat.includes("pegawai") || cleanCat.includes("sdm")) {
-    prefix = "SOP-HR-";
-  } else if (cleanCat.includes("it") || cleanCat.includes("sistem") || cleanCat.includes("keamanan")) {
-    prefix = "SOP-IT-";
-  } else if (cleanCat.includes("keuangan") || cleanCat.includes("finansial") || cleanCat.includes("anggaran")) {
-    prefix = "SOP-KEU-";
-  } else if (cleanCat.includes("kebijakan")) {
-    prefix = "KBJ-";
-  } else if (cleanCat.includes("umum") || cleanCat.includes("operasional")) {
-    prefix = "SOP-UMUM-";
+  try {
+    const matchedCategory = await prisma.documentCategory.findFirst({
+      where: {
+        OR: [
+          { id: cleanCat },
+          { name: { equals: cleanCat, mode: "insensitive" } },
+          { codePrefix: { equals: cleanCat, mode: "insensitive" } },
+        ],
+      },
+      select: { codePrefix: true },
+    });
+
+    if (matchedCategory?.codePrefix) {
+      prefix = matchedCategory.codePrefix.endsWith("-")
+        ? matchedCategory.codePrefix
+        : `${matchedCategory.codePrefix}-`;
+    } else {
+      const lowerCat = cleanCat.toLowerCase();
+      if (lowerCat.includes("hr") || lowerCat.includes("pegawai") || lowerCat.includes("sdm")) {
+        prefix = "SOP-HR-";
+      } else if (lowerCat.includes("it") || lowerCat.includes("sistem") || lowerCat.includes("keamanan")) {
+        prefix = "SOP-IT-";
+      } else if (lowerCat.includes("keuangan") || lowerCat.includes("finansial") || lowerCat.includes("anggaran")) {
+        prefix = "SOP-KEU-";
+      } else if (lowerCat.includes("kebijakan")) {
+        prefix = "KBJ-";
+      } else if (lowerCat.includes("umum") || lowerCat.includes("operasional")) {
+        prefix = "SOP-UMUM-";
+      }
+    }
+  } catch {
+    const lowerCat = cleanCat.toLowerCase();
+    if (lowerCat.includes("hr") || lowerCat.includes("pegawai") || lowerCat.includes("sdm")) {
+      prefix = "SOP-HR-";
+    } else if (lowerCat.includes("it") || lowerCat.includes("sistem") || lowerCat.includes("keamanan")) {
+      prefix = "SOP-IT-";
+    } else if (lowerCat.includes("keuangan") || lowerCat.includes("finansial") || lowerCat.includes("anggaran")) {
+      prefix = "SOP-KEU-";
+    } else if (lowerCat.includes("kebijakan")) {
+      prefix = "KBJ-";
+    } else if (lowerCat.includes("umum") || lowerCat.includes("operasional")) {
+      prefix = "SOP-UMUM-";
+    }
   }
 
   const existingDocs = await prisma.document.findMany({
