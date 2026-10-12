@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SerializedAsset, AssetStats, ActiveEmployeeOption } from "@/server/queries/asset.queries";
+import { SerializedAssetType, SerializedAssetLocation } from "@/server/queries/settings.queries";
 import { AssetFormModal } from "./asset-form-modal";
 import { AssetDeleteModal } from "./asset-delete-modal";
 import { AssetCheckoutModal } from "./asset-checkout-modal";
@@ -51,6 +52,8 @@ interface AssetListViewProps {
   canImport?: boolean;
   isAssignmentModuleActive: boolean;
   employees?: ActiveEmployeeOption[];
+  assetTypes?: SerializedAssetType[];
+  assetLocations?: SerializedAssetLocation[];
   initialFilters: {
     category: string;
     status: string;
@@ -68,6 +71,8 @@ export function AssetListView({
   canImport = false,
   isAssignmentModuleActive,
   employees = [],
+  assetTypes,
+  assetLocations,
   initialFilters,
 }: AssetListViewProps) {
   const router = useRouter();
@@ -647,6 +652,8 @@ export function AssetListView({
         asset={editingAsset}
         suggestedTagIt={suggestedTagIt}
         suggestedTagNonIt={suggestedTagNonIt}
+        assetTypes={assetTypes}
+        assetLocations={assetLocations}
       />
 
       {/* Modal Hapus */}

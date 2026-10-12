@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { SerializedAsset } from "@/server/queries/asset.queries";
 import { createAssetAction, updateAssetAction } from "@/server/actions/asset.actions";
 import { formatRupiah } from "@pspk/shared";
+import { SerializedAssetType, SerializedAssetLocation } from "@/server/queries/settings.queries";
 import {
   X,
   Package,
@@ -13,6 +14,7 @@ import {
   AlertCircle,
   Laptop,
   CheckCircle2,
+  Settings,
 } from "lucide-react";
 
 interface AssetFormModalProps {
@@ -21,6 +23,8 @@ interface AssetFormModalProps {
   asset?: SerializedAsset | null;
   suggestedTagIt: string;
   suggestedTagNonIt: string;
+  assetTypes?: SerializedAssetType[];
+  assetLocations?: SerializedAssetLocation[];
 }
 
 const COMMON_ASSET_TYPES = [
@@ -42,23 +46,36 @@ function AssetFormInnerModal({
   asset,
   suggestedTagIt,
   suggestedTagNonIt,
+  assetTypes = [],
+  assetLocations = [],
 }: {
   onClose: () => void;
   asset?: SerializedAsset | null;
   suggestedTagIt: string;
   suggestedTagNonIt: string;
+  assetTypes?: SerializedAssetType[];
+  assetLocations?: SerializedAssetLocation[];
 }) {
   const router = useRouter();
   const isEdit = Boolean(asset);
 
   const [category, setCategory] = useState<"IT" | "NON_IT">(asset?.category || "IT");
+
+  const availableTypes = assetTypes.filter((t) => t.isActive && t.category === category);
+  const typeOptions =
+    availableTypes.length > 0
+      ? [...availableTypes.map((t) => t.name), "Lainnya"]
+      : category === "IT"
+        ? ["Laptop", "Monitor", "PC Desktop", "Printer & Scanner", "Router / Jaringan", "Proyektor", "Lainnya"]
+        : ["Meja Kerja", "Kursi Kerja", "Lemari Arsip", "Kendaraan Operasional", "Lainnya"];
+
   const [type, setType] = useState(() => {
-    if (!asset) return "Laptop";
-    return COMMON_ASSET_TYPES.includes(asset.type) ? asset.type : "Lainnya";
+    if (!asset) return typeOptions[0] || "Laptop";
+    return typeOptions.includes(asset.type) ? asset.type : "Lainnya";
   });
   const [customType, setCustomType] = useState(() => {
     if (!asset) return "";
-    return COMMON_ASSET_TYPES.includes(asset.type) ? "" : asset.type;
+    return typeOptions.includes(asset.type) ? "" : asset.type;
   });
   const [name, setName] = useState(asset?.name || "");
   const [brand, setBrand] = useState(asset?.brand || "");
