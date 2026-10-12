@@ -139,7 +139,7 @@ export async function getDocumentsDirectory(
     pageSize?: number;
     sortBy?: "code" | "title" | "updatedAt";
     sortOrder?: "asc" | "desc";
-  },
+  } = {},
   userRoles: string[] = ["super_admin"],
 ): Promise<DocumentDirectoryResult> {
   const page = Math.max(1, params.page || 1);
