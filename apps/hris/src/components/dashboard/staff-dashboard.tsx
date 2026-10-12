@@ -13,6 +13,8 @@ import {
   ShieldCheck,
   Plus,
   UserCheck,
+  Download,
+  ExternalLink,
 } from "lucide-react";
 import { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
 import { formatRupiah } from "@pspk/shared";
@@ -343,34 +345,115 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
         {/* Right Column: SOP & Documents (1 col) */}
         <div className="flex flex-col gap-6">
           <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-[#102e50] pb-2 border-b border-slate-100">
-              <BookOpen className="w-4 h-4 text-[#f2af3e]" />
-              <h3 className="text-xs font-bold uppercase tracking-wider">Dokumen & Panduan Staf</h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-[#102e50]">
+                <BookOpen className="w-4 h-4 text-[#f2af3e]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider">Dokumen & Panduan Staf</h3>
+              </div>
+              {data.publishedDocuments && data.publishedDocuments.length > 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#102e50] border border-blue-100">
+                  {data.publishedDocuments.length} Dokumen
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Akses cepat ketentuan kerja, pedoman cuti, dan standar operasional prosedur PSPK:
+              Akses cepat ketentuan kerja, pedoman cuti, dan standar operasional prosedur PSPK yang diterbitkan resmi:
             </p>
 
-            <div className="flex flex-col divide-y divide-slate-100 text-xs">
-              <div className="py-2.5 flex items-center justify-between">
-                <span className="font-semibold text-slate-700">Panduan Presensi & Cuti</span>
-                <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">
-                  SOP
-                </span>
+            {(!data.publishedDocuments || data.publishedDocuments.length === 0) ? (
+              <div className="py-6 px-3 text-center bg-slate-50/70 rounded-xl border border-dashed border-slate-200 text-xs text-slate-500">
+                <FileText className="w-6 h-6 text-slate-300 mx-auto mb-1.5" />
+                <p className="font-semibold text-slate-600">Belum ada dokumen SOP aktif</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Dokumen resmi yang diterbitkan via System Management akan tampil di sini.
+                </p>
               </div>
-              <div className="py-2.5 flex items-center justify-between">
-                <span className="font-semibold text-slate-700">Tata Kelola Riset & Etik</span>
-                <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded text-slate-600">
-                  SOP
-                </span>
+            ) : (
+              <div className="flex flex-col divide-y divide-slate-100 text-xs">
+                {data.publishedDocuments.map((doc) => {
+                  const latestVer = doc.currentVersion;
+                  const previewHref = latestVer
+                    ? `/api/documents/${latestVer.fileKey}?filename=${encodeURIComponent(latestVer.fileName)}`
+                    : null;
+                  const downloadHref = latestVer
+                    ? `/api/documents/${latestVer.fileKey}?download=true&filename=${encodeURIComponent(latestVer.fileName)}`
+                    : null;
+
+                  return (
+                    <div
+                      key={doc.id}
+                      className="py-3 flex items-center justify-between gap-2 hover:bg-slate-50/60 px-1 -mx-1 rounded-lg transition-colors group"
+                    >
+                      <div className="flex flex-col min-w-0 pr-1">
+                        {previewHref ? (
+                          <a
+                            href={previewHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-slate-800 hover:text-[#102e50] hover:underline line-clamp-1 flex items-center gap-1"
+                            title={`Buka ${doc.title}`}
+                          >
+                            <span>{doc.title}</span>
+                          </a>
+                        ) : (
+                          <span className="font-semibold text-slate-700 line-clamp-1">{doc.title}</span>
+                        )}
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                            {doc.code}
+                          </span>
+                          <span
+                            className={`text-[10px] px-1.5 py-0.2 rounded border font-medium ${
+                              doc.categoryColor === "emerald"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                : doc.categoryColor === "amber"
+                                  ? "bg-amber-50 text-amber-700 border-amber-200"
+                                  : doc.categoryColor === "purple"
+                                    ? "bg-purple-50 text-purple-700 border-purple-200"
+                                    : "bg-blue-50 text-[#102e50] border-blue-200"
+                            }`}
+                          >
+                            {doc.category}
+                          </span>
+                          {latestVer && (
+                            <span className="text-[10px] text-slate-400">
+                              v{latestVer.versionNo}.0
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {latestVer && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          {previewHref && (
+                            <a
+                              href={previewHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#eff4ff] text-[#102e50] hover:bg-[#dee9fc] text-[11px] font-bold transition-all shadow-2xs cursor-pointer"
+                              title={`Buka berkas ${latestVer.fileName}`}
+                            >
+                              <span>Buka</span>
+                              <ExternalLink className="w-3 h-3 text-[#102e50]" />
+                            </a>
+                          )}
+                          {downloadHref && (
+                            <a
+                              href={downloadHref}
+                              download={latestVer.fileName}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+                              title={`Unduh ${latestVer.fileName}`}
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              <div className="py-2.5 flex items-center justify-between">
-                <span className="font-semibold text-slate-700">Kalender Kerja Lembaga 2026</span>
-                <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-700 rounded font-bold">
-                  Resmi
-                </span>
-              </div>
-            </div>
+            )}
 
             <div className="pt-2 border-t border-slate-100">
               <div className="p-3 bg-[#eff4ff] rounded-lg text-xs text-[#102e50] flex items-start gap-2">

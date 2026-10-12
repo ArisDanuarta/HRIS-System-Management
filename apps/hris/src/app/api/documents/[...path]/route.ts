@@ -51,12 +51,18 @@ export async function GET(
       else contentType = "application/octet-stream";
     }
 
+    const { searchParams } = new URL(request.url);
+    const isDownload = searchParams.get("download") === "true";
+    const customFilename = searchParams.get("filename");
+    const rawFilename = customFilename || key.split("/").pop() || "document";
+    const disposition = isDownload ? "attachment" : "inline";
+
     return new Response(webStream, {
       status: 200,
       headers: {
         "Content-Type": contentType,
         "Content-Length": String(file.size),
-        "Content-Disposition": `inline; filename="${key.split("/").pop()}"`,
+        "Content-Disposition": `${disposition}; filename="${rawFilename}"`,
       },
     });
   } catch (err: unknown) {

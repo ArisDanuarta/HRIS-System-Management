@@ -16,6 +16,8 @@ import {
   BadgeCheck,
   Award,
   UserCheck,
+  Laptop,
+  Package,
 } from "lucide-react";
 import { formatDate } from "@pspk/shared";
 import type { UserProfileData } from "@/server/queries/profile.queries";
@@ -273,7 +275,86 @@ export function ProfileInfoTab({ profile }: ProfileInfoTabProps) {
         </div>
       )}
 
-      {/* 2. DATA AKUN & HAK AKSES SISTEM */}
+      {/* 2. FASILITAS & INVENTARIS ASET (SYSTEM MANAGEMENT) */}
+      {employee && (
+        <div className="bg-white rounded-2xl border border-[#dee9fc] shadow-xs overflow-hidden">
+          <div className="px-6 py-4.5 bg-gradient-to-r from-[#eff4ff]/80 to-white border-b border-[#dee9fc] flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#102e50] text-[#f2af3e] flex items-center justify-center shadow-xs">
+                <Laptop className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#102e50] font-heading leading-tight">
+                  Fasilitas & Aset Kantor yang Ditugaskan
+                </h3>
+                <p className="text-xs text-[#74777f] mt-0.5">
+                  Perangkat kerja lembaga yang dialokasikan resmi kepada Anda dari System Management
+                </p>
+              </div>
+            </div>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-[#102e50] border border-blue-200">
+              {employee.assignedAssets?.length || 0} Perangkat Aktif
+            </span>
+          </div>
+
+          <div className="p-6">
+            {!employee.assignedAssets || employee.assignedAssets.length === 0 ? (
+              <div className="p-8 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200 text-xs text-slate-500">
+                <Package className="w-7 h-7 text-slate-300 mx-auto mb-2" />
+                <p className="font-semibold text-slate-700">Belum ada aset kantor yang dialokasikan</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Penugasan laptop atau inventaris kerja oleh tim IT/Operasional akan otomatis tercatat di sini.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {employee.assignedAssets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="p-4 rounded-xl border border-slate-200/90 bg-white hover:border-[#102e50]/40 transition-all flex flex-col justify-between gap-3 shadow-2xs"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="font-mono text-[10px] font-bold text-[#102e50] bg-blue-50 px-2 py-0.5 rounded border border-blue-100 self-start">
+                          {asset.assetTag}
+                        </span>
+                        <h4 className="font-bold text-sm text-slate-900 mt-1.5 line-clamp-1">
+                          {asset.name}
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          {asset.brand && asset.model
+                            ? `${asset.brand} • ${asset.model}`
+                            : asset.brand || asset.model || asset.type}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                        Aktif Digunakan
+                      </span>
+                    </div>
+
+                    <div className="pt-2.5 border-t border-slate-100 grid grid-cols-2 gap-2 text-[11px]">
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Nomor Seri (S/N)</span>
+                        <span className="font-mono font-semibold text-slate-700 truncate block">
+                          {asset.serialNumber || "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Tanggal Serah Terima</span>
+                        <span className="font-semibold text-slate-700 block">
+                          {formatDate(asset.assignedAt)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 3. DATA AKUN & HAK AKSES SISTEM */}
       <div className="bg-white rounded-2xl border border-[#dee9fc] shadow-xs overflow-hidden">
         <div className="px-6 py-4.5 bg-gradient-to-r from-[#eff4ff]/80 to-white border-b border-[#dee9fc] flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">

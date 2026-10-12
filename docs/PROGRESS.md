@@ -2,6 +2,60 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Integrasi Lintas Sistem] Sinkronisasi Data HRIS & System Management — 2026-10-12
+
+- **Status:** Selesai
+- **Scope & Solusi:**
+  1. **Dokumen & Panduan Staf Real-Time ([`staff-dashboard.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/dashboard/staff-dashboard.ts) & [`staff-dashboard.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/dashboard/staff-dashboard.tsx)):**
+     - Mengganti widget statis/hardcoded pada Dashboard Staf HRIS dengan query dinamis langsung ke `sysmgmt.documents` (filter status `ACTIVE`, visibilitas `ALL_STAFF` / `MANAGERS`).
+     - Menampilkan kode dokumen resmi (e.g. `SOP-HR-001`, `SOP-IT-001`), judul, pill kategori, dan nomor versi aktif.
+     - Menyediakan aksi pratinjau tab baru (`Buka`) dan tombol `Unduh` langsung ke berkas fisik yang disimpan di storage bersama.
+  2. **Inventaris Fasilitas & Aset pada Profil Mandiri Staf ([`profile.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/profile.queries.ts) & [`profile-info-tab.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/profil/profile-info-tab.tsx)):**
+     - Memperluas query profil mandiri staf (`/profil`) agar membaca data `assetAssignments` aktif dari `sysmgmt.asset_assignments`.
+     - Menambahkan kartu visual *"Fasilitas & Aset Kantor yang Ditugaskan"* sehingga staf memiliki transparansi penuh atas perangkat kantor (laptop, monitor, dsb.) yang dialokasikan oleh tim IT/Operasional dari System Management.
+  3. **Penyelarasan Shared Storage ([`packages/storage/src/local.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/storage/src/local.ts) & [`api/documents/[...path]/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/api/documents/%5B...path%5D/route.ts)):**
+     - Menjamin root penyimpanan monorepo konsisten antara apps/sysmgmt (port 3002) dan apps/hris (port 3001) serta menambahkan dukungan parameter `?download=true` dan `?filename=...`.
+  4. **Quality Gate:**
+     - `pnpm --filter @pspk/hris typecheck`: ✅ Lolos 100% (0 error)
+     - `pnpm --filter @pspk/sysmgmt typecheck`: ✅ Lolos 100% (0 error)
+     - `pnpm test`: ✅ 252 tests passing (100%)
+
+
+- **Status:** Selesai
+- **Scope & Tujuan:**
+  - Menyiapkan sampel data realistis secukupnya (tidak berlebihan) untuk seluruh modul System Management agar antarmuka dapat ditinjau dengan data nyata yang representatif.
+- **Implementasi ([`packages/db/prisma/seed-dummy-sysmgmt.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed-dummy-sysmgmt.ts)):**
+  1. **Pengguna & Hak Akses (`/pengguna`):**
+     - Menambahkan akun `it.admin@pspk.id` ("Budi Prasetyo, S.Kom.") berstatus `admin_it` terhubung ke Pegawai Divisi PMO & Operasi (`PSPK-202610-004`).
+     - Menambahkan akun `rina@pspk.id` ("Rina Cahyani, S.Pd.") berstatus `staff` terhubung ke Pegawai Peneliti Pemantik (`PSPK-202610-005`).
+     - Matriks pengguna kini lengkap memiliki 6 pengguna aktif yang merepresentasikan seluruh peran sistem (`super_admin`, `admin_it`, `admin_hr`, `manager`, `staff`).
+  2. **Inventaris Aset (`/aset`):**
+     - 6 unit aset (4 IT, 2 Non-IT):
+       - `AST-IT-2025-001`: MacBook Pro 14" M3 Pro (Status: `ASSIGNED` ke I Made Aris Danuarta).
+       - `AST-IT-2025-002`: ThinkPad T14 Gen 4 (Status: `ASSIGNED` ke Jody Fathurachman).
+       - `AST-IT-2025-003`: Dell UltraSharp 27" 4K Monitor (Status: `IN_STOCK` di Gudang Logistik).
+       - `AST-IT-2025-004`: Printer Epson EcoTank L3210 (Status: `IN_STOCK` di Ruang Finansial & HR).
+       - `AST-NIT-2025-001`: Kursi Kerja Ergonomis Pexio Jervis (Status: `IN_STOCK` di Ruang Kerja Utama Lt. 3).
+       - `AST-NIT-2025-002`: Proyektor Epson EB-E500 3LCD (Status: `MAINTENANCE` di Ruang Rapat Riset).
+  3. **Lisensi Software (`/lisensi`):**
+     - 4 entri lisensi software terenkripsi AES-256-GCM:
+       - Google Workspace Business Standard (Google Cloud, 30 kursi total / 24 terpakai).
+       - Figma Organization (Figma Inc., 6 kursi total / 4 terpakai).
+       - Zoom Workplace Pro (Zoom Video Communications, 4 kursi total / 3 terpakai).
+       - Microsoft 365 Business Basic (Microsoft, 10 kursi total / 5 terpakai).
+  4. **Dokumen & SOP (`/dokumen`):**
+     - 4 dokumen terhubung ke kategori resmi + berkas fisik yang dapat diunduh langsung:
+       - `SOP-HR-001`: Pedoman Tata Tertib & Jam Kerja Pegawai (Kategori: SOP HR & Kepegawaian, Akses: Semua Staf).
+       - `SOP-IT-001`: Kebijakan Keamanan Akun & Perangkat TI (Kategori: SOP IT & Keamanan Siber, Akses: Semua Staf).
+       - `SOP-KEU-001`: Standar Pengajuan Reimbursement & Biaya Perjalanan Dinas (Kategori: SOP Keuangan & Anggaran, Akses: Semua Staf).
+       - `KBJ-001`: Keputusan Direksi: Struktur Organisasi & Tata Kelola 2025/2026 (Kategori: Kebijakan Lembaga, Akses: Manajer).
+  5. **Buku Besar Audit Log (`/audit`):**
+     - Menambahkan entri log aktivitas mutasi `CREATE` untuk aset, penugasan, lisensi, dokumen, dan pengguna baru dengan metadata aktor Super Admin dan penyamaran otomatis.
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/sysmgmt typecheck`: ✅ Lolos 100%
+  - `pnpm --filter @pspk/sysmgmt lint`: ✅ Lolos 100%
+  - `pnpm test`: ✅ 252 tests passing (100%)
+
 ## [UX/UI Enhancement] Rombak & Redesign Bilah Navigasi System Management — 2026-10-12
 
 - **Status:** Selesai

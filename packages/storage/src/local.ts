@@ -8,11 +8,27 @@ import { GetResult, PutOptions, PutResult, StorageProvider } from "./types";
 
 const streamPipeline = promisify(pipeline);
 
+function getWorkspaceRoot(): string {
+  let curr = process.cwd();
+  while (curr !== path.dirname(curr)) {
+    if (existsSync(path.join(curr, "turbo.json"))) {
+      return curr;
+    }
+    curr = path.dirname(curr);
+  }
+  return process.cwd();
+}
+
 export class LocalDiskStorage implements StorageProvider {
   private baseDir: string;
 
   constructor(baseDir?: string) {
-    this.baseDir = path.resolve(baseDir || process.env.STORAGE_LOCAL_DIR || "./.data/uploads");
+    if (baseDir) {
+      this.baseDir = path.resolve(baseDir);
+    } else {
+      const rawDir = process.env.STORAGE_LOCAL_DIR || "./.data/uploads";
+      this.baseDir = path.isAbsolute(rawDir) ? rawDir : path.resolve(getWorkspaceRoot(), rawDir);
+    }
   }
 
   /**

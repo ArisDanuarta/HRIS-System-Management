@@ -67,6 +67,22 @@ export interface StaffDashboardData {
     position: string | null;
     department: string | null;
   } | null;
+  publishedDocuments: {
+    id: string;
+    code: string;
+    title: string;
+    category: string;
+    categoryColor?: string | null;
+    updatedAt: Date;
+    currentVersion?: {
+      id: string;
+      versionNo: number;
+      fileName: string;
+      fileKey: string;
+      sizeBytes: number;
+      mimeType: string;
+    } | null;
+  }[];
 }
 
 export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboardData> {
@@ -82,6 +98,12 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
   const todayDate = new Date(todayDateStr);
   const currentYear = new Date().getFullYear();
 
+  const allowedVisibilities = ctx.roles.some((r) =>
+    ["manager", "admin_hr", "super_admin"].includes(r),
+  )
+    ? ["ALL_STAFF", "MANAGERS"]
+    : ["ALL_STAFF"];
+
   // Fetch all staff dashboard metrics in parallel
   const [
     todayAttendance,
@@ -91,6 +113,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
     latestPayslip,
     workSchedule,
     employeeInfo,
+    rawDocuments,
   ] = await Promise.all([
     prisma.attendance.findFirst({
       where: {
@@ -157,6 +180,28 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           },
         },
       },
+    }),
+    prisma.document.findMany({
+      where: {
+        status: "ACTIVE",
+        visibility: {
+          in: allowedVisibilities as ("ALL_STAFF" | "MANAGERS")[],
+        },
+      },
+      include: {
+        categoryRel: {
+          select: {
+            name: true,
+            color: true,
+          },
+        },
+        versions: {
+          orderBy: { versionNo: "desc" },
+          take: 1,
+        },
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
     }),
   ]);
 
@@ -239,5 +284,26 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           department: employeeInfo.manager.currentDepartment?.name ?? null,
         }
       : null,
+    publishedDocuments: rawDocuments.map((doc) => {
+      const latestVer = doc.versions[0] || null;
+      return {
+        id: doc.id,
+        code: doc.code,
+        title: doc.title,
+        category: doc.categoryRel?.name || doc.category,
+        categoryColor: doc.categoryRel?.color || "blue",
+        updatedAt: doc.updatedAt,
+        currentVersion: latestVer
+          ? {
+              id: latestVer.id,
+              versionNo: latestVer.versionNo,
+              fileName: latestVer.fileName,
+              fileKey: latestVer.fileKey,
+              sizeBytes: latestVer.sizeBytes,
+              mimeType: latestVer.mimeType,
+            }
+          : null,
+      };
+    }),
   };
 }

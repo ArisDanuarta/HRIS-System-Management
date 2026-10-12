@@ -52,6 +52,19 @@ export interface UserProfileData {
       uploadedById: string | null;
       createdAt: string;
     }>;
+    assignedAssets: Array<{
+      id: string;
+      assetTag: string;
+      name: string;
+      type: string;
+      category: string;
+      brand: string | null;
+      model: string | null;
+      serialNumber: string | null;
+      assignedAt: string;
+      conditionOut: string | null;
+      notes: string | null;
+    }>;
   } | null;
   sessions: UserSessionItem[];
 }
@@ -106,6 +119,17 @@ export async function getCurrentUserProfile(
           documents: {
             orderBy: {
               createdAt: "desc",
+            },
+          },
+          assetAssignments: {
+            where: {
+              returnedAt: null,
+            },
+            include: {
+              asset: true,
+            },
+            orderBy: {
+              assignedAt: "desc",
             },
           },
         },
@@ -176,6 +200,19 @@ export async function getCurrentUserProfile(
             mimeType: d.mimeType,
             uploadedById: d.uploadedById,
             createdAt: d.createdAt.toISOString(),
+          })),
+          assignedAssets: (user.employee.assetAssignments || []).map((aa) => ({
+            id: aa.id,
+            assetTag: aa.asset.assetTag,
+            name: aa.asset.name,
+            type: aa.asset.type,
+            category: aa.asset.category,
+            brand: aa.asset.brand,
+            model: aa.asset.model,
+            serialNumber: aa.asset.serialNumber,
+            assignedAt: aa.assignedAt.toISOString(),
+            conditionOut: aa.conditionOut,
+            notes: aa.notes,
           })),
         }
       : null,
