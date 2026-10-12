@@ -106,31 +106,26 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Sisi Kiri: Brand & Logo PSPK */}
-          <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-            <Link href="/dashboard" className="flex items-center gap-3 group">
+          <div className="flex items-center gap-3 lg:gap-5 shrink-0">
+            <Link
+              href="/dashboard"
+              className="flex items-center shrink-0 group"
+              title="System Management PSPK"
+            >
               <div className="h-9 px-2.5 py-1 bg-white border border-slate-200 rounded-xl shadow-2xs flex items-center justify-center group-hover:border-slate-300 transition-colors">
                 <Image
                   src="/images/logo_pspk_horizontal_trimmed.png"
                   alt="Logo Resmi PSPK"
-                  width={120}
+                  width={116}
                   height={24}
                   className="h-6 w-auto object-contain"
                   priority
                 />
               </div>
-              <span className="text-slate-300 font-light hidden sm:inline">|</span>
-              <div className="hidden sm:flex flex-col">
-                <span className="text-sm font-bold text-[#102E50] leading-none whitespace-nowrap">
-                  System Management
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase mt-0.5 whitespace-nowrap">
-                  Tata Kelola & Keamanan
-                </span>
-              </div>
             </Link>
 
             {/* Menu Navigasi Desktop — Pola Hirarkis Elegan (5 Item) */}
-            <nav className="hidden md:flex items-center gap-1 pl-3 lg:pl-5 border-l border-slate-200/80">
+            <nav className="hidden md:flex items-center gap-1 pl-3 lg:pl-4 border-l border-slate-200/80">
               {/* 1. Dashboard */}
               <Link
                 href="/dashboard"
@@ -402,7 +397,7 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
                 <div className="w-8 h-8 rounded-full bg-[#102E50] text-[#F2AF3E] font-bold text-xs flex items-center justify-center shadow-xs ring-2 ring-white">
                   {user.name.substring(0, 2).toUpperCase()}
                 </div>
-                <div className="hidden xl:flex flex-col text-left">
+                <div className="hidden 2xl:flex flex-col text-left">
                   <span className="text-xs font-bold text-slate-800 leading-tight max-w-[130px] truncate">
                     {user.name}
                   </span>

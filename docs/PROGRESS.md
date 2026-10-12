@@ -9,7 +9,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - Sebelumnya terdapat 7 item navigasi horizontal yang dijejerkan langsung tanpa pengelompokan.
   - Pada layar laptop beresolusi 1280px-1440px, ruang horizontal tidak mencukupi sehingga teks menu panjang (seperti *"Buku Besar Audit Log"*) terhimpit dan patah menjadi 3 baris secara vertikal.
   - Belum tersedia drawer menu untuk perangkat mobile atau tablet kecil.
-- **Solusi & Implementasi ([`sysmgmt-navbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx)):**
+- **Solusi & Implementasi ([`sysmgmt-navbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx) & [`layout.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/layout.tsx)):**
   1. **Model A — Pengelompokan Hirarkis & Dropdown Modern (Linear/Stripe Style):**
      - Menu diringkas menjadi 5 entri horizontal yang bersih dan terproteksi `whitespace-nowrap`:
        1. **Dashboard** (`/dashboard`): Akses langsung ikhtisar sistem.
@@ -17,12 +17,16 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
        3. **Inventaris ▾** (Dropdown Popover): Mengelompokkan *Inventaris Aset* (`/aset`) dan *Lisensi Software* (`/lisensi`) lengkap dengan ikon, status aktif, dan keterangan fungsi ringkas.
        4. **Dokumen & SOP** (`/dokumen`): Akses langsung repositori dokumen dan SOP.
        5. **Tata Kelola ▾** (Dropdown Popover): Mengelompokkan *Buku Besar Audit Log* (`/audit`) dan *Pengaturan & Master Data* (`/pengaturan`).
-  2. **Estetika & Ergonomi Navigasi:**
+  2. **Pembersihan Brand & Eliminasi Horizontal Scroll:**
+     - Teks sekunder *"System Management | TATA KELOLA & KEAMANAN"* di samping logo resmi dihapus sepenuhnya sehingga bilah navigasi hanya menampilkan kotak logo resmi PSPK yang ringkas (~116px), menghemat lebih dari 180px ruang horizontal.
+     - Nama pengguna pada tombol profil dipindahkan ke breakpoint `2xl` (pada resolusi laptop/desktop standar hanya menampilkan avatar inisial + chevron yang sangat ringkas ~50px).
+     - Menambahkan proteksi `overflow-x-hidden` pada root layout container ([`layout.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/layout.tsx)) guna menjamin halaman pas 100% lebar layar tanpa pernah memicu scrollbar horizontal pada jendela browser.
+  3. **Estetika & Ergonomi Navigasi:**
      - Efek glassmorphic halus (`bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40`).
      - Kartu popover dropdown dengan animasi masuk halus (`animate-in fade-in zoom-in-95 duration-150`), shadow elegan, dan panah chevron yang berputar 180° saat terbuka.
      - Penutup otomatis saat klik di luar popover (*outside click*) dan penekanan tombol `Escape`.
      - Penyesuaian otomatis state navigasi saat rute URL berpindah tanpa cascading render.
-  3. **Responsivitas Mobile & Tablet:**
+  4. **Responsivitas Mobile & Tablet:**
      - Ditambahkan tombol hamburger menu (`Menu` / `X`) pada viewport layar kecil (`md:hidden`).
      - Tampilan drawer navigasi vertikal yang terorganisir per kelompok: *Navigasi Utama*, *Inventaris Perangkat*, dan *Tata Kelola & Keamanan*, serta aksi logout yang aman.
 - **Verifikasi Kualitas:**

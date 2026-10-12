@@ -51,7 +51,7 @@ export default async function SysmgmtProtectedLayout({ children }: { children: R
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans overflow-x-hidden">
       <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} moduleFlags={moduleFlags} />
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
