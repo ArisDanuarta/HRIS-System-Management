@@ -34,13 +34,21 @@ export class LocalDiskStorage implements StorageProvider {
   /**
    * Sanitizes key to strictly prevent path traversal vulnerabilities.
    */
-  private resolveSafePath(key: string): string {
+  private resolveSafePath(key: string, writeMode = false): string {
     if (!key || key.includes("..") || path.isAbsolute(key)) {
       throw new Error(`Potensi path traversal terdeteksi pada key: ${key}`);
     }
 
     const normalizedKey = path.normalize(key);
     const fullPath = path.resolve(this.baseDir, normalizedKey);
+
+    // If reading and file does not exist in baseDir, check legacy directory apps/hris/.data/uploads
+    if (!writeMode && !existsSync(fullPath)) {
+      const legacyPath = path.resolve(getWorkspaceRoot(), "apps/hris/.data/uploads", normalizedKey);
+      if (existsSync(legacyPath)) {
+        return legacyPath;
+      }
+    }
 
     // Ensure resolved path is strictly within baseDir
     if (!fullPath.startsWith(this.baseDir + path.sep) && fullPath !== this.baseDir) {
@@ -51,7 +59,7 @@ export class LocalDiskStorage implements StorageProvider {
   }
 
   async put(key: string, body: Buffer | Readable, opts: PutOptions): Promise<PutResult> {
-    const fullPath = this.resolveSafePath(key);
+    const fullPath = this.resolveSafePath(key, true);
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
 
     const hash = crypto.createHash("sha256");

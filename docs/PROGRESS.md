@@ -2,6 +2,26 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Fix & Hardening] Perbaikan Pemulihan Foto Profil & Sinkronisasi Storage — 2026-10-12
+
+- **Status:** Selesai
+- **Permasalahan Pengguna:**
+  - Foto profil pada `/profil` HRIS sempat menampilkan *broken image* / ikon gambar rusak bawaan peramban dengan teks alt nama pengguna.
+- **Akar Masalah (Root Cause):**
+  1. **Relokasi Direktori Storage Bersama:** Saat penggabungan storage monorepo antara HRIS dan System Management ke root monorepo (`./.data/uploads`), berkas avatar pengguna yang diunggah sebelumnya berada di direktori lokal aplikasi lama (`apps/hris/.data/uploads/avatars/`).
+  2. **Storage Resolver:** Resolver di root belum memiliki berkas avatar tersebut dan rute dokumen `/api/documents/avatars/...` mengembalikan status 404 / 401 saat belum disinkronkan.
+  3. **Ketiadaan Fallback UI:** Komponen avatar sebelumnya hanya mengandalkan pengecekan kebenaran string URL tanpa event handler `onError`, sehingga peramban menampilkan ikon dokumen rusak saat terjadi kendala jaringan atau file hilang.
+- **Solusi & Penanganan:**
+  1. **Sinkronisasi Berkas Avatar Fisik:** Berkas avatar lama telah disinkronkan ke root monorepo `./.data/uploads/avatars/` dan diverifikasi eksistensinya.
+  2. **Backward-Compatibility Storage Provider ([`packages/storage/src/local.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/storage/src/local.ts)):** Ditambahkan *fallback multi-path* otomatis yang mengecek direktori warisan (`legacyPath: apps/hris/.data/uploads`) jika berkas lama dicari saat mode baca.
+  3. **Izin Akses Publik Khusus Avatar ([`apps/hris/src/app/api/documents/[...path]/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/api/documents/%5B...path%5D/route.ts)):** Berkas avatar (`avatars/*`) kini diizinkan diakses publik untuk perenderan antarmuka dan bagan organisasi tanpa risiko *session race condition*, sementara berkas sensitif (kontrak, KTP, arsip) tetap terkunci ketat oleh sesi.
+  4. **Proteksi Fallback UI & React Idiomatic ([`profile-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/profil/profile-view.tsx) & [`user-nav.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/user-nav.tsx)):** Menghapus penggunaan `useEffect` sinkron (`react-hooks/set-state-in-effect`), menggantinya dengan pola perbandingan `failedImgSrc` murni. Jika gambar gagal dimuat, peramban otomatis menampilkan avatar inisial nama elegan, bukan ikon gambar rusak.
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/hris lint`: ✅ Lolos 100% (0 error)
+  - `pnpm typecheck`: ✅ Lolos 100% (0 error di 9 packages)
+  - `pnpm test`: ✅ 252 tests passing (100%)
+  - Endpoint `/api/documents/avatars/...`: ✅ Berhasil merespons `200 OK` (228 KB PNG)
+
 ## [Integrasi Lintas Sistem] Sinkronisasi Data HRIS & System Management — 2026-10-12
 
 - **Status:** Selesai

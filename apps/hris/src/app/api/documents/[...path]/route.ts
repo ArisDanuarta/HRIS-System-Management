@@ -10,18 +10,24 @@ export async function GET(
   { params }: { params: Promise<{ path: string[] }> },
 ) {
   try {
-    const reqHeaders = await headers();
-    const session = await getSession(reqHeaders);
-
-    if (!session?.user) {
-      return new Response("Unauthorized", { status: 401 });
-    }
-
     const resolvedParams = await params;
     const key = (resolvedParams.path || []).join("/");
 
     if (!key || key.includes("..") || key.startsWith("/")) {
       return new Response("Invalid file path", { status: 400 });
+    }
+
+    // Avatar foto profil bersifat publik untuk rendering avatar di UI dan bagan organisasi.
+    // Dokumen sensitif (kontrak, KTP, arsip) wajib terotentikasi sesi aktif.
+    const isPublicAsset = key.startsWith("avatars/");
+
+    if (!isPublicAsset) {
+      const reqHeaders = await headers();
+      const session = await getSession(reqHeaders);
+
+      if (!session?.user) {
+        return new Response("Unauthorized", { status: 401 });
+      }
     }
 
     const storage = getStorageProvider();

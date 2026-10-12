@@ -30,6 +30,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(
     profile.image || profile.employee?.avatarUrl || null,
   );
+  const [failedImgSrc, setFailedImgSrc] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadFeedback, setUploadFeedback] = useState<{
     type: "success" | "error";
@@ -37,6 +38,8 @@ export function ProfileView({ profile }: ProfileViewProps) {
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const showAvatar = Boolean(avatarUrl && avatarUrl !== failedImgSrc);
 
   // Sync hash from URL on mount & hash change (e.g. from dropdown click /profil#keamanan)
   useEffect(() => {
@@ -85,6 +88,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
       const res = await uploadAvatarAction(formData);
       if (res.success && res.avatarUrl) {
         setAvatarUrl(res.avatarUrl);
+        setFailedImgSrc(null);
         setUploadFeedback({
           type: "success",
           message: res.message || "Foto profil berhasil diperbarui.",
@@ -156,8 +160,13 @@ export function ProfileView({ profile }: ProfileViewProps) {
               {/* Avatar Container with Upload trigger: ONLY this element has negative margin */}
               <div className="relative group shrink-0 -mt-14 md:-mt-16 z-10">
                 <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#102e50] border-4 border-white shadow-md overflow-hidden flex items-center justify-center text-white text-3xl font-bold font-heading">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+                  {showAvatar ? (
+                    <img
+                      src={avatarUrl!}
+                      alt={displayName}
+                      className="w-full h-full object-cover"
+                      onError={() => setFailedImgSrc(avatarUrl)}
+                    />
                   ) : (
                     <span>{initial}</span>
                   )}

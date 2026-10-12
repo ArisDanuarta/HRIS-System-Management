@@ -27,8 +27,11 @@ export interface UserNavProps {
 export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [failedImgSrc, setFailedImgSrc] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const showAvatar = Boolean(user.image && user.image !== failedImgSrc);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -64,8 +67,13 @@ export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
       >
         {/* User Avatar */}
         <div className="w-8 h-8 rounded-full bg-[#102e50] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0 overflow-hidden">
-          {user.image ? (
-            <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+          {showAvatar ? (
+            <img
+              src={user.image!}
+              alt={user.name}
+              className="w-full h-full object-cover"
+              onError={() => setFailedImgSrc(user.image ?? null)}
+            />
           ) : (
             <span>{initial}</span>
           )}
