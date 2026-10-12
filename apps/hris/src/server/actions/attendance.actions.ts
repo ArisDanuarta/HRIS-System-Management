@@ -39,17 +39,8 @@ async function getAuthenticatedUser(): Promise<{
     select: { id: true },
   });
 
-  // Fallback for dev / admin without direct employee linkage
   if (!employee) {
-    const firstEmp = await prisma.employee.findFirst({
-      where: { deletedAt: null },
-      select: { id: true },
-    });
-    if (firstEmp) {
-      employee = firstEmp;
-    } else {
-      throw new Error("Data profil pegawai Anda tidak ditemukan dalam sistem.");
-    }
+    throw new Error("Akun Anda belum terhubung dengan data profil pegawai. Hubungi HR untuk menautkan akun.");
   }
 
   return {

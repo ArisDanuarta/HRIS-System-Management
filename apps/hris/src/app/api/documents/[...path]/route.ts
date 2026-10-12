@@ -20,7 +20,7 @@ export async function GET(
     const resolvedParams = await params;
     const key = (resolvedParams.path || []).join("/");
 
-    if (!key) {
+    if (!key || key.includes("..") || key.startsWith("/")) {
       return new Response("Invalid file path", { status: 400 });
     }
 
