@@ -17,7 +17,6 @@ import {
   ToggleRight,
   FileText,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 
 interface SettingsCategoriesTabProps {

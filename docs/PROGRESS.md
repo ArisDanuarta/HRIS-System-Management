@@ -2,6 +2,29 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 3 - Master Data & Settings] Halaman Pengaturan Terpusat (/pengaturan) — 2026-10-12
+
+- **Status:** Selesai (100% Tahap 3)
+- **Scope & Solusi:**
+  1. **Komponen Antarmuka Pengaturan Terpusat ([`apps/sysmgmt/src/components/settings/`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/settings/)):**
+     - `SettingsView`: Layout utama responsif ber-tabbing (Kategori Dokumen, Master Aset & Lokasi, Preferensi Sistem) dengan sinkronisasi query string URL (`?tab=...`), metrik statistik visual, dan badge perlindungan RBAC.
+     - `SettingsCategoriesTab`: Tabel kategori dokumen lengkap dengan badge prefix kode monospaced, badge warna tema, status aktif/nonaktif, counter dokumen terhubung, aksi toggle status instan, tombol edit & hapus bersyarat.
+     - `SettingsCategoryModal`: Modal form tambah & ubah kategori dokumen dengan live preview badge kode dan pilihan palet warna brand PSPK.
+     - `SettingsDeleteCategoryModal`: Modal konfirmasi hapus kategori yang terproteksi (menolak penghapusan jika ada dokumen terhubung dan menyarankan penonaktifan).
+     - `SettingsAssetsTab`: Tampilan tab ganda master aset mencakup sub-tabel Tipe Aset (dengan filter kategori IT vs Non-IT) dan sub-tabel Lokasi/Ruangan Kantor Fisik (gedung, lantai, dan deskripsi).
+     - `SettingsAssetTypeModal` & `SettingsAssetLocationModal`: Modal interaktif CRUD tipe inventaris dan ruangan kantor.
+     - `SettingsDeleteAssetMasterModal`: Modal konfirmasi hapus tipe/lokasi aset dengan verifikasi keterikatan data.
+     - `SettingsPreferencesTab`: Form konfigurasi parameter global organisasi (Batas Ukuran Berkas Upload MB, Retensi Log Audit Hari, Batas Waktu Sesi Login Menit) dengan validasi batas aman, visualisasi status, dan indikator penyimpanan atomik.
+  2. **Server Component Route ([`/pengaturan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/pengaturan/page.tsx)):**
+     - Proteksi akses server-side via `@pspk/rbac`: Memeriksa `sysmgmt.settings.read:all` dengan fallback tampilan "Akses Dibatasi" ramah pengguna.
+     - Evaluasi wewenang mutasi `canManage` via `sysmgmt.settings.manage:all` untuk mengunci/membuka fitur aksi CRUD.
+     - Pengambilan data paralel dengan `Promise.all` untuk performa cepat tanpa waterfall: `getDocumentCategories`, `getAssetTypes`, `getAssetLocations`, `getSystemPreferences`, dan `getSettingsStats`.
+  3. **Verifikasi Kualitas:**
+     - `pnpm typecheck`: ✅ Lolos 9 paket monorepo (0 error).
+     - `pnpm lint`: ✅ Lolos 0 warning & 0 error di `@pspk/sysmgmt`.
+     - `pnpm test`: ✅ Seluruh 220 tests lolos 100%.
+     - `pnpm --filter @pspk/sysmgmt build`: ✅ Build produksi lolos sempurna dengan rute `ƒ /pengaturan` ter-generate dinamis.
+
 ## [Tahap 2 - Master Data & Settings] Backend Engine Master Data & Preferensi Sistem — 2026-10-12
 
 - **Status:** Selesai (100% Tahap 2)
