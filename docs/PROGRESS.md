@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 2 - Master Data & Settings] Backend Engine Master Data & Preferensi Sistem — 2026-10-12
+
+- **Status:** Selesai (100% Tahap 2)
+- **Scope & Solusi:**
+  1. **Skema Validasi Zod ([`settings.schema.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/schemas/settings.schema.ts)):**
+     - `createDocumentCategorySchema` / `updateDocumentCategorySchema`: Validasi format prefix kode huruf kapital/angka berakhiran tanda strip (mis. `SOP-HR-`), batas karakter nama, deskripsi, dan warna token badge.
+     - `createAssetTypeSchema` / `updateAssetTypeSchema`: Validasi tipe aset dan enum kategori `IT` vs `NON_IT`.
+     - `createAssetLocationSchema` / `updateAssetLocationSchema`: Validasi nama lokasi, nama gedung, dan lantai.
+     - `updateSystemPreferencesSchema`: Validasi batas ukuran berkas (1–100 MB), masa retensi log audit (30–3650 hari), dan timeout sesi login (15–10080 menit).
+  2. **Data Access Layer ([`settings.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/settings.queries.ts)):**
+     - `getDocumentCategories()`: Mengambil daftar kategori beserta counter dokumen terkait, filter aktif/nonaktif, terurut abjad.
+     - `getAssetTypes()`: Mengambil daftar tipe inventaris aset dengan filter kategori IT/Non-IT.
+     - `getAssetLocations()`: Mengambil daftar ruangan/lokasi kantor fisik.
+     - `getSystemPreferences()`: Mengambil konfigurasi preferensi global dengan fallback default yang aman.
+     - `getSettingsStats()`: Agregasi metrik total kategori, tipe aset, dan lokasi.
+  3. **Server Actions Ber-Audit Trail ([`settings.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/settings.actions.ts)):**
+     - Otorisasi server-side ketat: `assertCan(authCtx, "sysmgmt.settings.manage")`.
+     - Pencegahan duplikasi nama & prefix kode unik pada kategori, tipe aset, dan lokasi.
+     - Proteksi integritas referensi: Pencegahan penghapusan kategori dokumen atau tipe/lokasi aset jika masih memiliki data terikat di sistem.
+     - Pencatatan transaksi audit log atomik (`CREATE`, `UPDATE`, `DELETE`) ke `core.audit_logs`.
+     - Revalidasi cache path dinamis (`/pengaturan`, `/dokumen`, `/aset`).
+  4. **Pengujian Unit (Unit Tests):**
+     - [`settings.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/settings.queries.test.ts): 7 skenario pengujian query kategori, tipe aset, lokasi, preferensi default, dan statistik.
+     - [`settings.actions.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/actions/settings.actions.test.ts): 13 skenario pengujian CRUD ber-audit trail, pencegahan duplikasi, validasi batas rentang, dan proteksi hapus data terhubung.
+  5. **Verifikasi Kualitas:**
+     - `pnpm typecheck`: ✅ Lolos 9 paket monorepo (0 error).
+     - `pnpm lint`: ✅ 0 error di seluruh workspace.
+     - `pnpm test`: ✅ Seluruh test suite lolos (220 tests 100%).
+
 ## [Tahap 1 - Master Data & Settings] Skema Database, RBAC, Migrasi Prisma & Seeding Master Data — 2026-10-12
 
 - **Status:** Selesai (100% Tahap 1)
