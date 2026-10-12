@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ShieldCheck,
   LayoutDashboard,
+  Settings,
 } from "lucide-react";
 
 import { ModuleFlags, isModuleActive } from "@pspk/db";
@@ -94,6 +95,13 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
       icon: History,
       active: pathname.startsWith("/audit"),
       badge: "Fase 8",
+      show: true,
+    },
+    {
+      name: "Pengaturan",
+      href: "/pengaturan",
+      icon: Settings,
+      active: pathname.startsWith("/pengaturan"),
       show: true,
     },
   ];
@@ -205,6 +213,17 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
                       <ShieldCheck className="w-3 h-3 text-amber-600" />
                       {user.roleName}
                     </div>
+                  </div>
+
+                  <div className="py-1 border-b border-slate-100">
+                    <Link
+                      href="/pengaturan"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Pengaturan Sistem</span>
+                    </Link>
                   </div>
 
                   <div className="py-1">

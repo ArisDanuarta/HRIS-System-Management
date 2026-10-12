@@ -27,19 +27,7 @@ interface AssetFormModalProps {
   assetLocations?: SerializedAssetLocation[];
 }
 
-const COMMON_ASSET_TYPES = [
-  "Laptop",
-  "Monitor",
-  "PC Desktop",
-  "Printer & Scanner",
-  "Router / Jaringan",
-  "Proyektor",
-  "Meja Kerja",
-  "Kursi Kerja",
-  "Lemari Arsip",
-  "Kendaraan Operasional",
-  "Lainnya",
-];
+
 
 function AssetFormInnerModal({
   onClose,
@@ -316,15 +304,27 @@ function AssetFormInnerModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Jenis / Tipe Barang <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Jenis / Tipe Barang <span className="text-rose-500">*</span>
+                </label>
+                <a
+                  href="/pengaturan?tab=assets"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-[#102E50] hover:text-[#1a4473] hover:underline flex items-center gap-1"
+                  title="Kelola Master Tipe di Pengaturan"
+                >
+                  <Settings className="w-2.5 h-2.5" />
+                  <span>Master Tipe</span>
+                </a>
+              </div>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-[#102E50] focus:border-transparent outline-none"
               >
-                {COMMON_ASSET_TYPES.map((t) => (
+                {typeOptions.map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
@@ -442,16 +442,39 @@ function AssetFormInnerModal({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Lokasi Fisik Penempatan
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  Lokasi Fisik Penempatan
+                </label>
+                <a
+                  href="/pengaturan?tab=assets"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-[#102E50] hover:text-[#1a4473] hover:underline flex items-center gap-1"
+                  title="Kelola Master Lokasi di Pengaturan"
+                >
+                  <Settings className="w-2.5 h-2.5" />
+                  <span>Master Lokasi</span>
+                </a>
+              </div>
               <input
                 type="text"
+                list="asset-locations-datalist"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="mis. Ruang IT Lt. 2, Gudang PSPK"
+                placeholder="Pilih atau ketik lokasi ruangan"
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-[#102E50] focus:border-transparent outline-none"
               />
+              <datalist id="asset-locations-datalist">
+                {assetLocations
+                  .filter((l) => l.isActive)
+                  .map((l) => (
+                    <option
+                      key={l.id}
+                      value={l.name + (l.floor ? ` (${l.floor})` : "")}
+                    />
+                  ))}
+              </datalist>
             </div>
           </div>
 

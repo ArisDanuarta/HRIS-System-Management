@@ -2,6 +2,25 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 4 - Master Data & Settings] Integrasi Kontekstual ke Modul /dokumen & /aset — 2026-10-12
+
+- **Status:** Selesai (100% Tahap 4)
+- **Scope & Solusi:**
+  1. **Integrasi Modul Dokumen ([`/dokumen`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/dokumen/page.tsx)):**
+     - Generator Kode Otomatis ([`document.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/document.queries.ts)): `getNextDocumentCode` diperbarui untuk mencari master `DocumentCategory` di database berdasarkan ID, nama, atau prefix kode. Jika ditemukan, generator otomatis menggunakan format `codePrefix` resmi dari database (misal `SOP-HR-003`), dengan fallback heuristik aman jika tidak ditemukan.
+     - Form Tambah Dokumen ([`document-create-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-create-modal.tsx)): Dropdown kategori terhubung langsung ke daftar kategori aktif dari database, menampilkan badge prefix kode (misal `SOP HR & Kepegawaian (SOP-HR-)`), menyertakan tautan cepat *"Kelola Master"* ke `/pengaturan?tab=categories`, serta menyinkronkan `categoryId` dan `category` (nama string) pada `createDocumentAction` dan `updateDocumentMetadataAction` agar backward-compatible.
+     - Filter Toolbar & Sidebar Tree ([`document-category-tree.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/documents/document-category-tree.tsx)): Tab kategori dokumen otomatis merender seluruh kategori aktif dari tabel master di samping tab *"Semua Kategori"*, serta mendukung kategori warisan secara dinamis.
+  2. **Integrasi Modul Aset ([`/aset`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/aset/page.tsx)):**
+     - Pengambilan Data Terpadu ([`aset/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/aset/page.tsx)): Memanggil `getAssetTypes` dan `getAssetLocations` secara paralel non-blocking dan meneruskannya ke antarmuka katalog inventaris.
+     - Form Modal Tambah / Edit Aset ([`asset-form-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/assets/asset-form-modal.tsx)):
+       - Pilihan jenis/tipe barang otomatis terfilter sesuai kategori aset yang dipilih (IT vs Non-IT) langsung dari master `AssetType` aktif, dengan opsi fleksibel *"Lainnya"* untuk tipe kustom dan tautan cepat *"Master Tipe"*.
+       - Kolom lokasi fisik dilengkapi `<datalist>` auto-suggest terhubung ke master `AssetLocation` (misal *"Ruang Server Lt. 2"*, *"Kantor PSPK"*), tautan cepat *"Master Lokasi"*, namun tetap mengizinkan pengetikan teks lokasi bebas.
+  3. **Verifikasi Kualitas:**
+     - `pnpm typecheck`: ✅ Lolos 100% (0 error di 9 paket monorepo).
+     - `pnpm lint`: ✅ Lolos 0 warning & 0 error di `@pspk/sysmgmt`.
+     - `pnpm test`: ✅ Lolos seluruh 240 unit tests (100% passing).
+     - `pnpm --filter @pspk/sysmgmt build`: ✅ Lolos build Next.js produksi tanpa kendala.
+
 ## [Tahap 3 - Master Data & Settings] Halaman Pengaturan Terpusat (/pengaturan) — 2026-10-12
 
 - **Status:** Selesai (100% Tahap 3)
