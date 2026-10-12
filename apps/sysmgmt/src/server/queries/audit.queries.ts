@@ -1,5 +1,5 @@
 import { prisma } from "@pspk/db";
-import { maskSensitiveData } from "@/lib/audit-masking";
+import { maskSensitiveData } from "../../lib/audit-masking";
 
 export interface SerializedAuditLog {
   id: string;

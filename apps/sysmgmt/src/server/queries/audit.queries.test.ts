@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getAuditLogs, getAuditStats, getAuditFilterOptions } from "./audit.queries";
-import { isSensitiveKey, maskSensitiveData } from "@/lib/audit-masking";
+import { isSensitiveKey, maskSensitiveData } from "../../lib/audit-masking";
 import { prisma } from "@pspk/db";
 
 // Mocking prisma client
