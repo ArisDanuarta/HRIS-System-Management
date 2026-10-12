@@ -170,6 +170,66 @@ describe("settings.actions.ts", () => {
       expect(prisma.documentCategory.delete).not.toHaveBeenCalled();
     });
 
+    it("harus berhasil memperbarui kategori dokumen", async () => {
+      const { prisma, writeAudit } = await import("@pspk/db");
+
+      vi.mocked(prisma.documentCategory.findUnique).mockResolvedValueOnce({
+        id: "cat-1",
+        name: "Kebijakan Lama",
+        codePrefix: "KBJ-",
+        color: "amber",
+        isActive: true,
+      } as never);
+
+      vi.mocked(prisma.documentCategory.update).mockResolvedValueOnce({
+        id: "cat-1",
+        name: "Kebijakan Baru",
+        codePrefix: "KBJ-",
+        color: "amber",
+        isActive: true,
+      } as never);
+
+      const res = await updateDocumentCategoryAction({
+        id: "cat-1",
+        name: "Kebijakan Baru",
+        codePrefix: "KBJ-",
+      });
+
+      expect(res.ok).toBe(true);
+      expect(res.data?.name).toBe("Kebijakan Baru");
+      expect(writeAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "UPDATE",
+          entityType: "DocumentCategory",
+        }),
+      );
+    });
+
+    it("harus berhasil mengubah status aktif kategori dokumen", async () => {
+      const { prisma, writeAudit } = await import("@pspk/db");
+
+      vi.mocked(prisma.documentCategory.findUnique).mockResolvedValueOnce({
+        id: "cat-1",
+        isActive: true,
+      } as never);
+
+      vi.mocked(prisma.documentCategory.update).mockResolvedValueOnce({
+        id: "cat-1",
+        isActive: false,
+      } as never);
+
+      const res = await toggleDocumentCategoryStatusAction({ id: "cat-1" });
+
+      expect(res.ok).toBe(true);
+      expect(res.data?.isActive).toBe(false);
+      expect(writeAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "UPDATE",
+          entityType: "DocumentCategory",
+        }),
+      );
+    });
+
     it("harus berhasil menghapus kategori jika tidak memiliki dokumen", async () => {
       const { prisma, writeAudit } = await import("@pspk/db");
 
@@ -243,6 +303,36 @@ describe("settings.actions.ts", () => {
   });
 
   describe("Master Lokasi Aset Actions", () => {
+    it("harus berhasil membuat lokasi aset baru", async () => {
+      const { prisma, writeAudit } = await import("@pspk/db");
+
+      vi.mocked(prisma.assetLocation.findUnique).mockResolvedValueOnce(null);
+      vi.mocked(prisma.assetLocation.create).mockResolvedValueOnce({
+        id: "loc-new",
+        name: "Ruang Studio Podcast",
+        building: "Gedung Edukasi",
+        floor: "Lt. 2",
+        description: "Studio rekaman audio & video",
+        isActive: true,
+      } as never);
+
+      const res = await createAssetLocationAction({
+        name: "Ruang Studio Podcast",
+        building: "Gedung Edukasi",
+        floor: "Lt. 2",
+        description: "Studio rekaman audio & video",
+      });
+
+      expect(res.ok).toBe(true);
+      expect(res.data?.name).toBe("Ruang Studio Podcast");
+      expect(writeAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "CREATE",
+          entityType: "AssetLocation",
+        }),
+      );
+    });
+
     it("harus mencegah penghapusan lokasi jika masih digunakan oleh aset", async () => {
       const { prisma } = await import("@pspk/db");
 
