@@ -52,6 +52,7 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "sysmgmt.document.read:all",
       "sysmgmt.document.manage:hr",
       "sysmgmt.document.read:own",
+      "sysmgmt.settings.read:all",
       // Calendar
       "hris.calendar.read:all",
       "hris.calendar.holiday:sync",
@@ -80,6 +81,8 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "sysmgmt.document.manage:all",
       "sysmgmt.audit.read:all",
       "sysmgmt.audit.export:all",
+      "sysmgmt.settings.read:all",
+      "sysmgmt.settings.manage:all",
       "hris.attendance.checkin:own",
       "sysmgmt.asset.read:own",
       "sysmgmt.document.read:own",

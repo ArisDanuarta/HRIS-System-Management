@@ -2,6 +2,31 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 1 - Master Data & Settings] Skema Database, RBAC, Migrasi Prisma & Seeding Master Data — 2026-10-12
+
+- **Status:** Selesai (100% Tahap 1)
+- **Scope & Solusi:**
+  1. **Skema Database Prisma ([`sysmgmt.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/sysmgmt.prisma)):**
+     - Model baru `DocumentCategory` (`id`, `name`, `codePrefix`, `description`, `color`, `isActive`).
+     - Model baru `AssetType` (`id`, `name`, `category` [IT/NON_IT], `description`, `isActive`).
+     - Model baru `AssetLocation` (`id`, `name`, `building`, `floor`, `description`, `isActive`).
+     - Relasi opsional `categoryId` dan `categoryRel` pada `Document` dengan mempertahankan `category String` untuk menjamin kompatibilitas mundur.
+  2. **RBAC Permissions & Matriks Akses ([`packages/rbac`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac)):**
+     - Mendaftarkan `sysmgmt.settings.read:all` dan `sysmgmt.settings.manage:all` pada `permissions.ts`.
+     - Memetakan wewenang ke peran `super_admin`, `admin_it`, dan `admin_hr`.
+     - Menambahkan metadata pengelompokan `settings` pada `RESOURCE_METADATA` di `role.queries.ts`.
+  3. **Migrasi Database & Seeding Data Master ([`seed.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed.ts)):**
+     - Migrasi `20261012025459_add_master_settings_and_categories` berhasil diterapkan ke PostgreSQL.
+     - Seeding 5 Kategori Dokumen Awal (`KBJ-`, `SOP-HR-`, `SOP-IT-`, `SOP-KEU-`, `SOP-UMUM-`).
+     - Seeding 8 Tipe Aset (IT & Non-IT).
+     - Seeding 5 Lokasi/Ruangan Kantor PSPK.
+     - Seeding 3 Preferensi Sistem (`system.max_upload_mb`, `system.audit_retention_days`, `system.session_timeout_mins`).
+  4. **Verifikasi Kualitas:**
+     - `pnpm typecheck`: ✅ Lolos 9 paket monorepo (0 error).
+     - `pnpm lint`: ✅ Lolos 0 error di seluruh workspace.
+     - `pnpm test`: ✅ 20 test suite (138 tests lolos 100%).
+     - `pnpm --filter @pspk/sysmgmt build`: ✅ Build produksi lolos sempurna.
+
 ## [Tahap 4] Modul Dokumen Kebijakan & SOP Lembaga (Layar S8 & S9) (`apps/sysmgmt`) — 2026-10-10
 
 - **Status:** Selesai (100% Seluruh Sub-Tahap 4A s.d 4E)

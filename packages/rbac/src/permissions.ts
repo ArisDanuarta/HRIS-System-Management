@@ -297,6 +297,18 @@ export const PERMISSIONS = [
     description: "Melihat viewer audit log sistem",
   },
   { key: "sysmgmt.audit.export:all", module: "sysmgmt", description: "Mengekspor data audit log" },
+
+  // --- System Management: Master Data & System Settings ---
+  {
+    key: "sysmgmt.settings.read:all",
+    module: "sysmgmt",
+    description: "Melihat konfigurasi master data dan preferensi sistem",
+  },
+  {
+    key: "sysmgmt.settings.manage:all",
+    module: "sysmgmt",
+    description: "Mengelola kategori dokumen, master aset, dan preferensi sistem",
+  },
 ] as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[number]["key"];

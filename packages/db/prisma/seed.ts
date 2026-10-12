@@ -415,6 +415,184 @@ async function main() {
     );
   }
 
+  // 10. Seed Kategori Dokumen Master
+  console.log("📁 Menyiapkan master kategori dokumen...");
+  const defaultDocCategories = [
+    {
+      name: "Kebijakan Lembaga",
+      codePrefix: "KBJ-",
+      color: "amber",
+      description: "Surat Keputusan, Kebijakan Direksi, dan Regulasi Internal PSPK",
+    },
+    {
+      name: "SOP HR & Kepegawaian",
+      codePrefix: "SOP-HR-",
+      color: "blue",
+      description: "Standar Operasional Prosedur Divisi SDM & Budaya Organisasi",
+    },
+    {
+      name: "SOP IT & Keamanan Siber",
+      codePrefix: "SOP-IT-",
+      color: "indigo",
+      description: "Standar Operasional Prosedur Infrastruktur TI & Keamanan Siber",
+    },
+    {
+      name: "SOP Keuangan & Anggaran",
+      codePrefix: "SOP-KEU-",
+      color: "emerald",
+      description: "Standar Operasional Prosedur Finansial, Perpajakan & Pengadaan",
+    },
+    {
+      name: "SOP Operasional & Umum",
+      codePrefix: "SOP-UMUM-",
+      color: "slate",
+      description: "Standar Operasional Prosedur Fasilitas, Logistik & Tata Kelola Kantor",
+    },
+  ];
+
+  for (const cat of defaultDocCategories) {
+    await prisma.documentCategory.upsert({
+      where: { name: cat.name },
+      update: {
+        codePrefix: cat.codePrefix,
+        color: cat.color,
+        description: cat.description,
+        isActive: true,
+      },
+      create: {
+        name: cat.name,
+        codePrefix: cat.codePrefix,
+        color: cat.color,
+        description: cat.description,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`   ✓ ${defaultDocCategories.length} kategori dokumen master siap.`);
+
+  // 11. Seed Master Tipe Aset (IT & Non-IT)
+  console.log("🏷️ Menyiapkan master tipe inventaris aset...");
+  const defaultAssetTypes = [
+    { name: "Laptop", category: "IT" as const, description: "Laptop operasional staf/peneliti riset" },
+    { name: "Monitor Eksternal", category: "IT" as const, description: "Layar monitor eksternal meja kerja" },
+    { name: "Smartphone Uji", category: "IT" as const, description: "Perangkat smartphone uji aplikasi mobile & QA" },
+    { name: "Printer & Scanner", category: "IT" as const, description: "Perangkat cetak dan pemindai dokumen kantor" },
+    { name: "Meja Kerja", category: "NON_IT" as const, description: "Meja kerja workstation staf ergonomis" },
+    { name: "Kursi Ergonomis", category: "NON_IT" as const, description: "Kursi kerja ergonomis beroda" },
+    { name: "Proyektor Rapat", category: "NON_IT" as const, description: "Proyektor ruang meeting dan presentasi" },
+    { name: "Kendaraan Operasional", category: "NON_IT" as const, description: "Kendaraan operasional dinas lembaga" },
+  ];
+
+  for (const at of defaultAssetTypes) {
+    await prisma.assetType.upsert({
+      where: { name: at.name },
+      update: {
+        category: at.category,
+        description: at.description,
+        isActive: true,
+      },
+      create: {
+        name: at.name,
+        category: at.category,
+        description: at.description,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`   ✓ ${defaultAssetTypes.length} tipe inventaris aset (IT & Non-IT) siap.`);
+
+  // 12. Seed Master Lokasi / Ruangan Aset
+  console.log("📍 Menyiapkan master lokasi / ruangan kantor...");
+  const defaultLocations = [
+    {
+      name: "Ruang Kerja Utama Lt. 3",
+      building: "Gedung Edukasi",
+      floor: "Lt. 3",
+      description: "Area kerja terbuka staf dan tim riset kebijakan",
+    },
+    {
+      name: "Ruang Rapat Riset",
+      building: "Gedung Edukasi",
+      floor: "Lt. 3",
+      description: "Ruang rapat utama kapasitas 12 orang dengan proyektor",
+    },
+    {
+      name: "Ruang Server & IT",
+      building: "Gedung Edukasi",
+      floor: "Lt. 3",
+      description: "Ruang infrastruktur jaringan, server, dan perangkat TI",
+    },
+    {
+      name: "Ruang Finansial & HR",
+      building: "Gedung Edukasi",
+      floor: "Lt. 3",
+      description: "Ruang kerja divisi keuangan dan tata kelola SDM",
+    },
+    {
+      name: "Gudang Logistik & Inventaris",
+      building: "Gedung Edukasi",
+      floor: "Lt. 1",
+      description: "Tempat penyimpanan stok aset dan fasilitas operasional",
+    },
+  ];
+
+  for (const loc of defaultLocations) {
+    await prisma.assetLocation.upsert({
+      where: { name: loc.name },
+      update: {
+        building: loc.building,
+        floor: loc.floor,
+        description: loc.description,
+        isActive: true,
+      },
+      create: {
+        name: loc.name,
+        building: loc.building,
+        floor: loc.floor,
+        description: loc.description,
+        isActive: true,
+      },
+    });
+  }
+  console.log(`   ✓ ${defaultLocations.length} lokasi/ruangan kantor PSPK siap.`);
+
+  // 13. Seed Preferensi Sistem Global
+  console.log("⚙️ Menyiapkan preferensi sistem umum (system preferences)...");
+  const defaultPreferences = [
+    {
+      key: "system.max_upload_mb",
+      value: "25",
+      description: "Batas ukuran maksimal berkas yang diunggah (MB)",
+    },
+    {
+      key: "system.audit_retention_days",
+      value: "365",
+      description: "Masa retensi penyimpanan log audit sistem (Hari)",
+    },
+    {
+      key: "system.session_timeout_mins",
+      value: "1440",
+      description: "Masa aktif kedaluwarsa sesi login pengguna (Menit)",
+    },
+  ];
+
+  for (const pref of defaultPreferences) {
+    await prisma.systemSetting.upsert({
+      where: { key: pref.key },
+      update: {
+        description: pref.description,
+      },
+      create: {
+        key: pref.key,
+        value: pref.value,
+        category: "PREFERENCE",
+        description: pref.description,
+        updatedBy: "system_seed",
+      },
+    });
+  }
+  console.log(`   ✓ ${defaultPreferences.length} konfigurasi preferensi sistem berhasil disiapkan.`);
+
   console.log("✅ Inisialisasi data sistem selesai tanpa data dummy!");
 }
 

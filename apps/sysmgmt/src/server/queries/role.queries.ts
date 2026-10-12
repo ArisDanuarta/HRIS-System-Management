@@ -29,6 +29,7 @@ export const RESOURCE_METADATA: Record<
   license: { label: "Lisensi Perangkat Lunak", app: "sysmgmt", order: 24 },
   document: { label: "Repositori Dokumen & SOP", app: "sysmgmt", order: 25 },
   audit: { label: "Buku Besar Audit Log", app: "sysmgmt", order: 26 },
+  settings: { label: "Master Data & Pengaturan Sistem", app: "sysmgmt", order: 27 },
 };
 
 /**
