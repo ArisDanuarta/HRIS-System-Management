@@ -12,7 +12,6 @@ import {
   ArrowRight,
   ShieldCheck,
   CalendarDays,
-  CalendarCheck,
   ExternalLink,
   ShieldAlert,
 } from "lucide-react";

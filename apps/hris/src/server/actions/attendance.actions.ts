@@ -34,7 +34,7 @@ async function getAuthenticatedUser(): Promise<{
   }
 
   // Find linked employee
-  let employee = await prisma.employee.findUnique({
+  const employee = await prisma.employee.findUnique({
     where: { userId: session.user.id },
     select: { id: true },
   });
