@@ -7,6 +7,7 @@ import {
   createDocumentAction,
   getNextDocumentCodeAction,
 } from "@/server/actions/document.actions";
+import { SerializedDocumentCategory } from "@/server/queries/settings.queries";
 import {
   X,
   UploadCloud,
@@ -15,30 +16,40 @@ import {
   Loader2,
   Sparkles,
   CheckCircle2,
+  Settings,
 } from "lucide-react";
 
 interface DocumentCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   allowedVisibilities: DocumentVisibility[];
+  categories?: SerializedDocumentCategory[];
 }
 
-const CATEGORY_OPTIONS = [
-  "Kebijakan Lembaga",
-  "SOP HR & Kepegawaian",
-  "SOP IT & Sistem",
-  "SOP Keuangan",
-  "SOP Umum & Operasional",
+const DEFAULT_CATEGORY_OPTIONS = [
+  { name: "Kebijakan Lembaga", codePrefix: "KBJ-" },
+  { name: "SOP HR & Kepegawaian", codePrefix: "SOP-HR-" },
+  { name: "SOP IT & Sistem", codePrefix: "SOP-IT-" },
+  { name: "SOP Keuangan", codePrefix: "SOP-KEU-" },
+  { name: "SOP Umum & Operasional", codePrefix: "SOP-UMUM-" },
 ];
 
 export function DocumentCreateModal({
   isOpen,
   onClose,
   allowedVisibilities,
+  categories,
 }: DocumentCreateModalProps) {
   const router = useRouter();
 
-  const [category, setCategory] = useState("SOP HR & Kepegawaian");
+  const activeCategories =
+    categories && categories.length > 0
+      ? categories.filter((c) => c.isActive)
+      : DEFAULT_CATEGORY_OPTIONS;
+
+  const initialCatName = activeCategories[0]?.name || "SOP HR & Kepegawaian";
+
+  const [category, setCategory] = useState(initialCatName);
   const [code, setCode] = useState("");
   const [title, setTitle] = useState("");
   const [visibility, setVisibility] = useState<DocumentVisibility>(DocumentVisibility.ALL_STAFF);
@@ -100,6 +111,12 @@ export function DocumentCreateModal({
       formData.set("code", code.trim().toUpperCase());
       formData.set("title", title.trim());
       formData.set("category", category.trim());
+
+      const matchedCat = categories?.find((c) => c.name === category.trim());
+      if (matchedCat) {
+        formData.set("categoryId", matchedCat.id);
+      }
+
       formData.set("visibility", visibility);
       formData.set("status", status);
       formData.set("effectiveDate", effectiveDate);
@@ -176,9 +193,21 @@ export function DocumentCreateModal({
           {/* Baris 1: Kategori & Kode */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Kategori Dokumen <span className="text-rose-500">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Kategori Dokumen <span className="text-rose-500">*</span>
+                </label>
+                <a
+                  href="/pengaturan?tab=categories"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] text-[#102E50] hover:text-[#1a4473] hover:underline flex items-center gap-1"
+                  title="Kelola Master Kategori di Pengaturan"
+                >
+                  <Settings className="w-2.5 h-2.5" />
+                  <span>Kelola Master</span>
+                </a>
+              </div>
               <select
                 value={category}
                 onChange={(e) => {
@@ -188,9 +217,9 @@ export function DocumentCreateModal({
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] cursor-pointer"
               >
-                {CATEGORY_OPTIONS.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                {activeCategories.map((cat) => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name} ({cat.codePrefix})
                   </option>
                 ))}
               </select>

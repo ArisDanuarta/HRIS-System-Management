@@ -8,6 +8,7 @@ import {
   getDocumentStats,
   getAllowedVisibilitiesForRoles,
 } from "@/server/queries/document.queries";
+import { getDocumentCategories } from "@/server/queries/settings.queries";
 import { DocumentListView } from "@/components/documents/document-list-view";
 import { ShieldAlert } from "lucide-react";
 
@@ -81,7 +82,7 @@ export default async function DocumentPage({ searchParams }: DocumentPageProps) 
 
   const allowedVisibilities = getAllowedVisibilitiesForRoles(authCtx.roles);
 
-  const [documentsData, stats] = await Promise.all([
+  const [documentsData, stats, categoryList] = await Promise.all([
     getDocumentsDirectory(
       {
         q: searchParam,
@@ -94,12 +95,14 @@ export default async function DocumentPage({ searchParams }: DocumentPageProps) 
       authCtx.roles,
     ),
     getDocumentStats(authCtx.roles),
+    getDocumentCategories({ includeInactive: false }),
   ]);
 
   return (
     <DocumentListView
       documentsData={documentsData}
       stats={stats}
+      categories={categoryList}
       canManage={canManage}
       allowedVisibilities={allowedVisibilities}
       initialFilters={{
