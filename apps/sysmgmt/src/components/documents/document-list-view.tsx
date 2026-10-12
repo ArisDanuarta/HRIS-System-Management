@@ -11,6 +11,7 @@ import { DocumentStatsCards } from "./document-stats-cards";
 import { DocumentCategoryTree } from "./document-category-tree";
 import { DocumentTable } from "./document-table";
 import { DocumentCreateModal } from "./document-create-modal";
+import { SerializedDocumentCategory } from "@/server/queries/settings.queries";
 import {
   FolderArchive,
   Plus,
@@ -19,6 +20,7 @@ import {
 interface DocumentListViewProps {
   documentsData: DocumentDirectoryResult;
   stats: DocumentStats;
+  categories?: SerializedDocumentCategory[];
   canManage: boolean;
   allowedVisibilities: DocumentVisibility[];
   initialFilters: {
@@ -33,6 +35,7 @@ interface DocumentListViewProps {
 export function DocumentListView({
   documentsData,
   stats,
+  categories,
   canManage,
   allowedVisibilities,
   initialFilters,
@@ -163,6 +166,7 @@ export function DocumentListView({
       {/* Kategori Tree & Bilah Filter Toolbar */}
       <DocumentCategoryTree
         categories={stats.categories}
+        masterCategories={categories}
         selectedCategory={selectedCategory}
         onSelectCategory={handleSelectCategory}
         searchInput={searchInput}
@@ -195,6 +199,7 @@ export function DocumentListView({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         allowedVisibilities={allowedVisibilities}
+        categories={categories}
       />
     </div>
   );

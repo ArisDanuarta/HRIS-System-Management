@@ -2,6 +2,7 @@
 
 import React from "react";
 import { DocumentVisibility, DocumentStatus } from "@pspk/db";
+import { SerializedDocumentCategory } from "@/server/queries/settings.queries";
 import {
   Search,
   X,
@@ -12,6 +13,7 @@ import {
 
 interface DocumentCategoryFilterProps {
   categories: { name: string; count: number }[];
+  masterCategories?: SerializedDocumentCategory[];
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
   searchInput: string;
@@ -28,6 +30,7 @@ interface DocumentCategoryFilterProps {
 
 export function DocumentCategoryTree({
   categories,
+  masterCategories,
   selectedCategory,
   onSelectCategory,
   searchInput,
@@ -41,22 +44,43 @@ export function DocumentCategoryTree({
   onResetFilters,
   isFiltering,
 }: DocumentCategoryFilterProps) {
-  // Standar kategori dasar
-  const baseCategories = [
-    { id: "ALL", label: "Semua Kategori" },
-    { id: "Kebijakan Lembaga", label: "Kebijakan Lembaga" },
-    { id: "SOP HR & Kepegawaian", label: "SOP HR & Kepegawaian" },
-    { id: "SOP IT & Sistem", label: "SOP IT & Sistem" },
-    { id: "SOP Keuangan", label: "SOP Keuangan" },
-    { id: "SOP Umum & Operasional", label: "SOP Umum" },
-  ];
+  // Jika masterCategories tersedia, prioritaskan kategori aktif dari database
+  let allCategoryTabs: { id: string; label: string; prefix?: string | null }[] = [];
 
-  // Tambahkan kategori kustom dari database jika ada
-  const dynamicCategories = categories
-    .filter((cat) => !baseCategories.some((b) => b.id.toLowerCase() === cat.name.toLowerCase()))
-    .map((cat) => ({ id: cat.name, label: cat.name }));
+  if (masterCategories && masterCategories.length > 0) {
+    const activeMasters = masterCategories.filter((c) => c.isActive);
+    const masterTabs = activeMasters.map((c) => ({
+      id: c.name,
+      label: c.name,
+      prefix: c.codePrefix,
+    }));
 
-  const allCategoryTabs = [...baseCategories, ...dynamicCategories];
+    const dynamicFromDocs = categories
+      .filter((cat) => !masterTabs.some((m) => m.id.toLowerCase() === cat.name.toLowerCase()))
+      .map((cat) => ({ id: cat.name, label: cat.name }));
+
+    allCategoryTabs = [
+      { id: "ALL", label: "Semua Kategori" },
+      ...masterTabs,
+      ...dynamicFromDocs,
+    ];
+  } else {
+    // Standar kategori fallback dasar
+    const baseCategories = [
+      { id: "ALL", label: "Semua Kategori" },
+      { id: "Kebijakan Lembaga", label: "Kebijakan Lembaga" },
+      { id: "SOP HR & Kepegawaian", label: "SOP HR & Kepegawaian" },
+      { id: "SOP IT & Sistem", label: "SOP IT & Sistem" },
+      { id: "SOP Keuangan", label: "SOP Keuangan" },
+      { id: "SOP Umum & Operasional", label: "SOP Umum" },
+    ];
+
+    const dynamicCategories = categories
+      .filter((cat) => !baseCategories.some((b) => b.id.toLowerCase() === cat.name.toLowerCase()))
+      .map((cat) => ({ id: cat.name, label: cat.name }));
+
+    allCategoryTabs = [...baseCategories, ...dynamicCategories];
+  }
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs space-y-4">
