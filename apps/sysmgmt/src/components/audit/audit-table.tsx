@@ -8,8 +8,6 @@ import {
   History,
   ChevronLeft,
   ChevronRight,
-  User,
-  Globe,
   FileCode,
 } from "lucide-react";
 

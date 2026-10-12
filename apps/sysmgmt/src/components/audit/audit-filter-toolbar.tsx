@@ -4,13 +4,8 @@ import React, { useState } from "react";
 import { AuditFilterOptions } from "@/server/queries/audit.queries";
 import {
   Search,
-  Filter,
   RotateCcw,
   Download,
-  Calendar,
-  Layers,
-  Activity,
-  Globe,
 } from "lucide-react";
 
 interface AuditFilterToolbarProps {

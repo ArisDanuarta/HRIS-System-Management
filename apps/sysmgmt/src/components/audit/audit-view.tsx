@@ -12,7 +12,7 @@ import { AuditStatsCards } from "./audit-stats-cards";
 import { AuditFilterToolbar } from "./audit-filter-toolbar";
 import { AuditTable } from "./audit-table";
 import { AuditDiffModal } from "./audit-diff-modal";
-import { History, ShieldCheck, Database } from "lucide-react";
+import { ShieldCheck, Database } from "lucide-react";
 
 interface AuditViewProps {
   directory: AuditDirectoryResult;

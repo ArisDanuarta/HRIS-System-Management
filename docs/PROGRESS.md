@@ -2,6 +2,37 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tahap 5 - Audit Ledger] Modul Buku Besar Audit Log (/audit — Layar S10) — 2026-10-12
+
+- **Status:** Selesai (100% Tahap 5)
+- **Scope & Solusi:**
+  1. **Utilitas Masking Data Sensitif ([`audit-masking.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/lib/audit-masking.ts)):**
+     - Deteksi rekursif kunci payload audit sensitif (password, token, apiKey, hash, salt, PIN, NIK, NPWP, nomor rekening bank, gaji, private key).
+     - Penyamaran otomatis nilai atribut menjadi `[disembunyikan]` untuk mencegah kebocoran kredensial atau PII pada tampilan client/browser.
+  2. **Query Engine Audit Log ([`audit.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/audit.queries.ts)):**
+     - `getAuditLogs()`: Pencarian multi-dimensi (kata kunci aktor/email/entitas/ID/IP, portal aplikasi `sysmgmt` vs `hris`, tipe aksi, entitas target, rentang tanggal `startDate` - `endDate`, dan paginasi server-side). Seluruh payload `before` dan `after` ter-masking otomatis.
+     - `getAuditStats()`: Metrik total rekaman log, aktivitas 24 jam terakhir, jumlah aktor unik 30 hari terakhir, dan distribusi aksi dominan.
+     - `getAuditFilterOptions()`: Pengambilan nilai unik dinamis dari database untuk opsi filter portal, aksi, dan entitas.
+  3. **Route Handler Ekspor CSV Ter-Audit ([`/api/audit/export/route.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/api/audit/export/route.ts)):**
+     - Otorisasi server-side: Memvalidasi sesi dan permission `sysmgmt.audit.export:all` / `sysmgmt.audit.read:all`.
+     - Streaming berkas CSV berstandar RFC 4180 dengan UTF-8 BOM (`\uFEFF`) agar terbaca rapi di Microsoft Excel.
+     - Kewajiban audit terpenuhi: Setiap kali berkas diunduh, sistem mencatat event mutasi `EXPORT` ke `core.audit_logs`.
+  4. **Komponen Antarmuka Pengguna ([`apps/sysmgmt/src/components/audit/`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/audit/)):**
+     - `AuditStatsCards`: 4 kartu metrik visual (Total Rekaman, Aktivitas 24 Jam, Aktor Aktif, Aksi Dominan).
+     - `AuditFilterToolbar`: Pencarian instan, filter multi-dimensi (portal, aksi, entitas, tanggal mulai/akhir), tombol reset, dan tombol ekspor CSV.
+     - `AuditTable`: Tabel log padat dengan badge warna kontras per tipe aksi (`CREATE`, `UPDATE`, `DELETE`, `LOGIN`, `EXPORT`) dan portal, waktu format id-ID + relative time, alamat IP, dan tombol inspeksi diff.
+     - `AuditDiffModal`: Modal inspektor perbandingan JSON *Sebelum* vs *Sesudah* yang rapi dengan banner perlindungan data dan tombol salin JSON.
+     - `AuditView`: Orkestrasi seluruh sub-komponen dengan sinkronisasi URL query string.
+  5. **Server Component & Navigasi:**
+     - [`/audit/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/audit/page.tsx): Route utama dilindungi RBAC `sysmgmt.audit.read:all`.
+     - [`/audit-log/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/audit-log/page.tsx): Redirect kompatibilitas ke `/audit`.
+     - Navbar ([`sysmgmt-navbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx)): Badge *"Fase 8"* dihapus dan menu *Buku Besar Audit Log* berstatus aktif penuh.
+  6. **Verifikasi Kualitas:**
+     - `pnpm typecheck`: ✅ Lolos 100% (0 error di 9 paket monorepo).
+     - `pnpm lint`: ✅ Lolos 0 warning & 0 error di `@pspk/sysmgmt`.
+     - `pnpm test`: ✅ Lolos seluruh 246 unit tests (100% passing, termasuk 6 skenario baru di `audit.queries.test.ts`).
+     - `pnpm --filter @pspk/sysmgmt build`: ✅ Lolos build Next.js produksi dengan rute `ƒ /audit`, `ƒ /audit-log`, dan `ƒ /api/audit/export`.
+
 ## [Tahap 4 - Master Data & Settings] Integrasi Kontekstual ke Modul /dokumen & /aset — 2026-10-12
 
 - **Status:** Selesai (100% Tahap 4)

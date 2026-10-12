@@ -53,7 +53,14 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
 
   const isAssetEnabled = !moduleFlags || isModuleActive(moduleFlags, "asset_management");
 
-  const allNavItems = [
+  const allNavItems: {
+    name: string;
+    href: string;
+    icon: React.ElementType;
+    active: boolean;
+    show: boolean;
+    badge?: string;
+  }[] = [
     {
       name: "Dashboard",
       href: "/dashboard",
@@ -94,7 +101,6 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
       href: "/audit",
       icon: History,
       active: pathname.startsWith("/audit"),
-      badge: "Fase 8",
       show: true,
     },
     {
