@@ -3,6 +3,8 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "@pspk/db";
 import { cleanIpAddress } from "@pspk/shared";
 
+const authCookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim();
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
@@ -12,12 +14,32 @@ export const auth = betterAuth({
     minPasswordLength: 6,
   },
   secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
-  baseURL: process.env.HRIS_URL || "http://localhost:3001",
-  trustedOrigins: [
-    process.env.HRIS_URL || "http://localhost:3001",
-    process.env.SYSMGMT_URL || "http://localhost:3002",
-  ],
+  baseURL: process.env.HRIS_URL || process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001",
+  trustedOrigins: Array.from(
+    new Set(
+      [
+        process.env.HRIS_URL,
+        process.env.NEXT_PUBLIC_HRIS_URL,
+        process.env.SYSMGMT_URL,
+        process.env.NEXT_PUBLIC_SYSMGMT_URL,
+        "http://localhost:3001",
+        "http://localhost:3002",
+      ].filter((origin): origin is string => typeof origin === "string" && origin.length > 0),
+    ),
+  ),
   advanced: {
+    ...(authCookieDomain
+      ? {
+          crossSubDomainCookies: {
+            enabled: true,
+            domain: authCookieDomain,
+          },
+          defaultCookieAttributes: {
+            sameSite: "lax" as const,
+            secure: process.env.NODE_ENV === "production",
+          },
+        }
+      : {}),
     ipAddress: {
       ipAddressHeaders: [
         "cf-connecting-ip",
