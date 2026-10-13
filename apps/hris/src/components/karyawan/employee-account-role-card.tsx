@@ -177,7 +177,8 @@ export function EmployeeAccountRoleCard({
 
   const handleCopyCredentials = () => {
     if (!createdCredentials) return;
-    const text = `Kredensial Akun HRIS PSPK:\nEmail: ${createdCredentials.workEmail}\nPassword: ${createdCredentials.temporaryPassword}\nPeran: ${createdCredentials.roleName}\nTautan: http://localhost:3001/login`;
+    const loginUrl = `${(typeof window !== "undefined" && window.location?.origin ? window.location.origin : process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001").replace(/\/+$/, "")}/login`;
+    const text = `Kredensial Akun HRIS PSPK:\nEmail: ${createdCredentials.workEmail}\nPassword: ${createdCredentials.temporaryPassword}\nPeran: ${createdCredentials.roleName}\nTautan: ${loginUrl}`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

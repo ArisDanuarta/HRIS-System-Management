@@ -545,7 +545,7 @@ export function UserManagementTable({
                           {/* Tautan ke Detail Pegawai di HRIS jika terhubung */}
                           {u.employee && (
                             <a
-                              href={`http://localhost:3001/karyawan/${u.employee.id}?tab=akun`}
+                              href={`${process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}/karyawan/${u.employee.id}?tab=akun`}
                               target="_blank"
                               rel="noreferrer"
                               className="p-1.5 rounded-lg text-slate-400 hover:text-[#102E50] hover:bg-slate-100 transition-colors"

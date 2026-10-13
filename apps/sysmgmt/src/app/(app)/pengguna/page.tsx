@@ -49,7 +49,7 @@ export default async function UserManagementPage({ searchParams }: UserManagemen
           Administrator PSPK.
         </p>
         <a
-          href="http://localhost:3001"
+          href={process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}
           className="inline-flex items-center gap-2 px-4 py-2 bg-[#102E50] text-white text-xs font-semibold rounded-lg hover:bg-[#1a4473] transition-colors"
         >
           Kembali ke HRIS
