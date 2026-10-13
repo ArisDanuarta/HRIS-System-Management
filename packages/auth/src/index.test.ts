@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { auth, hashPassword, authHandlers, getSession, getAuthContext, getUserProfile } from "./index";
 
 describe("@pspk/auth configuration and exports", () => {
@@ -27,5 +27,20 @@ describe("@pspk/auth configuration and exports", () => {
     expect(typeof getSession).toBe("function");
     expect(typeof getAuthContext).toBe("function");
     expect(typeof getUserProfile).toBe("function");
+  });
+
+  it("harus menerapkan konfigurasi keamanan ketat (disableSignUp, minPasswordLength 8, rateLimit)", () => {
+    const emailAndPasswordOpts = auth.options.emailAndPassword;
+    expect(emailAndPasswordOpts).toBeDefined();
+    expect(emailAndPasswordOpts?.disableSignUp).toBe(true);
+    expect(emailAndPasswordOpts?.minPasswordLength).toBe(8);
+
+    const rateLimitOpts = auth.options.rateLimit;
+    expect(rateLimitOpts).toBeDefined();
+    expect(rateLimitOpts?.enabled).toBe(true);
+    expect(rateLimitOpts?.customRules?.["/sign-in/email"]).toEqual({
+      window: 60,
+      max: 5,
+    });
   });
 });
