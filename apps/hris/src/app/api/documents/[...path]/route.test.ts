@@ -31,6 +31,9 @@ vi.mock("@pspk/db", () => ({
     employee: {
       findFirst: vi.fn(),
     },
+    documentVersion: {
+      findFirst: vi.fn(),
+    },
   },
   writeAudit: vi.fn(async () => {}),
 }));
@@ -52,6 +55,7 @@ import { prisma, writeAudit } from "@pspk/db";
 type MockSession = Awaited<ReturnType<typeof getSession>>;
 type MockLeaveRequest = Awaited<ReturnType<typeof prisma.leaveRequest.findFirst>>;
 type MockEmployee = Awaited<ReturnType<typeof prisma.employee.findFirst>>;
+type MockDocumentVersion = Awaited<ReturnType<typeof prisma.documentVersion.findFirst>>;
 
 describe("GET /api/documents/[...path]", () => {
   beforeEach(() => {
@@ -242,5 +246,100 @@ describe("GET /api/documents/[...path]", () => {
     expect(contentDisposition).not.toContain("\r");
     expect(contentDisposition).not.toContain("\n");
     expect(contentDisposition).toContain("attachment");
+  });
+
+  describe("Akses Dokumen Kebijakan & SOP Lembaga (sysmgmt/documents/...)", () => {
+    it("harus mengizinkan seluruh staf mengakses dokumen dengan visibilitas ALL_STAFF (200)", async () => {
+      vi.mocked(getSession).mockResolvedValue({
+        user: { id: "user-staf", email: "staf@pspk.id" },
+      } as unknown as MockSession);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-staf",
+        employeeId: "emp-staf",
+        roles: ["staf"],
+        permissions: new Set(["view:self"]),
+      });
+
+      vi.mocked(prisma.documentVersion.findFirst).mockResolvedValue({
+        id: "ver-1",
+        fileKey: "sysmgmt/documents/kbj-002/v1-sample-kbj-002.pdf",
+        document: {
+          id: "doc-1",
+          visibility: "ALL_STAFF",
+        },
+      } as unknown as MockDocumentVersion);
+
+      const req = createRequest("sysmgmt/documents/kbj-002/v1-sample-kbj-002.pdf");
+      const res = await GET(req, {
+        params: Promise.resolve({
+          path: ["sysmgmt", "documents", "kbj-002", "v1-sample-kbj-002.pdf"],
+        }),
+      });
+
+      expect(res.status).toBe(200);
+    });
+
+    it("harus menolak staf biasa jika dokumen memiliki visibilitas MANAGERS (403)", async () => {
+      vi.mocked(getSession).mockResolvedValue({
+        user: { id: "user-staf", email: "staf@pspk.id" },
+      } as unknown as MockSession);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-staf",
+        employeeId: "emp-staf",
+        roles: ["staf"],
+        permissions: new Set(["view:self"]),
+      });
+
+      vi.mocked(prisma.documentVersion.findFirst).mockResolvedValue({
+        id: "ver-2",
+        fileKey: "sysmgmt/documents/kbj-003/v1-mgr.pdf",
+        document: {
+          id: "doc-2",
+          visibility: "MANAGERS",
+        },
+      } as unknown as MockDocumentVersion);
+
+      const req = createRequest("sysmgmt/documents/kbj-003/v1-mgr.pdf");
+      const res = await GET(req, {
+        params: Promise.resolve({
+          path: ["sysmgmt", "documents", "kbj-003", "v1-mgr.pdf"],
+        }),
+      });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("harus mengizinkan manager mengakses dokumen MANAGERS (200)", async () => {
+      vi.mocked(getSession).mockResolvedValue({
+        user: { id: "user-mgr", email: "manager@pspk.id" },
+      } as unknown as MockSession);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-mgr",
+        employeeId: "emp-mgr",
+        roles: ["manager"],
+        permissions: new Set(["view:team"]),
+      });
+
+      vi.mocked(prisma.documentVersion.findFirst).mockResolvedValue({
+        id: "ver-2",
+        fileKey: "sysmgmt/documents/kbj-003/v1-mgr.pdf",
+        document: {
+          id: "doc-2",
+          visibility: "MANAGERS",
+        },
+      } as unknown as MockDocumentVersion);
+
+      const req = createRequest("sysmgmt/documents/kbj-003/v1-mgr.pdf");
+      const res = await GET(req, {
+        params: Promise.resolve({
+          path: ["sysmgmt", "documents", "kbj-003", "v1-mgr.pdf"],
+        }),
+      });
+
+      expect(res.status).toBe(200);
+    });
   });
 });

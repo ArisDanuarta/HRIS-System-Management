@@ -133,6 +133,44 @@ async function checkDocumentAccess(
     return false;
   }
 
+  // 5. Dokumen Kebijakan & SOP Lembaga (System Management): sysmgmt/documents/...
+  if (key.startsWith("sysmgmt/documents/")) {
+    const version = await prisma.documentVersion.findFirst({
+      where: { fileKey: key },
+      include: { document: true },
+    });
+
+    if (!version || !version.document) {
+      return false;
+    }
+
+    const { visibility } = version.document;
+
+    // Dokumen untuk seluruh staf
+    if (visibility === "ALL_STAFF") {
+      return true;
+    }
+
+    // Dokumen untuk manajer ke atas
+    if (visibility === "MANAGERS") {
+      return authCtx.roles.some((r) =>
+        ["manager", "admin_hr", "admin_it", "super_admin"].includes(r),
+      );
+    }
+
+    // Dokumen khusus HR
+    if (visibility === "HR_ONLY") {
+      return authCtx.roles.some((r) => ["admin_hr", "super_admin"].includes(r));
+    }
+
+    // Dokumen khusus IT
+    if (visibility === "IT_ONLY") {
+      return authCtx.roles.some((r) => ["admin_it", "super_admin"].includes(r));
+    }
+
+    return false;
+  }
+
   // Default fallback: tolak jika bukan pemilik atau Super Admin / Admin HR
   return false;
 }
