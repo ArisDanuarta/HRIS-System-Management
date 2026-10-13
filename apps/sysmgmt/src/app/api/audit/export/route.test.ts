@@ -110,10 +110,14 @@ describe("GET /api/audit/export", () => {
     expect(res.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(res.headers.get("Cache-Control")).toContain("no-store");
 
-    const csvText = await res.text();
+    // Verifikasi UTF-8 BOM pada bytes mentah
+    const arrayBuffer = await res.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    expect(bytes[0]).toBe(0xef);
+    expect(bytes[1]).toBe(0xbb);
+    expect(bytes[2]).toBe(0xbf);
 
-    // Verifikasi UTF-8 BOM
-    expect(csvText.charCodeAt(0)).toBe(0xfeff);
+    const csvText = new TextDecoder("utf-8").decode(arrayBuffer);
 
     // Verifikasi netralisasi formula injection: Karakter diawali kutip tunggal (') di dalam sel
     expect(csvText).toContain('"\'=cmd|\'/C calc\'!A0"');

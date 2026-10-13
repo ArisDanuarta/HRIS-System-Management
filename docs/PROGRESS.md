@@ -4,7 +4,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## [Keamanan Siber] Hardening Keamanan Platform & Penutupan Celah Sistem — 2026-10-13
 
-- **Status:** Sedang Berjalan (Tahap 1 & Tahap 2 Selesai dan Terverifikasi)
+- **Status:** Selesai (Tahap 1, Tahap 2, dan Tahap 3 Tuntas & Terverifikasi)
 - **Scope & Tujuan:**
   - Melakukan audit keamanan menyeluruh dan memitigasi seluruh celah keamanan (Vulnerabilities & Security Gaps) pada modul HRIS, System Management, otentikasi, penyimpanan berkas, dan ekspor data.
   - Memastikan otorisasi berbasis hak akses (RBAC) dan kepemilikan objek diterapkan secara ketat di sisi server (Server-Side Authorization).
@@ -28,10 +28,24 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Menambahkan header keamanan `X-Content-Type-Options: nosniff` dan proteksi cache `Cache-Control: private, no-cache, no-store, must-revalidate` untuk dokumen privat/sensitif.
      - Menambahkan pencatatan audit log otomatis (`writeAudit`) untuk setiap akses preview/download dokumen privat.
      - Menambahkan unit test komprehensif di `apps/hris/src/app/api/documents/[...path]/route.test.ts` (8 skenario pengujian).
+  3. **Tahap 3 — Mitigasi CSV Formula Injection & Penguatan Security Headers (`@pspk/shared`, `apps/sysmgmt`, `apps/hris`, `docker`):**
+     - Mengembangkan fungsi utilitas terpadu `sanitizeCsvField` di `packages/shared/src/formatters.ts` untuk memitigasi celah kerentanan *CSV Formula Injection* (CWE-1236) pada spreadsheet (Excel, Calc, Sheets) yang dipicu karakter `=`, `+`, `-`, `@`, `\t`, dan `\r`.
+     - Mengimplementasikan `sanitizeCsvField` di seluruh generator CSV platform:
+       - Endpoint ekspor buku besar audit log: `apps/sysmgmt/src/app/api/audit/export/route.ts`.
+       - Layanan ekspor penggajian transfer bank: `apps/hris/src/server/services/payroll.service.ts`.
+       - Layanan ekspor rekapitulasi penilaian kinerja: `apps/hris/src/server/services/performance.service.ts`.
+     - Memperkuat header HTTP Security pada reverse proxy Caddy (`docker/caddy/Caddyfile`):
+       - HSTS dengan `includeSubDomains; preload`
+       - `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`
+       - `X-Permitted-Cross-Domain-Policies: none`
+       - Penghapusan fingerprint server (`-Server`)
+     - Menerapkan *Defense in Depth* dengan menambahkan konfigurasi `headers()` di `apps/hris/next.config.ts` dan `apps/sysmgmt/next.config.ts` agar seluruh security header aktif di seluruh mode operasional (lokal dev maupun container).
+     - Menambahkan unit test di `packages/shared/src/formatters.test.ts` (5 pengujian formula) dan `apps/sysmgmt/src/app/api/audit/export/route.test.ts` (3 skenario ekspor & injeksi).
 - **Verifikasi Kualitas Kode:**
-  - `pnpm test`: ✅ 26 test files lolos, 179 unit tests passed (100%)
+  - `pnpm test`: ✅ 27 test files lolos, 187 unit tests passed (100%)
   - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
   - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - `pnpm build`: ✅ Lolos 100% (Kompilasi produksi standalone Turbopack sukses)
 
 ## [Audit & Konfigurasi] Penyelarasan Konfigurasi Monorepo, Cross-Subdomain SSO, & Docker Readiness — 2026-10-13
 

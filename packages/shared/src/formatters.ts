@@ -432,10 +432,11 @@ export function sanitizeCsvField(val: unknown): string {
   }
 
   let str = String(val);
-  const trimmed = str.trimStart();
 
-  // Deteksi karakter pemicu formula Excel / Calc / Google Sheets
-  if (/^[=+\-@\t\r]/.test(trimmed)) {
+  // Deteksi karakter pemicu formula Excel / Calc / Google Sheets:
+  // Karakter tab (\t) atau carriage return (\r) di awal string mentah,
+  // ATAU karakter =, +, -, @ di awal string (setelah membuang spasi awalan).
+  if (/^[\t\r]/.test(str) || /^[=+\-@]/.test(str.trimStart())) {
     str = `'${str}`;
   }
 
