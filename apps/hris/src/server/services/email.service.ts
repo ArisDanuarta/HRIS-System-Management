@@ -23,6 +23,7 @@ export interface EmailSendResult {
 export async function sendEmployeeCredentialsEmail(
   params: SendCredentialsEmailParams,
 ): Promise<EmailSendResult> {
+  const { to, fullName, workEmail, temporaryPassword, roleName } = params;
   const baseHrisUrl =
     process.env.HRIS_URL ||
     process.env.NEXT_PUBLIC_HRIS_URL ||
