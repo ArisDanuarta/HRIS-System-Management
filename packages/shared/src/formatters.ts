@@ -413,3 +413,34 @@ export function angkaTerbilang(amount: number | bigint | string | null | undefin
   const hasil = bilang(num).replace(/\s+/g, " ").trim();
   return hasil ? `${hasil} Rupiah` : "Nol Rupiah";
 }
+
+/**
+ * Sanitasi nilai bidang (field) untuk format CSV sesuai RFC 4180 dan mitigasi
+ * proteksi OWASP CSV Formula Injection (CWE-1236).
+ *
+ * Bila nilai diawali karakter pemicu formula Excel/Sheets/Calc (=, +, -, @, \t, \r),
+ * karakter petik tunggal (') ditambahkan di awal string agar aplikasi spreadsheet
+ * memperlakukan nilai tersebut secara murni sebagai teks dan tidak mengeksekusi
+ * formula atau perintah DDE arbitrer.
+ */
+export function sanitizeCsvField(val: unknown): string {
+  if (val === null || val === undefined) return '""';
+
+  // Angka murni numerik yang valid aman langsung dicetak
+  if (typeof val === "number" && Number.isFinite(val)) {
+    return String(val);
+  }
+
+  let str = String(val);
+  const trimmed = str.trimStart();
+
+  // Deteksi karakter pemicu formula Excel / Calc / Google Sheets
+  if (/^[=+\-@\t\r]/.test(trimmed)) {
+    str = `'${str}`;
+  }
+
+  // Escape karakter kutip ganda internal sesuai RFC 4180
+  const escaped = str.replace(/"/g, '""');
+  return `"${escaped}"`;
+}
+

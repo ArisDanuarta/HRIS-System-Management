@@ -2,6 +2,37 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan Siber] Hardening Keamanan Platform & Penutupan Celah Sistem — 2026-10-13
+
+- **Status:** Sedang Berjalan (Tahap 1 & Tahap 2 Selesai dan Terverifikasi)
+- **Scope & Tujuan:**
+  - Melakukan audit keamanan menyeluruh dan memitigasi seluruh celah keamanan (Vulnerabilities & Security Gaps) pada modul HRIS, System Management, otentikasi, penyimpanan berkas, dan ekspor data.
+  - Memastikan otorisasi berbasis hak akses (RBAC) dan kepemilikan objek diterapkan secara ketat di sisi server (Server-Side Authorization).
+- **Hasil Implementasi per Tahapan:**
+  1. **Tahap 1 — Penguatan Autentikasi & Brute-Force Defense (`@pspk/auth`):**
+     - Menonaktifkan registrasi publik terbuka (`disableSignUp: true`) pada Better Auth untuk mencegah pembuatan akun liar tak terkendali di endpoint publik `/api/auth/sign-up/email`. Pendaftaran akun karyawan tetap aman via admin/HR server actions.
+     - Meningkatkan panjang minimum password dari default 6 karakter menjadi minimum 8 karakter (`minPasswordLength: 8`) sesuai standar NIST / OWASP.
+     - Menyelaraskan skema validasi ubah kata sandi di `apps/hris/src/server/actions/profile.actions.ts` (`newPassword: z.string().min(8)`).
+     - Mengaktifkan pembatasan percobaan login (Rate Limiting) in-memory pada rute `/sign-in/email` (maksimal 5 percobaan per jendela waktu 60 detik) untuk memitigasi serangan brute-force dan password spraying credential.
+     - Menambahkan unit test lengkap di `packages/auth/src/index.test.ts`.
+  2. **Tahap 2 — Proteksi Dokumen HRIS dari IDOR & Response Header Splitting (`apps/hris`):**
+     - Memperbaiki endpoint penyajian berkas `apps/hris/src/app/api/documents/[...path]/route.ts` yang sebelumnya rentan IDOR / BOLA (siapapun yang login bisa membaca dokumen pegawai lain dengan menebak fileKey).
+     - Menerapkan fungsi validasi otorisasi server-side `checkDocumentAccess`:
+       - `avatars/*` & `branding/*`: Publik (untuk rendering antarmuka UI & kop surat).
+       - `documents/{employeeId}/*`: Hanya pemilik dokumen (`employeeId`), Super Admin, dan Admin HR.
+       - `cuti/lampiran/{employeeId}_*`: Pemilik cuti, atasan langsung (`managerId`), Super Admin, dan Admin HR.
+       - `sk-mutasi/{employeeId}_*`: Pemilik mutasi, Super Admin, dan Admin HR.
+       - `timesheets/{payslipId}_*`: Pemilik slip gaji, bagian keuangan (`finance`), Super Admin, dan Admin HR.
+       - Fallback berkas lainnya: Wajib hak akses Super Admin atau Admin HR.
+     - Mencegah serangan *HTTP Response Header Splitting* / *CRLF Injection* pada header `Content-Disposition` dengan membersihkan karakter newline (`\r`, `\n`) dan karakter kutip (`"`), serta menyandikan nama berkas dengan RFC 5987 (`filename*=UTF-8''...`).
+     - Menambahkan header keamanan `X-Content-Type-Options: nosniff` dan proteksi cache `Cache-Control: private, no-cache, no-store, must-revalidate` untuk dokumen privat/sensitif.
+     - Menambahkan pencatatan audit log otomatis (`writeAudit`) untuk setiap akses preview/download dokumen privat.
+     - Menambahkan unit test komprehensif di `apps/hris/src/app/api/documents/[...path]/route.test.ts` (8 skenario pengujian).
+- **Verifikasi Kualitas Kode:**
+  - `pnpm test`: ✅ 26 test files lolos, 179 unit tests passed (100%)
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+
 ## [Audit & Konfigurasi] Penyelarasan Konfigurasi Monorepo, Cross-Subdomain SSO, & Docker Readiness — 2026-10-13
 
 - **Status:** Selesai (5 Tahapan Tuntas)
