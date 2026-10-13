@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PERMISSIONS, SYSTEM_ROLES } from "@pspk/rbac";
 import { hashPassword } from "better-auth/crypto";
 import { SYSTEM_MODULE_DEFINITIONS } from "../src/modules";
+import { seedDummyData } from "./seed-dummy";
 
 const prisma = new PrismaClient();
 
@@ -593,7 +594,14 @@ async function main() {
   }
   console.log(`   ✓ ${defaultPreferences.length} konfigurasi preferensi sistem berhasil disiapkan.`);
 
-  console.log("✅ Inisialisasi data sistem selesai tanpa data dummy!");
+  if (process.env.SEED_DEMO === "true") {
+    console.log("🚀 Variabel SEED_DEMO=true terdeteksi, menjalankan seeding data dummy...");
+    await seedDummyData(prisma);
+  } else {
+    console.log("ℹ️ Variabel SEED_DEMO bukan 'true'. Data dummy dilewati.");
+  }
+
+  console.log("✅ Inisialisasi data sistem selesai!");
 }
 
 main()

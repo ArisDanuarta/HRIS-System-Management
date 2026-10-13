@@ -2,6 +2,53 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Data Seeding] Penambahan Data Dummy Komprehensif HRIS & System Management — 2026-10-13
+
+- **Status:** Selesai
+- **Scope & Tujuan:**
+  - Mengisi kekosongan data dummy pada modul-modul HRIS dan System Management yang sebelumnya belum memiliki data uji realistis.
+  - Memastikan antarmuka HRIS (`/absensi`, `/cuti`, `/payroll`, `/slip-gaji`, `/kinerja`, `/timesheet`, `/notifikasi`, `/kalender`) dan System Management (`/aset`, `/lisensi`, `/dokumen`, `/pengguna`, `/audit`) dapat diuji coba dengan data yang kaya dan mencerminkan operasional nyata Pusat Studi Pendidikan & Kebijakan (PSPK).
+- **Implementasi ([`packages/db/prisma/seed-dummy.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed-dummy.ts)):**
+  1. **Pengguna & Pegawai Lengkap:**
+     - Menambahkan staf baru: `dewi@pspk.id` ("Dewi Lestari, M.Si." - Peneliti Lepas Kuantitatif LSKP, PKWT Hourly) dan `farhan@pspk.id` ("Farhan Ramadhan" - Asisten Riset Kebijakan, Magang/Internship LDB).
+     - Menghubungkan seluruh 7 pegawai ke kontrak kerja (`EmploymentContract`) aktif dengan gaji pokok/tarif upah per jam yang realistis.
+  2. **Kehadiran & Absensi 30 Hari Terakhir (`Attendance`):**
+     - Menyiapkan 105 baris absensi kerja dari 15 September 2026 hingga 13 Oktober 2026 untuk seluruh staf inti.
+     - Variasi status realistis: mayoritas `PRESENT` (datang 08:30–08:55, pulang 17:05–17:35), `LATE` berkala (09:15–09:35 karena transit KRL), `WFH` (Rabu/Jumat untuk naskah riset), dan `LEAVE` yang sinkron dengan permohonan cuti resmi.
+  3. **Manajemen Cuti & Saldo 2026 (`LeaveBalance` & `LeaveRequest`):**
+     - Saldo cuti tahun 2026 disiapkan untuk seluruh 7 pegawai di 4 tipe cuti master (Tahunan, Sakit, Melahirkan, Penting).
+     - 6 permohonan cuti realistis dengan status beragam: `PENDING` (cuti adat Aris menunggu review Jody), `APPROVED` (cuti tahunan Rina & Jody, cuti sakit Rina dengan lampiran surat dokter), serta `REJECTED` (cuti mendadak dengan catatan penolakan).
+  4. **Modul Penggajian & Slip Gaji (`Payroll`):**
+     - Master 7 komponen gaji (`BASE_SALARY`, `ALLOWANCE_POSITION`, `ALLOWANCE_COMMUNICATION`, `ALLOWANCE_TRANSPORT`, `DED_BPJS_KES`, `DED_BPJS_TK`, `DED_PPH21`).
+     - Alokasi komponen gaji per pegawai ke `EmployeeSalaryComponent`.
+     - Periode payroll September 2026 (`PUBLISHED`) dan Oktober 2026 (`CALCULATED`).
+     - 7 slip gaji resmi elektronik periode September 2026 (`Payslip` & `PayslipLine`) siap pratinjau dan unduh di `/slip-gaji`.
+  5. **Evaluasi Kinerja / Sasaran Kerja (`Performance`):**
+     - Periode kinerja aktif: "Semester II 2026 — Penguatan Advokasi & Riset Kebijakan Pendidikan".
+     - 8 sasaran kerja (KPI) terukur berbobot total 100% untuk Lead Peneliti (Jody), Staf IT (Aris), dan Peneliti Daerah (Rina).
+     - Ulasan kinerja berstatus `FINALIZED` dengan skor mandiri, skor atasan, serta umpan balik evaluatif.
+  6. **Lembar Timesheet Riset (`TimesheetSubmission`):**
+     - Pengajuan timesheet jam kerja September 2026 (42.5 jam @ Rp 75.000, `APPROVED` oleh Jody).
+     - Pengajuan timesheet jam kerja Oktober 2026 (28.0 jam, `PENDING` menunggu review).
+  7. **Tugas Onboarding & Riwayat Pelatihan:**
+     - 5 tugas orientasi onboarding pegawai baru/magang (`OnboardingTask`).
+     - 4 sertifikasi dan riwayat pelatihan staf (`TrainingRecord`).
+  8. **System Management (Aset, Lisensi, & Dokumen):**
+     - 7 unit aset baru (iPad Pro 11 M4, MacBook Air 15 M2, MikroTik CCR2004, ThinkPad X1 Carbon Retired, Avanza Veloz Operasional, Kamera Sony A7 IV, Meja Rapat Oval Jati) dengan penugasan ke pegawai aktif.
+     - 3 lisensi software baru (SPSS 29, Stata MP 18, Canva Pro dengan peringatan kedaluwarsa 14 hari).
+     - 4 dokumen SOP & Kebijakan baru (`SOP-UMUM-001`, `KBJ-002`, `SOP-HR-002`, `SOP-KEU-002`) lengkap dengan berkas PDF fisik terenkripsi/terverifikasi sha256 di storage.
+  9. **Notifikasi Interaktif & Log Audit:**
+     - 6 notifikasi sistem aktif di lonceng notifikasi pengguna (`LEAVE`, `PAYROLL`, `SYSTEM`).
+     - Entri audit log mutasi terbaru untuk verifikasi riwayat di System Management.
+- **Perintah CLI:**
+  - `pnpm db:seed:dummy`: Menjalankan seeding data dummy secara instan dan idempotent.
+  - `pnpm db:seed`: Seeding standar sistem (data dummy dijalankan bila `SEED_DEMO=true`).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - `pnpm test`: ✅ 164 unit tests passing (100%)
+  - Idempotensi: ✅ Terverifikasi aman dijalankan berulang tanpa duplikasi atau kendala constraint.
+
 ## [Fix & Hardening] Perbaikan Pemulihan Foto Profil & Sinkronisasi Storage — 2026-10-12
 
 - **Status:** Selesai

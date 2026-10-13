@@ -17,6 +17,11 @@ const rubik = Rubik({
 export const metadata: Metadata = {
   title: "PSPK HRIS — Pusat Studi Pendidikan dan Kebijakan",
   description: "Sistem Informasi Sumber Daya Manusia Terpadu PSPK",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

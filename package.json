@@ -21,6 +21,7 @@
     "db:migrate": "pnpm --filter @pspk/db migrate:dev",
     "db:deploy": "pnpm --filter @pspk/db migrate:deploy",
     "db:seed": "pnpm --filter @pspk/db seed",
+    "db:seed:dummy": "pnpm --filter @pspk/db seed:dummy",
     "db:studio": "pnpm --filter @pspk/db studio"
   },
   "devDependencies": {
