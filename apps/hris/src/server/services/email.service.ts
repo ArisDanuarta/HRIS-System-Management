@@ -23,13 +23,14 @@ export interface EmailSendResult {
 export async function sendEmployeeCredentialsEmail(
   params: SendCredentialsEmailParams,
 ): Promise<EmailSendResult> {
-  const { to, fullName, workEmail, temporaryPassword, roleName } = params;
-  const loginUrl =
-    params.loginUrl ||
+  const baseHrisUrl =
     process.env.HRIS_URL ||
+    process.env.NEXT_PUBLIC_HRIS_URL ||
     (process.env.NODE_ENV === "production"
-      ? "https://hris.pspk.id/masuk"
-      : "http://localhost:3001/masuk");
+      ? "https://hris.pspk.id"
+      : "http://localhost:3001");
+  const loginUrl =
+    params.loginUrl || `${baseHrisUrl.replace(/\/+$/, "")}/login`;
 
   const smtpHost = process.env.SMTP_HOST;
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;

@@ -10,8 +10,8 @@ export default function SysmgmtLoginPage() {
   return (
     <LoginPage
       currentApp="sysmgmt"
-      hrisUrl="http://localhost:3001"
-      sysmgmtUrl="http://localhost:3002"
+      hrisUrl={process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}
+      sysmgmtUrl={process.env.NEXT_PUBLIC_SYSMGMT_URL || "http://localhost:3002"}
       onSubmit={async ({ email, password, remember }) => {
         const res = await signIn.email({
           email,

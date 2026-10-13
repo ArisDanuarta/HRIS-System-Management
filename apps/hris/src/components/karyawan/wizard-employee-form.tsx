@@ -1677,7 +1677,8 @@ export function WizardEmployeeForm({
               <button
                 type="button"
                 onClick={() => {
-                  const text = `Kredensial Akses Portal HRIS PSPK:\nNama: ${createdCredentials.fullName}\nEmail Login: ${createdCredentials.workEmail}\nKata Sandi Sementara: ${createdCredentials.temporaryPassword}\nHak Akses: ${createdCredentials.roleName}\nLink: http://localhost:3001/masuk`;
+                  const loginUrl = `${(typeof window !== "undefined" && window.location?.origin ? window.location.origin : process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001").replace(/\/+$/, "")}/login`;
+                  const text = `Kredensial Akses Portal HRIS PSPK:\nNama: ${createdCredentials.fullName}\nEmail Login: ${createdCredentials.workEmail}\nKata Sandi Sementara: ${createdCredentials.temporaryPassword}\nHak Akses: ${createdCredentials.roleName}\nLink: ${loginUrl}`;
                   navigator.clipboard.writeText(text);
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
