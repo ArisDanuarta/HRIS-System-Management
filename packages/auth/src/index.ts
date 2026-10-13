@@ -11,7 +11,20 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 6,
+    disableSignUp: true,
+    minPasswordLength: 8,
+  },
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    storage: "memory",
+    customRules: {
+      "/sign-in/email": {
+        window: 60,
+        max: 5,
+      },
+    },
   },
   secret:
     process.env.BETTER_AUTH_SECRET ||
