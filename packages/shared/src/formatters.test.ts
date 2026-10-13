@@ -207,3 +207,53 @@ describe("angkaTerbilang", () => {
     expect(angkaTerbilang(37600000)).toBe("Tiga Puluh Tujuh Juta Enam Ratus Ribu Rupiah");
   });
 });
+
+describe("sanitizeCsvField", () => {
+  it("harus menangani nilai null dan undefined dengan mengembalikan string kosong berpagar kutip", async () => {
+    const { sanitizeCsvField } = await import("./formatters");
+    expect(sanitizeCsvField(null)).toBe('""');
+    expect(sanitizeCsvField(undefined)).toBe('""');
+  });
+
+  it("harus mencetak angka numerik murni tanpa tanda kutip formula", async () => {
+    const { sanitizeCsvField } = await import("./formatters");
+    expect(sanitizeCsvField(100)).toBe("100");
+    expect(sanitizeCsvField(0)).toBe("0");
+    expect(sanitizeCsvField(-50)).toBe("-50");
+    expect(sanitizeCsvField(12500000.5)).toBe("12500000.5");
+  });
+
+  it("harus memitigasi serangan CSV Formula Injection pada karakter =, +, -, @, \\t, \\r", async () => {
+    const { sanitizeCsvField } = await import("./formatters");
+    // Karakter = (Formula execution)
+    expect(sanitizeCsvField("=SUM(A1:A10)")).toBe('"\'=SUM(A1:A10)"');
+    expect(sanitizeCsvField("=cmd|'/C calc'!A0")).toBe('"\'=cmd|\'/C calc\'!A0"');
+
+    // Karakter + dan -
+    expect(sanitizeCsvField("+12345")).toBe('"\' +12345"'.replace(" ", ""));
+    expect(sanitizeCsvField("-2+3*cmd|'...'!A0")).toBe('"\' -2+3*cmd|\'...\'!A0"'.replace(" ", ""));
+
+    // Karakter @ (Macro invocation / DDE)
+    expect(sanitizeCsvField("@SUM(1,2)")).toBe('"\'@SUM(1,2)"');
+
+    // Karakter Tab (\t) dan Carriage Return (\r)
+    expect(sanitizeCsvField("\tbadcommand")).toBe('"\'\tbadcommand"');
+    expect(sanitizeCsvField("\rbadcommand")).toBe('"\'\rbadcommand"');
+
+    // Preceding whitespace dengan karakter formula
+    expect(sanitizeCsvField("  =1+1")).toBe('"\'  =1+1"');
+  });
+
+  it("harus melakukan escape kutip ganda internal sesuai spesifikasi RFC 4180", async () => {
+    const { sanitizeCsvField } = await import("./formatters");
+    expect(sanitizeCsvField('Budi "Aris" Danuarta')).toBe('"Budi ""Aris"" Danuarta"');
+    expect(sanitizeCsvField('Direktur "Utama"')).toBe('"Direktur ""Utama"""');
+  });
+
+  it("harus memperlakukan teks biasa secara normal", async () => {
+    const { sanitizeCsvField } = await import("./formatters");
+    expect(sanitizeCsvField("Budi Santoso")).toBe('"Budi Santoso"');
+    expect(sanitizeCsvField("budi.santoso@pspk.id")).toBe('"budi.santoso@pspk.id"');
+  });
+});
+

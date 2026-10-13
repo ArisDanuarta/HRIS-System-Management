@@ -1,5 +1,5 @@
 import { prisma, writeAudit } from "@pspk/db";
-import { decryptField } from "@pspk/shared";
+import { decryptField, sanitizeCsvField } from "@pspk/shared";
 import { getTimesheetValidationForPayroll } from "@/server/queries/timesheet.queries";
 
 export interface CalculatePayrollResult {
@@ -494,17 +494,17 @@ export async function generatePayrollBankExport(periodId: string) {
   ];
   const periodLabel = `${monthNames[period.month - 1]} ${period.year}`;
 
-  const rows = [
-    [
-      "No",
-      "NIP",
-      "Nama Pegawai",
-      "Nama Bank",
-      "Nomor Rekening",
-      "Nominal Transfer (Rp)",
-      "Keterangan",
-    ],
+  const headers = [
+    "No",
+    "NIP",
+    "Nama Pegawai",
+    "Nama Bank",
+    "Nomor Rekening",
+    "Nominal Transfer (Rp)",
+    "Keterangan",
   ];
+
+  const rows: string[] = [headers.map(sanitizeCsvField).join(",")];
 
   period.payslips.forEach((p, idx) => {
     let plainAccount = "-";
@@ -516,18 +516,22 @@ export async function generatePayrollBankExport(periodId: string) {
       }
     }
 
-    rows.push([
-      String(idx + 1),
-      p.employee.employeeNo,
-      `"${p.employee.fullName}"`,
-      p.employee.bankName || "-",
-      `'${plainAccount}`,
-      String(p.netAmount),
-      `"Payroll PSPK ${periodLabel}"`,
-    ]);
+    rows.push(
+      [
+        idx + 1,
+        p.employee.employeeNo,
+        p.employee.fullName,
+        p.employee.bankName || "-",
+        plainAccount,
+        Number(p.netAmount),
+        `Payroll PSPK ${periodLabel}`,
+      ]
+        .map(sanitizeCsvField)
+        .join(","),
+    );
   });
 
-  const csvContent = rows.map((r) => r.join(",")).join("\n");
+  const csvContent = rows.join("\r\n");
   const filename = `Payroll_PSPK_${period.year}_${String(period.month).padStart(2, "0")}_${period.kind}.csv`;
 
   return {

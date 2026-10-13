@@ -1,4 +1,5 @@
 import { prisma } from "@pspk/db";
+import { sanitizeCsvField } from "@pspk/shared";
 import {
   CreatePerformancePeriodInput,
   FinalizePerformanceReviewInput,
@@ -169,23 +170,25 @@ export async function generatePerformanceExportCsv(
 
     return [
       idx + 1,
-      `"${r.employee.employeeNo}"`,
-      `"${r.employee.fullName.replace(/"/g, '""')}"`,
-      `"${r.employee.workEmail || "-"}"`,
-      `"${r.employee.currentDepartment?.name || "-"}"`,
-      `"${r.employee.currentPosition?.title || "-"}"`,
-      `"${r.reviewer ? r.reviewer.fullName.replace(/"/g, '""') : "-"}"`,
+      r.employee.employeeNo,
+      r.employee.fullName,
+      r.employee.workEmail || "-",
+      r.employee.currentDepartment?.name || "-",
+      r.employee.currentPosition?.title || "-",
+      r.reviewer ? r.reviewer.fullName : "-",
       r.selfScore ? Number(r.selfScore) : "-",
       r.managerScore ? Number(r.managerScore) : "-",
       finalScore !== null ? finalScore : "-",
-      `"${predicate}"`,
-      `"${r.status}"`,
-    ].join(",");
+      predicate,
+      r.status,
+    ]
+      .map(sanitizeCsvField)
+      .join(",");
   });
 
   const sanitizedPeriodName = period.name.toLowerCase().replace(/[^a-z0-9]/g, "-");
   const filename = `rekap-kinerja-${sanitizedPeriodName}.csv`;
-  const content = [headers.join(","), ...rows].join("\n");
+  const content = [headers.map(sanitizeCsvField).join(","), ...rows].join("\r\n");
 
   return { filename, content };
 }

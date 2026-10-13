@@ -2,15 +2,9 @@ import { NextRequest } from "next/server";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
 import { prisma, writeAudit } from "@pspk/db";
-import { formatDateTime } from "@pspk/shared";
+import { formatDateTime, sanitizeCsvField } from "@pspk/shared";
 
 export const dynamic = "force-dynamic";
-
-function escapeCsvField(val: unknown): string {
-  if (val === null || val === undefined) return '""';
-  const str = String(val).replace(/"/g, '""');
-  return `"${str}"`;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -119,7 +113,7 @@ export async function GET(request: NextRequest) {
       "User Agent",
     ];
 
-    const rows: string[] = [headers.map(escapeCsvField).join(",")];
+    const rows: string[] = [headers.map(sanitizeCsvField).join(",")];
 
     for (const log of logs) {
       rows.push(
@@ -134,20 +128,22 @@ export async function GET(request: NextRequest) {
           log.ip || "-",
           log.userAgent || "-",
         ]
-          .map(escapeCsvField)
+          .map(sanitizeCsvField)
           .join(","),
       );
     }
 
     const csvContent = "\uFEFF" + rows.join("\r\n");
     const filename = `buku-besar-audit-pspk-${new Date().toISOString().split("T")[0]}.csv`;
+    const encodedFilename = encodeURIComponent(filename).replace(/['()]/g, escape);
 
     return new Response(csvContent, {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-        "Cache-Control": "no-store",
+        "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodedFilename}`,
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        "X-Content-Type-Options": "nosniff",
       },
     });
   } catch (err: unknown) {
