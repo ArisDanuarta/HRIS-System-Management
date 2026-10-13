@@ -2,6 +2,41 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Audit & Konfigurasi] Penyelarasan Konfigurasi Monorepo, Cross-Subdomain SSO, & Docker Readiness — 2026-10-13
+
+- **Status:** Selesai (5 Tahapan Tuntas)
+- **Scope & Tujuan:**
+  - Melakukan audit menyeluruh terhadap konfigurasi platform, lingkungan eksekusi lokal vs produksi, otentikasi lintas subdomain, dan build pipeline.
+  - Memastikan kedua aplikasi (HRIS port 3001 & System Management port 3002) berjalan mulus di lingkungan lokal tanpa ketergantungan VPS eksternal, sekaligus 100% siap deploy saat VPS telah tersedia (*future-proof*).
+- **Hasil Implementasi per Tahapan:**
+  1. **Tahap 1 — Autentikasi & Cross-Subdomain SSO (`@pspk/auth`):**
+     - Memperbarui `packages/auth/src/index.ts` dengan konfigurasi `crossSubDomainCookies` dan `defaultCookieAttributes` dinamis berdasarkan `AUTH_COOKIE_DOMAIN`.
+     - Normalisasi `trustedOrigins` dan `baseURL` agar adaptif terhadap `NEXT_PUBLIC_*` dan fallback dev `http://localhost:3001` & `3002`.
+     - Menambahkan unit test di `packages/auth/src/index.test.ts`.
+  2. **Tahap 2 — Navigasi Antar-Aplikasi & Rute Kredensial:**
+     - Mengganti hardcoded `http://localhost:3001` & `3002` pada tombol login switcher di `apps/hris/src/app/login/page.tsx` dan `apps/sysmgmt/src/app/login/page.tsx` menjadi `process.env.NEXT_PUBLIC_*` dengan fallback aman.
+     - Memperbaiki tautan aktivasi login pada `apps/hris/src/server/services/email.service.ts` dari rute non-eksisten `/masuk` ke `/login`.
+     - Memperbarui tautan salin akun di `wizard-employee-form.tsx` dan `employee-account-role-card.tsx` agar menggunakan origin dinamis ke `/login`.
+     - Sinkronisasi `.env.example` mencakup `NEXT_PUBLIC_HRIS_URL` dan `NEXT_PUBLIC_SYSMGMT_URL`.
+     - Menambahkan unit test di `apps/hris/src/server/services/email.service.test.ts`.
+  3. **Tahap 3 — Orchestration Docker Production & Penyelarasan Variabel:**
+     - Menyelaraskan blok runtime `x-app-env` di `docker-compose.prod.yml` mencakup `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_HRIS_URL`, `NEXT_PUBLIC_SYSMGMT_URL`, konfigurasi SMTP, Google OAuth, dan token Cron.
+     - Memperbarui template `.env.production.example` dengan instruksi pembuatan kunci acak aman (`openssl rand -base64 32`) dan konfigurasi domain sub-domain (`.pspk.id`).
+     - Memvalidasi sintaks YAML dengan Prettier (100% valid).
+  4. **Tahap 4 — Build Pipeline & Monorepo Optimization (`turbo.json`):**
+     - Mendaftarkan `globalEnv` di `turbo.json` untuk seluruh variabel kunci runtime dan build-time agar caching Turborepo 2.x selalu akurat saat konfigurasi berubah.
+     - Menyediakan fallback aman secret Better Auth saat fase kompilasi Next.js (`next build`), mengeliminasi peringatan log pekerja `BetterAuthError: You are using the default secret`.
+     - Menguji kompilasi produksi `pnpm build`: berhasil 100% dalam 9.5 detik untuk kedua aplikasi.
+  5. **Tahap 5 — Smoke Test Menyeluruh & Verifikasi Kualitas:**
+     - Endpoint `/api/health` HRIS (`localhost:3001`) dan System Management (`localhost:3002`): status 200 OK (`{"status":"ok"}`).
+     - Halaman `/login` kedua aplikasi: status 200 OK.
+     - Aset favicon (`/favicon.png`): status 200 OK.
+- **Verifikasi Kualitas Kode:**
+  - `pnpm test`: ✅ 25 test files lolos, 170 unit tests passed (100%)
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - `pnpm build`: ✅ Lolos 100% (Kompilasi standalone Next.js 16 bersih)
+
 ## [Data Seeding] Penambahan Data Dummy Komprehensif HRIS & System Management — 2026-10-13
 
 - **Status:** Selesai

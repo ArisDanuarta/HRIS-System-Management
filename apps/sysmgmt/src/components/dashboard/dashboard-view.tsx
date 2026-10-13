@@ -77,14 +77,6 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
               Pantau status keamanan identitas, inventarisasi aset institusi, lisensi perangkat lunak, serta buku besar audit sistem PSPK secara terpadu.
             </p>
           </div>
-
-          {/* Indikator Status Operasional */}
-          <div className="flex flex-wrap items-center gap-3 self-start lg:self-auto shrink-0">
-            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-xs font-semibold shadow-2xs">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Sistem Berjalan Normal</span>
-            </div>
-          </div>
         </div>
 
         {/* Bilah Aksi Cepat (Quick Action Pills) */}
