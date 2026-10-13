@@ -1,6 +1,32 @@
 {
   "$schema": "https://v2-11-5.turborepo.dev/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "AUTH_SECRET",
+    "BETTER_AUTH_SECRET",
+    "AUTH_COOKIE_DOMAIN",
+    "DATA_ENCRYPTION_KEY",
+    "HRIS_URL",
+    "SYSMGMT_URL",
+    "NEXT_PUBLIC_HRIS_URL",
+    "NEXT_PUBLIC_SYSMGMT_URL",
+    "STORAGE_DRIVER",
+    "STORAGE_LOCAL_DIR",
+    "MAX_UPLOAD_MB",
+    "APP_TIMEZONE",
+    "SMTP_HOST",
+    "SMTP_PORT",
+    "SMTP_USER",
+    "SMTP_PASS",
+    "SMTP_FROM",
+    "GOOGLE_CALENDAR_API_KEY",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "GOOGLE_OAUTH_REDIRECT_URI",
+    "CRON_SECRET"
+  ],
   "tasks": {
     "generate": {
       "cache": false

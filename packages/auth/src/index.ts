@@ -13,7 +13,10 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 6,
   },
-  secret: process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET,
+  secret:
+    process.env.BETTER_AUTH_SECRET ||
+    process.env.AUTH_SECRET ||
+    "development-and-build-secret-key-minimum-32-chars",
   baseURL: process.env.HRIS_URL || process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001",
   trustedOrigins: Array.from(
     new Set(
