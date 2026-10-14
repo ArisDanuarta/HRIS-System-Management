@@ -252,7 +252,7 @@ export function TransferPositionModal({
               >
                 {departments.map((d) => (
                   <option key={d.id} value={d.id}>
-                    {d.type ? `${DEPT_TYPE_LABEL[d.type]} — ` : ""}
+                    {d.type ? `${DEPT_TYPE_LABEL[d.type]} - ` : ""}
                     {d.name}
                   </option>
                 ))}

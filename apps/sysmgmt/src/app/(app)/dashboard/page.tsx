@@ -9,7 +9,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Dashboard Administrator — PSPK System Management",
+  title: "Dashboard Administrator - PSPK System Management",
   description: "Pusat kendali eksekutif TI, keamanan akun, inventaris aset, dan log audit",
 };
 

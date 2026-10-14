@@ -17,7 +17,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Inventaris Aset Lembaga — PSPK System Management",
+  title: "Inventaris Aset Lembaga - PSPK System Management",
   description: "Katalog inventaris perangkat IT, fasilitas kerja, dan pelacakan status fisik aset PSPK.",
 };
 

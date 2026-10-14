@@ -107,7 +107,7 @@ export function PerformancePeriodModal({
             <input
               type="text"
               required
-              placeholder="Contoh: Semester Ganjil 2026 — Riset & Advokasi Kebijakan"
+              placeholder="Contoh: Semester Ganjil 2026 - Riset & Advokasi Kebijakan"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 focus:border-[#102E50] focus:ring-1 focus:ring-[#102E50] outline-hidden placeholder:text-slate-400 font-medium"

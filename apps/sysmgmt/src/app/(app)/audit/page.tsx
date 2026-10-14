@@ -14,7 +14,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Buku Besar Audit Log — PSPK System Management",
+  title: "Buku Besar Audit Log - PSPK System Management",
   description:
     "Rekaman jejak transaksi mutasi data, aktivitas autentikasi, dan audit keamanan sistem PSPK.",
 };

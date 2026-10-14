@@ -16,10 +16,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const asset = await getAssetById(id);
-  if (!asset) return { title: "Aset Tidak Ditemukan — PSPK System Management" };
+  if (!asset) return { title: "Aset Tidak Ditemukan - PSPK System Management" };
 
   return {
-    title: `${asset.name} (${asset.assetTag}) — PSPK Inventaris Aset`,
+    title: `${asset.name} (${asset.assetTag}) - PSPK Inventaris Aset`,
     description: `Spesifikasi dan riwayat penugasan unit aset ${asset.name} (${asset.assetTag}).`,
   };
 }

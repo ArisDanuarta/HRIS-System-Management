@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { NotFoundView } from "@pspk/ui";
 
 export const metadata: Metadata = {
-  title: "404 — Halaman Tidak Ditemukan | System Management PSPK",
+  title: "404 - Halaman Tidak Ditemukan | System Management PSPK",
   description: "Halaman yang Anda tuju tidak ditemukan pada System Management PSPK.",
 };
 

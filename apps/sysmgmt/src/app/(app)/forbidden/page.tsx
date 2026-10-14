@@ -5,7 +5,7 @@ import { ForbiddenView } from "@pspk/ui";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "403 — Akses Ditolak | System Management PSPK",
+  title: "403 - Akses Ditolak | System Management PSPK",
   description: "Anda tidak memiliki wewenang administrator untuk modul ini.",
 };
 

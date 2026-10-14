@@ -14,7 +14,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Lisensi Perangkat Lunak — PSPK System Management",
+  title: "Lisensi Perangkat Lunak - PSPK System Management",
   description: "Katalog lisensi software, alokasi kursi, masa berlaku, dan kunci produk berbayar PSPK.",
 };
 

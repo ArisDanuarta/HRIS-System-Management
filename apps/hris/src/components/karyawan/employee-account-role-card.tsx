@@ -513,7 +513,7 @@ export function EmployeeAccountRoleCard({
                   >
                     {allRoles.map((r) => (
                       <option key={r.key} value={r.key}>
-                        {r.name} — {r.description}
+                        {r.name} - {r.description}
                       </option>
                     ))}
                   </select>
