@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import Link from "next/link";
 import {
   HelpCircle,
   Search,
@@ -249,13 +248,13 @@ export function HelpCenterView({
       <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Link
+            <a
               href={loginUrl}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-[#102e50] bg-slate-100/80 hover:bg-slate-200/80 px-2.5 py-1.5 rounded-lg transition-colors duration-150"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali</span>
-            </Link>
+            </a>
             <div className="h-5 w-px bg-slate-200" />
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#f2af3e]" />
@@ -269,19 +268,19 @@ export function HelpCenterView({
           </div>
 
           <div className="flex items-center gap-2">
-            <Link
+            <a
               href={dashboardUrl}
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[#102e50] hover:text-[#001934] transition-colors"
             >
               <span>Buka Dasbor</span>
               <ExternalLink className="w-3 h-3" />
-            </Link>
-            <Link
+            </a>
+            <a
               href={loginUrl}
               className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-lg bg-[#102e50] hover:bg-[#001934] text-white text-xs font-semibold shadow-xs transition-colors"
             >
               Halaman Masuk
-            </Link>
+            </a>
           </div>
         </div>
       </header>
@@ -558,13 +557,13 @@ export function HelpCenterView({
             © {new Date().getFullYear()} Pusat Studi Pendidikan dan Kebijakan (PSPK). Seluruh hak cipta dilindungi.
           </div>
           <div className="flex items-center gap-4">
-            <Link href={loginUrl} className="hover:text-[#102e50] transition-colors">
+            <a href={loginUrl} className="hover:text-[#102e50] transition-colors">
               Masuk Akun
-            </Link>
+            </a>
             <span>•</span>
-            <Link href={dashboardUrl} className="hover:text-[#102e50] transition-colors">
+            <a href={dashboardUrl} className="hover:text-[#102e50] transition-colors">
               Dasbor Utama
-            </Link>
+            </a>
           </div>
         </div>
       </footer>

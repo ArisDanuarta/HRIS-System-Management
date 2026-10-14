@@ -2,6 +2,28 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Fitur Publik & Bantuan] Implementasi Pusat Bantuan & FAQ Terpadu Kedua Platform - 2026-10-14
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Tautan `#bantuan` dan footer `Bantuan IT` pada halaman login (`http://localhost:3002/login#bantuan` dan port 3001) sebelumnya belum memiliki halaman tujuan resmi.
+- **Hasil Implementasi:**
+  1. **Komponen Bersama (`HelpCenterView` di `@pspk/ui`):**
+     - Mengembangkan antarmuka Pusat Bantuan yang kaya fitur, responsif, dan elegan dengan identitas brand PSPK (Navy `#102E50`, Gold `#F2AF3E`).
+     - Menyediakan pencarian interaktif instan, penyaringan topik berkategori, kartu solusi cepat (kendala kata sandi/akun terkunci, prosedur operasional, helpdesk IT), serta accordion FAQ komprehensif.
+     - Menyediakan kotak kontak resmi terintegrasi (email Helpdesk TI: `it@pspk.id` dan Divisi SDM: `sdm@pspk.id`).
+  2. **Halaman Publik `/bantuan` di Kedua Aplikasi:**
+     - `apps/hris/src/app/bantuan/page.tsx`: Menyajikan panduan akun, presensi kerja & toleransi keterlambatan, pengajuan cuti, kalender kerja, dan slip gaji elektronik.
+     - `apps/sysmgmt/src/app/bantuan/page.tsx`: Menyajikan panduan hak akses RBAC, tata kelola inventaris aset kantor, repositori SOP lembaga, dan audit log.
+  3. **Penyelarasan Navigasi & Tautan Masuk:**
+     - Memperbarui `LoginPage` pada `@pspk/ui` sehingga tautan header `Bantuan`, tautan `Lupa Kata Sandi`, serta footer `Bantuan IT` langsung mengarah ke `/bantuan`.
+     - Menambahkan tautan `Pusat Bantuan & FAQ` pada menu profil pengguna di `apps/hris` (`user-nav.tsx`) dan `apps/sysmgmt` (`sysmgmt-navbar.tsx`).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm test`: ✅ 27 test files lolos, 190 unit tests passed (100%)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - Endpoint HTTP: ✅ `http://localhost:3001/bantuan` (200 OK) & `http://localhost:3002/bantuan` (200 OK)
+
 ## [Dokumen & Otorisasi] Pembuatan Berkas PDF Resmi PSPK & Sinkronisasi Hak Akses Dokumen Lembaga — 2026-10-13
 
 - **Status:** Selesai (Tuntas & Terverifikasi)

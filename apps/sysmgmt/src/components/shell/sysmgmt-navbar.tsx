@@ -573,6 +573,17 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
               <Settings className="w-4 h-4" />
               <span>Pengaturan & Master Data</span>
             </Link>
+            <Link
+              href="/bantuan"
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
+                pathname.startsWith("/bantuan")
+                  ? "bg-[#102E50]/10 text-[#102E50]"
+                  : "text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <HelpCircle className="w-4 h-4" />
+              <span>Pusat Bantuan & FAQ</span>
+            </Link>
           </div>
 
           {/* Tombol Keluar di Mobile */}
