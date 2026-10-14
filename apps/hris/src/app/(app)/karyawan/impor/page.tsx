@@ -10,7 +10,7 @@ import { ExcelImporter } from "@/components/karyawan/excel-importer";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Impor Massal Data Pegawai — HRIS PSPK",
+  title: "Impor Massal Data Pegawai - HRIS PSPK",
   description:
     "Unggah berkas spreadsheet Excel (.xlsx) untuk mendaftarkan data pegawai secara massal",
 };

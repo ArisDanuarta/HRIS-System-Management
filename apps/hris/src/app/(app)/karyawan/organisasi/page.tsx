@@ -10,7 +10,7 @@ import { OrganizationPageView } from "@/components/karyawan/organization-page-vi
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Struktur Organisasi & Kepegawaian — HRIS PSPK",
+  title: "Struktur Organisasi & Kepegawaian - HRIS PSPK",
   description: "Kelola divisi, formasi jabatan, dan master tipe ikatan kerja",
 };
 

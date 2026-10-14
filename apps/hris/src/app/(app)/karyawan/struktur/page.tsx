@@ -12,7 +12,7 @@ import { OrgChartView } from "@/components/karyawan/org-chart-view";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Bagan Struktur Organisasi — HRIS PSPK",
+  title: "Bagan Struktur Organisasi - HRIS PSPK",
   description:
     "Visualisasi peta hierarki kepemimpinan, rantai koordinasi, dan struktur tim di lingkungan PSPK.",
 };
