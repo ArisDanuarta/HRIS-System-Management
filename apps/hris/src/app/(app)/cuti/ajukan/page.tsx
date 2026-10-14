@@ -11,8 +11,14 @@ import {
 } from "@/server/queries/leave.queries";
 import { LeaveRequestForm } from "@/components/cuti/leave-request-form";
 import { ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Pengajuan Cuti - HRIS PSPK",
+  description: "Formulir pengajuan izin dan cuti kerja pegawai PSPK",
+};
 
 export default async function AjukanCutiPage() {
   const reqHeaders = await headers();

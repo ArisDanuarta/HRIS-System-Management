@@ -5,8 +5,14 @@ import { prisma } from "@pspk/db";
 import { getPendingLeaveApprovals, getAllLeaveRequests } from "@/server/queries/leave.queries";
 import { LeaveApprovalView } from "@/components/cuti/leave-approval-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Persetujuan Cuti - HRIS PSPK",
+  description: "Persetujuan dan review permohonan cuti staf oleh manajer dan HR",
+};
 
 export default async function PersetujuanCutiPage() {
   const reqHeaders = await headers();

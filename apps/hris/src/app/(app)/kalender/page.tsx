@@ -6,8 +6,14 @@ import { getWorkCalendarEvents } from "@/server/queries/calendar.queries";
 import { checkGoogleConnected } from "@/server/services/google-calendar.service";
 import { WorkCalendarView } from "@/components/kalender/work-calendar-view";
 import { GoogleConnectBanner } from "@/components/kalender/google-connect-banner";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Kalender Kerja - HRIS PSPK",
+  description: "Kalender kerja, libur nasional, hari peringatan, dan jadwal cuti tim PSPK",
+};
 
 interface KalenderPageProps {
   searchParams: Promise<{

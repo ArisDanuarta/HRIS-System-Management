@@ -10,8 +10,14 @@ import {
 import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { LeaveSettingsView } from "@/components/cuti/leave-settings-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Pengaturan Cuti - HRIS PSPK",
+  description: "Pengaturan master tipe cuti, hari libur nasional, dan kuota saldo cuti tahunan",
+};
 
 export default async function PengaturanCutiPage() {
   const reqHeaders = await headers();

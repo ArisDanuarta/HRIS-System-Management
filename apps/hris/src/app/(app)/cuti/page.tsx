@@ -9,8 +9,14 @@ import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { LeaveRequestTable } from "@/components/cuti/leave-request-table";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import { Plus } from "lucide-react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Manajemen Cuti - HRIS PSPK",
+  description: "Pengajuan dan informasi kuota cuti pegawai di lingkungan PSPK",
+};
 
 export default async function CutiPage() {
   const reqHeaders = await headers();
@@ -88,7 +94,7 @@ export default async function CutiPage() {
             Saldo Kuota Cuti Tahun {currentYear}
           </h2>
           <span className="text-xs text-gray-500">
-            Periode: 01 Jan {currentYear} — 31 Des {currentYear}
+            Periode: 01 Jan {currentYear} - 31 Des {currentYear}
           </span>
         </div>
 
