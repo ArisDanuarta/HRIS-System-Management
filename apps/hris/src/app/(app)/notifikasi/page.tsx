@@ -12,7 +12,7 @@ import { NotificationCenterView } from "@/components/notifications/notification-
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Pusat Notifikasi — Portal HRIS PSPK",
+  title: "Pusat Notifikasi - Portal HRIS PSPK",
   description:
     "Pantau seluruh notifikasi pengajuan baru, status persetujuan, dan pengingat operasional penting di PSPK.",
 };

@@ -10,7 +10,7 @@ import { EmploymentTypeManagement } from "@/components/karyawan/employment-type-
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Pengaturan Tipe Ikatan Kerja — HRIS PSPK",
+  title: "Pengaturan Tipe Ikatan Kerja - HRIS PSPK",
   description: "Kelola master tipe perjanjian kerja, skema penggajian, dan tarif acuan",
 };
 
