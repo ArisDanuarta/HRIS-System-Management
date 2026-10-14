@@ -501,7 +501,7 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/80 animate-pulse">
+                <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/80">
                   ● Mode Ubah Aktif
                 </span>
                 <button
@@ -807,7 +807,7 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
             <div
               className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                changeCount > 0 ? "bg-[#F2AF3E] animate-pulse" : "bg-slate-400"
+                changeCount > 0 ? "bg-[#F2AF3E]" : "bg-slate-400"
               }`}
             />
             <div className="flex flex-col truncate">

@@ -421,7 +421,7 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
                     className={`w-2 h-2 rounded-full ${
                       stats.systemHealth.isDatabaseConnected
                         ? "bg-emerald-500"
-                        : "bg-rose-500 animate-ping"
+                        : "bg-rose-500"
                     }`}
                   />
                   <span className="text-xs font-semibold text-slate-700">Database PostgreSQL</span>

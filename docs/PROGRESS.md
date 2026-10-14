@@ -2,6 +2,36 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Desain & UI] Penghapusan Animasi Dot Kedip/Redup-Nyala (Pulse & Ping) di Seluruh Platform — 2026-10-14
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Efek animasi `animate-pulse` dan `animate-ping` pada titik-titik indikator status (dot) di halaman login, HRIS, dan System Management dinilai mengganggu serta memberikan kesan "gimmick AI" yang tidak perlu.
+- **Hasil Implementasi:**
+  1. **Halaman Login Bersama (`@pspk/ui`):**
+     - Menghapus efek `animate-ping` pada titik badge tagline kiri (`Manajemen SDM` / `Keamanan & Hak Akses`).
+     - Menghapus efek `animate-pulse` dan `shadow-[0_0_8px_...]` pada indikator aktif tab switch (`Portal HRIS` / `System Management`), menjadikannya dot solid yang bersih dan elegan.
+     - Menghapus animasi `animate-pulse` pada latar belakang SVG dan `animate-ping` pada transisi overlay.
+  2. **Aplikasi HRIS (`apps/hris`):**
+     - Menghapus `animate-pulse` pada dot status hadir absensi (`today-attendance-card.tsx`).
+     - Menghapus `animate-pulse` pada indikator siklus aktif evaluasi kinerja (`performance-header.tsx`).
+     - Menghapus `animate-ping` ganda pada step tracker kinerja staf (`staff-performance-view.tsx`).
+     - Menghapus `animate-pulse` pada dot jumlah belum dibaca di notifikasi (`notification-center-view.tsx`).
+     - Menghapus `animate-pulse` pada indikator live preview slip gaji (`payroll-document-preview.tsx`).
+     - Menghapus `animate-pulse` pada dot status aktif profil karyawan (`profile-info-tab.tsx`).
+     - Menghapus `animate-pulse` pada dot sesi aktif saat ini (`session-history-tab.tsx`).
+     - Menghapus `animate-pulse` pada badge lonceng notifikasi (`notification-bell.tsx`).
+  3. **Aplikasi System Management (`apps/sysmgmt`):**
+     - Menghapus `animate-pulse` pada dot status aset sedang dipinjam (`asset-detail-view.tsx`).
+     - Menghapus `animate-ping` pada status terputus database PostgreSQL di dashboard (`dashboard-view.tsx`).
+     - Menghapus `animate-pulse` pada dot versi aktif dokumen SOP (`document-version-timeline.tsx`).
+     - Menghapus `animate-pulse` pada badge mode ubah aktif dan dot indikator perubahan peran yang belum disimpan (`role-matrix-view.tsx`).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm test`: ✅ 27 test files lolos, 190 unit tests passed (100%)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+
+
 ## [Fitur Publik & Bantuan] Implementasi Pusat Bantuan & FAQ Terpadu Kedua Platform - 2026-10-14
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
