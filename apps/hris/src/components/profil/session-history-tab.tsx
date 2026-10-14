@@ -138,7 +138,7 @@ export function SessionHistoryTab({ sessions }: SessionHistoryTabProps) {
                         </span>
                         {session.isCurrent ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                             Sesi Perangkat Ini
                           </span>
                         ) : (

@@ -159,8 +159,7 @@ export function LoginPage({
               fill={isHris ? "#feba48" : "#60a5fa"}
               fillOpacity="0.32"
               points="420,40 430,70 460,80 430,90 420,120 410,90 380,80 410,70"
-              className="animate-pulse transition-colors duration-500"
-              style={{ animationDuration: "4s" }}
+              className="transition-colors duration-500"
             />
             <circle
               cx="120"
@@ -225,7 +224,7 @@ export function LoginPage({
         >
           <div className="flex items-center gap-2 mb-2">
             <span
-              className={`w-1.5 h-1.5 rounded-full animate-ping ${
+              className={`w-1.5 h-1.5 rounded-full ${
                 isHris ? "bg-[#feba48]" : "bg-[#60a5fa]"
               }`}
             />
@@ -322,7 +321,7 @@ export function LoginPage({
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300 ${
                   activeTab === "hris"
-                    ? "bg-[#feba48] shadow-[0_0_8px_#feba48] opacity-100 scale-100 animate-pulse"
+                    ? "bg-[#feba48] opacity-100 scale-100"
                     : "opacity-0 scale-50"
                 }`}
               />
@@ -356,7 +355,7 @@ export function LoginPage({
               <span
                 className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300 ${
                   activeTab === "sysmgmt"
-                    ? "bg-[#60a5fa] shadow-[0_0_8px_#60a5fa] opacity-100 scale-100 animate-pulse"
+                    ? "bg-[#60a5fa] opacity-100 scale-100"
                     : "opacity-0 scale-50"
                 }`}
               />
@@ -408,11 +407,7 @@ export function LoginPage({
             {isSwitching && (
               <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300 animate-in fade-in zoom-in-95">
                 <div className="relative flex items-center justify-center mb-3">
-                  <div
-                    className={`absolute w-14 h-14 rounded-full animate-ping opacity-30 ${
-                      activeTab === "sysmgmt" ? "bg-[#60a5fa]" : "bg-[#feba48]"
-                    }`}
-                  />
+
                   <div className="w-12 h-12 rounded-full bg-[#102e50] flex items-center justify-center shadow-lg text-white">
                     <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
                       <circle

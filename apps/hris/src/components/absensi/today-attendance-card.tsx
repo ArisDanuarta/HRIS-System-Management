@@ -346,7 +346,7 @@ export function TodayAttendanceCard({
                 className={`w-2 h-2 rounded-full ${
                   todayAttendance?.status === "LATE"
                     ? "bg-amber-500"
-                    : "bg-emerald-500 animate-pulse"
+                    : "bg-emerald-500"
                 }`}
               />
               <span>

@@ -268,10 +268,7 @@ export function StaffPerformanceView({
                         </span>
                       </div>
                       {isCurrent && (
-                        <span className="flex h-2 w-2 relative">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                        </span>
+                        <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
                       )}
                     </div>
                     <p className="text-[10px] text-slate-500 pl-8 leading-snug">{st.desc}</p>

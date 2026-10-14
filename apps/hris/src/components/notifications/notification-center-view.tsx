@@ -293,7 +293,7 @@ export function NotificationCenterView({
             <div className="text-xl sm:text-2xl font-bold mt-1 flex items-center gap-2">
               <span>{unreadCount}</span>
               {unreadCount > 0 && (
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
               )}
             </div>
           </div>

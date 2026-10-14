@@ -35,7 +35,7 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
     <div className="sticky top-6 flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-wider">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-emerald-500" />
           <span>Live Preview Slip Gaji A4</span>
         </div>
         <span className="text-[11px] text-slate-400">Pratinjau Cetak Real-Time</span>

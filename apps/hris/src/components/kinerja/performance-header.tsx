@@ -148,7 +148,7 @@ export function PerformanceHeader({
               >
                 <span
                   className={`w-1.5 h-1.5 rounded-full ${
-                    isOpen ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                    isOpen ? "bg-emerald-500" : "bg-slate-400"
                   }`}
                 />
                 {isOpen ? "Siklus Aktif Berjalan" : "Siklus Ditutup / Terkunci"}
