@@ -209,8 +209,9 @@ export function AppSidebar({
                 alt="Pusat Studi Pendidikan dan Kebijakan"
                 className="h-7 w-auto object-contain"
                 src="/images/logo_pspk_horizontal_trimmed.png"
-                width={170}
-                height={28}
+                width={485}
+                height={80}
+                style={{ width: "auto" }}
                 priority
               />
               <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">

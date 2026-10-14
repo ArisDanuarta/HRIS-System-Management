@@ -117,9 +117,10 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
                 <Image
                   src="/images/logo_pspk_horizontal_trimmed.png"
                   alt="Logo Resmi PSPK"
-                  width={116}
-                  height={24}
+                  width={485}
+                  height={80}
                   className="h-6 w-auto object-contain"
+                  style={{ width: "auto" }}
                   priority
                 />
               </div>

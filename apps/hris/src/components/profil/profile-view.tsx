@@ -130,6 +130,9 @@ export function ProfileView({ profile }: ProfileViewProps) {
               src="/images/logo_pspk_horizontal_trimmed.png"
               alt=""
               className="h-36 w-auto object-contain filter grayscale"
+              width={485}
+              height={80}
+              style={{ width: "auto" }}
             />
           </div>
 
@@ -139,6 +142,9 @@ export function ProfileView({ profile }: ProfileViewProps) {
               src="/images/logo_pspk_horizontal_trimmed.png"
               alt="Pusat Studi Pendidikan dan Kebijakan"
               className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-xs"
+              width={485}
+              height={80}
+              style={{ width: "auto" }}
             />
             <span className="text-[11px] font-semibold text-[#74777f] tracking-wider uppercase">
               Pusat Studi Pendidikan dan Kebijakan

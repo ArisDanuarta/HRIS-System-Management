@@ -198,6 +198,9 @@ export function LoginPage({
                 alt="Logo Resmi PSPK"
                 className="h-8 w-auto object-contain"
                 src="/images/logo_pspk_horizontal_trimmed.png"
+                width={485}
+                height={80}
+                style={{ width: "auto" }}
               />
             </div>
             <div className="h-8 w-px bg-white/20" />
@@ -455,6 +458,9 @@ export function LoginPage({
                     src="/images/logo_pspk_horizontal_trimmed.png"
                     alt="Logo PSPK"
                     className="h-6 w-auto object-contain"
+                    width={485}
+                    height={80}
+                    style={{ width: "auto" }}
                   />
                 </div>
                 <span
