@@ -8,7 +8,7 @@ import { PayslipListView } from "@/components/slip-gaji/payslip-list-view";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Slip Gaji Saya — HRIS PSPK",
+  title: "Slip Gaji Saya - HRIS PSPK",
   description: "Arsip resmi slip gaji dan bukti penerimaan pembayaran pegawai PSPK",
 };
 

@@ -12,7 +12,7 @@ import { Receipt, Users, CreditCard, Sliders, ShieldAlert, Calendar, Settings } 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Penggajian (Payroll) — HRIS PSPK",
+  title: "Penggajian (Payroll) - HRIS PSPK",
   description: "Kelola siklus periode penggajian bulanan, tunjangan, dan slip gaji pegawai PSPK",
 };
 
