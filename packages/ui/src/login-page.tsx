@@ -24,8 +24,8 @@ export function LoginPage({
   defaultEmail = "",
   onSubmit,
   onSuccess,
-  forgotPasswordHref = "#lupa-password",
-  helpHref = "#bantuan",
+  forgotPasswordHref = "/bantuan#lupa-password",
+  helpHref = "/bantuan",
 }: LoginPageProps) {
   const [email, setEmail] = useState(defaultEmail);
   const [password, setPassword] = useState("");
@@ -752,15 +752,15 @@ export function LoginPage({
             © PSPK • Pusat Studi Pendidikan dan Kebijakan
           </div>
           <div className="flex items-center gap-4 text-xs">
-            <a className="hover:text-[#001934] transition-colors duration-150" href="#keamanan">
+            <a className="hover:text-[#001934] transition-colors duration-150" href="/bantuan#keamanan">
               Kebijakan Privasi
             </a>
             <span className="text-[#c4c6cf]">•</span>
-            <a className="hover:text-[#001934] transition-colors duration-150" href="#syarat">
+            <a className="hover:text-[#001934] transition-colors duration-150" href="/bantuan#keamanan">
               Protokol Keamanan
             </a>
             <span className="text-[#c4c6cf]">•</span>
-            <a className="hover:text-[#001934] transition-colors duration-150" href="#kontak-it">
+            <a className="hover:text-[#001934] transition-colors duration-150" href="/bantuan#kontak">
               Bantuan IT
             </a>
           </div>
