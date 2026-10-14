@@ -16,7 +16,7 @@ import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Timesheet Saya — HRIS PSPK",
+  title: "Timesheet Saya - HRIS PSPK",
   description: "Pengumpulan dan pelaporan lembar waktu Google Spreadsheet karyawan freelance PSPK",
 };
 

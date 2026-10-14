@@ -1,4 +1,5 @@
 import React from "react";
+import type { Metadata } from "next";
 import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getUserProfile, getAuthContext } from "@pspk/auth";
@@ -12,6 +13,11 @@ import { ItDashboard } from "@/components/dashboard/it-dashboard";
 import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee-notice";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Dashboard - HRIS PSPK",
+  description: "Pusat informasi dan dasbor aktivitas kepegawaian HRIS PSPK",
+};
 
 export default async function DashboardPage() {
   const reqHeaders = await headers();

@@ -2,6 +2,26 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Dokumen & Otorisasi] Pembuatan Berkas PDF Resmi PSPK & Sinkronisasi Hak Akses Dokumen Lembaga — 2026-10-13
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Sebelumnya dokumen SOP & Kebijakan yang di-seed berupa berkas PDF kosong (blank page tanpa stream) sehingga tidak dapat dibaca saat dibuka oleh pengguna.
+  - Akses berkas kebijakan lembaga (`sysmgmt/documents/...`) pada rute file HRIS sempat memicu respon `403 Forbidden` bagi staf biasa karena aturan otorisasi server-side IDOR belum memetakan relasi visibilitas dokumen System Management.
+- **Hasil Implementasi:**
+  1. **Sinkronisasi Hak Akses Dokumen Lembaga (`apps/hris`):**
+     - Memperbarui `apps/hris/src/app/api/documents/[...path]/route.ts` untuk memeriksa tabel `DocumentVersion` dan `Document` di PostgreSQL.
+     - Mengizinkan pembukaan berkas bertipe `ALL_STAFF` untuk seluruh staf yang login, serta membatasi dokumen `MANAGERS`, `HR_ONLY`, dan `IT_ONLY` sesuai peran akun.
+     - Menambahkan unit test di `apps/hris/src/app/api/documents/[...path]/route.test.ts` (11 pengujian lolos 100%).
+  2. **Generator Berkas PDF Resmi Berisi Konten Nyata (`scripts/generate-rich-dummy-pdfs.ts` & `seed-dummy.ts`):**
+     - Mengembangkan engine PDF 1.4 murni (tanpa ketergantungan library luar) dengan styling brand PSPK (Kop Surat Navy `#102E50` & Gold `#F2AF3E`, nomor dokumen, badge visibilitas, bab/pasal realistis, blok tanda tangan digital pimpinan, dan footer resmi).
+     - Menghasilkan 8 berkas PDF resmi lengkap untuk seluruh kebijakan & SOP lembaga di `.data/uploads/sysmgmt/documents/` serta 1 sampel surat sakit dokter (`samples/surat-keterangan-sakit-rina.pdf`).
+     - Memperbarui checksum SHA-256 dan ukuran byte di basis data `DocumentVersion`.
+- **Verifikasi Kualitas:**
+  - `pnpm test`: ✅ 27 test files lolos, 190 unit tests passed (100%)
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+
 ## [Keamanan Siber] Hardening Keamanan Platform & Penutupan Celah Sistem — 2026-10-13
 
 - **Status:** Selesai (Tahap 1, Tahap 2, dan Tahap 3 Tuntas & Terverifikasi)

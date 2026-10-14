@@ -5,7 +5,7 @@ import { ForbiddenView } from "@pspk/ui";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "403 — Akses Dibatasi | Portal HRIS PSPK",
+  title: "403 - Akses Dibatasi | Portal HRIS PSPK",
   description: "Anda tidak memiliki izin akses untuk modul ini.",
 };
 

@@ -11,7 +11,7 @@ import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Persetujuan Timesheet — HRIS PSPK",
+  title: "Persetujuan Timesheet - HRIS PSPK",
   description: "Persetujuan lembar kerja jam kerja karyawan freelance PSPK",
 };
 

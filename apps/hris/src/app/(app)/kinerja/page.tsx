@@ -21,7 +21,7 @@ import { Calendar } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Kinerja & Riset — HRIS PSPK",
+  title: "Kinerja & Riset - HRIS PSPK",
   description:
     "Kelola siklus evaluasi sasaran riset kebijakan, OKR, dan review kinerja pegawai PSPK",
 };
