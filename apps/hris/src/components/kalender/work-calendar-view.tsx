@@ -630,7 +630,7 @@ export function WorkCalendarView({
                             setSelectedObservanceDetail(obs);
                           }}
                           className="w-full text-left px-1.5 py-0.5 rounded border border-amber-300 bg-amber-50/90 hover:bg-amber-100 text-amber-950 text-[10px] font-semibold truncate flex items-center gap-1 transition-colors cursor-pointer shadow-2xs"
-                          title={`Hari Peringatan Nasional: ${obs.name} — Klik untuk rincian`}
+                          title={`Hari Peringatan Nasional: ${obs.name} - Klik untuk rincian`}
                         >
                           <Flag className="w-2.5 h-2.5 text-amber-700 shrink-0" />
                           <span className="truncate">{obs.shortName || obs.name}</span>
@@ -672,7 +672,7 @@ export function WorkCalendarView({
                         <div
                           key={l.id}
                           className={`w-full text-left px-1.5 py-0.5 rounded border text-[10px] font-semibold truncate flex items-center gap-1 ${conf.bg}`}
-                          title={`${l.employee.fullName} — ${l.leaveType.name}`}
+                          title={`${l.employee.fullName} - ${l.leaveType.name}`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${conf.dot}`} />
                           <span className="truncate">{shortName}</span>

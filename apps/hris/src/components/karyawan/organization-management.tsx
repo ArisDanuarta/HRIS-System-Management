@@ -762,7 +762,7 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
                 >
                   {departments.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {DEPT_TYPE_LABEL[d.type]} — {d.name}
+                      {DEPT_TYPE_LABEL[d.type]} - {d.name}
                     </option>
                   ))}
                 </select>

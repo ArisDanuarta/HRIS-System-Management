@@ -121,7 +121,7 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
             <span>PSPK</span>
           </div>
           <h1 className="text-2xl sm:text-3xl text-[#102e50] font-heading font-bold tracking-tight">
-            Dashboard Tim — {managerName}
+            Dashboard Tim - {managerName}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
             Pusat persetujuan cuti tim, pantauan kehadiran harian bawahan, dan administrasi mandiri.

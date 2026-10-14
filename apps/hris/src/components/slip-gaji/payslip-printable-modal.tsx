@@ -224,7 +224,7 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
             {/* Title Banner */}
             <div className="payslip-title-banner text-center py-2.5 px-4 bg-slate-50/90 rounded-xl border border-slate-200/80">
               <h2 className="text-sm sm:text-base font-bold text-[#102E50] font-serif uppercase tracking-wider">
-                Slip Gaji Karyawan — {periodTitle}
+                Slip Gaji Karyawan - {periodTitle}
               </h2>
               <p className="text-xs text-slate-600 font-medium mt-0.5">Jenis: {kindLabel}</p>
             </div>

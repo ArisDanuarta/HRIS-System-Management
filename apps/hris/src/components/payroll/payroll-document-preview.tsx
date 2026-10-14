@@ -106,7 +106,7 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
         {/* Title Banner */}
         <div className="text-center py-1.5 bg-slate-50 rounded border border-slate-200 my-3">
           <h5 className="text-[10px] font-bold text-[#102E50] font-serif uppercase tracking-wider">
-            Slip Gaji Karyawan — September 2026
+            Slip Gaji Karyawan - September 2026
           </h5>
           <p className="text-[9px] text-slate-500">Jenis: Gaji Bulanan Reguler</p>
         </div>

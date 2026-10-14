@@ -420,14 +420,14 @@ export function TodayAttendanceCard({
               <span>
                 Jadwal kantor:{" "}
                 <strong className="text-[#102e50]">
-                  {workSchedule.workStartTime} — {workSchedule.workEndTime} WIB
+                  {workSchedule.workStartTime} - {workSchedule.workEndTime} WIB
                 </strong>
                 {!isWib && localWorkStart && localWorkEnd && (
                   <span className="text-[#102e50] font-semibold">
                     {" "}
                     (setara{" "}
                     <strong>
-                      {localWorkStart} — {localWorkEnd} {effectiveAbbr}
+                      {localWorkStart} - {localWorkEnd} {effectiveAbbr}
                     </strong>{" "}
                     waktu Anda)
                   </span>

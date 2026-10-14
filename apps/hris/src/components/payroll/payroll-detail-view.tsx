@@ -91,7 +91,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
     "November",
     "Desember",
   ];
-  const periodTitle = `${period.kind === "THR" ? "THR" : "Gaji Reguler"} — ${monthNames[period.month - 1]} ${period.year}`;
+  const periodTitle = `${period.kind === "THR" ? "THR" : "Gaji Reguler"} - ${monthNames[period.month - 1]} ${period.year}`;
 
   // Filter daftar departemen unik
   const departments = Array.from(
