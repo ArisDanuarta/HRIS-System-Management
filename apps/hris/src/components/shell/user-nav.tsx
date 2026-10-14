@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ArrowLeftRight,
   ExternalLink,
+  HelpCircle,
 } from "lucide-react";
 import { authClient } from "@pspk/auth/client";
 
@@ -134,6 +135,15 @@ export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
             >
               <KeyRound className="w-4 h-4 text-[#74777f]" />
               <span>Ganti Kata Sandi</span>
+            </a>
+
+            <a
+              href="/bantuan"
+              className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
+              onClick={() => setIsOpen(false)}
+            >
+              <HelpCircle className="w-4 h-4 text-[#74777f]" />
+              <span>Pusat Bantuan & FAQ</span>
             </a>
 
             {canAccessSysmgmt && (

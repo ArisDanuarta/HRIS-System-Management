@@ -19,6 +19,7 @@ import {
   Settings,
   Menu,
   X,
+  HelpCircle,
 } from "lucide-react";
 
 import { ModuleFlags, isModuleActive } from "@pspk/db";
@@ -431,6 +432,15 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
                     >
                       <Settings className="w-3.5 h-3.5 text-slate-500" />
                       <span>Pengaturan & Master Data</span>
+                    </Link>
+
+                    <Link
+                      href="/bantuan"
+                      onClick={() => setOpenDropdown(null)}
+                      className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Pusat Bantuan & FAQ</span>
                     </Link>
                   </div>
 
