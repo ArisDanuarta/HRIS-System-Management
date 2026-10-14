@@ -13,8 +13,14 @@ import {
 import { EmployeeTable } from "@/components/karyawan/employee-table";
 import { EmployeeFilterBar } from "@/components/karyawan/employee-filter-bar";
 import { ExpiringContractAlert } from "@/components/karyawan/expiring-contract-alert";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Direktori Karyawan - HRIS PSPK",
+  description: "Daftar dan direktori profil pegawai di lingkungan PSPK",
+};
 
 interface KaryawanPageProps {
   searchParams: Promise<{

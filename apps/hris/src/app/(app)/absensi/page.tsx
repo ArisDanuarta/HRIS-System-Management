@@ -11,8 +11,14 @@ import {
 import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import { CalendarCheck, CheckCircle2, AlertTriangle, Clock, Calendar } from "lucide-react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Presensi & Absensi - HRIS PSPK",
+  description: "Pencatatan kehadiran harian dan riwayat presensi pegawai PSPK",
+};
 
 interface AbsensiPageProps {
   searchParams: Promise<{
@@ -183,7 +189,7 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
             <span>
               Jam kerja normal lembaga:{" "}
               <strong>
-                {workSchedule.workStartTime} — {workSchedule.workEndTime} WIB
+                {workSchedule.workStartTime} - {workSchedule.workEndTime} WIB
               </strong>
             </span>
             <span className="text-[#a8281c] font-medium">

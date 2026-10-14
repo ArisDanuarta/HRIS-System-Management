@@ -9,7 +9,7 @@ import { ProfileView } from "@/components/profil/profile-view";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Profil Saya & Keamanan — HRIS PSPK",
+  title: "Profil Saya & Keamanan - HRIS PSPK",
   description: "Kelola data kepegawaian, foto profil, kata sandi, dan riwayat sesi login aktif.",
 };
 

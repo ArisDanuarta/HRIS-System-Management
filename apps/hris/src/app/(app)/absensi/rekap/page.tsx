@@ -7,8 +7,14 @@ import { AttendanceRekapView } from "@/components/absensi/attendance-rekap-view"
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import { prisma } from "@pspk/db";
 import { FileSpreadsheet } from "lucide-react";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Rekapitulasi Presensi - HRIS PSPK",
+  description: "Laporan rekapitulasi kehadiran bulanan pegawai di lingkungan PSPK",
+};
 
 interface RekapPageProps {
   searchParams: Promise<{
