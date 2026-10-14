@@ -10,7 +10,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Detail & Kalkulasi Periode Penggajian — HRIS PSPK",
+  title: "Detail & Kalkulasi Periode Penggajian - HRIS PSPK",
   description: "Eksekusi kalkulasi, persetujuan, dan publikasi slip gaji periode",
 };
 

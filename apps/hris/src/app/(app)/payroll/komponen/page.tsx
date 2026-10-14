@@ -10,7 +10,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Master Komponen Gaji — HRIS PSPK",
+  title: "Master Komponen Gaji - HRIS PSPK",
   description: "Kelola konfigurasi tunjangan dan potongan gaji standar PSPK",
 };
 
