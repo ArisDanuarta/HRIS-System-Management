@@ -14,7 +14,7 @@ import { ShieldCheck, ShieldAlert, Key, Shield, Users, Layers } from "lucide-rea
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Tata Kelola Pengguna & Hak Akses — PSPK System Management",
+  title: "Tata Kelola Pengguna & Hak Akses - PSPK System Management",
   description: "Kelola akun pengguna, matriks peran RBAC, dan status aktivasi",
 };
 

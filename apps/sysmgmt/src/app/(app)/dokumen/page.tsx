@@ -15,7 +15,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Dokumen & SOP Lembaga — PSPK System Management",
+  title: "Dokumen & SOP Lembaga - PSPK System Management",
   description: "Repositori resmi kebijakan, standar operasional prosedur, dan tata kelola internal PSPK.",
 };
 

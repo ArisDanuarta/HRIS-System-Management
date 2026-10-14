@@ -16,7 +16,7 @@ import { ShieldAlert } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Master Data & Pengaturan Sistem — PSPK System Management",
+  title: "Master Data & Pengaturan Sistem - PSPK System Management",
   description:
     "Konfigurasi terpusat kategori dokumen, master tipe dan lokasi aset, serta parameter global sistem PSPK.",
 };

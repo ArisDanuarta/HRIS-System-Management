@@ -148,7 +148,7 @@ function AssetCheckoutInnerModal({
               ) : (
                 employees.map((emp) => (
                   <option key={emp.id} value={emp.id}>
-                    {emp.fullName} ({emp.employeeNo}) — {emp.departmentName}
+                    {emp.fullName} ({emp.employeeNo}) - {emp.departmentName}
                   </option>
                 ))
               )}

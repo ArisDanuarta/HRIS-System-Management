@@ -19,12 +19,12 @@ export async function generateMetadata({
   const doc = await getDocumentById(id, ["super_admin"]);
   if (!doc) {
     return {
-      title: "Dokumen Tidak Ditemukan — PSPK System Management",
+      title: "Dokumen Tidak Ditemukan - PSPK System Management",
     };
   }
 
   return {
-    title: `${doc.code}: ${doc.title} — PSPK Dokumen & SOP`,
+    title: `${doc.code}: ${doc.title} - PSPK Dokumen & SOP`,
     description: `Detail kebijakan/SOP ${doc.title} (${doc.code}) beserta riwayat versi lengkap.`,
   };
 }
