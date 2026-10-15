@@ -20,7 +20,7 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
     key: "admin_hr",
     name: "Admin HR",
     description:
-      "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll, kinerja, rekrutmen)",
+      "Pengelolaan penuh modul HRIS (karyawan, absensi, cuti, payroll, kinerja)",
     isSystem: true,
     permissions: [
       "hris.employee.read:all",
@@ -44,10 +44,6 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.timesheet.create:own",
       "hris.performance.read:all",
       "hris.performance.manage:all",
-      "hris.recruitment.read:all",
-      "hris.recruitment.manage:all",
-      "hris.training.read:all",
-      "hris.training.manage:all",
       "sysmgmt.asset.read:all",
       "sysmgmt.document.read:all",
       "sysmgmt.document.manage:hr",
@@ -101,8 +97,6 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.timesheet.review:team",
       "hris.performance.read:team",
       "hris.performance.review:team",
-      "hris.recruitment.interview:team",
-      "hris.training.read:team",
       "sysmgmt.document.read:team",
       // Personal items
       "hris.employee.read:own",
@@ -118,7 +112,6 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.payslip.read:own",
       "hris.performance.read:own",
       "hris.performance.review:own",
-      "hris.training.read:own",
       "sysmgmt.asset.read:own",
       "sysmgmt.document.read:own",
       // Calendar
@@ -146,7 +139,6 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.payslip.read:own",
       "hris.performance.read:own",
       "hris.performance.review:own",
-      "hris.training.read:own",
       "sysmgmt.asset.read:own",
       "sysmgmt.document.read:own",
       // Calendar

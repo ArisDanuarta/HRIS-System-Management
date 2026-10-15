@@ -185,33 +185,6 @@ export const PERMISSIONS = [
     description: "Mengelola periode & finalisasi kinerja",
   },
 
-  // --- HRIS: Recruitment ---
-  { key: "hris.recruitment.read:all", module: "hris", description: "Melihat lowongan & kandidat" },
-  {
-    key: "hris.recruitment.manage:all",
-    module: "hris",
-    description: "Mengelola proses rekrutmen & pelamar",
-  },
-  {
-    key: "hris.recruitment.interview:team",
-    module: "hris",
-    description: "Mengisi catatan wawancara kandidat",
-  },
-
-  // --- HRIS: Training ---
-  {
-    key: "hris.training.read:own",
-    module: "hris",
-    description: "Melihat riwayat pelatihan sendiri",
-  },
-  { key: "hris.training.read:team", module: "hris", description: "Melihat riwayat pelatihan tim" },
-  { key: "hris.training.read:all", module: "hris", description: "Melihat seluruh data pelatihan" },
-  {
-    key: "hris.training.manage:all",
-    module: "hris",
-    description: "Mengelola catatan pelatihan & sertifikasi",
-  },
-
   // --- System Management: Core & Users ---
   {
     key: "sysmgmt.dashboard.read:all",
