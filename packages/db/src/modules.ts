@@ -72,30 +72,6 @@ export const SYSTEM_MODULE_DEFINITIONS: SystemModuleDefinition[] = [
       "Menyembunyikan menu Timesheet di sidebar Admin HR, Manajer, dan Layanan Mandiri staf per jam, serta memblokir rute /timesheet.",
   },
   {
-    key: "module.recruitment.enabled",
-    moduleKey: "recruitment",
-    name: "Rekrutmen & Pelacak Pelamar (ATS)",
-    category: "hris",
-    description:
-      "Manajemen lowongan kerja, seleksi berkas kandidat pelamar, dan jadwal wawancara kerja.",
-    defaultEnabled: false,
-    affectedNavItems: ["Rekrutmen (/rekrutmen)"],
-    affectedRoutes: ["/rekrutmen"],
-    impactDescription: "Mengontrol visibilitas dan ketersediaan modul rekrutmen pegawai baru.",
-  },
-  {
-    key: "module.training.enabled",
-    moduleKey: "training",
-    name: "Pelatihan & Pengembangan Kompetensi",
-    category: "hris",
-    description:
-      "Pengelolaan program pelatihan staf, sertifikasi keahlian, dan anggaran pengembangan SDM.",
-    defaultEnabled: false,
-    affectedNavItems: ["Pelatihan (/pelatihan)"],
-    affectedRoutes: ["/pelatihan"],
-    impactDescription: "Mengontrol visibilitas dan ketersediaan modul pelatihan organisasi.",
-  },
-  {
     key: "module.asset_management.enabled",
     moduleKey: "asset_management",
     name: "Inventaris Aset Lembaga",
