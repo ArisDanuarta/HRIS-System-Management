@@ -2,18 +2,18 @@ import { describe, it, expect } from "vitest";
 import { SYSTEM_MODULE_DEFINITIONS, isModuleActive, ModuleFlags } from "./modules";
 
 describe("System Modules & Feature Flags", () => {
-  it("harus memiliki 8 definisi modul sistem terstandarisasi", () => {
-    expect(SYSTEM_MODULE_DEFINITIONS).toHaveLength(8);
+  it("harus memiliki 6 definisi modul sistem terstandarisasi", () => {
+    expect(SYSTEM_MODULE_DEFINITIONS).toHaveLength(6);
 
     const keys = SYSTEM_MODULE_DEFINITIONS.map((m) => m.moduleKey);
     expect(keys).toContain("org_chart");
     expect(keys).toContain("organization_structure");
     expect(keys).toContain("performance");
     expect(keys).toContain("timesheet");
-    expect(keys).toContain("recruitment");
-    expect(keys).toContain("training");
     expect(keys).toContain("asset_management");
     expect(keys).toContain("asset_assignment");
+    expect(keys).not.toContain("recruitment");
+    expect(keys).not.toContain("training");
   });
 
   it("harus memiliki rute terdampak yang jelas untuk modul inti yang dapat di-toggle", () => {
@@ -41,6 +41,6 @@ describe("System Modules & Feature Flags", () => {
 
     // Fallback jika tidak ada di flags: mengacu ke defaultEnabled
     expect(isModuleActive(flags, "organization_structure")).toBe(true);
-    expect(isModuleActive(flags, "recruitment")).toBe(false);
+    expect(isModuleActive(flags, "asset_management")).toBe(true);
   });
 });

@@ -18,8 +18,6 @@ export const RESOURCE_METADATA: Record<
   payslip: { label: "Slip Gaji Karyawan", app: "hris", order: 8 },
   timesheet: { label: "Timesheet Pegawai Lepas", app: "hris", order: 9 },
   performance: { label: "Kinerja & Evaluasi (KPI)", app: "hris", order: 10 },
-  recruitment: { label: "Rekrutmen & Pelamar", app: "hris", order: 11 },
-  training: { label: "Pelatihan & Sertifikasi", app: "hris", order: 12 },
 
   // System Management
   dashboard: { label: "Dashboard Tata Kelola", app: "sysmgmt", order: 20 },
