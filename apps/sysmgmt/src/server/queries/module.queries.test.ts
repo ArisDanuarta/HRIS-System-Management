@@ -24,11 +24,11 @@ describe("module.queries.ts", () => {
 
     const data = await getModuleGovernanceData();
 
-    expect(data.modules.length).toBe(8);
-    expect(data.stats.total).toBe(8);
-    // Secara default: 6 modul aktif (org_chart, org_struct, performance, timesheet, asset_management, asset_assignment), 2 nonaktif (recruitment, training)
+    expect(data.modules.length).toBe(6);
+    expect(data.stats.total).toBe(6);
+    // Secara default: seluruh 6 modul aktif (org_chart, org_struct, performance, timesheet, asset_management, asset_assignment)
     expect(data.stats.activeCount).toBe(6);
-    expect(data.stats.inactiveCount).toBe(2);
+    expect(data.stats.inactiveCount).toBe(0);
 
     const orgChart = data.modules.find((m) => m.moduleKey === "org_chart");
     expect(orgChart?.isEnabled).toBe(true);
@@ -57,10 +57,10 @@ describe("module.queries.ts", () => {
       },
       {
         id: "s-2",
-        key: "module.recruitment.enabled",
-        value: "true",
+        key: "module.performance.enabled",
+        value: "false",
         category: "MODULE",
-        description: "Rekrutmen",
+        description: "Kinerja",
         updatedBy: "superadmin@pspk.id",
         createdAt: now,
         updatedAt: now,
@@ -73,8 +73,8 @@ describe("module.queries.ts", () => {
     expect(orgChart?.isEnabled).toBe(false);
     expect(orgChart?.updatedBy).toBe("admin@pspk.id");
 
-    const recruitment = data.modules.find((m) => m.moduleKey === "recruitment");
-    expect(recruitment?.isEnabled).toBe(true);
-    expect(recruitment?.updatedBy).toBe("superadmin@pspk.id");
+    const performance = data.modules.find((m) => m.moduleKey === "performance");
+    expect(performance?.isEnabled).toBe(false);
+    expect(performance?.updatedBy).toBe("superadmin@pspk.id");
   });
 });

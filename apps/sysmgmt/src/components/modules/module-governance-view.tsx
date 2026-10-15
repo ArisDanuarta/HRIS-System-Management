@@ -13,8 +13,6 @@ import {
   Building2,
   TrendingUp,
   Clock,
-  UserPlus,
-  GraduationCap,
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
@@ -37,8 +35,6 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   organization_structure: Building2,
   performance: TrendingUp,
   timesheet: Clock,
-  recruitment: UserPlus,
-  training: GraduationCap,
   asset_management: Package,
   asset_assignment: ArrowLeftRight,
 };
@@ -559,7 +555,7 @@ export function ModuleGovernanceView({ governanceData }: ModuleGovernanceViewPro
 
             <p className="text-xs text-slate-500 leading-relaxed">
               Tindakan ini akan mengembalikan status seluruh modul (Bagan Organisasi, Struktur
-              Organisasi, Kinerja, Timesheet, Rekrutmen, dan Pelatihan) kembali persis sesuai
+              Organisasi, Kinerja, Timesheet, Aset Lembaga, dan Peminjaman Aset) kembali persis sesuai
               konfigurasi default blueprint PSPK.
             </p>
 

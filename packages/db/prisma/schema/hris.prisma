@@ -1,4 +1,4 @@
-// HRIS Schema: Organization, Employees, Attendance, Leave, Payroll, Performance, Recruitment
+// HRIS Schema: Organization, Employees, Attendance, Leave, Payroll, Performance
 
 enum EmployeeStatus {
   ACTIVE
@@ -242,7 +242,6 @@ model Employee {
   reviewsReceived   PerformanceReview[]        @relation("EmployeeReviews")
   reviewsGiven      PerformanceReview[]        @relation("ManagerReviews")
   onboardingTasks     OnboardingTask[]
-  trainingRecords     TrainingRecord[]
   assetAssignments    AssetAssignment[]
   timesheetsSubmitted TimesheetSubmission[]
   timesheetsAssigned  TimesheetReviewer[]
@@ -720,24 +719,6 @@ model OnboardingTask {
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@map("onboarding_tasks")
-  @@schema("hris")
-}
-
-model TrainingRecord {
-  id             String    @id @default(uuid())
-  employeeId     String    @map("employee_id")
-  title          String
-  provider       String?
-  startDate      DateTime  @map("start_date") @db.Date
-  endDate        DateTime? @map("end_date") @db.Date
-  certificateKey String?   @map("certificate_key")
-  expiresAt      DateTime? @map("expires_at") @db.Date
-  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@map("training_records")
   @@schema("hris")
 }
 
