@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { prisma, writeAudit, getModuleFlags, isModuleActive } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan } from "@pspk/rbac";
@@ -20,6 +21,13 @@ import {
   CheckinAssetInput,
   ImportAssetsBatchInput,
 } from "../schemas/asset.schema";
+
+function formatAssetErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof z.ZodError) {
+    return err.issues[0]?.message || err.errors[0]?.message || "Input data aset tidak valid.";
+  }
+  return err instanceof Error ? err.message : fallback;
+}
 
 async function getActorInfo() {
   const reqHeaders = await headers();
@@ -112,8 +120,7 @@ export async function createAssetAction(rawInput: CreateAssetInput) {
       message: `Aset "${created.name}" (${created.assetTag}) berhasil ditambahkan ke inventaris.`,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat menambahkan aset.";
-    return { ok: false as const, error: message };
+    return { ok: false as const, error: formatAssetErrorMessage(error, "Terjadi kesalahan saat menambahkan aset.") };
   }
 }
 
@@ -197,8 +204,7 @@ export async function updateAssetAction(rawInput: UpdateAssetInput) {
       message: `Data aset "${updated.name}" berhasil diperbarui.`,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat memperbarui aset.";
-    return { ok: false as const, error: message };
+    return { ok: false as const, error: formatAssetErrorMessage(error, "Terjadi kesalahan saat memperbarui aset.") };
   }
 }
 
@@ -259,8 +265,7 @@ export async function deleteAssetAction(rawInput: DeleteAssetInput) {
       message: `Aset "${existing.name}" (${existing.assetTag}) berhasil dihapus.`,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus aset.";
-    return { ok: false as const, error: message };
+    return { ok: false as const, error: formatAssetErrorMessage(error, "Terjadi kesalahan saat menghapus aset.") };
   }
 }
 
@@ -369,8 +374,7 @@ export async function checkoutAssetAction(rawInput: CheckoutAssetInput) {
       message: `Aset "${asset.name}" berhasil diserahkan kepada ${employee.fullName}.`,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat serah terima aset.";
-    return { ok: false as const, error: message };
+    return { ok: false as const, error: formatAssetErrorMessage(error, "Terjadi kesalahan saat serah terima aset.") };
   }
 }
 
@@ -458,8 +462,7 @@ export async function checkinAssetAction(rawInput: CheckinAssetInput) {
       message: `Pengembalian aset "${assignment.asset.name}" dari ${assignment.employee.fullName} berhasil dicatat. Status aset kini: ${parsed.nextStatus}.`,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Terjadi kesalahan saat mencatat pengembalian aset.";
-    return { ok: false as const, error: message };
+    return { ok: false as const, error: formatAssetErrorMessage(error, "Terjadi kesalahan saat mencatat pengembalian aset.") };
   }
 }
 
@@ -668,8 +671,6 @@ export async function importAssetsBatchAction(rawInput: ImportAssetsBatchInput) 
       totalProcessed: rows.length,
     };
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Terjadi kesalahan saat memproses impor massal aset.";
-    return { ok: false as const, error: message };
+    return { ok: false as const, error: formatAssetErrorMessage(error, "Terjadi kesalahan saat memproses impor massal aset.") };
   }
 }
