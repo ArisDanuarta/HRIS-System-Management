@@ -46,16 +46,37 @@ import { uploadEmployeeDocumentAction, deleteEmployeeDocumentAction } from "./do
 import { getSession, getAuthContext } from "@pspk/auth";
 import { prisma, writeAudit } from "@pspk/db";
 
+type MockSession = Awaited<ReturnType<typeof getSession>>;
+type MockAuthContext = Awaited<ReturnType<typeof getAuthContext>>;
+type MockEmployee = Awaited<ReturnType<typeof prisma.employee.findUnique>>;
+type MockEmployeeDoc = Awaited<ReturnType<typeof prisma.employeeDocument.create>>;
+type MockDocUnique = Awaited<ReturnType<typeof prisma.employeeDocument.findUnique>>;
+
 describe("HRIS document.actions.ts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  const mockStaffSession = {
-    user: { id: "user-123", email: "aris@pspk.id" },
+  const mockStaffSession: MockSession = {
+    user: {
+      id: "user-123",
+      email: "aris@pspk.id",
+      name: "Aris Danuarta",
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    session: {
+      id: "sess-123",
+      userId: "user-123",
+      token: "tok-123",
+      expiresAt: new Date(Date.now() + 3600000),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   };
 
-  const mockStaffAuthCtx = {
+  const mockStaffAuthCtx: MockAuthContext = {
     userId: "user-123",
     employeeId: "emp-123",
     roles: ["staff"],
@@ -63,13 +84,13 @@ describe("HRIS document.actions.ts", () => {
   };
 
   it("berhasil mengunggah dokumen dengan judul 2 karakter (misal: 'CV')", async () => {
-    vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
-    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
+    vi.mocked(getSession).mockResolvedValue(mockStaffSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
     vi.mocked(prisma.employee.findUnique).mockResolvedValue({
       id: "emp-123",
       fullName: "I Made Aris Danuarta",
       employeeNo: "EMP-001",
-    } as any);
+    } as unknown as MockEmployee);
 
     const createdDoc = {
       id: "doc-1",
@@ -82,8 +103,8 @@ describe("HRIS document.actions.ts", () => {
       mimeType: "application/pdf",
       uploadedById: "user-123",
       createdAt: new Date(),
-    };
-    vi.mocked(prisma.employeeDocument.create).mockResolvedValue(createdDoc as any);
+    } as unknown as MockEmployeeDoc;
+    vi.mocked(prisma.employeeDocument.create).mockResolvedValue(createdDoc);
 
     const formData = new FormData();
     formData.append("employeeId", "emp-123");
@@ -106,13 +127,13 @@ describe("HRIS document.actions.ts", () => {
   });
 
   it("menolak unggah dokumen jika judul kurang dari 2 karakter", async () => {
-    vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
-    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
+    vi.mocked(getSession).mockResolvedValue(mockStaffSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
     vi.mocked(prisma.employee.findUnique).mockResolvedValue({
       id: "emp-123",
       fullName: "I Made Aris Danuarta",
       employeeNo: "EMP-001",
-    } as any);
+    } as unknown as MockEmployee);
 
     const formData = new FormData();
     formData.append("employeeId", "emp-123");
@@ -128,13 +149,13 @@ describe("HRIS document.actions.ts", () => {
   });
 
   it("menolak staf biasa mengunggah dokumen kategori CONTRACT", async () => {
-    vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
-    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
+    vi.mocked(getSession).mockResolvedValue(mockStaffSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
     vi.mocked(prisma.employee.findUnique).mockResolvedValue({
       id: "emp-123",
       fullName: "I Made Aris Danuarta",
       employeeNo: "EMP-001",
-    } as any);
+    } as unknown as MockEmployee);
 
     const formData = new FormData();
     formData.append("employeeId", "emp-123");
@@ -150,21 +171,38 @@ describe("HRIS document.actions.ts", () => {
   });
 
   it("mengizinkan Admin HR mengunggah dokumen CONTRACT untuk pegawai mana saja", async () => {
-    const mockHrSession = { user: { id: "hr-user", email: "hr@pspk.id" } };
-    const mockHrAuthCtx = {
+    const mockHrSession: MockSession = {
+      user: {
+        id: "hr-user",
+        email: "hr@pspk.id",
+        name: "Admin HR",
+        emailVerified: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      session: {
+        id: "sess-hr",
+        userId: "hr-user",
+        token: "tok-hr",
+        expiresAt: new Date(Date.now() + 3600000),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    };
+    const mockHrAuthCtx: MockAuthContext = {
       userId: "hr-user",
       employeeId: "hr-emp",
       roles: ["admin_hr"],
       permissions: new Set(["hris.employee.write:all"]),
     };
 
-    vi.mocked(getSession).mockResolvedValue(mockHrSession as any);
-    vi.mocked(getAuthContext).mockResolvedValue(mockHrAuthCtx as any);
+    vi.mocked(getSession).mockResolvedValue(mockHrSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockHrAuthCtx);
     vi.mocked(prisma.employee.findUnique).mockResolvedValue({
       id: "emp-123",
       fullName: "I Made Aris Danuarta",
       employeeNo: "EMP-001",
-    } as any);
+    } as unknown as MockEmployee);
 
     vi.mocked(prisma.employeeDocument.create).mockResolvedValue({
       id: "doc-contract-1",
@@ -177,7 +215,7 @@ describe("HRIS document.actions.ts", () => {
       mimeType: "application/pdf",
       uploadedById: "hr-user",
       createdAt: new Date(),
-    } as any);
+    } as unknown as MockEmployeeDoc);
 
     const formData = new FormData();
     formData.append("employeeId", "emp-123");
@@ -193,9 +231,11 @@ describe("HRIS document.actions.ts", () => {
   });
 
   it("mengizinkan staf menghapus dokumen non-kontrak miliknya sendiri", async () => {
-    vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
-    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
-    vi.mocked(prisma.employee.findUnique).mockResolvedValue({ id: "emp-123" } as any);
+    vi.mocked(getSession).mockResolvedValue(mockStaffSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
+    vi.mocked(prisma.employee.findUnique).mockResolvedValue({
+      id: "emp-123",
+    } as unknown as MockEmployee);
     vi.mocked(prisma.employeeDocument.findUnique).mockResolvedValue({
       id: "doc-1",
       employeeId: "emp-123",
@@ -204,7 +244,7 @@ describe("HRIS document.actions.ts", () => {
       fileName: "CV.pdf",
       fileKey: "documents/emp-123/cv.pdf",
       employee: { fullName: "I Made Aris Danuarta" },
-    } as any);
+    } as unknown as MockDocUnique);
 
     const res = await deleteEmployeeDocumentAction({ documentId: "doc-1" });
 
@@ -216,9 +256,11 @@ describe("HRIS document.actions.ts", () => {
   });
 
   it("menolak staf menghapus dokumen kategori CONTRACT", async () => {
-    vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
-    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
-    vi.mocked(prisma.employee.findUnique).mockResolvedValue({ id: "emp-123" } as any);
+    vi.mocked(getSession).mockResolvedValue(mockStaffSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
+    vi.mocked(prisma.employee.findUnique).mockResolvedValue({
+      id: "emp-123",
+    } as unknown as MockEmployee);
     vi.mocked(prisma.employeeDocument.findUnique).mockResolvedValue({
       id: "doc-contract",
       employeeId: "emp-123",
@@ -227,7 +269,7 @@ describe("HRIS document.actions.ts", () => {
       fileName: "SK.pdf",
       fileKey: "documents/emp-123/contract.pdf",
       employee: { fullName: "I Made Aris Danuarta" },
-    } as any);
+    } as unknown as MockDocUnique);
 
     const res = await deleteEmployeeDocumentAction({ documentId: "doc-contract" });
 
