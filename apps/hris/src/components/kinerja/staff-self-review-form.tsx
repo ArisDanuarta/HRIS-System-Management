@@ -10,13 +10,13 @@ import {
   CheckCircle2,
   HelpCircle,
   Sparkles,
-  Info,
   Plus,
   Trash2,
   X,
   RefreshCw,
   Scale,
 } from "lucide-react";
+
 import {
   submitStaffSelfReviewAction,
   createGoalAction,
@@ -239,10 +239,9 @@ export function StaffSelfReviewForm({
   initialSelfScore,
   initialSelfComment,
   goals,
-  totalGoalWeight = 0,
-  periodName,
   reviewerName,
 }: StaffSelfReviewFormProps) {
+
   const [selfScore, setSelfScore] = useState<number>(initialSelfScore ?? 85);
   const [selfComment, setSelfComment] = useState<string>(initialSelfComment ?? "");
   const [goalActuals, setGoalActuals] = useState<Record<string, string>>(() => {

@@ -7,7 +7,6 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
-  FileCheck2,
   Lock,
   ShieldCheck,
   UserCheck,
@@ -16,6 +15,7 @@ import {
   Target,
   User,
 } from "lucide-react";
+
 import { StaffPerformanceReviewData } from "@/server/queries/performance.queries";
 import { StaffSelfReviewForm } from "./staff-self-review-form";
 import { PerformanceScorecard } from "./performance-scorecard";
