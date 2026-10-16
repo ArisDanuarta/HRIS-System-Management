@@ -262,8 +262,8 @@ export function DocumentNewVersionModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !selectedFile || !changeNote.trim()}
-              className="inline-flex items-center gap-2 px-5 py-2 bg-[#102E50] text-[#F2AF3E] hover:bg-[#163a63] text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 px-5 py-2 bg-[#102E50] text-[#F2AF3E] hover:bg-[#163a63] text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
