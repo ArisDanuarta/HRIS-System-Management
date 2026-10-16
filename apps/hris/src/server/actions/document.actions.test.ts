@@ -126,6 +126,43 @@ describe("HRIS document.actions.ts", () => {
     );
   });
 
+  it("berhasil mengunggah dokumen baru: BANK_BOOK, BPJS, EXPERIENCE_LETTER, dan CONTRACT oleh pegawai", async () => {
+    vi.mocked(getSession).mockResolvedValue(mockStaffSession);
+    vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
+    vi.mocked(prisma.employee.findUnique).mockResolvedValue({
+      id: "emp-123",
+      fullName: "I Made Aris Danuarta",
+      employeeNo: "EMP-001",
+    } as unknown as MockEmployee);
+
+    const categories = ["BANK_BOOK", "BPJS", "EXPERIENCE_LETTER", "CONTRACT"] as const;
+
+    for (const cat of categories) {
+      vi.mocked(prisma.employeeDocument.create).mockResolvedValue({
+        id: `doc-${cat}`,
+        employeeId: "emp-123",
+        category: cat,
+        title: `Berkas ${cat}`,
+        fileName: `${cat}.pdf`,
+        fileKey: `documents/emp-123/${cat.toLowerCase()}.pdf`,
+        fileSize: 1024,
+        mimeType: "application/pdf",
+        uploadedById: "user-123",
+        createdAt: new Date(),
+      } as unknown as MockEmployeeDoc);
+
+      const formData = new FormData();
+      formData.append("employeeId", "emp-123");
+      formData.append("category", cat);
+      formData.append("title", `Berkas ${cat}`);
+      const fakeFile = new File(["dummy content"], `${cat}.pdf`, { type: "application/pdf" });
+      formData.append("file", fakeFile);
+
+      const res = await uploadEmployeeDocumentAction(formData);
+      expect(res.success).toBe(true);
+    }
+  });
+
   it("menolak unggah dokumen jika judul kurang dari 2 karakter", async () => {
     vi.mocked(getSession).mockResolvedValue(mockStaffSession);
     vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
@@ -148,29 +185,31 @@ describe("HRIS document.actions.ts", () => {
     expect(res.message).toBe("Judul dokumen minimal 2 karakter (misal: CV, SK, KK).");
   });
 
-  it("menolak staf biasa mengunggah dokumen kategori CONTRACT", async () => {
+  it("menolak staf mengunggah dokumen untuk ID pegawai lain", async () => {
     vi.mocked(getSession).mockResolvedValue(mockStaffSession);
     vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
-    vi.mocked(prisma.employee.findUnique).mockResolvedValue({
-      id: "emp-123",
-      fullName: "I Made Aris Danuarta",
-      employeeNo: "EMP-001",
-    } as unknown as MockEmployee);
+    vi.mocked(prisma.employee.findUnique)
+      .mockResolvedValueOnce({ id: "emp-123" } as unknown as MockEmployee)
+      .mockResolvedValueOnce({
+        id: "emp-999",
+        fullName: "Pegawai Lain",
+        employeeNo: "EMP-999",
+      } as unknown as MockEmployee);
 
     const formData = new FormData();
-    formData.append("employeeId", "emp-123");
-    formData.append("category", "CONTRACT");
-    formData.append("title", "Kontrak Kerja PKWT");
-    const fakeFile = new File(["dummy content"], "kontrak.pdf", { type: "application/pdf" });
+    formData.append("employeeId", "emp-999");
+    formData.append("category", "CV");
+    formData.append("title", "CV Pegawai Lain");
+    const fakeFile = new File(["dummy content"], "CV.pdf", { type: "application/pdf" });
     formData.append("file", fakeFile);
 
     const res = await uploadEmployeeDocumentAction(formData);
 
     expect(res.success).toBe(false);
-    expect(res.message).toContain("Admin HR");
+    expect(res.message).toContain("tidak memiliki izin");
   });
 
-  it("mengizinkan Admin HR mengunggah dokumen CONTRACT untuk pegawai mana saja", async () => {
+  it("mengizinkan Admin HR mengunggah dokumen untuk pegawai mana saja", async () => {
     const mockHrSession: MockSession = {
       user: {
         id: "hr-user",
@@ -230,7 +269,7 @@ describe("HRIS document.actions.ts", () => {
     expect(mockStoragePut).toHaveBeenCalled();
   });
 
-  it("mengizinkan staf menghapus dokumen non-kontrak miliknya sendiri", async () => {
+  it("mengizinkan staf menghapus dokumen miliknya sendiri", async () => {
     vi.mocked(getSession).mockResolvedValue(mockStaffSession);
     vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
     vi.mocked(prisma.employee.findUnique).mockResolvedValue({
@@ -255,26 +294,26 @@ describe("HRIS document.actions.ts", () => {
     });
   });
 
-  it("menolak staf menghapus dokumen kategori CONTRACT", async () => {
+  it("menolak pengguna menghapus dokumen milik orang lain jika bukan HR/Super Admin", async () => {
     vi.mocked(getSession).mockResolvedValue(mockStaffSession);
     vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx);
     vi.mocked(prisma.employee.findUnique).mockResolvedValue({
       id: "emp-123",
     } as unknown as MockEmployee);
     vi.mocked(prisma.employeeDocument.findUnique).mockResolvedValue({
-      id: "doc-contract",
-      employeeId: "emp-123",
-      category: "CONTRACT",
-      title: "SK PKWT",
-      fileName: "SK.pdf",
-      fileKey: "documents/emp-123/contract.pdf",
-      employee: { fullName: "I Made Aris Danuarta" },
+      id: "doc-other",
+      employeeId: "emp-999", // Milik orang lain
+      category: "CV",
+      title: "CV Orang Lain",
+      fileName: "CV.pdf",
+      fileKey: "documents/emp-999/cv.pdf",
+      employee: { fullName: "Pegawai Lain" },
     } as unknown as MockDocUnique);
 
-    const res = await deleteEmployeeDocumentAction({ documentId: "doc-contract" });
+    const res = await deleteEmployeeDocumentAction({ documentId: "doc-other" });
 
     expect(res.success).toBe(false);
-    expect(res.message).toContain("Admin HR");
+    expect(res.message).toContain("tidak memiliki izin");
     expect(mockStorageDelete).not.toHaveBeenCalled();
   });
 });
