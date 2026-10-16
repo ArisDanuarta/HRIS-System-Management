@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can, AuthContext } from "@pspk/rbac";
 import { prisma } from "@pspk/db";
@@ -36,6 +37,13 @@ import {
   createNotificationForEmployeeManager,
 } from "../services/notification.service";
 
+function formatErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof z.ZodError) {
+    return err.issues[0]?.message || err.errors[0]?.message || "Input formulir tidak valid.";
+  }
+  return err instanceof Error ? err.message : fallback;
+}
+
 async function getAuthenticatedUser(): Promise<{
   userId: string;
   userEmail: string;
@@ -55,19 +63,44 @@ async function getAuthenticatedUser(): Promise<{
   }
 
   // Find linked employee
-  const employee = await prisma.employee.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true },
-  });
+  let employeeId = authCtx.employeeId;
+  if (!employeeId) {
+    const employee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+    employeeId = employee?.id ?? null;
+  }
 
-  if (!employee) {
+  if (!employeeId && session.user.email) {
+    const empByEmail = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { workEmail: session.user.email },
+          { personalEmail: session.user.email },
+        ],
+      },
+      select: { id: true, userId: true },
+    });
+    if (empByEmail) {
+      if (!empByEmail.userId) {
+        await prisma.employee.update({
+          where: { id: empByEmail.id },
+          data: { userId: session.user.id },
+        });
+      }
+      employeeId = empByEmail.id;
+    }
+  }
+
+  if (!employeeId) {
     throw new Error("Akun Anda belum terhubung dengan data profil pegawai. Hubungi HR untuk menautkan akun.");
   }
 
   return {
     userId: session.user.id,
     userEmail: session.user.email || "system@pspk.id",
-    employeeId: employee.id,
+    employeeId,
     authCtx,
   };
 }
@@ -128,7 +161,7 @@ export async function submitLeaveRequestAction(input: CreateLeaveRequestInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal mengajukan permohonan cuti.",
+      message: formatErrorMessage(err, "Gagal mengajukan permohonan cuti."),
     };
   }
 }
@@ -198,7 +231,7 @@ export async function approveLeaveRequestAction(input: ApproveLeaveRequestInput)
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal menyetujui permohonan cuti.",
+      message: formatErrorMessage(err, "Gagal menyetujui permohonan cuti."),
     };
   }
 }
@@ -265,7 +298,7 @@ export async function rejectLeaveRequestAction(input: RejectLeaveRequestInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal menolak permohonan cuti.",
+      message: formatErrorMessage(err, "Gagal menolak permohonan cuti."),
     };
   }
 }
@@ -305,7 +338,7 @@ export async function cancelLeaveRequestAction(input: CancelLeaveRequestInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal membatalkan permohonan cuti.",
+      message: formatErrorMessage(err, "Gagal membatalkan permohonan cuti."),
     };
   }
 }
@@ -350,7 +383,7 @@ export async function createHolidayAction(input: CreateHolidayInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal menambahkan hari libur.",
+      message: formatErrorMessage(err, "Gagal menambahkan hari libur."),
     };
   }
 }
@@ -388,7 +421,7 @@ export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal memperbarui konfigurasi cuti.",
+      message: formatErrorMessage(err, "Gagal memperbarui konfigurasi cuti."),
     };
   }
 }
@@ -593,8 +626,7 @@ export async function overrideLeaveDecisionAction(input: OverrideLeaveDecisionIn
     console.error("overrideLeaveDecisionAction error:", err);
     return {
       success: false,
-      message:
-        err instanceof Error ? err.message : "Gagal melakukan koreksi/override keputusan cuti.",
+      message: formatErrorMessage(err, "Gagal melakukan koreksi/override keputusan cuti."),
     };
   }
 }

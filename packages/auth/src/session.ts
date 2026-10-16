@@ -40,6 +40,35 @@ export async function getAuthContext(userId: string): Promise<AuthContext | null
     return null;
   }
 
+  let employeeId = user.employee?.id ?? null;
+
+  // Auto-heal link jika employeeId belum terhubung tapi ada data pegawai dengan email yang cocok
+  if (!employeeId && user.email) {
+    try {
+      const matchedEmp = await prisma.employee.findFirst({
+        where: {
+          OR: [
+            { workEmail: user.email },
+            { personalEmail: user.email },
+          ],
+        },
+        select: { id: true, userId: true },
+      });
+
+      if (matchedEmp) {
+        employeeId = matchedEmp.id;
+        if (!matchedEmp.userId) {
+          await prisma.employee.update({
+            where: { id: matchedEmp.id },
+            data: { userId: user.id },
+          });
+        }
+      }
+    } catch {
+      // Abaikan jika error konkurensi database
+    }
+  }
+
   const roleKeys: string[] = [];
   const permissionsSet = new Set<string>();
 
@@ -52,7 +81,7 @@ export async function getAuthContext(userId: string): Promise<AuthContext | null
 
   return {
     userId: user.id,
-    employeeId: user.employee?.id ?? null,
+    employeeId,
     roles: roleKeys,
     permissions: permissionsSet,
   };
@@ -62,7 +91,7 @@ export async function getAuthContext(userId: string): Promise<AuthContext | null
  * Loads full user profile with roles and linked employee details for UI shell.
  */
 export async function getUserProfile(userId: string) {
-  return await prisma.user.findUnique({
+  const profile = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -97,4 +126,56 @@ export async function getUserProfile(userId: string) {
       },
     },
   });
+
+  if (profile && !profile.employee && profile.email) {
+    try {
+      const matchedEmp = await prisma.employee.findFirst({
+        where: {
+          OR: [
+            { workEmail: profile.email },
+            { personalEmail: profile.email },
+          ],
+        },
+        select: {
+          id: true,
+          employeeNo: true,
+          fullName: true,
+          nickname: true,
+          workEmail: true,
+          userId: true,
+          currentPosition: {
+            select: { title: true },
+          },
+          currentDepartment: {
+            select: { name: true },
+          },
+        },
+      });
+
+      if (matchedEmp) {
+        if (!matchedEmp.userId) {
+          await prisma.employee.update({
+            where: { id: matchedEmp.id },
+            data: { userId: profile.id },
+          });
+        }
+        return {
+          ...profile,
+          employee: {
+            id: matchedEmp.id,
+            employeeNo: matchedEmp.employeeNo,
+            fullName: matchedEmp.fullName,
+            nickname: matchedEmp.nickname,
+            workEmail: matchedEmp.workEmail,
+            currentPosition: matchedEmp.currentPosition,
+            currentDepartment: matchedEmp.currentDepartment,
+          },
+        };
+      }
+    } catch {
+      // Abaikan jika error pencocokan email
+    }
+  }
+
+  return profile;
 }
