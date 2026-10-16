@@ -42,7 +42,7 @@ async function getAuthenticatedUser(): Promise<{
     throw new Error("Pengguna tidak aktif atau hak akses tidak valid.");
   }
 
-  let employee = await prisma.employee.findUnique({
+  const employee = await prisma.employee.findUnique({
     where: { userId: session.user.id },
     select: { id: true },
   });
