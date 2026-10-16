@@ -2326,6 +2326,26 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Menyertakan relasi `employmentTypeMaster` pada query `getEmployeesDirectory` dan `getEmployeeById` di [`employee.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/employee.queries.ts).
      - Menjamin serialisasi tanggal ISO aman lintas batasan _Server Action_ di [`employment-type.actions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/actions/employment-type.actions.ts).
 
+## Penghapusan Modul Rekrutmen (ATS) & Pelatihan dari Cakupan Sistem (15 Oktober 2026)
+
+- **Latar Belakang**:
+  - Berdasarkan konfirmasi dan instruksi dari pengelola/pengguna PSPK, modul Rekrutmen & Pelacak Pelamar (ATS) serta Pelatihan & Pengembangan Kompetensi dipastikan tidak dibutuhkan oleh organisasi dan tidak akan dibangun.
+- **Pembersihan yang Dilakukan**:
+  1. **RBAC & Permissions**:
+     - Menghapus 3 wewenang rekrutmen (`hris.recruitment.read:all`, `hris.recruitment.manage:all`, `hris.recruitment.interview:team`) dan 4 wewenang pelatihan (`hris.training.read:own`, `hris.training.read:team`, `hris.training.read:all`, `hris.training.manage:all`) dari [`packages/rbac/src/permissions.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/permissions.ts) serta penugasan peran sistem di [`packages/rbac/src/roles.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/rbac/src/roles.ts).
+     - Menghapus kategori `recruitment` dan `training` dari pemetaan metadata matriks peran di [`role.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/role.queries.ts) dan [`role-matrix-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/roles/role-matrix-view.tsx).
+  2. **Tata Kelola Modul (Feature Flags)**:
+     - Menghapus definisi `module.recruitment.enabled` dan `module.training.enabled` dari [`packages/db/src/modules.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/src/modules.ts). Standar sistem kini mengelola 6 modul aktif inti.
+     - Memperbarui komponen [`module-governance-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/modules/module-governance-view.tsx) dan pengujian unit terkait.
+  3. **Database & Migrasi Prisma**:
+     - Menghapus model `TrainingRecord` dan relasinya pada `Employee` di [`hris.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/hris.prisma).
+     - Menerapkan migrasi database [`20261015110700_remove_training_and_recruitment`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/migrations/20261015110700_remove_training_and_recruitment/migration.sql) yang menghapus tabel `hris.training_records`, membersihkan permission terkait dari `core.permissions`, dan menghapus konfigurasi lama dari `core.system_settings`.
+     - Melakukan generate ulang Prisma Client (`pnpm db:generate`).
+  4. **Verifikasi Kualitas**:
+     - `pnpm test`: 27 berkas pengujian (190 tes) lulus 100%.
+     - `pnpm typecheck`: 9 paket sukses tanpa error tipe TypeScript.
+     - `pnpm lint`: Lulus dengan 0 error.
+
 ---
 
 ## Cara Menjalankan Lingkungan Lokal
