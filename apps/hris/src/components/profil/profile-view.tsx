@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import {
   User,
   KeyRound,
@@ -126,25 +127,27 @@ export function ProfileView({ profile }: ProfileViewProps) {
 
           {/* Watermark Logo (faded in background) */}
           <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-[0.06] pointer-events-none select-none hidden sm:block">
-            <img
+            <Image
               src="/images/logo_pspk_horizontal_trimmed.png"
               alt=""
-              className="h-36 w-auto object-contain filter grayscale"
               width={485}
               height={80}
+              className="h-36 w-auto object-contain filter grayscale"
               style={{ width: "auto" }}
+              priority={false}
             />
           </div>
 
           {/* Featured PSPK Logo */}
           <div className="flex flex-col items-center justify-center gap-1.5 sm:ml-28 md:ml-0 z-0">
-            <img
+            <Image
               src="/images/logo_pspk_horizontal_trimmed.png"
               alt="Pusat Studi Pendidikan dan Kebijakan"
-              className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-xs"
               width={485}
               height={80}
+              className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-xs"
               style={{ width: "auto" }}
+              priority
             />
             <span className="text-[11px] font-semibold text-[#74777f] tracking-wider uppercase">
               Pusat Studi Pendidikan dan Kebijakan
@@ -167,6 +170,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
               <div className="relative group shrink-0 -mt-14 md:-mt-16 z-10">
                 <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#102e50] border-4 border-white shadow-md overflow-hidden flex items-center justify-center text-white text-3xl font-bold font-heading">
                   {showAvatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={avatarUrl!}
                       alt={displayName}

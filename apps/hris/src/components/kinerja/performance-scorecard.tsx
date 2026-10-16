@@ -2,16 +2,12 @@
 
 import React from "react";
 import {
-  Award,
-  CheckCircle2,
   FileText,
   Lock,
   MessageSquare,
-  ShieldCheck,
   Target,
-  User,
-  Calendar,
 } from "lucide-react";
+
 import { StaffPerformanceReviewData } from "@/server/queries/performance.queries";
 
 interface PerformanceScorecardProps {

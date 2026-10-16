@@ -69,6 +69,7 @@ export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
         {/* User Avatar */}
         <div className="w-8 h-8 rounded-full bg-[#102e50] text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0 overflow-hidden">
           {showAvatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={user.image!}
               alt={user.name}
