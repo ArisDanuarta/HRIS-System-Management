@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
+import type { Metadata } from "next";
 import {
   ArrowLeft,
   Edit,
@@ -37,10 +38,26 @@ import {
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const employee = await getEmployeeById(id).catch(() => null);
+  const name = employee?.fullName ?? "Karyawan";
+  return {
+    title: `${name} - Profil Karyawan | HRIS PSPK`,
+    description: `Detail profil karyawan ${name} di sistem HRIS PSPK`,
+    robots: { index: false, follow: false },
+  };
+}
+
 interface EmployeeDetailPageProps {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string }>;
 }
+
 
 export default async function EmployeeDetailPage({
   params,

@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft, Edit } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
+import type { Metadata } from "next";
 import {
   getEmployeeById,
   getOrgStructureData,
@@ -13,6 +14,22 @@ import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queri
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const employee = await getEmployeeById(id).catch(() => null);
+  const name = employee?.fullName ?? "Karyawan";
+  return {
+    title: `Ubah Data ${name} | HRIS PSPK`,
+    description: `Formulir ubah data karyawan ${name}`,
+    robots: { index: false, follow: false },
+  };
+}
+
 
 interface UbahKaryawanPageProps {
   params: Promise<{ id: string }>;
