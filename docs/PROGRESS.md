@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Audit SEO & Performa] Audit Lengkap Bug, SEO, dan Performa — 2026-10-16
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Audit menyeluruh terhadap konfigurasi SEO, performa rendering, dan kebersihan kode (lint/typecheck) di kedua aplikasi HRIS dan System Management.
+- **Hasil Pemeriksaan & Perbaikan:**
+  1. **SEO — Root Layout Metadata Diperkuat:**
+     - Kedua root layout (`apps/hris` & `apps/sysmgmt`) kini memiliki `robots: { index: false, follow: false }` karena ini aplikasi internal yang tidak boleh diindeks mesin pencari.
+     - Ditambahkan `title.template` (`"%s | HRIS PSPK"` / `"%s | System Management PSPK"`) sehingga setiap halaman yang mengeset `title` otomatis mendapat suffix konsisten dari root.
+  2. **SEO — Halaman Login Dipisah Server/Client:**
+     - Halaman login sebelumnya adalah full Client Component (`"use client"`) sehingga tidak bisa mengekspor `metadata`. Kini dipisah menjadi: `page.tsx` (Server Component, export metadata + robots noindex) dan `login-client.tsx` (Client Component, berisi logik sign-in).
+     - Berlaku untuk kedua app: `apps/hris/src/app/login/` dan `apps/sysmgmt/src/app/login/`.
+  3. **SEO — Halaman Dinamis Karyawan Mendapat `generateMetadata`:**
+     - `karyawan/[id]/page.tsx` — `generateMetadata` mengambil nama karyawan dari DB dan mengeset title dinamis, misalnya "Budi Santoso - Profil Karyawan | HRIS PSPK".
+     - `karyawan/[id]/ubah/page.tsx` — Sama, title dinamis berdasarkan nama karyawan.
+     - `karyawan/baru/page.tsx` — Metadata statis "Tambah Karyawan Baru | HRIS PSPK".
+  4. **Performa — Optimasi Gambar (LCP):**
+     - Logo PSPK statis di `profile-view.tsx` diganti dari `<img>` ke `next/image` (`Image` dari `next/image`) dengan prop `priority` untuk above-the-fold dan `priority={false}` untuk watermark dekoratif.
+     - Avatar dinamis dengan `onError` handler dipertahankan sebagai `<img>` (next/image tidak mendukung `onError`) dengan `// eslint-disable-next-line` yang tepat.
+  5. **Lint — 0 Warnings (Bersih Total):**
+     - Dihapus import yang tidak terpakai di `performance-scorecard.tsx` (`Award`, `CheckCircle2`, `ShieldCheck`, `User`, `Calendar`).
+     - Dihapus `FileCheck2` di `staff-performance-view.tsx`.
+     - Dihapus `Info` di `staff-self-review-form.tsx`.
+     - Dihapus props destruktur `totalGoalWeight` dan `periodName` yang tidak pernah digunakan di body `StaffSelfReviewForm`.
+  6. **Tidak ada masalah bug baru ditemukan** di luar yang sudah diperbaiki pada audit sebelumnya.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+
 ## [Audit Lintas Modul & Self-Healing] Audit Form, Unggah Berkas, Penautan Akun, dan Validasi Human-Friendly — 2026-10-16
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
