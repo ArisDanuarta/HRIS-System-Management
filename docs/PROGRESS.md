@@ -2,6 +2,32 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS & Vault Dokumen] Perbaikan Bug Upload Dokumen Vault Pegawai & Penyelarasan Otorisasi — 2026-10-16
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Tombol "Simpan Dokumen" pada modal "Unggah Dokumen ke Vault Pegawai" (`EmployeeDocumentsCard`) nonaktif / disabled permanen ketika pengguna mengunggah berkas dengan judul akronim standar 2 karakter (seperti "CV", "SK", "KK").
+  - Tidak ada feedback/helper indikator visual ketika judul kurang panjang atau ketika berkas belum dipilih sehingga pengguna kebingungan mengapa tombol abu-abu (tidak bisa diklik).
+  - Pengecekan otorisasi di Server Action backend (`document.actions.ts`) sebelumnya menggunakan permission `hris.employee.update:all` (yang tidak terdaftar di RBAC), yang sekarang telah diperbaiki menjadi `hris.employee.write:all`.
+  - Penambahan resolusi fallback email pengguna ke data pegawai untuk mengantisipasi jika relasi `employee.userId` belum tersinkronisasi.
+- **Hasil Implementasi:**
+  1. **Komponen UI (`employee-documents-card.tsx`):**
+     - Mengubah batas minimal panjang karakter judul dokumen dari `< 3` menjadi `< 2`, sehingga judul resmi seperti "CV", "SK", "KK", "S1", "S2" dapat diunggah dengan normal.
+     - Menambahkan teks bantuan validasi di bawah kolom input judul (`Judul dokumen minimal 2 karakter (contoh: CV, SK, KK)`).
+     - Menambahkan indikator status interaktif pada footer modal untuk menginformasikan syarat yang belum terpenuhi (`* Pilih berkas terlebih dahulu` atau `* Masukkan judul dokumen (min. 2 karakter)`).
+     - Mengoptimalkan tautan unduh dokumen dengan query param `download=true` dan `filename` untuk memastikan nama file asli terunduh dengan benar di berbagai browser.
+  2. **Server Action Backend (`document.actions.ts`):**
+     - Menyelaraskan validasi panjang judul minimal menjadi 2 karakter.
+     - Memperbaiki pengecekan izin ke `hris.employee.write:all` dan fallback pencarian pegawai berbasis email pengguna aktif (`workEmail` / `personalEmail`).
+  3. **Proteksi Endpoint API (`/api/documents/[...path]/route.ts`):**
+     - Menambahkan resolusi fallback `effectiveActorEmployeeId` sehingga staf pemilik dokumen selalu terautentikasi dengan benar saat membuka atau mengunduh berkas vault mereka.
+  4. **Pengujian Otomatis (`document.actions.test.ts`):**
+     - Menambahkan 6 unit test baru untuk menguji skenario upload judul 2 karakter, validasi judul pendek, pemblokiran staf mengunggah berkas `CONTRACT`, izin Admin HR, dan otorisasi penghapusan dokumen mandiri.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - `pnpm test`: ✅ 28 test files lolos, 196 unit tests passed (100%)
+
 ## [Desain & UI] Penghapusan Animasi Dot Kedip/Redup-Nyala (Pulse & Ping) di Seluruh Platform — 2026-10-14
 
 - **Status:** Selesai (Tuntas & Terverifikasi)

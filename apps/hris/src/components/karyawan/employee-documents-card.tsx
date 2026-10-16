@@ -60,6 +60,16 @@ const CATEGORY_META: Record<
     badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
     group: "identity",
   },
+  BANK_BOOK: {
+    label: "Buku Rekening Bank",
+    badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+    group: "identity",
+  },
+  BPJS: {
+    label: "Kartu BPJS",
+    badgeClass: "bg-green-50 text-green-800 border-green-200",
+    group: "identity",
+  },
   DIPLOMA: {
     label: "Ijazah & Transkrip",
     badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
@@ -71,9 +81,14 @@ const CATEGORY_META: Record<
     group: "academic",
   },
   CONTRACT: {
-    label: "Kontrak Kerja Fisik",
-    badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+    label: "Kontrak Kerja (PKWT/SK)",
+    badgeClass: "bg-orange-50 text-orange-800 border-orange-200",
     group: "contract",
+  },
+  EXPERIENCE_LETTER: {
+    label: "Surat Pengalaman (Paklaring)",
+    badgeClass: "bg-indigo-50 text-indigo-800 border-indigo-200",
+    group: "certificate",
   },
   CERTIFICATE: {
     label: "Sertifikat Riset/Pelatihan",
@@ -307,7 +322,7 @@ export function EmployeeDocumentsCard({
               : "text-slate-600 hover:bg-slate-100"
           }`}
         >
-          Identitas (KTP/NPWP)
+          Identitas & Rekening (KTP/NPWP/Bank/BPJS)
         </button>
         <button
           type="button"
@@ -329,7 +344,7 @@ export function EmployeeDocumentsCard({
               : "text-slate-600 hover:bg-slate-100"
           }`}
         >
-          Kontrak Fisik
+          Kontrak Kerja (PKWT/SK)
         </button>
         <button
           type="button"
@@ -340,7 +355,7 @@ export function EmployeeDocumentsCard({
               : "text-slate-600 hover:bg-slate-100"
           }`}
         >
-          Sertifikat
+          Sertifikat & Paklaring
         </button>
       </div>
 
@@ -458,7 +473,7 @@ export function EmployeeDocumentsCard({
                     </a>
                   </div>
 
-                  {canDelete && (isHrOrAdmin || doc.category !== "CONTRACT") && (
+                  {canDelete && (
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(doc)}
@@ -467,14 +482,6 @@ export function EmployeeDocumentsCard({
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                  )}
-                  {doc.category === "CONTRACT" && !isHrOrAdmin && (
-                    <span
-                      className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-medium border border-amber-200"
-                      title="Dokumen resmi dikelola oleh Admin HR"
-                    >
-                      Resmi HR
-                    </span>
                   )}
                 </div>
               </div>
@@ -518,19 +525,15 @@ export function EmployeeDocumentsCard({
                 >
                   <option value="KTP">KTP (Kartu Tanda Penduduk)</option>
                   <option value="NPWP">NPWP (Nomor Pokok Wajib Pajak)</option>
+                  <option value="BANK_BOOK">Buku Tabungan / Rekening Bank</option>
+                  <option value="BPJS">Kartu BPJS (Kesehatan / Ketenagakerjaan)</option>
                   <option value="DIPLOMA">Ijazah & Transkrip Akademik</option>
                   <option value="CV">Curriculum Vitae (CV) & Resume</option>
-                  {isHrOrAdmin && (
-                    <option value="CONTRACT">Salinan Kontrak Kerja Fisik (SK)</option>
-                  )}
+                  <option value="CONTRACT">Surat Perjanjian / Kontrak Kerja (PKWT/SK)</option>
+                  <option value="EXPERIENCE_LETTER">Surat Pengalaman Kerja (Paklaring)</option>
                   <option value="CERTIFICATE">Sertifikat Pelatihan / Lisensi Riset</option>
                   <option value="OTHER">Dokumen Pendukung Lainnya</option>
                 </select>
-                {!isHrOrAdmin && (
-                  <p className="text-[11px] text-slate-500 italic mt-0.5">
-                    * Dokumen Kontrak Kerja fisik dikelola dan diunggah secara resmi oleh Admin HR.
-                  </p>
-                )}
               </div>
 
               <div className="flex flex-col gap-1">

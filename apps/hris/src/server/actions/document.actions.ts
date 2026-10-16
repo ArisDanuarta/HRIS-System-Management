@@ -15,9 +15,12 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 const VALID_CATEGORIES = [
   "KTP",
   "NPWP",
+  "BANK_BOOK",
+  "BPJS",
   "DIPLOMA",
   "CV",
   "CONTRACT",
+  "EXPERIENCE_LETTER",
   "CERTIFICATE",
   "OTHER",
 ] as const;
@@ -130,14 +133,6 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
       };
     }
 
-    // Business rule: Contract documents can ONLY be uploaded by Admin HR / Super Admin
-    if (category === "CONTRACT" && !isSuperOrHr) {
-      return {
-        success: false,
-        message: "Dokumen Kontrak Kerja hanya dapat diunggah dan dikelola oleh Admin HR.",
-      };
-    }
-
     // Verify employee exists
     const employee = await prisma.employee.findUnique({
       where: { id: employeeId },
@@ -243,15 +238,7 @@ export async function deleteEmployeeDocumentAction({ documentId }: { documentId:
 
     const isSelf = actorEmployeeId === doc.employeeId;
 
-    // Dokumen Kontrak Kerja hanya dapat dihapus oleh Admin HR / Super Admin
-    if (doc.category === "CONTRACT" && !isSuperOrHr) {
-      return {
-        success: false,
-        message: "Dokumen Kontrak Kerja hanya dapat dikelola atau dihapus oleh Admin HR.",
-      };
-    }
-
-    // Dokumen selain kontrak dapat dihapus oleh Admin HR atau oleh pegawai itu sendiri
+    // Dokumen dapat dihapus oleh Admin HR atau oleh pegawai pemilik dokumen itu sendiri
     if (!isSuperOrHr && !isSelf) {
       return {
         success: false,
