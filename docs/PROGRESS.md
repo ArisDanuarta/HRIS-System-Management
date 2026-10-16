@@ -2,6 +2,32 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Audit Lintas Modul & Self-Healing] Audit Form, Unggah Berkas, Penautan Akun, dan Validasi Human-Friendly — 2026-10-16
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Melakukan audit komprehensif pada seluruh modul HRIS dan System Management untuk mendeteksi potensi masalah serupa dengan form upload pegawai (tombol nonaktif tanpa indikasi, pesan error mentah Zod, dan kegagalan aksi jika akun pengguna belum terhubung eksplisit dengan profil pegawai di basis data).
+- **Hasil Pemeriksaan & Perbaikan:**
+  1. **Global Self-Healing User-Employee Link (`@pspk/auth/src/session.ts`):**
+     - Pada `getAuthContext(userId)` dan `getUserProfile(userId)`, jika `user.employee` belum terhubung (`null`), sistem kini secara otomatis melakukan fallback pencarian data pegawai berdasarkan kesesuaian email kantor (`workEmail`) atau email pribadi (`personalEmail`).
+     - Jika ditemukan pegawai yang cocok dan `employee.userId` masih kosong, sistem otomatis menautkannya secara permanen di database (`userId: user.id`) dan mengembalikan `employeeId` yang valid.
+     - Ini mencegah lockout atau error "Akun belum terhubung" pada seluruh modul HRIS (Cuti, Absensi, Timesheet, Kinerja, Dokumen Vault) dan System Management (Aset/Inventaris).
+  2. **Resolusi Fallback pada Aksi Absensi & Cuti:**
+     - Di `apps/hris/src/server/actions/leave.actions.ts` dan `attendance.actions.ts`, fungsi `getAuthenticatedUser()` diperkuat dengan fallback email sehingga tidak serta-merta melempar pengecualian jika `prisma.employee.findUnique({ where: { userId } })` belum tersinkronisasi.
+  3. **Penautan Otomatis pada Manajemen Peran Pegawai:**
+     - Di `apps/hris/src/server/actions/user-role.actions.ts` (`updateEmployeeRolesAction`), jika data pegawai belum memiliki relasi `user`, sistem mencari apakah akun `core.users` dengan email pegawai sudah ada dan langsung menautkannya secara otomatis.
+  4. **Perbaikan UX Tombol Submit pada Modul Dokumen System Management:**
+     - Di `apps/sysmgmt/src/components/documents/document-create-modal.tsx` dan `document-new-version-modal.tsx`, tombol submit sebelumnya dinonaktifkan (`disabled`) jika berkas belum dipilih tanpa visual feedback.
+     - Tombol kini tetap interaktif dan langsung memunculkan pesan validasi yang jelas di antarmuka jika pengguna menekan tombol sebelum melengkapi berkas atau catatan revisi.
+  5. **Pesan Validasi Zod Human-Friendly di Seluruh Backend:**
+     - Mengubah penanganan error pada modul Cuti (`leave.actions.ts`), Absensi (`attendance.actions.ts`), Struktur Organisasi/Mutasi (`organization.actions.ts`), Inventaris Aset (`asset.actions.ts`), dan Lisensi Software (`license.actions.ts`).
+     - Seluruh pengecualian `z.ZodError` kini diformat langsung ke teks pesan ramah pengguna (`err.issues[0]?.message`) alih-alih melempar teks mentah string JSON ke layar pengguna.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - `pnpm test`: ✅ 28 test files lolos, 197 unit tests passed (100%)
+
+
 ## [HRIS & Vault Dokumen] Penambahan Kategori Vault (Buku Bank, BPJS, Paklaring, Kontrak) & Perbaikan Upload — 2026-10-16
 
 - **Status:** Selesai (Tuntas & Terverifikasi)

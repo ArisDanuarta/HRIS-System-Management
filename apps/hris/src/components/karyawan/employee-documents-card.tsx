@@ -108,7 +108,6 @@ export function EmployeeDocumentsCard({
   documents: initialDocuments,
   canUpload = true,
   canDelete = true,
-  isHrOrAdmin: _isHrOrAdmin = false,
 }: EmployeeDocumentsCardProps) {
   const [documents, setDocuments] = useState<EmployeeDocumentItem[]>(initialDocuments);
   const [activeGroup, setActiveGroup] = useState<
