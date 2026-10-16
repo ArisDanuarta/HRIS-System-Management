@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { prisma, writeAudit } from "@pspk/db";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan } from "@pspk/rbac";
@@ -16,6 +17,13 @@ import {
   RevealLicenseKeyInput,
   DeleteLicenseInput,
 } from "../schemas/license.schema";
+
+function formatLicenseErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof z.ZodError) {
+    return err.issues[0]?.message || err.errors[0]?.message || "Input data lisensi tidak valid.";
+  }
+  return err instanceof Error ? err.message : fallback;
+}
 
 async function getLicenseActorInfo(permission: "sysmgmt.license.read:all" | "sysmgmt.license.manage:all" = "sysmgmt.license.manage:all") {
   const reqHeaders = await headers();
@@ -104,10 +112,9 @@ export async function createLicenseAction(rawInput: CreateLicenseInput) {
       },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal menambahkan lisensi software";
     return {
       ok: false as const,
-      error: message,
+      error: formatLicenseErrorMessage(error, "Gagal menambahkan lisensi software"),
     };
   }
 }
@@ -194,10 +201,9 @@ export async function updateLicenseAction(rawInput: UpdateLicenseInput) {
       },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal memperbarui data lisensi software";
     return {
       ok: false as const,
-      error: message,
+      error: formatLicenseErrorMessage(error, "Gagal memperbarui data lisensi software"),
     };
   }
 }
@@ -267,10 +273,9 @@ export async function revealLicenseKeyAction(rawInput: RevealLicenseKeyInput) {
       },
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal membuka kunci lisensi";
     return {
       ok: false as const,
-      error: message,
+      error: formatLicenseErrorMessage(error, "Gagal membuka kunci lisensi"),
     };
   }
 }
@@ -323,10 +328,9 @@ export async function deleteLicenseAction(rawInput: DeleteLicenseInput) {
       ok: true as const,
     };
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal menghapus data lisensi";
     return {
       ok: false as const,
-      error: message,
+      error: formatLicenseErrorMessage(error, "Gagal menghapus data lisensi"),
     };
   }
 }
