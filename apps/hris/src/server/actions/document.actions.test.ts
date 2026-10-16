@@ -195,23 +195,16 @@ describe("HRIS document.actions.ts", () => {
   it("mengizinkan staf menghapus dokumen non-kontrak miliknya sendiri", async () => {
     vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
     vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
-    vi.mocked(prisma.employee.findUnique).mockImplementation((args: any) => {
-      if (args.where?.userId) {
-        return Promise.resolve({ id: "emp-123" } as any);
-      }
-      if (args.where?.id === "doc-1") {
-        return Promise.resolve({
-          id: "doc-1",
-          employeeId: "emp-123",
-          category: "CV",
-          title: "CV Aris",
-          fileName: "CV.pdf",
-          fileKey: "documents/emp-123/cv.pdf",
-          employee: { fullName: "I Made Aris Danuarta" },
-        } as any);
-      }
-      return Promise.resolve(null);
-    });
+    vi.mocked(prisma.employee.findUnique).mockResolvedValue({ id: "emp-123" } as any);
+    vi.mocked(prisma.employeeDocument.findUnique).mockResolvedValue({
+      id: "doc-1",
+      employeeId: "emp-123",
+      category: "CV",
+      title: "CV Aris",
+      fileName: "CV.pdf",
+      fileKey: "documents/emp-123/cv.pdf",
+      employee: { fullName: "I Made Aris Danuarta" },
+    } as any);
 
     const res = await deleteEmployeeDocumentAction({ documentId: "doc-1" });
 
@@ -225,23 +218,16 @@ describe("HRIS document.actions.ts", () => {
   it("menolak staf menghapus dokumen kategori CONTRACT", async () => {
     vi.mocked(getSession).mockResolvedValue(mockStaffSession as any);
     vi.mocked(getAuthContext).mockResolvedValue(mockStaffAuthCtx as any);
-    vi.mocked(prisma.employee.findUnique).mockImplementation((args: any) => {
-      if (args.where?.userId) {
-        return Promise.resolve({ id: "emp-123" } as any);
-      }
-      if (args.where?.id === "doc-contract") {
-        return Promise.resolve({
-          id: "doc-contract",
-          employeeId: "emp-123",
-          category: "CONTRACT",
-          title: "SK PKWT",
-          fileName: "SK.pdf",
-          fileKey: "documents/emp-123/contract.pdf",
-          employee: { fullName: "I Made Aris Danuarta" },
-        } as any);
-      }
-      return Promise.resolve(null);
-    });
+    vi.mocked(prisma.employee.findUnique).mockResolvedValue({ id: "emp-123" } as any);
+    vi.mocked(prisma.employeeDocument.findUnique).mockResolvedValue({
+      id: "doc-contract",
+      employeeId: "emp-123",
+      category: "CONTRACT",
+      title: "SK PKWT",
+      fileName: "SK.pdf",
+      fileKey: "documents/emp-123/contract.pdf",
+      employee: { fullName: "I Made Aris Danuarta" },
+    } as any);
 
     const res = await deleteEmployeeDocumentAction({ documentId: "doc-contract" });
 
