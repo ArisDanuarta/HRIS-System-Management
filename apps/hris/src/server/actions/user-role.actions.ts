@@ -92,15 +92,42 @@ export async function updateEmployeeRolesAction(input: { employeeId: string; rol
       return { ok: false as const, error: "Data pegawai tidak ditemukan." };
     }
 
-    if (!employee.user) {
+    let user = employee.user;
+    if (!user && (employee.workEmail || employee.personalEmail)) {
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            ...(employee.workEmail ? [{ email: employee.workEmail }] : []),
+            ...(employee.personalEmail ? [{ email: employee.personalEmail }] : []),
+          ],
+        },
+        include: {
+          roles: {
+            include: {
+              role: true,
+            },
+          },
+        },
+      });
+
+      if (existingUser) {
+        await prisma.employee.update({
+          where: { id: employee.id },
+          data: { userId: existingUser.id },
+        });
+        user = existingUser;
+      }
+    }
+
+    if (!user) {
       return {
         ok: false as const,
         error: "Pegawai ini belum memiliki akun login terhubung. Buatkan akun terlebih dahulu.",
       };
     }
 
-    const targetUserId = employee.user.id;
-    const currentRoleKeys = employee.user.roles.map((r) => r.role.key);
+    const targetUserId = user.id;
+    const currentRoleKeys = user.roles.map((r) => r.role.key);
 
     // Proteksi: Tidak boleh mencabut role super_admin dari super admin terakhir
     if (currentRoleKeys.includes("super_admin") && !input.roleKeys.includes("super_admin")) {

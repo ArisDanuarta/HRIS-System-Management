@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, AuthContext } from "@pspk/rbac";
 import { getStorageProvider } from "@pspk/storage";
@@ -27,6 +28,13 @@ import {
   transferEmployeePosition,
 } from "../services/organization.service";
 import { ActorContext } from "../services/employee.service";
+
+function formatOrgErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof z.ZodError) {
+    return err.issues[0]?.message || err.errors[0]?.message || "Input data organisasi tidak valid.";
+  }
+  return err instanceof Error ? err.message : fallback;
+}
 
 async function getAuthenticatedActor(): Promise<{ actor: ActorContext; authCtx: AuthContext }> {
   const reqHeaders = await headers();
@@ -73,8 +81,7 @@ export async function createDepartmentAction(input: CreateDepartmentInput) {
     return { ok: true as const, data: department };
   } catch (err: unknown) {
     console.error("createDepartmentAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal menambahkan divisi baru.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal menambahkan divisi baru.") };
   }
 }
 
@@ -92,8 +99,7 @@ export async function updateDepartmentAction(input: UpdateDepartmentInput) {
     return { ok: true as const, data: department };
   } catch (err: unknown) {
     console.error("updateDepartmentAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal memperbarui data divisi.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal memperbarui data divisi.") };
   }
 }
 
@@ -111,8 +117,7 @@ export async function deleteDepartmentAction(id: string) {
     return { ok: true as const };
   } catch (err: unknown) {
     console.error("deleteDepartmentAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal menghapus divisi.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal menghapus divisi.") };
   }
 }
 
@@ -134,8 +139,7 @@ export async function createPositionAction(input: CreatePositionInput) {
     return { ok: true as const, data: position };
   } catch (err: unknown) {
     console.error("createPositionAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal menambahkan jabatan baru.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal menambahkan jabatan baru.") };
   }
 }
 
@@ -153,8 +157,7 @@ export async function updatePositionAction(input: UpdatePositionInput) {
     return { ok: true as const, data: position };
   } catch (err: unknown) {
     console.error("updatePositionAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal memperbarui data jabatan.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal memperbarui data jabatan.") };
   }
 }
 
@@ -172,8 +175,7 @@ export async function deletePositionAction(id: string) {
     return { ok: true as const };
   } catch (err: unknown) {
     console.error("deletePositionAction error:", err);
-    const msg = err instanceof Error ? err.message : "Gagal menghapus jabatan.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal menghapus jabatan.") };
   }
 }
 
@@ -236,8 +238,6 @@ export async function transferEmployeePositionAction(formData: FormData) {
     return { ok: true as const, data: result };
   } catch (err: unknown) {
     console.error("transferEmployeePositionAction error:", err);
-    const msg =
-      err instanceof Error ? err.message : "Gagal memproses mutasi/perubahan jabatan pegawai.";
-    return { ok: false as const, error: msg };
+    return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal memproses mutasi/perubahan jabatan pegawai.") };
   }
 }

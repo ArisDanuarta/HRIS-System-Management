@@ -2,6 +2,7 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can, AuthContext } from "@pspk/rbac";
 import { prisma } from "@pspk/db";
@@ -14,6 +15,13 @@ import {
   CorrectAttendanceInput,
 } from "../schemas/attendance.schema";
 import { recordCheckIn, recordCheckOut, correctAttendance } from "../services/attendance.service";
+
+function formatErrorMessage(err: unknown, fallback: string): string {
+  if (err instanceof z.ZodError) {
+    return err.issues[0]?.message || err.errors[0]?.message || "Input formulir tidak valid.";
+  }
+  return err instanceof Error ? err.message : fallback;
+}
 
 async function getAuthenticatedUser(): Promise<{
   userId: string;
@@ -34,19 +42,44 @@ async function getAuthenticatedUser(): Promise<{
   }
 
   // Find linked employee
-  const employee = await prisma.employee.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true },
-  });
+  let employeeId = authCtx.employeeId;
+  if (!employeeId) {
+    const employee = await prisma.employee.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+    employeeId = employee?.id ?? null;
+  }
 
-  if (!employee) {
+  if (!employeeId && session.user.email) {
+    const empByEmail = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { workEmail: session.user.email },
+          { personalEmail: session.user.email },
+        ],
+      },
+      select: { id: true, userId: true },
+    });
+    if (empByEmail) {
+      if (!empByEmail.userId) {
+        await prisma.employee.update({
+          where: { id: empByEmail.id },
+          data: { userId: session.user.id },
+        });
+      }
+      employeeId = empByEmail.id;
+    }
+  }
+
+  if (!employeeId) {
     throw new Error("Akun Anda belum terhubung dengan data profil pegawai. Hubungi HR untuk menautkan akun.");
   }
 
   return {
     userId: session.user.id,
     userEmail: session.user.email || "system@pspk.id",
-    employeeId: employee.id,
+    employeeId,
     authCtx,
   };
 }
@@ -74,7 +107,7 @@ export async function checkInAction(input: CheckInInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal melakukan check-in.",
+      message: formatErrorMessage(err, "Gagal melakukan check-in."),
     };
   }
 }
@@ -102,7 +135,7 @@ export async function checkOutAction(input: CheckOutInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal melakukan check-out.",
+      message: formatErrorMessage(err, "Gagal melakukan check-out."),
     };
   }
 }
@@ -130,7 +163,7 @@ export async function correctAttendanceAction(input: CorrectAttendanceInput) {
   } catch (err) {
     return {
       success: false,
-      message: err instanceof Error ? err.message : "Gagal menyimpan koreksi presensi.",
+      message: formatErrorMessage(err, "Gagal menyimpan koreksi presensi."),
     };
   }
 }
