@@ -15,8 +15,12 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "PSPK HRIS - Pusat Studi Pendidikan dan Kebijakan",
+  title: {
+    default: "HRIS PSPK - Pusat Studi Pendidikan dan Kebijakan",
+    template: "%s | HRIS PSPK",
+  },
   description: "Sistem Informasi Sumber Daya Manusia Terpadu PSPK",
+  robots: { index: false, follow: false },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",

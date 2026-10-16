@@ -15,8 +15,12 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "PSPK System Management - Pusat Studi Pendidikan dan Kebijakan",
+  title: {
+    default: "System Management PSPK - Pusat Studi Pendidikan dan Kebijakan",
+    template: "%s | System Management PSPK",
+  },
   description: "Manajemen Pengguna, Hak Akses, Aset, Dokumen & Audit Log PSPK",
+  robots: { index: false, follow: false },
   icons: {
     icon: "/favicon.png",
     shortcut: "/favicon.png",

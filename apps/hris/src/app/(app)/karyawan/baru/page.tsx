@@ -3,6 +3,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
+import type { Metadata } from "next";
 import {
   getOrgStructureData,
   getManagersList,
@@ -12,6 +13,13 @@ import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queri
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Tambah Karyawan Baru | HRIS PSPK",
+  description: "Formulir pendaftaran karyawan baru PSPK",
+  robots: { index: false, follow: false },
+};
+
 
 export default async function TambahKaryawanPage() {
   const reqHeaders = await headers();
