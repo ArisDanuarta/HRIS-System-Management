@@ -448,7 +448,7 @@ export function EmployeeDocumentsCard({
                       <span>Lihat</span>
                     </button>
                     <a
-                      href={`/api/documents/${doc.fileKey}`}
+                      href={`/api/documents/${doc.fileKey}?download=true&filename=${encodeURIComponent(doc.fileName)}`}
                       download={doc.fileName}
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-slate-400 text-slate-700 font-semibold text-[11px] transition-colors cursor-pointer bg-white hover:bg-slate-50"
                       title="Unduh berkas ke komputer"
@@ -538,11 +538,16 @@ export function EmployeeDocumentsCard({
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: Ijazah S2 Kebijakan Publik UI..."
+                  placeholder="Contoh: CV, KTP, Ijazah S1, SK Penugasan..."
                   value={uploadTitle}
                   onChange={(e) => setUploadTitle(e.target.value)}
                   className="px-3 py-2 rounded-xl border border-slate-300 font-medium focus:ring-2 focus:ring-[#102E50] focus:outline-none"
                 />
+                {uploadTitle.length > 0 && uploadTitle.trim().length < 2 && (
+                  <p className="text-[11px] text-red-600 font-medium">
+                    Judul dokumen minimal 2 karakter (contoh: CV, SK, KK).
+                  </p>
+                )}
               </div>
 
               {/* Drag and Drop Zone */}
@@ -605,21 +610,32 @@ export function EmployeeDocumentsCard({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => setIsUploadModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPending || !selectedFile || uploadTitle.trim().length < 3}
-                  className="px-5 py-2 rounded-xl bg-[#102E50] text-[#ffddb0] font-bold hover:bg-[#0c233d] transition-all shadow-xs cursor-pointer active:scale-[0.98] disabled:opacity-50"
-                >
-                  {isPending ? "Mengunggah..." : "Simpan Dokumen"}
-                </button>
+              <div className="flex items-center justify-between gap-2.5 pt-3 border-t border-slate-200">
+                <div className="text-[11px] text-slate-500">
+                  {!selectedFile ? (
+                    <span className="text-slate-400">* Pilih berkas terlebih dahulu</span>
+                  ) : uploadTitle.trim().length < 2 ? (
+                    <span className="text-amber-600 font-medium">
+                      * Masukkan judul dokumen (min. 2 karakter)
+                    </span>
+                  ) : null}
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsUploadModalOpen(false)}
+                    className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 font-semibold hover:bg-slate-100 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isPending || !selectedFile || uploadTitle.trim().length < 2}
+                    className="px-5 py-2 rounded-xl bg-[#102E50] text-[#ffddb0] font-bold hover:bg-[#0c233d] transition-all shadow-xs cursor-pointer active:scale-[0.98] disabled:opacity-50"
+                  >
+                    {isPending ? "Mengunggah..." : "Simpan Dokumen"}
+                  </button>
+                </div>
               </div>
             </form>
           </div>

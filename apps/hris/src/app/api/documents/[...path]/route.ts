@@ -24,6 +24,16 @@ async function checkDocumentAccess(
     return true;
   }
 
+  // Resolve effective employee ID for the actor
+  let effectiveActorEmployeeId = authCtx.employeeId;
+  if (!effectiveActorEmployeeId && authCtx.userId) {
+    const emp = await prisma.employee.findFirst({
+      where: { userId: authCtx.userId },
+      select: { id: true },
+    });
+    effectiveActorEmployeeId = emp?.id || null;
+  }
+
   // 1. Dokumen Pegawai: documents/{employeeId}/...
   if (key.startsWith("documents/")) {
     const parts = key.split("/");
@@ -31,7 +41,7 @@ async function checkDocumentAccess(
     if (!targetEmployeeId) return false;
 
     // Pemilik dokumen
-    if (authCtx.employeeId && authCtx.employeeId === targetEmployeeId) {
+    if (effectiveActorEmployeeId && effectiveActorEmployeeId === targetEmployeeId) {
       return true;
     }
 
@@ -40,7 +50,7 @@ async function checkDocumentAccess(
       where: { fileKey: key },
       select: { employeeId: true },
     });
-    if (doc && authCtx.employeeId && doc.employeeId === authCtx.employeeId) {
+    if (doc && effectiveActorEmployeeId && doc.employeeId === effectiveActorEmployeeId) {
       return true;
     }
 
@@ -53,7 +63,7 @@ async function checkDocumentAccess(
     const targetEmployeeId = fileNamePart.split("_")[0];
 
     // Pemilik lampiran cuti
-    if (authCtx.employeeId && targetEmployeeId && authCtx.employeeId === targetEmployeeId) {
+    if (effectiveActorEmployeeId && targetEmployeeId && effectiveActorEmployeeId === targetEmployeeId) {
       return true;
     }
 
@@ -64,16 +74,16 @@ async function checkDocumentAccess(
     });
     const effectiveEmployeeId = leaveReq?.employeeId || targetEmployeeId;
 
-    if (authCtx.employeeId && effectiveEmployeeId && authCtx.employeeId === effectiveEmployeeId) {
+    if (effectiveActorEmployeeId && effectiveEmployeeId && effectiveActorEmployeeId === effectiveEmployeeId) {
       return true;
     }
 
     // Atasan langsung / Manajer dari pegawai yang mengajukan cuti
-    if (authCtx.employeeId && effectiveEmployeeId) {
+    if (effectiveActorEmployeeId && effectiveEmployeeId) {
       const isSubordinate = await prisma.employee.findFirst({
         where: {
           id: effectiveEmployeeId,
-          managerId: authCtx.employeeId,
+          managerId: effectiveActorEmployeeId,
         },
         select: { id: true },
       });
@@ -90,7 +100,7 @@ async function checkDocumentAccess(
     const fileNamePart = key.slice("sk-mutasi/".length);
     const targetEmployeeId = fileNamePart.split("_")[0];
 
-    if (authCtx.employeeId && targetEmployeeId && authCtx.employeeId === targetEmployeeId) {
+    if (effectiveActorEmployeeId && targetEmployeeId && effectiveActorEmployeeId === targetEmployeeId) {
       return true;
     }
 
@@ -98,7 +108,7 @@ async function checkDocumentAccess(
       where: { documentKey: key },
       select: { employeeId: true },
     });
-    if (career && authCtx.employeeId && career.employeeId === authCtx.employeeId) {
+    if (career && effectiveActorEmployeeId && career.employeeId === effectiveActorEmployeeId) {
       return true;
     }
 
@@ -106,7 +116,7 @@ async function checkDocumentAccess(
       where: { documentKey: key },
       select: { employeeId: true },
     });
-    if (contract && authCtx.employeeId && contract.employeeId === authCtx.employeeId) {
+    if (contract && effectiveActorEmployeeId && contract.employeeId === effectiveActorEmployeeId) {
       return true;
     }
 
@@ -126,7 +136,7 @@ async function checkDocumentAccess(
       select: { employeeId: true },
     });
 
-    if (payslip && authCtx.employeeId && payslip.employeeId === authCtx.employeeId) {
+    if (payslip && effectiveActorEmployeeId && payslip.employeeId === effectiveActorEmployeeId) {
       return true;
     }
 

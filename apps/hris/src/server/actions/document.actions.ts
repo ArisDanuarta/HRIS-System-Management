@@ -42,15 +42,33 @@ async function getAuthenticatedUser(): Promise<{
     throw new Error("Pengguna tidak aktif atau hak akses tidak valid.");
   }
 
-  const employee = await prisma.employee.findUnique({
+  let employee = await prisma.employee.findUnique({
     where: { userId: session.user.id },
     select: { id: true },
   });
 
+  let employeeId = employee?.id || authCtx.employeeId || undefined;
+
+  // Fallback: If not linked via userId directly, find by email matching workEmail / personalEmail
+  if (!employeeId && session.user.email) {
+    const empByEmail = await prisma.employee.findFirst({
+      where: {
+        OR: [
+          { workEmail: { equals: session.user.email, mode: "insensitive" } },
+          { personalEmail: { equals: session.user.email, mode: "insensitive" } },
+        ],
+      },
+      select: { id: true },
+    });
+    if (empByEmail) {
+      employeeId = empByEmail.id;
+    }
+  }
+
   return {
     userId: session.user.id,
     userEmail: session.user.email || "system@pspk.id",
-    employeeId: employee?.id,
+    employeeId,
     authCtx,
   };
 }
@@ -80,8 +98,8 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
       return { success: false, message: "Kategori dokumen tidak dikenali." };
     }
 
-    if (!title || title.length < 3) {
-      return { success: false, message: "Judul dokumen minimal 3 karakter." };
+    if (!title || title.length < 2) {
+      return { success: false, message: "Judul dokumen minimal 2 karakter (misal: CV, SK, KK)." };
     }
 
     if (!file || !(file instanceof File) || file.size === 0) {
@@ -101,7 +119,7 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
 
     // Role check: Admin HR / Super Admin can upload for any employee; employee can upload for self
     const isSuperOrHr =
-      can(authCtx, "hris.employee.update:all") ||
+      can(authCtx, "hris.employee.write:all") ||
       authCtx.roles.some((r) => r === "super_admin" || r === "admin_hr");
     const isSelf = actorEmployeeId === employeeId;
 
@@ -209,7 +227,7 @@ export async function deleteEmployeeDocumentAction({ documentId }: { documentId:
     } = await getAuthenticatedUser();
 
     const isSuperOrHr =
-      can(authCtx, "hris.employee.update:all") ||
+      can(authCtx, "hris.employee.write:all") ||
       authCtx.roles.some((r) => r === "super_admin" || r === "admin_hr");
 
     const doc = await prisma.employeeDocument.findUnique({
