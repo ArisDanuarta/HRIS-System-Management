@@ -34,7 +34,7 @@ export const createDocumentSchema = z.object({
 });
 
 export const uploadDocumentVersionSchema = z.object({
-  documentId: z.string().uuid("ID dokumen tidak valid"),
+  documentId: z.string().min(1, "ID dokumen tidak valid"),
   changeNote: z
     .string()
     .trim()
@@ -43,7 +43,7 @@ export const uploadDocumentVersionSchema = z.object({
 });
 
 export const updateDocumentMetadataSchema = z.object({
-  id: z.string().uuid("ID dokumen tidak valid"),
+  id: z.string().min(1, "ID dokumen tidak valid"),
   title: z
     .string()
     .trim()
@@ -58,12 +58,12 @@ export const updateDocumentMetadataSchema = z.object({
 });
 
 export const archiveDocumentSchema = z.object({
-  id: z.string().uuid("ID dokumen tidak valid"),
+  id: z.string().min(1, "ID dokumen tidak valid"),
   reason: z.string().trim().optional().nullable(),
 });
 
 export const deleteDocumentSchema = z.object({
-  id: z.string().uuid("ID dokumen tidak valid"),
+  id: z.string().min(1, "ID dokumen tidak valid"),
 });
 
 export type CreateDocumentInput = z.infer<typeof createDocumentSchema>;
