@@ -196,17 +196,29 @@ export async function transferEmployeePositionAction(formData: FormData) {
     const effectiveDate = formData.get("effectiveDate") as string;
     const transferType = formData.get("transferType") as string;
     const skNumberRaw = formData.get("skNumber") as string | null;
-    const notesRaw = formData.get("notes") as string | null;
+    const employmentTypeRaw = formData.get("employmentType") as string | null;
+    const employmentTypeIdRaw = formData.get("employmentTypeId") as string | null;
+    const contractEndDateRaw = formData.get("contractEndDate") as string | null;
+    const newBaseSalaryRaw = formData.get("newBaseSalary") as string | null;
+
+    const employmentType =
+      employmentTypeRaw && employmentTypeRaw.trim() !== "" ? employmentTypeRaw.trim() : null;
+    const employmentTypeId =
+      employmentTypeIdRaw && employmentTypeIdRaw.trim() !== "" ? employmentTypeIdRaw.trim() : null;
+    const contractEndDate =
+      contractEndDateRaw && contractEndDateRaw.trim() !== "" ? contractEndDateRaw.trim() : null;
+    const newBaseSalary =
+      newBaseSalaryRaw && newBaseSalaryRaw.trim() !== "" ? Number(newBaseSalaryRaw) : null;
 
     let documentKey: string | null = null;
     const file = formData.get("documentFile") as File | null;
 
     if (file && file.size > 0) {
       if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-        return { ok: false as const, error: "Lampiran SK harus berupa berkas PDF." };
+        return { ok: false as const, error: "Lampiran SK / Kontrak harus berupa berkas PDF." };
       }
       if (file.size > 10 * 1024 * 1024) {
-        return { ok: false as const, error: "Ukuran berkas PDF maksimal 10 MB." };
+        return { ok: false as const, error: "Ukuran berkas SK / Kontrak maksimal 10 MB." };
       }
 
       const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
@@ -225,6 +237,10 @@ export async function transferEmployeePositionAction(formData: FormData) {
       managerId,
       effectiveDate,
       transferType,
+      employmentType,
+      employmentTypeId,
+      contractEndDate,
+      newBaseSalary,
       skNumber: skNumberRaw?.trim() || null,
       notes: notesRaw?.trim() || null,
       documentKey,

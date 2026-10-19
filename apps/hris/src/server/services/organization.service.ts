@@ -397,10 +397,56 @@ export async function transferEmployeePosition(
   };
 
   const typeLabel = transferTypeLabelMap[data.transferType] || "Penyesuaian Posisi";
-  const skPart = data.skNumber?.trim() ? `[SK: ${data.skNumber.trim()}] ` : "";
-  const notesPart = data.notes?.trim() || "";
-  const combinedNotes = `${typeLabel}: ${skPart}${notesPart}`.trim();
   const effectiveDateObj = new Date(data.effectiveDate);
+
+  // Ambil kontrak aktif saat ini jika ada
+  const activeContract = await prisma.employmentContract.findFirst({
+    where: { employeeId: employee.id, status: "ACTIVE" },
+    include: { employmentTypeMaster: true },
+    orderBy: { startDate: "desc" },
+  });
+
+  // Ambil data master tipe kerja baru jika ada
+  let targetTypeMaster = null;
+  if (data.employmentTypeId) {
+    targetTypeMaster = await prisma.employmentTypeMaster.findUnique({
+      where: { id: data.employmentTypeId },
+    });
+  }
+
+  const targetCategory =
+    targetTypeMaster?.category || data.employmentType || activeContract?.type || "PERMANENT";
+
+  const oldTypeName =
+    activeContract?.employmentTypeMaster?.name ||
+    (activeContract?.type === "PERMANENT"
+      ? "Pegawai Tetap (PKWTT)"
+      : activeContract?.type === "FIXED_TERM"
+        ? "Pegawai Kontrak (PKWT)"
+        : activeContract?.type === "PART_TIME_PROJECT"
+          ? "Mitra / Freelance / Paruh Waktu"
+          : "Belum Ditentukan");
+
+  const newTypeName =
+    targetTypeMaster?.name ||
+    (targetCategory === "PERMANENT"
+      ? "Pegawai Tetap (PKWTT)"
+      : targetCategory === "FIXED_TERM"
+        ? "Pegawai Kontrak (PKWT)"
+        : "Mitra / Freelance / Paruh Waktu");
+
+  const skPart = data.skNumber?.trim() ? `[SK/Kontrak: ${data.skNumber.trim()}] ` : "";
+  let ikatanKerjaPart = "";
+  if (data.employmentType || data.employmentTypeId) {
+    if (activeContract && (activeContract.type !== targetCategory || (targetTypeMaster && activeContract.employmentTypeId !== targetTypeMaster.id))) {
+      ikatanKerjaPart = `[Ikatan Kerja: ${oldTypeName} ➔ ${newTypeName}] `;
+    } else {
+      ikatanKerjaPart = `[Ikatan Kerja: ${newTypeName}] `;
+    }
+  }
+
+  const notesPart = data.notes?.trim() || "";
+  const combinedNotes = `${typeLabel}: ${skPart}${ikatanKerjaPart}${notesPart}`.trim();
 
   const result = await prisma.$transaction(async (tx) => {
     // 1. Tutup riwayat jabatan sebelumnya jika masih terbuka
@@ -435,13 +481,65 @@ export async function transferEmployeePosition(
       },
     });
 
-    // 3. Update pointer jabatan, divisi, dan atasan di record Employee
+    // 3. Manajemen Kontrak Kerja (EmploymentContract) jika tipe kerja ditentukan atau diperbarui
+    let newContractRecord = null;
+    let employeeEndDateUpdate = employee.endDate;
+
+    if (data.employmentType || data.employmentTypeId) {
+      // Tutup kontrak aktif sebelumnya menjadi RENEWED
+      if (activeContract) {
+        await tx.employmentContract.update({
+          where: { id: activeContract.id },
+          data: {
+            status: "RENEWED",
+            endDate: effectiveDateObj,
+          },
+        });
+      }
+
+      const newEndDate =
+        targetCategory === "PERMANENT"
+          ? null
+          : data.contractEndDate && data.contractEndDate.trim() !== ""
+            ? new Date(data.contractEndDate)
+            : null;
+
+      const newSalary =
+        data.newBaseSalary !== undefined && data.newBaseSalary !== null
+          ? data.newBaseSalary
+          : activeContract?.baseSalary ?? null;
+
+      const contractNotes = `[${typeLabel}] ${data.skNumber ? `SK/Kontrak: ${data.skNumber}. ` : ""}${data.notes || ""}`.trim();
+
+      newContractRecord = await tx.employmentContract.create({
+        data: {
+          employeeId: employee.id,
+          type: targetCategory,
+          employmentTypeId:
+            targetTypeMaster?.id ||
+            (data.employmentType === activeContract?.type ? activeContract?.employmentTypeId : null),
+          startDate: effectiveDateObj,
+          endDate: newEndDate,
+          baseSalary: newSalary,
+          wageType: targetTypeMaster?.wageType || activeContract?.wageType || "MONTHLY",
+          hourlyRate: targetTypeMaster?.defaultHourlyRate || activeContract?.hourlyRate || null,
+          documentKey: data.documentKey || null,
+          status: "ACTIVE",
+          notes: contractNotes || null,
+        },
+      });
+
+      employeeEndDateUpdate = newEndDate;
+    }
+
+    // 4. Update pointer jabatan, divisi, atasan, dan tanggal berakhir di record Employee
     const updatedEmployee = await tx.employee.update({
       where: { id: employee.id },
       data: {
         currentDepartmentId: data.departmentId,
         currentPositionId: data.positionId,
         managerId: data.managerId || null,
+        endDate: employeeEndDateUpdate,
       },
       include: {
         currentDepartment: { select: { name: true } },
@@ -450,7 +548,7 @@ export async function transferEmployeePosition(
       },
     });
 
-    // 4. Catat Audit Log
+    // 5. Catat Audit Log
     await writeAudit(
       {
         actorUserId: actor.id,
@@ -463,14 +561,21 @@ export async function transferEmployeePosition(
           department: employee.currentDepartment?.name,
           position: employee.currentPosition?.title,
           manager: employee.manager?.fullName,
+          employmentType: activeContract?.type,
+          employmentTypeName: oldTypeName,
+          baseSalary: activeContract?.baseSalary ? Number(activeContract.baseSalary) : null,
         },
         after: {
           department: updatedEmployee.currentDepartment?.name,
           position: updatedEmployee.currentPosition?.title,
           manager: updatedEmployee.manager?.fullName,
+          employmentType: targetCategory,
+          employmentTypeName: newTypeName,
+          baseSalary: data.newBaseSalary ?? (activeContract?.baseSalary ? Number(activeContract.baseSalary) : null),
           transferType: data.transferType,
           effectiveDate: data.effectiveDate,
           skNumber: data.skNumber,
+          documentKey: data.documentKey,
         },
         ip: actor.ip,
         userAgent: actor.userAgent,
@@ -478,7 +583,7 @@ export async function transferEmployeePosition(
       tx,
     );
 
-    return { updatedEmployee, newHistory };
+    return { updatedEmployee, newHistory, newContract: newContractRecord };
   });
 
   return result;

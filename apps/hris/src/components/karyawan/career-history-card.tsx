@@ -27,6 +27,11 @@ interface CareerHistoryCardProps {
     currentPositionTitle?: string;
     managerId?: string | null;
     managerName?: string;
+    currentEmploymentType?: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT" | null;
+    currentEmploymentTypeId?: string | null;
+    currentEmploymentTypeName?: string;
+    currentContractEndDate?: string | null;
+    currentBaseSalary?: number | null;
   };
   histories: HistoryItem[];
   departments: Array<{
@@ -41,6 +46,15 @@ interface CareerHistoryCardProps {
     currentPosition?: { title: string } | null;
     currentDepartment?: { name: string } | null;
   }>;
+  employmentTypes?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    category: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+    wageType: "MONTHLY" | "HOURLY";
+    defaultHourlyRate?: number | null;
+    description?: string | null;
+  }>;
   isHrOrAdmin?: boolean;
 }
 
@@ -49,6 +63,7 @@ export function CareerHistoryCard({
   histories,
   departments,
   managers,
+  employmentTypes = [],
   isHrOrAdmin = true,
 }: CareerHistoryCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);

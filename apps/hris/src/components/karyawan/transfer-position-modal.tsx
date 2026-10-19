@@ -19,6 +19,11 @@ interface TransferPositionModalProps {
     currentPositionTitle?: string;
     managerId?: string | null;
     managerName?: string;
+    currentEmploymentType?: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT" | null;
+    currentEmploymentTypeId?: string | null;
+    currentEmploymentTypeName?: string;
+    currentContractEndDate?: string | null;
+    currentBaseSalary?: number | null;
   };
   departments: Array<{
     id: string;
@@ -33,6 +38,15 @@ interface TransferPositionModalProps {
     currentPosition?: { title: string } | null;
     currentDepartment?: { name: string } | null;
   }>;
+  employmentTypes?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    category: "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT";
+    wageType: "MONTHLY" | "HOURLY";
+    defaultHourlyRate?: number | null;
+    description?: string | null;
+  }>;
   onSuccess?: () => void;
 }
 
@@ -42,6 +56,7 @@ export function TransferPositionModal({
   employee,
   departments,
   managers,
+  employmentTypes = [],
   onSuccess,
 }: TransferPositionModalProps) {
   const [transferType, setTransferType] = useState<
@@ -53,6 +68,24 @@ export function TransferPositionModal({
   const [positionId, setPositionId] = useState<string>(employee.currentPositionId || "");
   const [managerId, setManagerId] = useState<string>(employee.managerId || "");
   const [effectiveDate, setEffectiveDate] = useState<string>(toDateString(new Date()));
+
+  // State untuk Pembaruan Tipe Ikatan Kerja
+  const [selectedEmploymentTypeId, setSelectedEmploymentTypeId] = useState<string>(
+    employee.currentEmploymentTypeId ||
+      employmentTypes.find((t) => t.category === (employee.currentEmploymentType || "FIXED_TERM"))
+        ?.id ||
+      "",
+  );
+  const [selectedCategory, setSelectedCategory] = useState<
+    "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT"
+  >(employee.currentEmploymentType || "FIXED_TERM");
+  const [contractEndDate, setContractEndDate] = useState<string>(
+    employee.currentContractEndDate ? employee.currentContractEndDate.substring(0, 10) : "",
+  );
+  const [newBaseSalary, setNewBaseSalary] = useState<string>(
+    employee.currentBaseSalary ? String(employee.currentBaseSalary) : "",
+  );
+
   const [skNumber, setSkNumber] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -79,6 +112,14 @@ export function TransferPositionModal({
     }
   };
 
+  const handleEmploymentTypeChange = (typeId: string) => {
+    setSelectedEmploymentTypeId(typeId);
+    const matched = employmentTypes.find((t) => t.id === typeId);
+    if (matched) {
+      setSelectedCategory(matched.category);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
@@ -87,7 +128,7 @@ export function TransferPositionModal({
     }
 
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      setError("Lampiran SK harus berupa berkas PDF.");
+      setError("Lampiran SK / Kontrak harus berupa berkas PDF.");
       setSelectedFile(null);
       return;
     }
@@ -131,6 +172,19 @@ export function TransferPositionModal({
       if (managerId) formData.append("managerId", managerId);
       formData.append("effectiveDate", effectiveDate);
       formData.append("transferType", transferType);
+
+      // Informasi Ikatan Kerja Baru
+      formData.append("employmentType", selectedCategory);
+      if (selectedEmploymentTypeId) {
+        formData.append("employmentTypeId", selectedEmploymentTypeId);
+      }
+      if (selectedCategory === "FIXED_TERM" && contractEndDate) {
+        formData.append("contractEndDate", contractEndDate);
+      }
+      if (newBaseSalary.trim()) {
+        formData.append("newBaseSalary", newBaseSalary.trim());
+      }
+
       if (skNumber.trim()) formData.append("skNumber", skNumber.trim());
       if (notes.trim()) formData.append("notes", notes.trim());
       if (selectedFile) formData.append("documentFile", selectedFile);
@@ -151,6 +205,17 @@ export function TransferPositionModal({
       setError(msg);
     }
   };
+
+  // Helper label ikatan kerja saat ini
+  const currentStatusLabel =
+    employee.currentEmploymentTypeName ||
+    (employee.currentEmploymentType === "PERMANENT"
+      ? "Pegawai Tetap (PKWTT)"
+      : employee.currentEmploymentType === "FIXED_TERM"
+        ? "Pegawai Kontrak (PKWT)"
+        : employee.currentEmploymentType === "PART_TIME_PROJECT"
+          ? "Mitra / Freelance / Paruh Waktu"
+          : "Belum Ditentukan");
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
@@ -179,24 +244,33 @@ export function TransferPositionModal({
           </button>
         </div>
 
-        {/* Current Position Summary */}
-        <div className="my-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase font-bold text-slate-400">
-              Posisi & Divisi Saat Ini
-            </span>
-            <span className="font-bold text-slate-800 mt-0.5">
-              {employee.currentPositionTitle || "Belum ada jabatan"}
-            </span>
-            <span className="text-slate-500">
-              {employee.currentDepartmentName || "Belum ada divisi"}
-            </span>
+        {/* Current Position & Status Summary */}
+        <div className="my-4 p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col gap-2.5 text-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-bold text-slate-400">
+                Posisi & Divisi Saat Ini
+              </span>
+              <span className="font-bold text-slate-800 mt-0.5">
+                {employee.currentPositionTitle || "Belum ada jabatan"}
+              </span>
+              <span className="text-slate-500">
+                {employee.currentDepartmentName || "Belum ada divisi"}
+              </span>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 mx-2" />
+            <div className="flex flex-col text-right">
+              <span className="text-[10px] uppercase font-bold text-slate-400">Atasan Saat Ini</span>
+              <span className="font-semibold text-slate-700 mt-0.5">
+                {employee.managerName || "Tidak ada atasan"}
+              </span>
+            </div>
           </div>
-          <ArrowRight className="w-4 h-4 text-slate-400 shrink-0 mx-2" />
-          <div className="flex flex-col text-right">
-            <span className="text-[10px] uppercase font-bold text-slate-400">Atasan Saat Ini</span>
-            <span className="font-semibold text-slate-700 mt-0.5">
-              {employee.managerName || "Tidak ada atasan"}
+
+          <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+            <span className="text-[11px] text-slate-500">Status Ikatan Kerja Saat Ini:</span>
+            <span className="font-semibold text-[#102E50] bg-[#102E50]/10 px-2.5 py-0.5 rounded-full text-[11px]">
+              {currentStatusLabel}
             </span>
           </div>
         </div>
@@ -238,7 +312,7 @@ export function TransferPositionModal({
             </div>
           </div>
 
-          {/* 2. Divisi Tujuan */}
+          {/* 2. Divisi Tujuan & Jabatan Baru */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-semibold text-slate-700 mb-1.5">
@@ -259,7 +333,6 @@ export function TransferPositionModal({
               </select>
             </div>
 
-            {/* 3. Jabatan Baru */}
             <div>
               <label className="block font-semibold text-slate-700 mb-1.5">
                 Jabatan / Posisi Riset Baru <span className="text-[#A8281C]">*</span>
@@ -283,7 +356,7 @@ export function TransferPositionModal({
             </div>
           </div>
 
-          {/* 4. Atasan Langsung & Tanggal Efektif */}
+          {/* 3. Atasan Langsung & Tanggal Efektif */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-semibold text-slate-700 mb-1.5">
@@ -320,29 +393,133 @@ export function TransferPositionModal({
             </div>
           </div>
 
-          {/* 5. Nomor SK & Upload PDF SK (Optional) */}
+          {/* 4. Pembaruan Tipe Ikatan Kerja (PKWT ke Pegawai Tetap, dsb.) */}
+          <div className="p-3.5 bg-slate-50/80 border border-slate-200 rounded-xl flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-[#102E50] text-xs">
+                Pembaruan Status / Tipe Ikatan Kerja
+              </span>
+              <span className="text-[11px] text-slate-500">
+                Pilih status kerja baru untuk mutasi ini
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Status / Tipe Kerja Baru <span className="text-[#A8281C]">*</span>
+                </label>
+                {employmentTypes.length > 0 ? (
+                  <select
+                    value={selectedEmploymentTypeId}
+                    onChange={(e) => handleEmploymentTypeChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  >
+                    <option value="">-- Pertahankan Kategori Dasar --</option>
+                    {employmentTypes.map((et) => (
+                      <option key={et.id} value={et.id}>
+                        {et.name} (
+                        {et.category === "PERMANENT"
+                          ? "Tetap"
+                          : et.category === "FIXED_TERM"
+                            ? "PKWT"
+                            : "Mitra / Proyek"}
+                        )
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) =>
+                      setSelectedCategory(e.target.value as typeof selectedCategory)
+                    }
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  >
+                    <option value="PERMANENT">Pegawai Tetap (PKWTT)</option>
+                    <option value="FIXED_TERM">Pegawai Kontrak (PKWT)</option>
+                    <option value="PART_TIME_PROJECT">Mitra / Freelance / Paruh Waktu</option>
+                  </select>
+                )}
+              </div>
+
+              {selectedCategory === "FIXED_TERM" ? (
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Tanggal Berakhir Kontrak Baru
+                  </label>
+                  <input
+                    type="date"
+                    value={contractEndDate}
+                    onChange={(e) => setContractEndDate(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">
+                    Bila kosong, masa kontrak mengikuti kebijakan sebelumnya
+                  </span>
+                </div>
+              ) : (
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    Penyesuaian Gaji Pokok (Opsional)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={newBaseSalary}
+                    onChange={(e) => setNewBaseSalary(e.target.value)}
+                    placeholder="Contoh: 8500000"
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">
+                    Isi jika ada kenaikan/penyesuaian kompensasi
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {selectedCategory === "FIXED_TERM" && (
+              <div>
+                <label className="block font-semibold text-slate-700 mb-1">
+                  Penyesuaian Gaji Pokok (Opsional)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1000"
+                  value={newBaseSalary}
+                  onChange={(e) => setNewBaseSalary(e.target.value)}
+                  placeholder="Contoh: 8500000"
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 5. Nomor SK / Kontrak & Upload PDF SK / Kontrak */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-semibold text-slate-700 mb-1.5">
-                Nomor Surat Keputusan (SK)
+                Nomor SK / Perjanjian Kontrak Kerja
               </label>
               <input
                 type="text"
                 value={skNumber}
                 onChange={(e) => setSkNumber(e.target.value)}
-                placeholder="Contoh: 014/SK-DIR/PSPK/2026"
+                placeholder="Contoh: 014/SK-DIR/PSPK/2026 atau 028/PKWT/HRD/2026"
                 className="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
             </div>
 
             <div>
               <label className="block font-semibold text-slate-700 mb-1.5">
-                Lampiran Berkas SK (PDF Opsional)
+                Lampiran Berkas SK / Kontrak (PDF Opsional)
               </label>
               <div className="flex items-center gap-2">
                 <label className="flex-1 px-3 py-2 bg-slate-50 border border-dashed border-slate-300 rounded-lg cursor-pointer hover:bg-slate-100 transition-colors flex items-center justify-between truncate">
                   <span className="text-slate-500 truncate text-xs">
-                    {selectedFile ? selectedFile.name : "Pilih berkas PDF..."}
+                    {selectedFile ? selectedFile.name : "Pilih berkas PDF SK / Kontrak..."}
                   </span>
                   <Upload className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1.5" />
                   <input
@@ -363,6 +540,9 @@ export function TransferPositionModal({
                   </button>
                 )}
               </div>
+              <span className="text-[10px] text-slate-400 mt-1 block">
+                Format PDF maksimal 10 MB
+              </span>
             </div>
           </div>
 
@@ -375,7 +555,7 @@ export function TransferPositionModal({
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Keterangan tambahan seputar mutasi atau promosi ini..."
+              placeholder="Keterangan tambahan seputar mutasi, promosi, atau perubahan kontrak ini..."
               className="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
             />
           </div>
@@ -396,7 +576,7 @@ export function TransferPositionModal({
               className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer shadow-xs disabled:opacity-50"
             >
               {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Simpan Mutasi Jabatan</span>
+              <span>Simpan Mutasi & Perubahan</span>
             </button>
           </div>
         </form>

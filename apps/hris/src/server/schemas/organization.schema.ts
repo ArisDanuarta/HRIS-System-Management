@@ -66,6 +66,9 @@ export const TransferTypeEnum = z.enum(["PROMOTION", "ROTATION", "DEMOTION", "AD
 
 export type TransferType = z.infer<typeof TransferTypeEnum>;
 
+export const EmploymentTypeEnum = z.enum(["PERMANENT", "FIXED_TERM", "PART_TIME_PROJECT"]);
+export type EmploymentType = z.infer<typeof EmploymentTypeEnum>;
+
 export const transferEmployeePositionSchema = z.object({
   employeeId: z.string().min(1, "ID pegawai tidak valid"),
   departmentId: z.string().min(1, "Pilih divisi tujuan"),
@@ -75,7 +78,16 @@ export const transferEmployeePositionSchema = z.object({
     .string({ required_error: "Tanggal berlaku efektif wajib diisi" })
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD"),
   transferType: TransferTypeEnum,
-  skNumber: z.string().max(100, "Nomor SK maksimal 100 karakter").optional().nullable(),
+  employmentType: EmploymentTypeEnum.optional().nullable(),
+  employmentTypeId: z.string().optional().nullable(),
+  contractEndDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal berakhir kontrak harus YYYY-MM-DD")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  newBaseSalary: z.coerce.number().min(0, "Gaji tidak boleh bernilai negatif").optional().nullable(),
+  skNumber: z.string().max(100, "Nomor SK/Kontrak maksimal 100 karakter").optional().nullable(),
   notes: z.string().max(500, "Catatan maksimal 500 karakter").optional().nullable(),
   documentKey: z.string().optional().nullable(),
 });
