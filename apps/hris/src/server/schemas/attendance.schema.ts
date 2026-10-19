@@ -18,8 +18,8 @@ export const checkOutSchema = z.object({
 });
 
 export const correctAttendanceSchema = z.object({
-  attendanceId: z.string().uuid().optional(),
-  employeeId: z.string().uuid({ message: "ID Pegawai wajib diisi" }),
+  attendanceId: z.string().min(1).optional(),
+  employeeId: z.string().min(1, { message: "ID Pegawai wajib diisi" }),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Format tanggal harus YYYY-MM-DD" }),
   checkInAt: z.string().optional().nullable(),
   checkOutAt: z.string().optional().nullable(),

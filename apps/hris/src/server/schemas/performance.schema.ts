@@ -23,7 +23,7 @@ export const createPerformancePeriodSchema = z
 export type CreatePerformancePeriodInput = z.infer<typeof createPerformancePeriodSchema>;
 
 export const updatePerformancePeriodStatusSchema = z.object({
-  id: z.string().uuid("ID periode tidak valid"),
+  id: z.string().min(1, "ID periode tidak valid"),
   status: z.enum(["OPEN", "CLOSED"], {
     required_error: "Status periode wajib dipilih",
   }),
@@ -34,7 +34,7 @@ export type UpdatePerformancePeriodStatusInput = z.infer<
 >;
 
 export const finalizePerformanceReviewSchema = z.object({
-  reviewId: z.string().uuid("ID review tidak valid"),
+  reviewId: z.string().min(1, "ID review tidak valid"),
   finalScore: z
     .number({ required_error: "Skor akhir wajib diisi" })
     .min(0, "Skor minimal 0")
@@ -46,7 +46,7 @@ export const finalizePerformanceReviewSchema = z.object({
 export type FinalizePerformanceReviewInput = z.infer<typeof finalizePerformanceReviewSchema>;
 
 export const performanceGoalItemSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().min(1).optional(),
   title: z
     .string({ required_error: "Judul target sasaran wajib diisi" })
     .trim()
@@ -62,15 +62,15 @@ export const performanceGoalItemSchema = z.object({
 });
 
 export const savePerformanceGoalsSchema = z.object({
-  employeeId: z.string().uuid("ID pegawai tidak valid"),
-  periodId: z.string().uuid("ID periode tidak valid"),
+  employeeId: z.string().min(1, "ID pegawai tidak valid"),
+  periodId: z.string().min(1, "ID periode tidak valid"),
   goals: z.array(performanceGoalItemSchema).min(1, "Minimal harus ada 1 target sasaran"),
 });
 
 export type SavePerformanceGoalsInput = z.infer<typeof savePerformanceGoalsSchema>;
 
 export const submitStaffSelfReviewSchema = z.object({
-  reviewId: z.string().uuid("ID review tidak valid"),
+  reviewId: z.string().min(1, "ID review tidak valid"),
   selfScore: z
     .number({ required_error: "Skor evaluasi mandiri wajib diisi" })
     .min(0, "Skor minimal 0")
@@ -82,7 +82,7 @@ export const submitStaffSelfReviewSchema = z.object({
   goalActuals: z
     .array(
       z.object({
-        goalId: z.string().uuid("ID target sasaran tidak valid"),
+        goalId: z.string().min(1, "ID target sasaran tidak valid"),
         actual: z.string().trim().optional().nullable(),
       }),
     )
@@ -92,8 +92,8 @@ export const submitStaffSelfReviewSchema = z.object({
 export type SubmitStaffSelfReviewInput = z.infer<typeof submitStaffSelfReviewSchema>;
 
 export const createGoalSchema = z.object({
-  employeeId: z.string().uuid("ID pegawai tidak valid"),
-  periodId: z.string().uuid("ID periode tidak valid"),
+  employeeId: z.string().min(1, "ID pegawai tidak valid"),
+  periodId: z.string().min(1, "ID periode tidak valid"),
   title: z
     .string({ required_error: "Judul sasaran riset wajib diisi" })
     .trim()
@@ -111,13 +111,13 @@ export const createGoalSchema = z.object({
 export type CreateGoalInput = z.infer<typeof createGoalSchema>;
 
 export const deleteGoalSchema = z.object({
-  goalId: z.string().uuid("ID sasaran tidak valid"),
+  goalId: z.string().min(1, "ID sasaran tidak valid"),
 });
 
 export type DeleteGoalInput = z.infer<typeof deleteGoalSchema>;
 
 export const updateGoalSchema = z.object({
-  goalId: z.string().uuid("ID sasaran tidak valid"),
+  goalId: z.string().min(1, "ID sasaran tidak valid"),
   title: z
     .string({ required_error: "Judul sasaran riset wajib diisi" })
     .trim()
@@ -135,7 +135,7 @@ export const updateGoalSchema = z.object({
 export type UpdateGoalInput = z.infer<typeof updateGoalSchema>;
 
 export const submitManagerReviewSchema = z.object({
-  reviewId: z.string().uuid("ID evaluasi kinerja tidak valid"),
+  reviewId: z.string().min(1, "ID evaluasi kinerja tidak valid"),
   managerScore: z
     .number({ required_error: "Skor atasan langsung wajib diisi" })
     .min(0, "Skor minimal 0")
@@ -149,7 +149,7 @@ export const submitManagerReviewSchema = z.object({
 export type SubmitManagerReviewInput = z.infer<typeof submitManagerReviewSchema>;
 
 export const requestReviewRevisionSchema = z.object({
-  reviewId: z.string().uuid("ID evaluasi kinerja tidak valid"),
+  reviewId: z.string().min(1, "ID evaluasi kinerja tidak valid"),
   reason: z
     .string({ required_error: "Catatan alasan revisi wajib diisi" })
     .trim()
@@ -159,7 +159,7 @@ export const requestReviewRevisionSchema = z.object({
 export type RequestReviewRevisionInput = z.infer<typeof requestReviewRevisionSchema>;
 
 export const unlockPerformanceReviewSchema = z.object({
-  reviewId: z.string().uuid("ID evaluasi kinerja tidak valid"),
+  reviewId: z.string().min(1, "ID evaluasi kinerja tidak valid"),
   reason: z
     .string({ required_error: "Alasan pembukaan kunci evaluasi wajib diisi" })
     .trim()
