@@ -2,6 +2,40 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Core] Penambahan Nomor Kontrak & Unggah Berkas PDF Kontrak Kerja — 2026-10-19
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Penambahan input nomor kontrak dan pengunggahan berkas dokumen perjanjian kerja (PDF, maks. 10 MB) pada form wizard pendaftaran pegawai baru (`/karyawan/baru`) dan ubah pegawai (`/karyawan/[id]/ubah`).
+  - Penambahan kemampuan bagi HR untuk mengunggah lembar kontrak kerja bertandatangan (signed copy) atau memperbarui berkas yang sudah ada langsung dari tab **Kontrak Kerja** (`/karyawan/[id]?tab=kontrak`).
+  - Pengamanan berkas kontrak di endpoint dokumen (`/api/documents/contracts/...`) terhadap ancaman IDOR/BOLA agar hanya dapat diakses oleh Super Admin, Admin HR, dan pemilik kontrak (pegawai bersangkutan).
+- **Hasil Pemeriksaan & Perbaikan:**
+  1. **Skema & Validasi (`apps/hris/src/server/schemas/employee.schema.ts`):**
+     - Menambahkan field `contractNumber` dan `contractDocumentKey` ke `baseEmployeeSchema`.
+     - Menambahkan skema validasi `attachContractDocumentSchema` untuk menautkan berkas dokumen kontrak dari tab detail.
+  2. **Service & Database Handler (`apps/hris/src/server/services/employee.service.ts`):**
+     - Pada `createEmployee`, nomor kontrak diformat dan disimpan ke `notes`, serta `contractDocumentKey` disimpan ke `EmploymentContract.documentKey`.
+     - Pada `updateEmployee`, memperbarui data kontrak aktif termasuk nomor kontrak dan `documentKey`.
+     - Mengimplementasikan `attachContractDocument` dengan transaksi database dan pencatatan riwayat audit log `AuditLog` secara lengkap.
+  3. **Server Actions (`apps/hris/src/server/actions/employee.actions.ts`):**
+     - Menambahkan `uploadContractFileAction` untuk memvalidasi tipe berkas PDF, membatasi ukuran maksimal 10 MB, dan menyimpannya ke `StorageProvider` under path `contracts/`.
+     - Menambahkan `attachContractDocumentAction` untuk menautkan PDF kontrak dan nomor kontrak ke record `EmploymentContract` dari modal antarmuka detail pegawai.
+  4. **Antarmuka Form Wizard (`apps/hris/src/components/karyawan/wizard-employee-form.tsx`):**
+     - Menambahkan input nomor kontrak resmi di Langkah 3 (Kontrak Kerja & Kompensasi).
+     - Menambahkan uploader berkas PDF kontrak kerja dengan drag-and-drop, validasi sisi klien, indikator ukuran berkas, opsi ganti berkas, serta petunjuk alur berkas kontrak.
+  5. **Tabel Kontrak & Modal Unggah (`apps/hris/src/components/karyawan/employee-contracts-table.tsx`):**
+     - Komponen tabel interaktif untuk tab Kontrak Kerja di `/karyawan/[id]`.
+     - Menampilkan nomor kontrak, tombol unduh berkas PDF jika sudah tersedia, dan tombol `+ Unggah Berkas` / `Ganti` bagi HR dengan modal dialog interaktif.
+  6. **Keamanan Rute API Dokumen (`apps/hris/src/app/api/documents/[...path]/route.ts`):**
+     - Menambahkan otorisasi untuk path `contracts/` di mana akses diberikan kepada Super Admin, Admin HR, atau pegawai yang memiliki nomor ID kontrak bersangkutan.
+  7. **Unit Test (`apps/hris/src/app/api/documents/[...path]/route.test.ts`):**
+     - Menambahkan unit testing untuk otorisasi unduhan berkas kontrak: verifikasi akses pegawai ke kontrak sendiri (200), penolakan akses oleh staf lain (403), dan akses penuh oleh Admin HR (200).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test`: ✅ 29 test files lolos, 201 unit tests passed (100%)
+
+
 ## [Audit SEO & Performa] Audit Lengkap Bug, SEO, dan Performa — 2026-10-16
 
 - **Status:** Selesai (Tuntas & Terverifikasi)

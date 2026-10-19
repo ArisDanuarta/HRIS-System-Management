@@ -33,11 +33,16 @@ export async function sendEmployeeCredentialsEmail(
   const loginUrl =
     params.loginUrl || `${baseHrisUrl.replace(/\/+$/, "")}/login`;
 
-  const smtpHost = process.env.SMTP_HOST;
+  const smtpHost = process.env.SMTP_HOST?.trim();
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
-  const smtpFrom = process.env.SMTP_FROM || "PSPK HRIS <noreply@pspk.id>";
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const rawSmtpPass = process.env.SMTP_PASS?.trim();
+  // Khusus Gmail App Password: jika terdapat spasi pemisah per 4 huruf, hilangkan spasi agar aman
+  const smtpPass =
+    smtpHost && smtpHost.includes("gmail") && rawSmtpPass
+      ? rawSmtpPass.replace(/\s+/g, "")
+      : rawSmtpPass;
+  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <noreply@pspk.id>";
 
   const emailSubject = `[PSPK HRIS] Informasi Akun & Kredensial Akses Portal Pegawai - ${fullName}`;
 

@@ -29,7 +29,6 @@ import {
   FileCheck,
   Trash2,
   Download,
-  Paperclip,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -262,7 +261,6 @@ export function WizardEmployeeForm({
   // State berkas upload kontrak kerja PDF
   const [contractFile, setContractFile] = useState<File | null>(null);
   const [contractFileError, setContractFileError] = useState<string | null>(null);
-  const [isUploadingContract, setIsUploadingContract] = useState(false);
 
   const handleContractFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setContractFileError(null);
@@ -545,12 +543,10 @@ export function WizardEmployeeForm({
 
     let effectiveContractDocumentKey = formData.contractDocumentKey || undefined;
     if (contractFile) {
-      setIsUploadingContract(true);
       const fileData = new FormData();
       fileData.append("file", contractFile);
       fileData.append("employeeId", mode === "edit" && initialData?.id ? initialData.id : "temp");
       const uploadRes = await uploadContractFileAction(fileData);
-      setIsUploadingContract(false);
 
       if (!uploadRes.ok) {
         setServerError(uploadRes.error);
