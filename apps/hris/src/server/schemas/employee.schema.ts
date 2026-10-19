@@ -48,6 +48,13 @@ export const baseEmployeeSchema = z.object({
   contractEndDate: z.string().optional().or(z.literal("")),
   baseSalary: z.coerce.number().min(0, "Gaji pokok tidak boleh negatif").optional().nullable(),
   contractNotes: z.string().optional(),
+  contractNumber: z
+    .string()
+    .max(100, "Nomor kontrak maksimal 100 karakter")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  contractDocumentKey: z.string().optional().nullable().or(z.literal("")),
   nik: z.string().max(20, "NIK maksimal 20 digit").optional().or(z.literal("")),
   npwp: z.string().max(25, "NPWP maksimal 25 digit").optional().or(z.literal("")),
   bankName: z.string().optional(),
@@ -91,3 +98,12 @@ export const unmaskFieldSchema = z.object({
 });
 
 export type UnmaskFieldInput = z.infer<typeof unmaskFieldSchema>;
+
+export const attachContractDocumentSchema = z.object({
+  contractId: z.string().min(1, "ID kontrak tidak valid"),
+  employeeId: z.string().min(1, "ID pegawai tidak valid"),
+  documentKey: z.string().min(1, "Kunci berkas dokumen wajib diunggah"),
+  notes: z.string().max(500, "Catatan maksimal 500 karakter").optional().nullable(),
+});
+
+export type AttachContractDocumentInput = z.infer<typeof attachContractDocumentSchema>;
