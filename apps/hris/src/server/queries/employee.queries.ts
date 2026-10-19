@@ -121,7 +121,6 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
       currentPosition: { select: { id: true, title: true } },
       manager: { select: { id: true, fullName: true } },
       contracts: {
-        where: { status: "ACTIVE" },
         orderBy: { startDate: "desc" },
         take: 1,
         select: {
@@ -184,7 +183,11 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
     let isExpiringSoon = false;
     let daysUntilExpiry: number | null = null;
 
-    if (activeContract?.endDate) {
+    if (
+      activeContract?.endDate &&
+      activeContract.status === "ACTIVE" &&
+      emp.status === "ACTIVE"
+    ) {
       const end = new Date(activeContract.endDate);
       const diffMs = end.getTime() - now.getTime();
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
@@ -391,6 +394,7 @@ export async function getOrgStructureDetail() {
     prisma.employee.count({
       where: {
         deletedAt: null,
+        status: "ACTIVE",
         currentPositionId: { not: null },
       },
     }),

@@ -8,6 +8,7 @@ import {
   Eye,
   Edit,
   UserX,
+  UserCheck,
   AlertCircle,
   Users,
   ChevronLeft,
@@ -15,7 +16,10 @@ import {
   Clock,
 } from "lucide-react";
 import { StatusBadge, ContractTypeBadge } from "./status-badge";
-import { deleteEmployeeAction } from "@/server/actions/employee.actions";
+import {
+  deleteEmployeeAction,
+  reactivateEmployeeAction,
+} from "@/server/actions/employee.actions";
 
 export interface EmployeeListItem {
   id: string;
@@ -63,8 +67,10 @@ export function EmployeeTable({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [selectedForDelete, setSelectedForDelete] = React.useState<EmployeeListItem | null>(null);
+  const [selectedForReactivate, setSelectedForReactivate] = React.useState<EmployeeListItem | null>(null);
   const [actionError, setActionError] = React.useState<string | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const [isReactivating, setIsReactivating] = React.useState(false);
 
   // Pagination handler
   const handlePageChange = (newPage: number) => {
@@ -90,6 +96,23 @@ export function EmployeeTable({
       router.refresh();
     } else {
       setActionError(res.error || "Gagal menonaktifkan pegawai.");
+    }
+  };
+
+  // Reactivate handler
+  const confirmReactivate = async () => {
+    if (!selectedForReactivate) return;
+    setIsReactivating(true);
+    setActionError(null);
+
+    const res = await reactivateEmployeeAction(selectedForReactivate.id);
+    setIsReactivating(false);
+
+    if (res.ok) {
+      setSelectedForReactivate(null);
+      router.refresh();
+    } else {
+      setActionError(res.error || "Gagal mengaktifkan kembali pegawai.");
     }
   };
 
@@ -241,14 +264,25 @@ export function EmployeeTable({
                               >
                                 <Edit className="w-4 h-4" />
                               </Link>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedForDelete(emp)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#A8281C] hover:bg-red-50 transition-colors cursor-pointer"
-                                title="Nonaktifkan Pegawai"
-                              >
-                                <UserX className="w-4 h-4" />
-                              </button>
+                              {emp.status === "TERMINATED" || emp.status === "RESIGNED" ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedForReactivate(emp)}
+                                  className="p-1.5 rounded-lg text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 transition-colors cursor-pointer"
+                                  title="Aktifkan Kembali Pegawai"
+                                >
+                                  <UserCheck className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedForDelete(emp)}
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-[#A8281C] hover:bg-red-50 transition-colors cursor-pointer"
+                                  title="Nonaktifkan Pegawai"
+                                >
+                                  <UserX className="w-4 h-4" />
+                                </button>
+                              )}
                             </>
                           )}
                         </div>
@@ -345,6 +379,57 @@ export function EmployeeTable({
                 className="px-4 py-2 rounded-lg text-xs font-semibold bg-[#A8281C] text-white hover:bg-[#851e14] transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50"
               >
                 {isDeleting ? "Memproses..." : "Ya, Nonaktifkan Pegawai"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Modal for Reactivate */}
+      {selectedForReactivate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl border border-slate-200 flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                <UserCheck className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col">
+                <h3 className="text-base font-bold text-slate-900 font-heading">
+                  Konfirmasi Aktifkan Kembali Pegawai
+                </h3>
+                <span className="text-xs text-slate-500">
+                  Kembalikan status pegawai menjadi aktif
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Apakah Anda yakin ingin mengaktifkan kembali pegawai{" "}
+              <strong className="text-slate-900">{selectedForReactivate.fullName}</strong> (
+              {selectedForReactivate.employeeNo})?
+            </p>
+
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-900 leading-relaxed">
+              Pengaktifan kembali akan mengubah status menjadi <strong>ACTIVE</strong>, memulihkan
+              status kontrak terakhir, dan mengaktifkan kembali hak akses login akun pengguna terkait.
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSelectedForReactivate(null)}
+                disabled={isReactivating}
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmReactivate}
+                disabled={isReactivating}
+                className="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50"
+              >
+                {isReactivating ? "Memproses..." : "Ya, Aktifkan Kembali Pegawai"}
               </button>
             </div>
           </div>
