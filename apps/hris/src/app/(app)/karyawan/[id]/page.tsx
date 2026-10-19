@@ -86,12 +86,14 @@ export default async function EmployeeDetailPage({
   const managerTeamInfo =
     isManager && currentActorEmployee ? await getManagerTeamInfo(currentActorEmployee.id) : null;
 
-  const [employee, departments, managers, moduleFlags] = await Promise.all([
-    getEmployeeById(id),
-    getOrgStructureData(),
-    getManagersList(),
-    getModuleFlags(prisma),
-  ]);
+  const [employee, departments, managers, moduleFlags, activeEmploymentTypes] =
+    await Promise.all([
+      getEmployeeById(id),
+      getOrgStructureData(),
+      getManagersList(),
+      getModuleFlags(prisma),
+      getActiveEmploymentTypes(),
+    ]);
 
   if (!employee) {
     notFound();
@@ -569,6 +571,7 @@ export default async function EmployeeDetailPage({
                   <th className="py-3 px-4">Tanggal Berakhir</th>
                   {isHrOrAdmin && <th className="py-3 px-4">Gaji Pokok / Tarif</th>}
                   <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4">Berkas SK / Kontrak</th>
                   <th className="py-3 px-4">Catatan</th>
                 </tr>
               </thead>
@@ -576,7 +579,7 @@ export default async function EmployeeDetailPage({
                 {employee.contracts.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={isHrOrAdmin ? 6 : 5}
+                      colSpan={isHrOrAdmin ? 7 : 6}
                       className="py-8 text-center text-slate-400 italic"
                     >
                       Belum ada riwayat kontrak kerja
@@ -614,6 +617,23 @@ export default async function EmployeeDetailPage({
                         >
                           {contract.status}
                         </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {contract.documentKey ? (
+                          <a
+                            href={`/api/documents/${contract.documentKey}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors border border-blue-200/60"
+                            title="Unduh Berkas SK / Perjanjian Kontrak Kerja"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-blue-600" />
+                            <span>Unduh PDF</span>
+                            <Download className="w-3 h-3 ml-0.5 text-blue-500" />
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">-</span>
+                        )}
                       </td>
                       <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
                         {contract.notes || "-"}
@@ -709,10 +729,20 @@ export default async function EmployeeDetailPage({
               currentPositionTitle: employee.currentPosition?.title,
               managerId: employee.managerId,
               managerName: employee.manager?.fullName,
+              currentEmploymentType: activeContract?.type || null,
+              currentEmploymentTypeId: activeContract?.employmentTypeId || null,
+              currentEmploymentTypeName: activeContract?.employmentTypeMaster?.name,
+              currentContractEndDate: activeContract?.endDate
+                ? activeContract.endDate.toISOString()
+                : null,
+              currentBaseSalary: activeContract?.baseSalary
+                ? Number(activeContract.baseSalary)
+                : null,
             }}
             histories={employee.histories}
             departments={departments}
             managers={managers}
+            employmentTypes={activeEmploymentTypes}
             isHrOrAdmin={isHrOrAdmin}
           />
         </div>

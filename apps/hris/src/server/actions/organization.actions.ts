@@ -196,6 +196,7 @@ export async function transferEmployeePositionAction(formData: FormData) {
     const effectiveDate = formData.get("effectiveDate") as string;
     const transferType = formData.get("transferType") as string;
     const skNumberRaw = formData.get("skNumber") as string | null;
+    const notesRaw = formData.get("notes") as string | null;
     const employmentTypeRaw = formData.get("employmentType") as string | null;
     const employmentTypeIdRaw = formData.get("employmentTypeId") as string | null;
     const contractEndDateRaw = formData.get("contractEndDate") as string | null;
