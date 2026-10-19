@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { formatDate, formatRupiah } from "@pspk/shared";
+import { formatDate } from "@pspk/shared";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import type { Metadata } from "next";
@@ -19,7 +19,6 @@ import {
   KeyRound,
   FolderArchive,
   Laptop,
-  Download,
 } from "lucide-react";
 import {
   getEmployeeById,
@@ -31,6 +30,7 @@ import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queri
 import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-badge";
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
 import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
+import { EmployeeContractsTable } from "@/components/karyawan/employee-contracts-table";
 import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-role-card";
 import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
 import {
@@ -548,103 +548,24 @@ export default async function EmployeeDetailPage({
 
       {/* TAB 3: KONTRAK KERJA */}
       {effectiveTab === "kontrak" && (
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-            <div>
-              <h3 className="font-bold text-base text-[#102E50] font-heading">
-                Riwayat Kontrak Kerja
-              </h3>
-              <p className="text-xs text-slate-500">
-                {isHrOrAdmin
-                  ? "Daftar perjanjian ikatan kerja, masa berlaku, dan nilai kompensasi pokok"
-                  : "Daftar perjanjian ikatan kerja dan masa berlaku kontrak"}
-              </p>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                  <th className="py-3 px-4">Tipe Kontrak</th>
-                  <th className="py-3 px-4">Tanggal Mulai</th>
-                  <th className="py-3 px-4">Tanggal Berakhir</th>
-                  {isHrOrAdmin && <th className="py-3 px-4">Gaji Pokok / Tarif</th>}
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4">Berkas SK / Kontrak</th>
-                  <th className="py-3 px-4">Catatan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {employee.contracts.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={isHrOrAdmin ? 7 : 6}
-                      className="py-8 text-center text-slate-400 italic"
-                    >
-                      Belum ada riwayat kontrak kerja
-                    </td>
-                  </tr>
-                ) : (
-                  employee.contracts.map((contract) => (
-                    <tr key={contract.id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-3 px-4 font-semibold">
-                        <ContractTypeBadge
-                          type={contract.type}
-                          label={contract.employmentTypeMaster?.name}
-                        />
-                      </td>
-                      <td className="py-3 px-4 font-mono">{formatDate(contract.startDate)}</td>
-                      <td className="py-3 px-4 font-mono">
-                        {contract.endDate ? formatDate(contract.endDate) : "Tidak Terbatas (Tetap)"}
-                      </td>
-                      {isHrOrAdmin && (
-                        <td className="py-3 px-4 font-mono font-bold text-slate-900">
-                          {contract.wageType === "HOURLY" && contract.hourlyRate
-                            ? `${formatRupiah(contract.hourlyRate)} / jam`
-                            : contract.baseSalary
-                              ? formatRupiah(contract.baseSalary)
-                              : "-"}
-                        </td>
-                      )}
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            contract.status === "ACTIVE"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {contract.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        {contract.documentKey ? (
-                          <a
-                            href={`/api/documents/${contract.documentKey}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors border border-blue-200/60"
-                            title="Unduh Berkas SK / Perjanjian Kontrak Kerja"
-                          >
-                            <FileText className="w-3.5 h-3.5 text-blue-600" />
-                            <span>Unduh PDF</span>
-                            <Download className="w-3 h-3 ml-0.5 text-blue-500" />
-                          </a>
-                        ) : (
-                          <span className="text-slate-400 italic text-[11px]">-</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-slate-600 max-w-xs truncate">
-                        {contract.notes || "-"}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <EmployeeContractsTable
+          employeeId={employee.id}
+          employeeName={employee.fullName}
+          isHrOrAdmin={isHrOrAdmin}
+          contracts={employee.contracts.map((c) => ({
+            id: c.id,
+            type: c.type,
+            wageType: c.wageType,
+            hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
+            baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
+            startDate: c.startDate,
+            endDate: c.endDate,
+            status: c.status,
+            documentKey: c.documentKey,
+            notes: c.notes,
+            employmentTypeMaster: c.employmentTypeMaster,
+          }))}
+        />
       )}
 
       {/* TAB 4: JABATAN & TIM */}

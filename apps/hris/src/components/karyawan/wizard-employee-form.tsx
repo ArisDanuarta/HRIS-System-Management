@@ -25,12 +25,18 @@ import {
   Plus,
   ExternalLink,
   Settings,
+  UploadCloud,
+  FileCheck,
+  Trash2,
+  Download,
+  Paperclip,
 } from "lucide-react";
 import {
   createEmployeeAction,
   updateEmployeeAction,
   generateNextEmployeeNoAction,
   checkEmployeeNoAvailabilityAction,
+  uploadContractFileAction,
 } from "@/server/actions/employee.actions";
 import { createEmploymentTypeAction } from "@/server/actions/employment-type.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
@@ -104,6 +110,7 @@ export interface InitialEmployeeData {
     baseSalary?: number | null;
     status?: string | null;
     notes?: string | null;
+    documentKey?: string | null;
     employmentTypeMaster?: { id: string; name: string; code: string } | null;
   }[];
 }
@@ -182,6 +189,18 @@ export function WizardEmployeeForm({
   const initialActiveContract =
     initialData?.contracts?.find((c) => c.status === "ACTIVE") || initialData?.contracts?.[0];
 
+  // Helper untuk mengekstrak nomor kontrak dari catatan [Nomor: ...]
+  const extractContractNumber = (notesStr?: string | null) => {
+    if (!notesStr) return "";
+    const match = notesStr.match(/\[Nomor:\s*([^\]]+)\]/);
+    return match && match[1] ? match[1].trim() : "";
+  };
+
+  const cleanContractNotes = (notesStr?: string | null) => {
+    if (!notesStr) return "";
+    return notesStr.replace(/\[Nomor:\s*[^\]]+\]\s*/, "").trim();
+  };
+
   // Form State
   const [formData, setFormData] = useState({
     // Step 1: Personal
@@ -226,7 +245,9 @@ export function WizardEmployeeForm({
       ? toDateString(initialActiveContract.endDate)
       : "",
     baseSalary: initialActiveContract?.baseSalary ?? 10000000,
-    contractNotes: initialActiveContract?.notes || "",
+    contractNumber: extractContractNumber(initialActiveContract?.notes),
+    contractDocumentKey: initialActiveContract?.documentKey || "",
+    contractNotes: cleanContractNotes(initialActiveContract?.notes),
 
     // Step 4: Sensitive Data & Account
     nik: "",
@@ -237,6 +258,34 @@ export function WizardEmployeeForm({
     createUserAccount: mode === "create",
     accountRole: "staff",
   });
+
+  // State berkas upload kontrak kerja PDF
+  const [contractFile, setContractFile] = useState<File | null>(null);
+  const [contractFileError, setContractFileError] = useState<string | null>(null);
+  const [isUploadingContract, setIsUploadingContract] = useState(false);
+
+  const handleContractFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setContractFileError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setContractFileError("Format berkas harus berupa dokumen PDF (.pdf).");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setContractFileError("Ukuran berkas melebihi batas maksimal 10 MB.");
+      return;
+    }
+
+    setContractFile(file);
+  };
+
+  const handleRemoveContractFile = () => {
+    setContractFile(null);
+    setContractFileError(null);
+  };
 
   // Keep positions filtered by selected department
   const selectedDept = departments.find((d) => d.id === formData.currentDepartmentId);
@@ -494,6 +543,23 @@ export function WizardEmployeeForm({
     setIsSubmitting(true);
     setServerError(null);
 
+    let effectiveContractDocumentKey = formData.contractDocumentKey || undefined;
+    if (contractFile) {
+      setIsUploadingContract(true);
+      const fileData = new FormData();
+      fileData.append("file", contractFile);
+      fileData.append("employeeId", mode === "edit" && initialData?.id ? initialData.id : "temp");
+      const uploadRes = await uploadContractFileAction(fileData);
+      setIsUploadingContract(false);
+
+      if (!uploadRes.ok) {
+        setServerError(uploadRes.error);
+        setIsSubmitting(false);
+        return;
+      }
+      effectiveContractDocumentKey = uploadRes.data.documentKey;
+    }
+
     const baseJoinDate = formData.joinDate || toDateString(new Date());
     const baseContractStart = formData.contractStartDate || baseJoinDate;
 
@@ -524,6 +590,8 @@ export function WizardEmployeeForm({
         contractStartDate: baseContractStart,
         contractEndDate: formData.contractEndDate || undefined,
         baseSalary: formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0,
+        contractNumber: formData.contractNumber.trim() || undefined,
+        contractDocumentKey: effectiveContractDocumentKey,
         contractNotes: formData.contractNotes.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
@@ -589,6 +657,8 @@ export function WizardEmployeeForm({
         contractStartDate: baseContractStart,
         contractEndDate: formData.contractEndDate || undefined,
         baseSalary: formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0,
+        contractNumber: formData.contractNumber.trim() || undefined,
+        contractDocumentKey: effectiveContractDocumentKey,
         contractNotes: formData.contractNotes?.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
@@ -1315,6 +1385,23 @@ export function WizardEmployeeForm({
 
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Nomor Surat Perjanjian / Kontrak Kerja
+              </label>
+              <input
+                type="text"
+                name="contractNumber"
+                value={formData.contractNumber}
+                onChange={handleChange}
+                placeholder="Contoh: 018/PKWT/PSPK/X/2026 atau No. SK Direksi"
+                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+              />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Nomor registrasi resmi dokumen kontrak kerja untuk pengarsipan lembaga
+              </span>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Catatan Kontrak Kerja
               </label>
               <textarea
@@ -1325,6 +1412,111 @@ export function WizardEmployeeForm({
                 placeholder="Keterangan penugasan khusus atau klausul riset..."
                 className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700">
+                  Lampiran Berkas Kontrak Kerja (PDF)
+                </label>
+                <span className="text-[11px] text-slate-400">
+                  Opsional saat pendaftaran • Maksimal 10 MB
+                </span>
+              </div>
+
+              {/* Tampilkan berkas saat ini jika mode edit dan sudah ada berkas */}
+              {formData.contractDocumentKey && !contractFile && (
+                <div className="mb-3 p-3 bg-blue-50/70 border border-blue-200/80 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-semibold text-blue-900 truncate">
+                        Berkas Kontrak Telah Terunggah
+                      </span>
+                      <span className="text-[11px] text-blue-700 font-mono truncate">
+                        {formData.contractDocumentKey}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <a
+                      href={`/api/documents/${formData.contractDocumentKey}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-2.5 py-1 text-xs font-semibold bg-white text-blue-700 hover:bg-blue-100/60 rounded border border-blue-300 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Lihat PDF</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, contractDocumentKey: "" }))}
+                      className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                      title="Hapus berkas kontrak ini"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Upload file box jika belum ada berkas terpilih atau ingin mengganti */}
+              {(!formData.contractDocumentKey || contractFile) && (
+                <div className="p-4 bg-slate-50/70 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl transition-all">
+                  {!contractFile ? (
+                    <label className="flex flex-col items-center justify-center cursor-pointer py-3">
+                      <UploadCloud className="w-8 h-8 text-slate-400 mb-2 group-hover:text-[#102E50]" />
+                      <span className="text-xs font-bold text-slate-700 mb-0.5">
+                        Pilih atau seret berkas PDF kontrak ke sini
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Hanya format PDF (.pdf), ukuran maksimal 10 MB
+                      </span>
+                      <input
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        onChange={handleContractFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                  ) : (
+                    <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
+                          <FileCheck className="w-5 h-5" />
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-bold text-slate-800 truncate">
+                            {contractFile.name}
+                          </span>
+                          <span className="text-[11px] text-slate-400">
+                            {(contractFile.size / 1024 / 1024).toFixed(2)} MB • Siap disimpan
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRemoveContractFile}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                        title="Hapus pilihan berkas"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  {contractFileError && (
+                    <p className="text-xs text-rose-600 font-semibold mt-2 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>{contractFileError}</span>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
+                <span className="font-semibold text-slate-600">Alur Berkas Kontrak:</span> Jika berkas draft kontrak belum ditandatangani pegawai baru saat pendaftaran, HR dapat mengosongkan berkas ini terlebih dahulu. Setelah staf baru menandatangani kontrak dan menyerahkannya, HR dapat mengunggah berkas PDF bertandatangan kapan saja melalui tab <strong>Kontrak Kerja</strong> di detail profil pegawai.
+              </p>
             </div>
           </div>
         )}

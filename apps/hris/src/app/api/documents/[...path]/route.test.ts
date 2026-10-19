@@ -342,4 +342,74 @@ describe("GET /api/documents/[...path]", () => {
       expect(res.status).toBe(200);
     });
   });
+
+  describe("Akses Berkas Kontrak Kerja (contracts/...)", () => {
+    it("harus mengizinkan pegawai mengunduh berkas kontrak miliknya sendiri (200)", async () => {
+      vi.mocked(getSession).mockResolvedValue({
+        user: { id: "user-staf", email: "staf@pspk.id" },
+      } as unknown as MockSession);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-staf",
+        employeeId: "emp-staf",
+        roles: ["staf"],
+        permissions: new Set(["view:self"]),
+      });
+
+      const req = createRequest("contracts/emp-staf_1700000000_kontrak_pkwt.pdf");
+      const res = await GET(req, {
+        params: Promise.resolve({
+          path: ["contracts", "emp-staf_1700000000_kontrak_pkwt.pdf"],
+        }),
+      });
+
+      expect(res.status).toBe(200);
+    });
+
+    it("harus menolak pegawai lain yang mencoba mengakses berkas kontrak milik orang lain (403)", async () => {
+      vi.mocked(getSession).mockResolvedValue({
+        user: { id: "user-lain", email: "other@pspk.id" },
+      } as unknown as MockSession);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-lain",
+        employeeId: "emp-other",
+        roles: ["staf"],
+        permissions: new Set(["view:self"]),
+      });
+
+      vi.mocked(prisma.employmentContract.findFirst).mockResolvedValue(null);
+
+      const req = createRequest("contracts/emp-target_1700000000_kontrak_pkwt.pdf");
+      const res = await GET(req, {
+        params: Promise.resolve({
+          path: ["contracts", "emp-target_1700000000_kontrak_pkwt.pdf"],
+        }),
+      });
+
+      expect(res.status).toBe(403);
+    });
+
+    it("harus mengizinkan Admin HR mengunduh berkas kontrak pegawai siapa pun (200)", async () => {
+      vi.mocked(getSession).mockResolvedValue({
+        user: { id: "user-hr", email: "hr@pspk.id" },
+      } as unknown as MockSession);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr",
+        employeeId: "emp-hr",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.employee.read:all"]),
+      });
+
+      const req = createRequest("contracts/emp-staf_1700000000_kontrak_pkwt.pdf");
+      const res = await GET(req, {
+        params: Promise.resolve({
+          path: ["contracts", "emp-staf_1700000000_kontrak_pkwt.pdf"],
+        }),
+      });
+
+      expect(res.status).toBe(200);
+    });
+  });
 });

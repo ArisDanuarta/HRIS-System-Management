@@ -5,10 +5,12 @@ import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, AuthContext } from "@pspk/rbac";
 import { extractClientIp, encryptField } from "@pspk/shared";
+import { getStorageProvider } from "@pspk/storage";
 import {
   createEmployeeSchema,
   updateEmployeeSchema,
   unmaskFieldSchema,
+  attachContractDocumentSchema,
   CreateEmployeeInput,
   UpdateEmployeeInput,
   UnmaskFieldInput,
@@ -19,6 +21,7 @@ import {
   updateEmployee,
   deleteEmployee,
   unmaskSensitiveField,
+  attachContractDocument,
   ActorContext,
 } from "../services/employee.service";
 
@@ -233,6 +236,122 @@ export async function deleteEmployeeAction(id: string) {
     console.error("deleteEmployeeAction error:", err);
     const errorMsg = err instanceof Error ? err.message : "Gagal menonaktifkan pegawai.";
     return { ok: false as const, error: errorMsg };
+  }
+}
+
+export async function uploadContractFileAction(formData: FormData) {
+  try {
+    const { authCtx } = await getAuthenticatedActor();
+    assertCan(authCtx, "hris.employee.write:all");
+
+    const file = formData.get("file") as File | null;
+    const employeeId = ((formData.get("employeeId") as string) || "temp").trim();
+
+    if (!file || !(file instanceof File) || file.size === 0) {
+      return { ok: false as const, error: "Berkas kontrak kerja wajib dipilih." };
+    }
+
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      return { ok: false as const, error: "Format berkas harus berupa dokumen PDF (.pdf)." };
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      return { ok: false as const, error: "Ukuran berkas kontrak maksimal 10 MB." };
+    }
+
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const storageKey = `contracts/${employeeId}_${Date.now()}_${safeFileName}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const storage = getStorageProvider();
+    await storage.put(storageKey, buffer, { contentType: "application/pdf" });
+
+    return {
+      ok: true as const,
+      data: {
+        documentKey: storageKey,
+        fileName: file.name,
+        fileSize: file.size,
+      },
+      message: "Berkas kontrak kerja berhasil diunggah.",
+    };
+  } catch (err: unknown) {
+    console.error("uploadContractFileAction error:", err);
+    const msg = err instanceof Error ? err.message : "Gagal mengunggah berkas kontrak.";
+    return { ok: false as const, error: msg };
+  }
+}
+
+export async function attachContractDocumentAction(formData: FormData) {
+  try {
+    const { actor, authCtx } = await getAuthenticatedActor();
+    assertCan(authCtx, "hris.employee.write:all");
+
+    const contractId = (formData.get("contractId") as string)?.trim();
+    const employeeId = (formData.get("employeeId") as string)?.trim();
+    const contractNumber = (formData.get("contractNumber") as string)?.trim() || "";
+    let notes = (formData.get("notes") as string)?.trim() || "";
+    let documentKey = (formData.get("documentKey") as string)?.trim() || "";
+    const file = formData.get("file") as File | null;
+
+    if (!contractId || !employeeId) {
+      return { ok: false as const, error: "Parameter kontrak atau pegawai tidak lengkap." };
+    }
+
+    // Jika berkas baru diunggah secara langsung
+    if (file && file instanceof File && file.size > 0) {
+      if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+        return { ok: false as const, error: "Format berkas harus berupa dokumen PDF (.pdf)." };
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        return { ok: false as const, error: "Ukuran berkas kontrak maksimal 10 MB." };
+      }
+
+      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const storageKey = `contracts/${employeeId}_${Date.now()}_${safeFileName}`;
+      const buffer = Buffer.from(await file.arrayBuffer());
+
+      const storage = getStorageProvider();
+      await storage.put(storageKey, buffer, { contentType: "application/pdf" });
+      documentKey = storageKey;
+    }
+
+    if (!documentKey) {
+      return { ok: false as const, error: "Berkas PDF kontrak kerja wajib diunggah." };
+    }
+
+    // Format catatan dengan nomor kontrak jika diisi
+    if (contractNumber) {
+      if (notes.startsWith("[Nomor:")) {
+        const endBracketIdx = notes.indexOf("]");
+        const rest = endBracketIdx !== -1 ? notes.slice(endBracketIdx + 1).trim() : "";
+        notes = `[Nomor: ${contractNumber}] ${rest}`.trim();
+      } else {
+        notes = `[Nomor: ${contractNumber}] ${notes}`.trim();
+      }
+    }
+
+    const validated = attachContractDocumentSchema.parse({
+      contractId,
+      employeeId,
+      documentKey,
+      notes: notes || undefined,
+    });
+
+    const result = await attachContractDocument(validated, actor);
+
+    revalidatePath("/karyawan");
+    revalidatePath(`/karyawan/${employeeId}`);
+
+    return {
+      ok: true as const,
+      data: result,
+      message: "Berkas kontrak kerja berhasil ditautkan ke data pegawai.",
+    };
+  } catch (err: unknown) {
+    console.error("attachContractDocumentAction error:", err);
+    const msg = err instanceof Error ? err.message : "Gagal menyimpan berkas kontrak kerja.";
+    return { ok: false as const, error: msg };
   }
 }
 

@@ -1,7 +1,11 @@
 import { prisma, writeAudit } from "@pspk/db";
 import { encryptField, decryptField } from "@pspk/shared";
 import { hashPassword } from "@pspk/auth";
-import { CreateEmployeeInput, UpdateEmployeeInput } from "../schemas/employee.schema";
+import {
+  CreateEmployeeInput,
+  UpdateEmployeeInput,
+  AttachContractDocumentInput,
+} from "../schemas/employee.schema";
 import { sendEmployeeCredentialsEmail } from "./email.service";
 
 export type ActorContext = {
@@ -178,6 +182,15 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
       },
     });
 
+    // Format full notes including contractNumber if provided
+    let fullContractNotes = data.contractNotes?.trim() || "";
+    if (data.contractNumber && data.contractNumber.trim()) {
+      fullContractNotes = `[Nomor: ${data.contractNumber.trim()}] ${fullContractNotes}`.trim();
+    }
+    if (!fullContractNotes) {
+      fullContractNotes = "Kontrak kerja awal saat pendaftaran pegawai";
+    }
+
     // Create initial employment contract
     const newContract = await tx.employmentContract.create({
       data: {
@@ -197,8 +210,9 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
             : data.baseSalary !== undefined && data.baseSalary !== null
               ? data.baseSalary
               : null,
+        documentKey: data.contractDocumentKey || null,
         status: "ACTIVE",
-        notes: data.contractNotes?.trim() || "Kontrak kerja awal saat pendaftaran pegawai",
+        notes: fullContractNotes,
       },
     });
 
@@ -412,6 +426,17 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
       orderBy: { createdAt: "desc" },
     });
 
+    let fullContractNotes = data.contractNotes?.trim() || activeContract?.notes || "";
+    if (data.contractNumber && data.contractNumber.trim()) {
+      if (fullContractNotes.startsWith("[Nomor:")) {
+        const endBracketIdx = fullContractNotes.indexOf("]");
+        const restNotes = endBracketIdx !== -1 ? fullContractNotes.slice(endBracketIdx + 1).trim() : "";
+        fullContractNotes = `[Nomor: ${data.contractNumber.trim()}] ${restNotes}`.trim();
+      } else {
+        fullContractNotes = `[Nomor: ${data.contractNumber.trim()}] ${fullContractNotes}`.trim();
+      }
+    }
+
     if (activeContract) {
       await tx.employmentContract.update({
         where: { id: activeContract.id },
@@ -433,7 +458,11 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
               : data.baseSalary !== undefined && data.baseSalary !== null
                 ? data.baseSalary
                 : null,
-          notes: data.contractNotes?.trim() || activeContract.notes,
+          documentKey:
+            data.contractDocumentKey !== undefined
+              ? data.contractDocumentKey || null
+              : activeContract.documentKey,
+          notes: fullContractNotes || activeContract.notes,
         },
       });
     } else {
@@ -455,8 +484,9 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
               : data.baseSalary !== undefined && data.baseSalary !== null
                 ? data.baseSalary
                 : null,
+          documentKey: data.contractDocumentKey || null,
           status: "ACTIVE",
-          notes: data.contractNotes?.trim() || "Kontrak kerja diperbarui oleh HR",
+          notes: fullContractNotes || "Kontrak kerja diperbarui oleh HR",
         },
       });
     }
@@ -677,4 +707,57 @@ export async function unmaskSensitiveField(
   });
 
   return { decryptedValue };
+}
+
+export async function attachContractDocument(
+  input: AttachContractDocumentInput,
+  actor: ActorContext,
+) {
+  const contract = await prisma.employmentContract.findUnique({
+    where: { id: input.contractId },
+    include: { employee: true },
+  });
+
+  if (!contract || contract.employeeId !== input.employeeId) {
+    throw new Error("Data kontrak kerja pegawai tidak ditemukan.");
+  }
+
+  const updatedContract = await prisma.$transaction(async (tx) => {
+    const updated = await tx.employmentContract.update({
+      where: { id: input.contractId },
+      data: {
+        documentKey: input.documentKey,
+        notes:
+          input.notes !== undefined && input.notes !== null
+            ? input.notes
+            : contract.notes,
+      },
+    });
+
+    await writeAudit(
+      {
+        actorUserId: actor.id,
+        actorEmail: actor.email,
+        app: "hris",
+        action: "UPDATE",
+        entityType: "EmploymentContract",
+        entityId: contract.id,
+        before: {
+          documentKey: contract.documentKey,
+          notes: contract.notes,
+        },
+        after: {
+          documentKey: updated.documentKey,
+          notes: updated.notes,
+        },
+        ip: actor.ip,
+        userAgent: actor.userAgent,
+      },
+      tx,
+    );
+
+    return updated;
+  });
+
+  return updatedContract;
 }
