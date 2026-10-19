@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Clock,
   ExternalLink,
@@ -42,6 +43,7 @@ export function TimesheetApprovalTable({
   currentEmployeeId,
   initialSubmissionId,
 }: TimesheetApprovalTableProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [filterTab, setFilterTab] = useState<"ALL" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED">(
     "NEEDS_REVIEW",
@@ -345,7 +347,7 @@ export function TimesheetApprovalTable({
           isOpen={!!selectedSubmission}
           onClose={handleCloseModal}
           onSuccess={() => {
-            // Bisa reload atau trigger revalidate
+            router.refresh();
           }}
         />
       )}

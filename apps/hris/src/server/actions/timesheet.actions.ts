@@ -29,7 +29,7 @@ const SubmitTimesheetSchema = z.object({
     .positive("Jumlah jam kerja harus lebih besar dari 0.")
     .max(720, "Jumlah jam kerja tidak realistis (maksimal 720 jam per bulan)."),
   reviewerIds: z
-    .array(z.string().uuid("ID atasan penilai tidak valid."))
+    .array(z.string().min(1, "ID atasan penilai tidak valid."))
     .min(1, "Pilih minimal 1 atasan penilai."),
   description: z.string().trim().max(1000, "Deskripsi maksimal 1000 karakter.").optional(),
 });
@@ -216,11 +216,15 @@ export async function cancelTimesheetSubmissionAction(submissionId: string) {
       };
     }
 
-    if (submission.status !== "PENDING" && submission.status !== "REVISION_REQUESTED") {
+    if (
+      submission.status !== "PENDING" &&
+      submission.status !== "REVISION_REQUESTED" &&
+      submission.status !== "REJECTED"
+    ) {
       return {
         ok: false as const,
         error:
-          "Hanya timesheet dengan status Menunggu (Pending) atau Perlu Revisi yang dapat dibatalkan.",
+          "Hanya timesheet dengan status Menunggu (Pending), Perlu Revisi, atau Ditolak yang dapat dibatalkan.",
       };
     }
 
@@ -360,7 +364,7 @@ export async function startTimesheetReviewAction(submissionId: string) {
 }
 
 const SubmitReviewDecisionSchema = z.object({
-  submissionId: z.string().uuid("ID pengajuan tidak valid."),
+  submissionId: z.string().min(1, "ID pengajuan tidak valid."),
   decision: z.enum(["APPROVE", "REJECT"]),
   notes: z.string().trim().max(1000, "Catatan maksimal 1000 karakter.").optional(),
 });

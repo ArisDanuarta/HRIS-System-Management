@@ -60,11 +60,12 @@ export function TimesheetDetailModal({ isOpen, onClose, submission }: TimesheetD
             Disetujui Penuh (ACC)
           </span>
         );
+      case "REJECTED":
       case "REVISION_REQUESTED":
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
             <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
-            Perlu Revisi
+            Ditolak / Perlu Revisi
           </span>
         );
       default:

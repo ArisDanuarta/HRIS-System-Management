@@ -108,11 +108,12 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
             Disetujui (ACC)
           </span>
         );
+      case "REJECTED":
       case "REVISION_REQUESTED":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200">
             <AlertTriangle className="w-3 h-3 text-rose-600" />
-            Perlu Revisi
+            Ditolak / Perlu Revisi
           </span>
         );
       default:
@@ -270,7 +271,9 @@ export function TimesheetTable({ submissions }: TimesheetTableProps) {
                           <Eye className="w-4 h-4" />
                         </button>
 
-                        {(s.status === "PENDING" || s.status === "REVISION_REQUESTED") && (
+                        {(s.status === "PENDING" ||
+                          s.status === "REVISION_REQUESTED" ||
+                          s.status === "REJECTED") && (
                           <button
                             type="button"
                             onClick={() => handleCancel(s)}
