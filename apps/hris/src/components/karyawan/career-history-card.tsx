@@ -128,12 +128,12 @@ export function CareerHistoryCard({
                       href={`/api/documents/${hist.documentKey}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors"
-                      title="Lihat Berkas Surat Keputusan"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors border border-blue-200/60"
+                      title="Lihat Berkas Surat Keputusan / Kontrak Kerja"
                     >
-                      <FileText className="w-3.5 h-3.5" />
-                      <span>Berkas SK</span>
-                      <Download className="w-3 h-3 ml-0.5" />
+                      <FileText className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Berkas SK / Kontrak</span>
+                      <Download className="w-3 h-3 ml-0.5 text-blue-500" />
                     </a>
                   )}
                 </div>
@@ -168,6 +168,7 @@ export function CareerHistoryCard({
         employee={employee}
         departments={departments}
         managers={managers}
+        employmentTypes={employmentTypes}
         onSuccess={() => {
           router.refresh();
         }}
