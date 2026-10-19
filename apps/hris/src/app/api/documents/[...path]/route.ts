@@ -123,7 +123,27 @@ async function checkDocumentAccess(
     return false;
   }
 
-  // 4. Timesheet / Presensi Payroll: timesheets/{payslipId}_{timestamp}_{safeFileName}
+  // 4. Kontrak Kerja: contracts/{employeeId}_{timestamp}_{safeFileName}
+  if (key.startsWith("contracts/")) {
+    const fileNamePart = key.slice("contracts/".length);
+    const targetEmployeeId = fileNamePart.split("_")[0];
+
+    if (effectiveActorEmployeeId && targetEmployeeId && effectiveActorEmployeeId === targetEmployeeId) {
+      return true;
+    }
+
+    const contract = await prisma.employmentContract.findFirst({
+      where: { documentKey: key },
+      select: { employeeId: true },
+    });
+    if (contract && effectiveActorEmployeeId && contract.employeeId === effectiveActorEmployeeId) {
+      return true;
+    }
+
+    return false;
+  }
+
+  // 5. Timesheet / Presensi Payroll: timesheets/{payslipId}_{timestamp}_{safeFileName}
   if (key.startsWith("timesheets/")) {
     if (isFinance) return true;
 
