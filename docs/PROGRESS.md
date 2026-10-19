@@ -2457,6 +2457,31 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+### Perbaikan Manajemen Status Pegawai (Nonaktifkan & Aktifkan Kembali) (19 Oktober 2026)
+
+- **Masalah yang Ditemukan**:
+  - Saat pegawai dinonaktifkan (status `TERMINATED`), `employee.service.ts` sebelumnya mengisi kolom `deletedAt = new Date()`.
+  - Karena seluruh kueri direktori dan detail profil memiliki filter default `deletedAt: null`, pegawai yang dinonaktifkan hilang total dari seluruh tampilan sistem (termasuk saat menggunakan filter `status=TERMINATED`), dan membuka `/karyawan/[id]` menghasilkan error 404.
+  - Belum tersedia fitur bagi tim HR untuk mengaktifkan kembali pegawai yang telah dinonaktifkan.
+- **Solusi & Perbaikan**:
+  1. **Konsep Arsip Kepegawaian**:
+     - Penonaktifan pegawai (`deleteEmployee`) kini murni mengubah `status` menjadi `TERMINATED`, menghentikan kontrak aktif yang berjalan, dan menonaktifkan hak akses login pengguna (`User.isActive = false`).
+     - Kolom `deletedAt` tetap bernilai `null` agar rekam jejak kepegawaian (slip gaji, kontrak, pajak) tetap diarsipkan secara sah di sistem.
+  2. **Kueri Direktori**:
+     - `getEmployeesDirectory` sekarang memuat kontrak terakhir (`orderBy: { startDate: 'desc' }, take: 1`) tanpa batasan `status: 'ACTIVE'`, sehingga pegawai berstatus `TERMINATED` tetap menampilkan label tipe kontrak terakhir mereka.
+     - Penanda `isExpiringSoon` dipastikan hanya berlaku bagi pegawai dan kontrak yang berstatus `ACTIVE`.
+  3. **Fitur Aktifkan Kembali Pegawai (Reactivation)**:
+     - Menambahkan fungsi service `reactivateEmployee` dan server action `reactivateEmployeeAction`.
+     - Mengubah status pegawai kembali menjadi `ACTIVE`, mengaktifkan akun login pengguna (`User.isActive = true`), dan memulihkan kontrak terakhir pegawai.
+  4. **Antarmuka Pengguna (UI/UX)**:
+     - Pada tabel direktori (`employee-table.tsx`), jika pegawai berstatus `TERMINATED` atau `RESIGNED`, tombol aksi otomatis berubah menjadi ikon **Aktifkan Kembali Pegawai** (`UserCheck` hijau) disertai modal konfirmasi.
+     - Pada halaman detail (`/karyawan/[id]`), jika pegawai nonaktif, ditampilkan banner peringatan khusus dan tombol **Aktifkan Kembali Pegawai** di samping tombol Ubah Profil.
+  5. **Pengujian & Validasi**:
+     - Ditambahkan unit test `employee-lifecycle.service.test.ts` untuk memverifikasi alur nonaktifkan dan aktivasi kembali.
+     - Seluruh pengujian (30 berkas / 203 tes), lint, dan typecheck lulus 100%.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

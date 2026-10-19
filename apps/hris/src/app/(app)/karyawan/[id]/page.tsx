@@ -16,6 +16,7 @@ import {
   Phone,
   Mail,
   UserCheck,
+  UserX,
   KeyRound,
   FolderArchive,
   Laptop,
@@ -33,6 +34,7 @@ import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
 import { EmployeeContractsTable } from "@/components/karyawan/employee-contracts-table";
 import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-role-card";
 import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
+import { EmployeeStatusActions } from "@/components/karyawan/employee-status-actions";
 import {
   EmployeeAssetsCard,
   SerializedEmployeeAssetAssignment,
@@ -187,7 +189,10 @@ export default async function EmployeeDetailPage({
 
   const initial = employee.fullName.charAt(0).toUpperCase();
 
-  const activeContract = employee.contracts.find((c) => c.status === "ACTIVE") || null;
+  const isTerminated = employee.status === "TERMINATED" || employee.status === "RESIGNED";
+  const activeContract =
+    employee.contracts.find((c) => c.status === "ACTIVE") ||
+    (isTerminated ? employee.contracts[0] : null);
 
   return (
     <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-16">
@@ -201,6 +206,34 @@ export default async function EmployeeDetailPage({
           {isManager && !isHrOrAdmin ? "Kembali ke Tim Saya" : "Kembali ke Direktori Pegawai"}
         </span>
       </Link>
+
+      {/* Alert Banner jika Pegawai Nonaktif / Berhenti */}
+      {isTerminated && (
+        <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 shrink-0">
+              <UserX className="w-5 h-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
+                Status: Nonaktif / Berhenti ({employee.status})
+              </span>
+              <span className="text-xs text-amber-700 mt-0.5">
+                Pegawai ini saat ini berstatus nonaktif dan akses login akun pengguna terkait telah dinonaktifkan. Seluruh riwayat tetap tersimpan.
+              </span>
+            </div>
+          </div>
+          {isHrOrAdmin && (
+            <EmployeeStatusActions
+              employeeId={employee.id}
+              employeeName={employee.fullName}
+              employeeNo={employee.employeeNo}
+              isTerminated={isTerminated}
+              variant="banner"
+            />
+          )}
+        </div>
+      )}
 
       {/* Profile Header Card */}
       <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -251,7 +284,14 @@ export default async function EmployeeDetailPage({
 
         {/* Action Button */}
         {isHrOrAdmin && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <EmployeeStatusActions
+              employeeId={employee.id}
+              employeeName={employee.fullName}
+              employeeNo={employee.employeeNo}
+              isTerminated={isTerminated}
+              variant="header"
+            />
             <Link
               href={`/karyawan/${employee.id}/ubah`}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
