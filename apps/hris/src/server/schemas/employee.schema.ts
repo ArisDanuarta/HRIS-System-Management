@@ -35,13 +35,13 @@ export const baseEmployeeSchema = z.object({
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
   employeeNo: z.string().min(3, "Nomor Induk Pegawai (NIP) wajib diisi"),
-  currentDepartmentId: z.string().uuid("Pilih divisi/departemen yang valid"),
-  currentPositionId: z.string().uuid("Pilih jabatan/posisi yang valid"),
-  managerId: z.string().uuid().optional().or(z.literal("")).nullable(),
+  currentDepartmentId: z.string().min(1, "Pilih divisi/departemen yang valid"),
+  currentPositionId: z.string().min(1, "Pilih jabatan/posisi yang valid"),
+  managerId: z.string().min(1).optional().or(z.literal("")).nullable(),
   joinDate: z.string().min(1, "Tanggal mulai bergabung wajib diisi"),
   status: EmployeeStatusEnum.default("ACTIVE"),
   employmentType: EmploymentTypeEnum.default("PERMANENT"),
-  employmentTypeId: z.string().uuid().optional().or(z.literal("")),
+  employmentTypeId: z.string().min(1).optional().or(z.literal("")),
   wageType: z.enum(["MONTHLY", "HOURLY"]).optional().default("MONTHLY"),
   hourlyRate: z.coerce.number().min(0, "Tarif per jam tidak boleh negatif").optional().nullable(),
   contractStartDate: z.string().min(1, "Tanggal mulai kontrak kerja wajib diisi"),
@@ -78,13 +78,13 @@ export const createEmployeeSchema = baseEmployeeSchema.superRefine((data, ctx) =
 export type CreateEmployeeInput = z.infer<typeof createEmployeeSchema>;
 
 export const updateEmployeeSchema = baseEmployeeSchema.extend({
-  id: z.string().uuid("ID pegawai tidak valid"),
+  id: z.string().min(1, "ID pegawai tidak valid"),
 });
 
 export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
 export const unmaskFieldSchema = z.object({
-  employeeId: z.string().uuid("ID pegawai tidak valid"),
+  employeeId: z.string().min(1, "ID pegawai tidak valid"),
   field: z.enum(["nik", "npwp", "bankAccount"], {
     errorMap: () => ({ message: "Field sensitif tidak valid" }),
   }),
