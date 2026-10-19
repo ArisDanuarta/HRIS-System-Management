@@ -544,6 +544,18 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
       }
     }
 
+    // Sinkronkan status aktif akun login user jika terhubung
+    if (current.userId) {
+      const shouldBeActive =
+        data.status === "ACTIVE" ||
+        data.status === "PROBATION" ||
+        data.status === "ON_LEAVE";
+      await tx.user.update({
+        where: { id: current.userId },
+        data: { isActive: shouldBeActive },
+      });
+    }
+
     // Write audit log
     await writeAudit(
       {
@@ -586,21 +598,21 @@ export async function deleteEmployee(id: string, actor: ActorContext) {
     where: { id },
   });
 
-  if (!current || current.deletedAt) {
+  if (!current) {
     throw new Error("Data pegawai tidak ditemukan.");
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    // Soft delete employee and set status to TERMINATED
+    // Nonaktifkan pegawai: ubah status menjadi TERMINATED dan pertahankan arsip (deletedAt tetap null)
     const updated = await tx.employee.update({
       where: { id },
       data: {
-        deletedAt: new Date(),
         status: "TERMINATED",
+        deletedAt: null,
       },
     });
 
-    // Terminate all active contracts
+    // Terminate seluruh kontrak aktif yang sedang berjalan
     await tx.employmentContract.updateMany({
       where: { employeeId: id, status: "ACTIVE" },
       data: {
@@ -609,7 +621,7 @@ export async function deleteEmployee(id: string, actor: ActorContext) {
       },
     });
 
-    // Deactivate linked user account if exists
+    // Nonaktifkan akses login akun pengguna terkait jika ada
     if (current.userId) {
       await tx.user.update({
         where: { id: current.userId },
@@ -623,7 +635,7 @@ export async function deleteEmployee(id: string, actor: ActorContext) {
         actorUserId: actor.id,
         actorEmail: actor.email,
         app: "hris",
-        action: "DELETE",
+        action: "UPDATE",
         entityType: "Employee",
         entityId: id,
         before: {
@@ -632,8 +644,82 @@ export async function deleteEmployee(id: string, actor: ActorContext) {
           status: current.status,
         },
         after: {
-          deletedAt: updated.deletedAt,
           status: updated.status,
+        },
+        ip: actor.ip,
+        userAgent: actor.userAgent,
+      },
+      tx,
+    );
+
+    return updated;
+  });
+
+  return result;
+}
+
+export async function reactivateEmployee(id: string, actor: ActorContext) {
+  const current = await prisma.employee.findUnique({
+    where: { id },
+    include: { user: true },
+  });
+
+  if (!current) {
+    throw new Error("Data pegawai tidak ditemukan.");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // Aktifkan kembali pegawai: ubah status menjadi ACTIVE dan bersihkan deletedAt
+    const updated = await tx.employee.update({
+      where: { id },
+      data: {
+        status: "ACTIVE",
+        deletedAt: null,
+      },
+    });
+
+    // Pulihkan status kontrak terakhir jika berstatus TERMINATED
+    const latestContract = await tx.employmentContract.findFirst({
+      where: { employeeId: id },
+      orderBy: { startDate: "desc" },
+    });
+
+    if (latestContract && latestContract.status === "TERMINATED") {
+      await tx.employmentContract.update({
+        where: { id: latestContract.id },
+        data: {
+          status: "ACTIVE",
+          endDate: latestContract.type === "PERMANENT" ? null : latestContract.endDate,
+        },
+      });
+    }
+
+    // Aktifkan kembali akses login pengguna jika ada
+    if (current.userId) {
+      await tx.user.update({
+        where: { id: current.userId },
+        data: { isActive: true },
+      });
+    }
+
+    // Write audit log
+    await writeAudit(
+      {
+        actorUserId: actor.id,
+        actorEmail: actor.email,
+        app: "hris",
+        action: "UPDATE",
+        entityType: "Employee",
+        entityId: id,
+        before: {
+          fullName: current.fullName,
+          employeeNo: current.employeeNo,
+          status: current.status,
+          deletedAt: current.deletedAt,
+        },
+        after: {
+          status: updated.status,
+          deletedAt: updated.deletedAt,
         },
         ip: actor.ip,
         userAgent: actor.userAgent,

@@ -20,6 +20,7 @@ import {
   createEmployee,
   updateEmployee,
   deleteEmployee,
+  reactivateEmployee,
   unmaskSensitiveField,
   attachContractDocument,
   ActorContext,
@@ -226,6 +227,8 @@ export async function deleteEmployeeAction(id: string) {
 
     const deleted = await deleteEmployee(id, actor);
     revalidatePath("/karyawan");
+    revalidatePath(`/karyawan/${id}`);
+    revalidatePath("/dashboard");
 
     return {
       ok: true as const,
@@ -235,6 +238,28 @@ export async function deleteEmployeeAction(id: string) {
   } catch (err: unknown) {
     console.error("deleteEmployeeAction error:", err);
     const errorMsg = err instanceof Error ? err.message : "Gagal menonaktifkan pegawai.";
+    return { ok: false as const, error: errorMsg };
+  }
+}
+
+export async function reactivateEmployeeAction(id: string) {
+  try {
+    const { actor, authCtx } = await getAuthenticatedActor();
+    assertCan(authCtx, "hris.employee.write:all");
+
+    const reactivated = await reactivateEmployee(id, actor);
+    revalidatePath("/karyawan");
+    revalidatePath(`/karyawan/${id}`);
+    revalidatePath("/dashboard");
+
+    return {
+      ok: true as const,
+      data: { id: reactivated.id },
+      message: `Pegawai ${reactivated.fullName} berhasil diaktifkan kembali.`,
+    };
+  } catch (err: unknown) {
+    console.error("reactivateEmployeeAction error:", err);
+    const errorMsg = err instanceof Error ? err.message : "Gagal mengaktifkan kembali pegawai.";
     return { ok: false as const, error: errorMsg };
   }
 }

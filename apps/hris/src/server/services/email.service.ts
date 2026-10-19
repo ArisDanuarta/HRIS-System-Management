@@ -161,6 +161,11 @@ Pusat Studi Pendidikan dan Kebijakan
         subject: emailSubject,
         text: textContent,
         html: htmlContent,
+        headers: {
+          "Auto-Submitted": "auto-generated",
+          "X-Auto-Response-Suppress": "OOF, AutoReply",
+          "X-Mailer": "PSPK-HRIS-Mailer",
+        },
       });
 
       return {
