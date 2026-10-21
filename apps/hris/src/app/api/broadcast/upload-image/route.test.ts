@@ -26,6 +26,8 @@ import { POST } from "./route";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { writeAudit } from "@pspk/db";
 
+type MockSession = Awaited<ReturnType<typeof getSession>>;
+
 describe("POST /api/broadcast/upload-image", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -48,7 +50,7 @@ describe("POST /api/broadcast/upload-image", () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-staff", email: "staff@pspk.id", name: "Staff Biasa" },
       session: { id: "sess-1", userId: "user-staff", expiresAt: new Date() },
-    } as any);
+    } as unknown as MockSession);
 
     vi.mocked(getAuthContext).mockResolvedValue({
       userId: "user-staff",
@@ -71,7 +73,7 @@ describe("POST /api/broadcast/upload-image", () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-hr", email: "hr@pspk.id", name: "Admin HR" },
       session: { id: "sess-2", userId: "user-hr", expiresAt: new Date() },
-    } as any);
+    } as unknown as MockSession);
 
     vi.mocked(getAuthContext).mockResolvedValue({
       userId: "user-hr",
@@ -96,7 +98,7 @@ describe("POST /api/broadcast/upload-image", () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-hr", email: "hr@pspk.id", name: "Admin HR" },
       session: { id: "sess-2", userId: "user-hr", expiresAt: new Date() },
-    } as any);
+    } as unknown as MockSession);
 
     vi.mocked(getAuthContext).mockResolvedValue({
       userId: "user-hr",
@@ -124,7 +126,7 @@ describe("POST /api/broadcast/upload-image", () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-hr", email: "hr@pspk.id", name: "Admin HR" },
       session: { id: "sess-2", userId: "user-hr", expiresAt: new Date() },
-    } as any);
+    } as unknown as MockSession);
 
     vi.mocked(getAuthContext).mockResolvedValue({
       userId: "user-hr",
@@ -153,7 +155,7 @@ describe("POST /api/broadcast/upload-image", () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-hr", email: "hr@pspk.id", name: "Admin HR" },
       session: { id: "sess-2", userId: "user-hr", expiresAt: new Date() },
-    } as any);
+    } as unknown as MockSession);
 
     vi.mocked(getAuthContext).mockResolvedValue({
       userId: "user-hr",
@@ -197,7 +199,7 @@ describe("POST /api/broadcast/upload-image", () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-mgr", email: "manager@pspk.id", name: "Lead Riset" },
       session: { id: "sess-3", userId: "user-mgr", expiresAt: new Date() },
-    } as any);
+    } as unknown as MockSession);
 
     vi.mocked(getAuthContext).mockResolvedValue({
       userId: "user-mgr",
