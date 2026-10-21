@@ -2,14 +2,30 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-const createPrismaClient = () =>
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
-  });
 
 const isOutdated = (client?: PrismaClient): boolean => {
   if (!client) return true;
-  return !(client as unknown as Record<string, unknown>).employeeDocument;
+  const c = client as unknown as Record<string, unknown>;
+  return !c.employeeDocument || !c.emailBroadcast;
+};
+
+const createPrismaClient = () => {
+  if (process.env.NODE_ENV === "development" && typeof require !== "undefined" && require.cache) {
+    try {
+      Object.keys(require.cache).forEach((k) => {
+        if (k.includes(".prisma") || k.includes("@prisma")) {
+          delete require.cache[k];
+        }
+      });
+    } catch {
+      // ignore
+    }
+  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { PrismaClient: ClientConstructor } = require("@prisma/client");
+  return new ClientConstructor({
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+  });
 };
 
 const rawPrisma =
@@ -64,6 +80,9 @@ export {
   AssetStatus,
   DocumentVisibility,
   DocumentStatus,
+  BroadcastScope,
+  BroadcastStatus,
+  BroadcastDeliveryStatus,
 } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./audit";
