@@ -3,6 +3,49 @@
 
 @source "../../../../packages/ui";
 
+@theme {
+  --color-navy: #102e50;
+  --color-navy-hover: #0c233d;
+  --color-navy-light: #f0f4f8;
+  --color-navy-50: #f0f4f8;
+  --color-navy-100: #d9e2ec;
+  --color-navy-200: #bcccdc;
+  --color-navy-300: #9fb3c8;
+  --color-navy-400: #829ab1;
+  --color-navy-500: #627d98;
+  --color-navy-600: #486581;
+  --color-navy-700: #334e68;
+  --color-navy-800: #243b53;
+  --color-navy-900: #102e50;
+  --color-navy-950: #0c233d;
+
+  --color-gold: #f2af3e;
+  --color-gold-hover: #e09d2c;
+  --color-gold-50: #fffbeb;
+  --color-gold-100: #fef3c7;
+  --color-gold-200: #fde68a;
+  --color-gold-300: #fcd34d;
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #f2af3e;
+  --color-gold-600: #d97706;
+  --color-gold-700: #b45309;
+  --color-gold-800: #92400e;
+  --color-gold-900: #78350f;
+
+  --color-maroon: #a8281c;
+  --color-maroon-hover: #8f2217;
+  --color-maroon-50: #fef2f2;
+  --color-maroon-100: #fee2e2;
+  --color-maroon-200: #fecaca;
+  --color-maroon-300: #fca5a5;
+  --color-maroon-400: #f87171;
+  --color-maroon-500: #ef4444;
+  --color-maroon-600: #dc2626;
+  --color-maroon-700: #b91c1c;
+  --color-maroon-800: #a8281c;
+  --color-maroon-900: #8f2217;
+}
+
 body {
   background-color: var(--bg-page, #f5f7fa);
   color: var(--text-primary, #1b2430);
