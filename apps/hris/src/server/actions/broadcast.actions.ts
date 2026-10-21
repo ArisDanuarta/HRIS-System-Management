@@ -180,3 +180,26 @@ export async function sendBroadcastAction(
     return { success: false, error: errorMsg };
   }
 }
+
+/**
+ * Server action untuk mengambil detail satu pengumuman broadcast dan rincian penerimanya.
+ */
+export async function getBroadcastDetailAction(broadcastId: string) {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi telah berakhir. Harap login kembali." };
+    }
+
+    const { getBroadcastDetail } = await import("../queries/broadcast.queries");
+    const detail = await getBroadcastDetail(session.user.id, broadcastId);
+
+    return { success: true, data: detail };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Gagal memuat rincian pengumuman.";
+    return { success: false, error: errorMsg };
+  }
+}
+

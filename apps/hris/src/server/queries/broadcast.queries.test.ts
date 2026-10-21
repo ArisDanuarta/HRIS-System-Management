@@ -60,13 +60,13 @@ describe("broadcast.queries.ts", () => {
           createdAt: mockDate,
           targetDepartment: null,
         },
-      ] as any);
+      ] as unknown as MockBroadcastMany);
 
       vi.mocked(prisma.emailBroadcast.count).mockResolvedValue(1);
       vi.mocked(prisma.emailBroadcast.aggregate).mockResolvedValue({
         _count: { id: 1 },
         _sum: { sentCount: 45, failedCount: 0, totalRecipients: 45 },
-      } as any);
+      } as unknown as MockBroadcastAggregate);
 
       const result = await getBroadcastHistory("user-hr", { page: 1, pageSize: 10 });
 
@@ -85,12 +85,12 @@ describe("broadcast.queries.ts", () => {
         permissions: new Set(["hris.broadcast.read:team"]),
       });
 
-      vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([]);
+      vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([] as unknown as MockBroadcastMany);
       vi.mocked(prisma.emailBroadcast.count).mockResolvedValue(0);
       vi.mocked(prisma.emailBroadcast.aggregate).mockResolvedValue({
         _count: { id: 0 },
         _sum: { sentCount: 0, failedCount: 0, totalRecipients: 0 },
-      } as any);
+      } as unknown as MockBroadcastAggregate);
 
       const result = await getBroadcastHistory("user-mgr");
 
@@ -167,7 +167,7 @@ describe("broadcast.queries.ts", () => {
             sentAt: mockDate,
           },
         ],
-      } as any);
+      } as unknown as MockBroadcastUnique);
 
       const detail = await getBroadcastDetail("user-hr", "bc-123");
 
