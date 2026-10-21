@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Modul Komunikasi] Tahap 2: Pustaka Rich Text Editor Tiptap & Layanan Unggah Gambar — 2026-10-21
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Pembangunan penyunting naskah kaya (*Rich Text Editor*) modern bergaya Microsoft Word yang simpel untuk penulisan pengumuman email broadcast di HRIS.
+  - Penyediaan endpoint API aman untuk mengunggah gambar sisipan ke penyimpanan internal serta penyajian publik untuk klien email.
+- **Hasil Pekerjaan:**
+  1. **Instalasi Pustaka Tiptap v2 (`apps/hris/package.json`):**
+     - Memasang `@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-link`, `@tiptap/extension-image`, `@tiptap/extension-placeholder`, `@tiptap/extension-underline`, serta `sanitize-html` yang sepenuhnya kompatibel dengan React 19 dan Next.js 16.
+  2. **Styling Editor Elegan & Modern (`apps/hris/src/app/globals.css`):**
+     - Menambahkan CSS scoped untuk editor Tiptap dengan font judul Lora, font teks Rubik, blockquote beraksen Gold PSPK (`#f2af3e`), tautan Navy (`#102e50`), serta pembatasan lebar dan shadow gambar responsif.
+  3. **Komponen Editor Teks Kaya Word-like (`apps/hris/src/components/broadcast/rich-text-editor.tsx`):**
+     - Toolbar terstruktur rapi: Pilihan Heading (Normal, H2, H3), Format Karakter (Tebal, Miring, Garis Bawah, Coret), Daftar (Butir & Angka), Kutipan, Sisipkan Link, Sisipkan Gambar, dan Undo/Redo.
+     - Modal interaktif sisipkan link dengan validasi protokol URL `https://`.
+     - Modal gambar dwifungsi: Tab Unggah Gambar dari Komputer (drag-and-drop, validasi format & ukuran <= 3MB) dan Tab Tautan URL Web.
+     - Mendukung *Direct Paste Image* langsung dari clipboard ke dalam kanvas editor.
+     - Indikator metrik live kata dan karakter di bagian footer editor.
+  4. **Endpoint Unggah Gambar & Keamanan Storage (`apps/hris/src/app/api/broadcast/upload-image/route.ts`):**
+     - Endpoint aman dengan verifikasi sesi dan otorisasi peran (Super Admin, Admin HR, dan Manajer).
+     - Validasi ketat format berkas (JPG, PNG, WebP, GIF) dan batas ukuran maksimum 3 MB.
+     - Penyimpanan ke `StorageProvider` (`broadcast-images/[uuid].[ext]`) dan pencatatan audit log `core.AuditLog`.
+     - Pembaruan `isPublicAsset` pada `apps/hris/src/app/api/documents/[...path]/route.ts` agar aset gambar broadcast dapat di-load oleh antarmuka aplikasi maupun klien email (Gmail, Outlook).
+  5. **Pengujian Kualitas & Unit Testing (`apps/hris/src/app/api/broadcast/upload-image/route.test.ts`):**
+     - 7 skenario pengujian unit: validasi penolakan 401 unauthenticated, 403 unauthorized staff, 400 empty file, 400 invalid mime-type (PDF), 400 file size > 3MB, serta pengunggahan sukses 200 untuk Admin HR dan Manajer.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test`: ✅ Lolos 100% (31 test files, 213 unit tests passed)
+
 ## [Modul Komunikasi] Tahap 1: Skema Database & Izin RBAC Broadcast Email — 2026-10-21
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
