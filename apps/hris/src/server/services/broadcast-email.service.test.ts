@@ -36,6 +36,9 @@ vi.mock("@pspk/db", () => ({
 import { getAuthContext } from "@pspk/auth";
 import { prisma } from "@pspk/db";
 
+type MockEmployeeFirst = Awaited<ReturnType<typeof prisma.employee.findFirst>>;
+type MockEmployeeMany = Awaited<ReturnType<typeof prisma.employee.findMany>>;
+
 describe("broadcast-email.service.ts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -119,7 +122,7 @@ describe("broadcast-email.service.ts", () => {
         workEmail: "siti.rahma@pspk.id",
         currentPosition: { title: "HR Manager", isUnitHead: false },
         currentDepartment: { id: "dept-1", name: "People & Culture" },
-      } as any);
+      } as unknown as MockEmployeeFirst);
 
       vi.mocked(prisma.employee.count).mockResolvedValue(5);
 
@@ -144,7 +147,7 @@ describe("broadcast-email.service.ts", () => {
         workEmail: "agus.pratama@pspk.id",
         currentPosition: { title: "Lead Peneliti", isUnitHead: true },
         currentDepartment: { id: "dept-2", name: "Riset Kebijakan" },
-      } as any);
+      } as unknown as MockEmployeeFirst);
 
       vi.mocked(prisma.employee.count).mockResolvedValue(8);
 
@@ -219,7 +222,7 @@ describe("broadcast-email.service.ts", () => {
           userId: "user-2",
           currentDepartment: { name: "Riset" },
         },
-      ] as any);
+      ] as unknown as MockEmployeeMany);
 
       const recipients = await getBroadcastRecipients(managerCtx, "TEAM");
 
