@@ -1,6 +1,10 @@
-import { prisma } from "@pspk/db";
+import {
+  prisma,
+  BroadcastScope,
+  BroadcastStatus,
+  BroadcastDeliveryStatus,
+} from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
-import { BroadcastScope, BroadcastStatus, BroadcastDeliveryStatus } from "@prisma/client";
 
 export interface BroadcastHistoryItem {
   id: string;
