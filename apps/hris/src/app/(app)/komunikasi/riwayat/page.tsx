@@ -56,7 +56,7 @@ export default async function KomunikasiRiwayatPage({
           <div className="pt-2">
             <Link
               href="/dashboard"
-              className="inline-flex items-center px-4 py-2 bg-navy-900 text-white rounded-xl text-xs font-semibold hover:bg-navy-950 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-[#102E50] text-white rounded-xl text-xs font-semibold hover:bg-[#0c233d] transition-colors"
             >
               Kembali ke Beranda
             </Link>
@@ -107,7 +107,7 @@ export default async function KomunikasiRiwayatPage({
           <div className="flex items-center gap-2">
             <Link
               href="/komunikasi/baru"
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-navy-900 hover:bg-navy-950 text-white rounded-xl text-xs font-semibold shadow-sm transition-all duration-150"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#102E50] hover:bg-[#0c233d] text-white rounded-xl text-xs font-semibold shadow-sm transition-all duration-150 cursor-pointer"
             >
               <PenSquare className="w-4 h-4 text-gold-400" />
               <span>Tulis Pengumuman Baru</span>

@@ -215,7 +215,7 @@ export function BroadcastHistoryView({
           {canCreate && (
             <Link
               href="/komunikasi/baru"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-navy-900 hover:bg-navy-950 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#102E50] hover:bg-[#0c233d] text-white rounded-lg text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               <Send className="w-3.5 h-3.5 text-gold-400" />
               <span>Tulis Pengumuman</span>
@@ -242,7 +242,7 @@ export function BroadcastHistoryView({
             <div className="pt-2">
               <Link
                 href="/komunikasi/baru"
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-navy-900 text-white rounded-xl text-xs font-semibold hover:bg-navy-950 transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] text-white rounded-xl text-xs font-semibold hover:bg-[#0c233d] transition-colors cursor-pointer"
               >
                 <Send className="w-3.5 h-3.5 text-gold-400" />
                 <span>Buat Pengumuman Baru</span>
@@ -351,7 +351,7 @@ export function BroadcastHistoryView({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-3 sm:p-4">
           <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="px-5 py-4 bg-navy-900 text-white flex items-center justify-between">
+            <div className="px-5 py-4 bg-[#102E50] text-white flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-gold-400">
                   Rincian Pengumuman &amp; Log Penerima
@@ -363,7 +363,7 @@ export function BroadcastHistoryView({
               <button
                 type="button"
                 onClick={handleCloseDetail}
-                className="text-slate-300 hover:text-white transition-colors p-1"
+                className="text-slate-300 hover:text-white transition-colors p-1 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -399,7 +399,7 @@ export function BroadcastHistoryView({
                       </div>
                       <div>
                         <span className="text-slate-500">Akun Pengirim Resmi:</span>
-                        <p className="font-mono text-navy-900 font-medium">
+                        <p className="font-mono text-[#102E50] font-medium">
                           PSPK HRIS &lt;no-reply@pspk.id&gt;
                         </p>
                       </div>
@@ -435,9 +435,9 @@ export function BroadcastHistoryView({
                         <button
                           type="button"
                           onClick={() => setRecipientFilter("ALL")}
-                          className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
+                          className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
                             recipientFilter === "ALL"
-                              ? "bg-navy-900 text-white font-semibold"
+                              ? "bg-[#102E50] text-white"
                               : "text-slate-600 hover:bg-slate-100"
                           }`}
                         >

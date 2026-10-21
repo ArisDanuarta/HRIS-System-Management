@@ -31,7 +31,7 @@ export default async function KomunikasiBaruPage() {
           <div className="pt-2">
             <Link
               href="/dashboard"
-              className="inline-flex items-center px-4 py-2 bg-navy-900 text-white rounded-xl text-xs font-semibold hover:bg-navy-950 transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-[#102E50] text-white rounded-xl text-xs font-semibold hover:bg-[#0c233d] transition-colors"
             >
               Kembali ke Beranda
             </Link>

@@ -262,9 +262,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().setParagraph().run()}
-          className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+          className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer ${
             editor.isActive("paragraph") && !editor.isActive("heading")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Teks Normal / Paragraf"
@@ -277,9 +277,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+          className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer ${
             editor.isActive("heading", { level: 2 })
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Judul Utama (H2)"
@@ -292,9 +292,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+          className={`p-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1 cursor-pointer ${
             editor.isActive("heading", { level: 3 })
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Sub Judul (H3)"
@@ -310,9 +310,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBold().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("bold")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Tebal (Ctrl+B)"
@@ -324,9 +324,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("italic")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Miring (Ctrl+I)"
@@ -338,9 +338,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("underline")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Garis Bawah (Ctrl+U)"
@@ -352,9 +352,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("strike")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Coret Teks"
@@ -369,9 +369,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("bulletList")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Daftar Butir (Bullet List)"
@@ -383,9 +383,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("orderedList")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Daftar Angka (Numbered List)"
@@ -397,9 +397,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          className={`p-1.5 rounded-md transition-colors ${
+          className={`p-1.5 rounded-md transition-colors cursor-pointer ${
             editor.isActive("blockquote")
-              ? "bg-navy-900 text-white shadow-xs"
+              ? "bg-[#102E50] text-white font-semibold shadow-xs ring-1 ring-[#102E50]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Kutipan / Callout Penting"
@@ -414,9 +414,9 @@ export function RichTextEditor({
         <button
           type="button"
           onClick={handleOpenLinkModal}
-          className={`p-1.5 rounded-md transition-colors flex items-center gap-1 text-xs font-medium ${
+          className={`p-1.5 rounded-md transition-colors flex items-center gap-1 text-xs font-medium cursor-pointer ${
             editor.isActive("link")
-              ? "bg-gold-500 text-slate-900 font-semibold shadow-xs"
+              ? "bg-[#F2AF3E] text-slate-900 font-bold shadow-xs ring-1 ring-[#e09d2c]"
               : "hover:bg-slate-200 text-slate-700"
           }`}
           title="Sisipkan atau Edit Tautan (Link)"
@@ -432,7 +432,7 @@ export function RichTextEditor({
             setUploadError(null);
             setShowImageModal(true);
           }}
-          className="p-1.5 rounded-md transition-colors flex items-center gap-1 text-xs font-medium hover:bg-slate-200 text-slate-700"
+          className="p-1.5 rounded-md transition-colors flex items-center gap-1 text-xs font-medium hover:bg-slate-200 text-slate-700 cursor-pointer"
           title="Sisipkan Gambar (Unggah / URL)"
           disabled={disabled}
         >
@@ -499,7 +499,7 @@ export function RichTextEditor({
       {showLinkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between px-4 py-3 bg-navy-900 text-white">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#102E50] text-white">
               <div className="flex items-center gap-2">
                 <Link2 className="w-4 h-4 text-gold-400" />
                 <h3 className="font-semibold text-sm">Sisipkan Tautan Web</h3>
@@ -507,7 +507,7 @@ export function RichTextEditor({
               <button
                 type="button"
                 onClick={() => setShowLinkModal(false)}
-                className="text-slate-300 hover:text-white transition-colors"
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -523,7 +523,7 @@ export function RichTextEditor({
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
                   placeholder="Contoh: Buka Dokumen Panduan"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent"
                 />
               </div>
 
@@ -537,7 +537,7 @@ export function RichTextEditor({
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://drive.google.com/... atau https://pspk.id"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent font-mono text-xs"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent font-mono text-xs"
                 />
               </div>
 
@@ -546,7 +546,7 @@ export function RichTextEditor({
                   <button
                     type="button"
                     onClick={handleRemoveLink}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium cursor-pointer"
                   >
                     <Unlink className="w-3.5 h-3.5" />
                     <span>Hapus Tautan</span>
@@ -559,13 +559,13 @@ export function RichTextEditor({
                   <button
                     type="button"
                     onClick={() => setShowLinkModal(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 text-xs font-medium bg-navy-900 text-white rounded-lg hover:bg-navy-950 transition-colors shadow-xs"
+                    className="px-4.5 py-2 text-xs font-semibold bg-[#102E50] hover:bg-[#0c233d] text-white rounded-lg transition-all shadow-sm cursor-pointer"
                   >
                     Simpan Tautan
                   </button>
@@ -580,7 +580,7 @@ export function RichTextEditor({
       {showImageModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
           <div className="w-full max-w-md bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between px-4 py-3 bg-navy-900 text-white">
+            <div className="flex items-center justify-between px-4 py-3 bg-[#102E50] text-white">
               <div className="flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-gold-400" />
                 <h3 className="font-semibold text-sm">Sisipkan Gambar ke Naskah</h3>
@@ -588,7 +588,7 @@ export function RichTextEditor({
               <button
                 type="button"
                 onClick={() => setShowImageModal(false)}
-                className="text-slate-300 hover:text-white transition-colors"
+                className="text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -599,9 +599,9 @@ export function RichTextEditor({
               <button
                 type="button"
                 onClick={() => setImageTab("upload")}
-                className={`flex-1 py-2.5 px-3 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
+                className={`flex-1 py-2.5 px-3 flex items-center justify-center gap-1.5 transition-colors border-b-2 cursor-pointer ${
                   imageTab === "upload"
-                    ? "border-navy-900 text-navy-900 bg-white font-semibold"
+                    ? "border-[#102E50] text-[#102E50] bg-white font-bold"
                     : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -611,9 +611,9 @@ export function RichTextEditor({
               <button
                 type="button"
                 onClick={() => setImageTab("url")}
-                className={`flex-1 py-2.5 px-3 flex items-center justify-center gap-1.5 transition-colors border-b-2 ${
+                className={`flex-1 py-2.5 px-3 flex items-center justify-center gap-1.5 transition-colors border-b-2 cursor-pointer ${
                   imageTab === "url"
-                    ? "border-navy-900 text-navy-900 bg-white font-semibold"
+                    ? "border-[#102E50] text-[#102E50] bg-white font-bold"
                     : "border-transparent text-slate-500 hover:text-slate-700"
                 }`}
               >
@@ -707,13 +707,13 @@ export function RichTextEditor({
                   <button
                     type="button"
                     onClick={() => setShowImageModal(false)}
-                    className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors cursor-pointer"
                   >
                     Batal
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 text-xs font-medium bg-navy-900 text-white rounded-lg hover:bg-navy-950 transition-colors shadow-xs"
+                    className="px-4.5 py-2 text-xs font-semibold bg-[#102E50] hover:bg-[#0c233d] text-white rounded-lg transition-all shadow-sm cursor-pointer"
                   >
                     Sisipkan Gambar
                   </button>
