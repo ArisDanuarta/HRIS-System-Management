@@ -23,6 +23,7 @@ import {
   Briefcase,
   Network,
   CalendarRange,
+  Mail,
 } from "lucide-react";
 import { ModuleFlags, isModuleActive } from "@pspk/db";
 
@@ -332,6 +333,13 @@ export function AppSidebar({
                   isCollapsed={isCollapsed}
                 />
               )}
+              <NavItem
+                href="/komunikasi/baru"
+                label="Broadcast Email"
+                icon={<Mail className="w-5 h-5 shrink-0" />}
+                isActive={pathname.startsWith("/komunikasi")}
+                isCollapsed={isCollapsed}
+              />
             </nav>
 
             {renderPersonalSection(false)}
@@ -428,6 +436,13 @@ export function AppSidebar({
                   isCollapsed={isCollapsed}
                 />
               )}
+              <NavItem
+                href="/komunikasi/baru"
+                label="Kirim Email Tim"
+                icon={<Mail className="w-5 h-5 shrink-0" />}
+                isActive={pathname.startsWith("/komunikasi")}
+                isCollapsed={isCollapsed}
+              />
             </nav>
 
             {renderPersonalSection(false)}

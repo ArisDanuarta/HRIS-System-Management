@@ -149,7 +149,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         targetDepartmentId:
           targetScope === "DEPARTMENT" ? selectedDepartmentId : undefined,
         customEmployeeIds:
-          targetScope === "CUSTOM" ? selectedEmployeeIds : undefined,
+          targetScope === "CUSTOM" ? selectedEmployeeIds : [],
         sendInApp,
       });
 
