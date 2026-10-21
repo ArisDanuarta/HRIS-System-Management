@@ -398,10 +398,10 @@ export async function executeSendBroadcast(
   const {
     subject,
     contentHtml: rawContentHtml,
-    targetScope,
+    targetScope = "TEAM",
     targetDepartmentId,
-    customEmployeeIds,
-    sendInApp,
+    customEmployeeIds = [],
+    sendInApp = true,
   } = input;
 
   // 1. Sanitasi konten HTML

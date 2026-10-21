@@ -23,4 +23,5 @@ export const sendBroadcastSchema = z.object({
   sendInApp: z.boolean().default(true),
 });
 
-export type SendBroadcastInput = z.infer<typeof sendBroadcastSchema>;
+export type SendBroadcastInput = z.input<typeof sendBroadcastSchema>;
+export type SendBroadcastOutput = z.output<typeof sendBroadcastSchema>;
