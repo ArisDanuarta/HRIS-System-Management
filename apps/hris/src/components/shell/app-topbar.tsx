@@ -38,6 +38,7 @@ export function AppTopbar({
     if (pathname === "/" || pathname === "/dashboard") return "Beranda";
     if (pathname.startsWith("/kalender")) return "Kalender Kerja";
     if (pathname.startsWith("/notifikasi")) return "Pusat Notifikasi";
+    if (pathname.startsWith("/komunikasi")) return "Komunikasi & Pengumuman";
     if (pathname.startsWith("/karyawan/struktur")) return "Bagan Struktur Organisasi";
     if (pathname.startsWith("/karyawan/ikatan-kerja")) return "Tipe Ikatan Kerja";
     if (pathname.startsWith("/karyawan/organisasi")) return "Struktur Organisasi";
