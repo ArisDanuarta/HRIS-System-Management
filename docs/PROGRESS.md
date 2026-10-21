@@ -2,6 +2,37 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Modul Komunikasi] Tahap 4: Riwayat Pengumuman, Metrik Transmisi & Detail Log Penerima — 2026-10-21
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Pembangunan antarmuka dan kueri backend untuk memantau arsip seluruh pengumuman email yang pernah dikirim melalui sistem.
+  - Penyajian indikator ringkasan statistik transmisi (total pengumuman, email berhasil dikirim, email gagal, dan rasio sukses).
+  - Pembangunan antarmuka penelusuran (pencarian teks dan filter cakupan target).
+  - Modal rincian pengumuman lengkap: pratinjau salinan naskah asli, metadata pengiriman (pengirim, balasan Reply-To, cakupan target), dan tabel audit log penerima per individu (status pengiriman, pesan kegagalan, dan stempel waktu).
+- **Hasil Pekerjaan:**
+  1. **Kueri Data Backend (`apps/hris/src/server/queries/broadcast.queries.ts`):**
+     - `getBroadcastHistory`: Mengambil daftar riwayat broadcast dengan pagination dan filtering cerdas berdasarkan izin RBAC (Admin HR melihat seluruh riwayat lembaga; Manajer hanya melihat pengumuman yang ia kirim sendiri).
+     - `getBroadcastStats`: Menghitung total broadcast, total email sukses terkirim, total gagal, dan persentase kesuksesan transmisi.
+     - `getBroadcastDetail`: Mengambil satu riwayat pengumuman beserta seluruh daftar penerima (`EmailBroadcastRecipient`) dengan verifikasi kepemilikan/hak akses.
+  2. **Server Actions (`apps/hris/src/server/actions/broadcast.actions.ts`):**
+     - Menambahkan fungsi `getBroadcastDetailAction(broadcastId)` untuk pemanggilan dinamis saat pengguna mengeklik tombol "Lihat Rincian & Log".
+  3. **Antarmuka Riwayat Interaktif (`apps/hris/src/components/broadcast/broadcast-history-view.tsx`):**
+     - Kartu statistik modern beraksen Navy & Gold dengan indikator live rasio keberhasilan.
+     - Bilah filter interaktif: kolom pencarian instan berdasarkan subjek/naskah serta tab filter cakupan target (Semua, Seluruh Karyawan, Departemen, Tim Kerja, Kustom).
+     - Daftar pengumuman responsif dengan badge status (`SENT`, `FAILED`, `PARTIAL`, `SENDING`), badge cakupan target, indikator notifikasi in-app, serta rasio penerima per kartu.
+     - Modal laci detail mendalam:
+       - Tab navigasi internal: "Rincian Konten Pesan" (menampilkan naskah asli email) dan "Log Status Penerima" (tabel daftar pegawai, alamat email, status `SENT`/`FAILED`, alasan error bila ada, dan waktu pengiriman).
+       - Pencarian dan filter status penerima (Semua / Berhasil / Gagal) di dalam modal log.
+  4. **Halaman App Router (`apps/hris/src/app/(app)/komunikasi/riwayat/page.tsx`):**
+     - Server component dengan penegakan izin RBAC (`hris.broadcast.read:*`, `hris.broadcast.send:all`, `hris.broadcast.send:team`), breadcrumbs elegan, dan tombol pintas penulisan baru bagi staf berwenang.
+  5. **Pengujian Unit Kueri (`apps/hris/src/server/queries/broadcast.queries.test.ts`):**
+     - 4 skenario pengujian unit (isolasi RBAC riwayat HR vs Manajer, perhitungan statistik transmisi, dan pengambilan log penerima) lulus 100%.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test`: ✅ Lolos 100% (33 test files, 225 unit tests passed)
+
 ## [Modul Komunikasi] Tahap 3: Layanan Pengiriman Email SMTP, Smart Reply-To & Form Penulisan Pengumuman — 2026-10-21
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
