@@ -2,6 +2,42 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Modul Komunikasi] Tahap 3: Layanan Pengiriman Email SMTP, Smart Reply-To & Form Penulisan Pengumuman — 2026-10-21
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Pembangunan engine backend pengiriman email broadcast individual via `no-reply@pspk.id` dengan kontrol laju pengiriman (*batching*), rute balasan otomatis (*smart Reply-To*), dan integrasi notifikasi in-app.
+  - Pembangunan antarmuka formulir penulisan pengumuman di `/komunikasi/baru` dengan selektor target cerdas, live preview email resmi PSPK, dan modal konfirmasi keamanan.
+- **Hasil Pekerjaan:**
+  1. **Skema Validasi Zod (`apps/hris/src/server/schemas/broadcast.schema.ts`):**
+     - Memvalidasi parameter subjek (3–200 karakter), naskah konten (min. 10 karakter), target scope (`ALL_EMPLOYEES`, `DEPARTMENT`, `TEAM`, `CUSTOM`), target departemen/karyawan, dan opsi dual notification in-app.
+  2. **Layanan Pengiriman Backend (`apps/hris/src/server/services/broadcast-email.service.ts`):**
+     - `getBroadcastSenderContext`: Mengurai identitas pengirim, jabatan, peran, dan cakupan target yang diizinkan (Admin HR mendapat akses menyeluruh; Manajer terkunci ke tim bawahannya).
+     - `getBroadcastRecipients`: Mengambil daftar target pegawai aktif yang memiliki email kerja valid, mengecualikan pengirim sendiri dari penerima, dan menolak keras manajer yang mencoba menembus target di luar tim.
+     - `sanitizeBroadcastContent`: Sanitasi HTML ketat dengan `sanitize-html` untuk mencegah script injection dan atribut berbahaya.
+     - `htmlToPlainText`: Konversi naskah ke teks polos sebagai fallback klien email jadul.
+     - `renderBroadcastEmailHtml`: Template email responsif berestetika brand PSPK (Header Deep Navy `#102E50`, garis aksen Gold `#F2AF3E`, badge pengumuman, sapaan personal per pegawai, dan disclaimer institusi `no-reply@pspk.id`).
+     - `executeSendBroadcast`: Pengiriman email SMTP terisolasi per individu dalam kelompok (*batch chunks*) 5 email dengan interval 200ms untuk mencegah batas laju SMTP Google Workspace; fallback simulasi dev jika SMTP belum dikonfigurasi; integrasi otomatis pembuatan record lonceng notifikasi `core.Notification`; dan pencatatan audit log `core.AuditLog`.
+  3. **Server Actions (`apps/hris/src/server/actions/broadcast.actions.ts`):**
+     - `getBroadcastFormDataAction`: Memuat konteks pengirim, master departemen, dan daftar pegawai/tim.
+     - `sendBroadcastAction`: Menjalankan validasi input, eksekusi pengiriman broadcast, dan `revalidatePath` untuk `/komunikasi/riwayat` dan `/notifikasi`.
+  4. **Antarmuka Form Komunikasi (`apps/hris/src/components/broadcast/broadcast-create-form.tsx`):**
+     - Selektor target dinamis: Admin HR dapat memilih Seluruh Staf / Departemen / Karyawan Kustom; Manajer otomatis terkunci ke anggota tim bawahan langsung dengan tampilan badge nama anggota tim.
+     - Tab beralih antara **"Tulis Pesan"** (menggunakan RichTextEditor bergaya Word) dan **"Pratinjau Email"** (bingkai simulasi Gmail/Outlook resmi PSPK).
+     - Kotak centang opsi dual notifikasi in-app di portal HRIS.
+     - Modal dialog konfirmasi keamanan (*Safety Confirmation Modal*) yang merangkum rincian subjek, pengirim, Reply-To, dan jumlah total penerima sebelum dieksekusi.
+  5. **Halaman App Router (`apps/hris/src/app/(app)/komunikasi/baru/page.tsx`):**
+     - Halaman pembuatan pengumuman dengan proteksi otorisasi server-side, breadcrumbs, dan integrasi formulir.
+  6. **Integrasi Navigasi Shell (`app-sidebar.tsx` & `app-topbar.tsx`):**
+     - Menambahkan menu navigasi "Broadcast Email" pada tampilan Admin HR dan "Kirim Email Tim" pada tampilan Manajer.
+     - Memetakan judul halaman breadcrumbs "Komunikasi & Pengumuman" di topbar.
+  7. **Unit Testing (`apps/hris/src/server/services/broadcast-email.service.test.ts`):**
+     - 8 skenario pengujian unit (sanitasi HTML, konversi teks, render template, otorisasi HR vs Manajer vs Staf, dan isolasi filter tim) lulus 100%.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test`: ✅ Lolos 100% (32 test files, 221 unit tests passed)
+
 ## [Modul Komunikasi] Tahap 2: Pustaka Rich Text Editor Tiptap & Layanan Unggah Gambar — 2026-10-21
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
