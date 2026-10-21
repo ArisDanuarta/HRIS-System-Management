@@ -107,4 +107,64 @@ describe("RBAC can() & assertCan()", () => {
       }).toThrowError(ForbiddenError);
     });
   });
+
+  describe("Broadcast Email RBAC Permissions", () => {
+    const hrAdminBroadcastCtx: AuthContext = {
+      userId: "u-hr-1",
+      employeeId: "emp-hr-1",
+      roles: ["admin_hr"],
+      permissions: new Set([
+        "hris.broadcast.send:all",
+        "hris.broadcast.read:all",
+        "hris.broadcast.read:own",
+      ]),
+    };
+
+    const managerBroadcastCtx: AuthContext = {
+      userId: "u-mgr-1",
+      employeeId: "emp-mgr-1",
+      roles: ["manager"],
+      permissions: new Set([
+        "hris.broadcast.send:team",
+        "hris.broadcast.read:team",
+        "hris.broadcast.read:own",
+      ]),
+    };
+
+    const staffBroadcastCtx: AuthContext = {
+      userId: "u-staff-1",
+      employeeId: "emp-staff-1",
+      roles: ["staff"],
+      permissions: new Set(["hris.broadcast.read:own"]),
+    };
+
+    it("permits Admin HR to send broadcast email to all employees", () => {
+      expect(can(hrAdminBroadcastCtx, "hris.broadcast.send")).toBe(true);
+      expect(can(hrAdminBroadcastCtx, "hris.broadcast.read")).toBe(true);
+    });
+
+    it("permits Manager to send broadcast only when scoped to team", () => {
+      // Manager has send:team
+      expect(
+        can(managerBroadcastCtx, "hris.broadcast.send", {
+          managerEmployeeId: "emp-mgr-1",
+        }),
+      ).toBe(true);
+      // Denied if target is outside team
+      expect(
+        can(managerBroadcastCtx, "hris.broadcast.send", {
+          managerEmployeeId: "emp-other-mgr",
+        }),
+      ).toBe(false);
+      // Denied without team context
+      expect(can(managerBroadcastCtx, "hris.broadcast.send")).toBe(false);
+    });
+
+    it("denies Staff from sending broadcast emails", () => {
+      expect(can(staffBroadcastCtx, "hris.broadcast.send")).toBe(false);
+      expect(() => {
+        assertCan(staffBroadcastCtx, "hris.broadcast.send");
+      }).toThrowError(ForbiddenError);
+    });
+  });
 });

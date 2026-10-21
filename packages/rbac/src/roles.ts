@@ -54,6 +54,10 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.calendar.holiday:sync",
       "hris.calendar.read:own",
       "hris.calendar.google:connect",
+      // Broadcast & Communication
+      "hris.broadcast.send:all",
+      "hris.broadcast.read:all",
+      "hris.broadcast.read:own",
     ],
   },
   {
@@ -82,6 +86,8 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.attendance.checkin:own",
       "sysmgmt.asset.read:own",
       "sysmgmt.document.read:own",
+      // Broadcast & Communication
+      "hris.broadcast.read:own",
     ],
   },
   {
@@ -118,6 +124,10 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       "hris.calendar.read:all",
       "hris.calendar.read:own",
       "hris.calendar.google:connect",
+      // Broadcast & Communication
+      "hris.broadcast.send:team",
+      "hris.broadcast.read:team",
+      "hris.broadcast.read:own",
     ],
   },
   {
@@ -144,6 +154,8 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       // Calendar
       "hris.calendar.read:own",
       "hris.calendar.google:connect",
+      // Broadcast & Communication
+      "hris.broadcast.read:own",
     ],
   },
 ];

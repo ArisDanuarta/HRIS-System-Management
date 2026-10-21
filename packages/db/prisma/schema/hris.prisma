@@ -173,6 +173,7 @@ model Department {
   employees     Employee[]
   histories     EmploymentHistory[]
   workSchedules WorkScheduleSetting[]
+  broadcasts    EmailBroadcast[]
 
   @@map("departments")
   @@schema("hris")
@@ -247,6 +248,8 @@ model Employee {
   timesheetsAssigned  TimesheetReviewer[]
   documents           EmployeeDocument[]
   calendarEvents      CalendarEvent[]
+  broadcastsSent      EmailBroadcast[]           @relation("SenderBroadcasts")
+  broadcastRecipients EmailBroadcastRecipient[]
 
   @@index([status])
   @@index([managerId])
@@ -812,5 +815,85 @@ model CalendarEvent {
   @@map("calendar_events")
   @@schema("hris")
 }
+
+// -------------------------------------------------------------
+// MODUL KOMUNIKASI & BROADCAST EMAIL INTERNAL
+// -------------------------------------------------------------
+
+enum BroadcastScope {
+  ALL_EMPLOYEES
+  DEPARTMENT
+  TEAM
+  CUSTOM
+
+  @@schema("hris")
+}
+
+enum BroadcastStatus {
+  DRAFT
+  SENDING
+  SENT
+  PARTIALLY_FAILED
+  FAILED
+
+  @@schema("hris")
+}
+
+enum BroadcastDeliveryStatus {
+  PENDING
+  SENT
+  FAILED
+
+  @@schema("hris")
+}
+
+model EmailBroadcast {
+  id                 String          @id @default(uuid())
+  subject            String
+  contentHtml        String          @db.Text @map("content_html")
+  contentText        String          @db.Text @map("content_text")
+  senderUserId       String          @map("sender_user_id")
+  senderEmployeeId   String?         @map("sender_employee_id")
+  senderName         String          @map("sender_name")
+  senderEmail        String          @map("sender_email")
+  replyToEmail       String          @map("reply_to_email")
+  targetScope        BroadcastScope  @default(TEAM) @map("target_scope")
+  targetDepartmentId String?         @map("target_department_id")
+  totalRecipients    Int             @default(0) @map("total_recipients")
+  sentCount          Int             @default(0) @map("sent_count")
+  failedCount        Int             @default(0) @map("failed_count")
+  sendInApp          Boolean         @default(true) @map("send_in_app")
+  status             BroadcastStatus @default(SENT)
+  createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  senderEmployee     Employee?       @relation("SenderBroadcasts", fields: [senderEmployeeId], references: [id])
+  targetDepartment   Department?     @relation(fields: [targetDepartmentId], references: [id])
+  recipients         EmailBroadcastRecipient[]
+
+  @@index([senderUserId])
+  @@index([createdAt(sort: Desc)])
+  @@map("email_broadcasts")
+  @@schema("hris")
+}
+
+model EmailBroadcastRecipient {
+  id            String                  @id @default(uuid())
+  broadcastId   String                  @map("broadcast_id")
+  employeeId    String?                 @map("employee_id")
+  email         String
+  recipientName String                  @map("recipient_name")
+  status        BroadcastDeliveryStatus @default(PENDING)
+  errorMessage  String?                 @map("error_message")
+  sentAt        DateTime?               @map("sent_at") @db.Timestamptz(6)
+
+  broadcast     EmailBroadcast          @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  employee      Employee?               @relation(fields: [employeeId], references: [id])
+
+  @@index([broadcastId])
+  @@index([email])
+  @@map("email_broadcast_recipients")
+  @@schema("hris")
+}
+
 
 

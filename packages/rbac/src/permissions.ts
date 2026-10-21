@@ -185,6 +185,33 @@ export const PERMISSIONS = [
     description: "Mengelola periode & finalisasi kinerja",
   },
 
+  // --- HRIS: Broadcast & Communication ---
+  {
+    key: "hris.broadcast.send:all",
+    module: "hris",
+    description: "Mengirim email broadcast ke seluruh organisasi atau departemen (HR / Super Admin)",
+  },
+  {
+    key: "hris.broadcast.send:team",
+    module: "hris",
+    description: "Mengirim email broadcast ke anggota tim bawahan (Manajer / Lead)",
+  },
+  {
+    key: "hris.broadcast.read:all",
+    module: "hris",
+    description: "Melihat seluruh riwayat pengumuman broadcast organisasi",
+  },
+  {
+    key: "hris.broadcast.read:team",
+    module: "hris",
+    description: "Melihat riwayat broadcast yang dikirim ke tim",
+  },
+  {
+    key: "hris.broadcast.read:own",
+    module: "hris",
+    description: "Melihat pengumuman yang dikirim ke diri sendiri atau dibuat sendiri",
+  },
+
   // --- System Management: Core & Users ---
   {
     key: "sysmgmt.dashboard.read:all",
