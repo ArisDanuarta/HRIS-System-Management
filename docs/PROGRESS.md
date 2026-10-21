@@ -2,6 +2,28 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Modul Komunikasi] Tahap 5: Pengujian Integrasi, Edge Cases & Verifikasi Mutu Menyeluruh — 2026-10-21
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Pengujian menyeluruh terhadap alur *Server Actions* (`apps/hris/src/server/actions/broadcast.actions.ts`).
+  - Pengetesan skenario autentikasi kedaluwarsa, kegagalan validasi skema Zod (subjek & konten terlalu pendek/kosong), perlakuan terhadap default fallback destructuring parameter input, isolasi hak akses HR vs Manajer, penanganan metadata jaringan (IP address, User Agent), dan revalidasi cache Next.js (`revalidatePath`).
+  - Verifikasi menyeluruh terhadap kompilasi TypeScript strict di semua paket (`pnpm typecheck`), aturan linting bebas peringatan (`pnpm lint`), pengujian unit 100% lulus (`pnpm test`), dan build bundle produksi mandiri Next.js standalone (`pnpm build`).
+- **Hasil Pekerjaan:**
+  1. **Pengujian Unit Server Actions (`apps/hris/src/server/actions/broadcast.actions.test.ts`):**
+     - 12 skenario pengujian komprehensif:
+       - `getBroadcastFormDataAction`: Penolakan jika sesi null/kedaluwarsa, pemuatan daftar departemen & seluruh staf untuk HR/Super Admin, pemuatan staf bawahan langsung untuk Manajer, serta penanganan aman terhadap kegagalan koneksi database.
+       - `sendBroadcastAction`: Penolakan sesi tidak valid, kegagalan validasi Zod jika subjek < 3 karakter, kegagalan validasi jika konten pesan < 10 karakter, keberhasilan pengiriman broadcast ke engine service dengan pencatatan IP/User-Agent, pemanggilan `revalidatePath` untuk `/komunikasi/riwayat`, dan penanganan error dari service.
+       - `getBroadcastDetailAction`: Penolakan sesi tidak valid, keberhasilan pengambilan detail pengumuman beserta daftar penerima, dan penanganan aman bila pengumuman tidak ditemukan.
+  2. **Penyempurnaan Tipe Input & Destructuring Schema:**
+     - Menjadikan tipe input `sendBroadcastAction` menggunakan `z.input<typeof sendBroadcastSchema>` sehingga parameter opsional seperti `customEmployeeIds` dan `sendInApp` memiliki nilai fallback otomatis tanpa mewajibkan pemanggil mengisi array kosong.
+     - Menyediakan nilai default destructuring di `executeSendBroadcast` untuk keamanan ekstra terhadap payload tak lengkap.
+  3. **Verifikasi Kualitas Monorepo:**
+     - `pnpm typecheck`: ✅ Lolos 100% di semua 9 paket monorepo (`@pspk/auth`, `@pspk/config`, `@pspk/db`, `@pspk/hris`, `@pspk/rbac`, `@pspk/shared`, `@pspk/storage`, `@pspk/sysmgmt`, `@pspk/ui`).
+     - `pnpm lint`: ✅ Lolos 100% tanpa ada kesalahan (0 error) dan tanpa peringatan (0 warning).
+     - `pnpm test`: ✅ Lolos 100% (34 file pengujian Vitest, 237 skenario unit test lulus tanpa kegagalan).
+     - `pnpm build`: ✅ Lolos 100% (Kedua aplikasi `apps/hris` dan `apps/sysmgmt` terkompilasi optimal dalam mode `standalone` untuk deployment Docker VPS).
+
 ## [Modul Komunikasi] Tahap 4: Riwayat Pengumuman, Metrik Transmisi & Detail Log Penerima — 2026-10-21
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
