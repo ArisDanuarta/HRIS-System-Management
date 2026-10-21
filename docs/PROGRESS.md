@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Modul Komunikasi] Tahap 1: Skema Database & Izin RBAC Broadcast Email — 2026-10-21
+
+- **Status:** Selesai (Tuntas & Terverifikasi)
+- **Scope & Permasalahan:**
+  - Persiapan fondasi database dan izin akses (RBAC) untuk Modul Komunikasi & Broadcast Email Internal PSPK.
+  - Memastikan Admin HR dan Super Admin memiliki izin broadcast ke seluruh organisasi (`hris.broadcast.send:all`), Manajer/Lead hanya ke tim bawahannya (`hris.broadcast.send:team`), dan Staf hanya memiliki akses baca (`hris.broadcast.read:own`).
+- **Hasil Pekerjaan:**
+  1. **Dokumentasi Rancangan (`docs/MODUL_NOTIFIKASI_EMAIL_PLAN.md`):**
+     - Menyusun dokumen analisis kebutuhan, alur pengiriman SMTP via `no-reply@pspk.id`, integrasi smart `Reply-To`, penanganan pengiriman ber-batching, dan arsitektur editor teks kaya.
+  2. **Skema Prisma Multi-Schema (`packages/db/prisma/schema/hris.prisma`):**
+     - Menambahkan enum `BroadcastScope`, `BroadcastStatus`, dan `BroadcastDeliveryStatus` di skema `hris`.
+     - Menambahkan model `EmailBroadcast` (tabel induk pengumuman dengan konten HTML/teks, sender info, relasi departemen, dan flag notifikasi in-app).
+     - Menambahkan model `EmailBroadcastRecipient` (tabel log penerima per individu dengan status delivery, error message, dan waktu terkirim).
+     - Menambahkan relasi `broadcasts` pada `Department` dan `broadcastsSent` serta `broadcastRecipients` pada `Employee`.
+     - Menjalankan migrasi database PostgreSQL `20261021040829_add_email_broadcast_models`.
+  3. **RBAC Permissions & Roles (`packages/rbac`):**
+     - Mendaftarkan permission keys baru: `hris.broadcast.send:all`, `hris.broadcast.send:team`, `hris.broadcast.read:all`, `hris.broadcast.read:team`, `hris.broadcast.read:own`.
+     - Memetakan permission ke peran sistem di `roles.ts`:
+       - `super_admin`: Full access (otomatis via mapping wildcard)
+       - `admin_hr`: `hris.broadcast.send:all`, `hris.broadcast.read:all`, `hris.broadcast.read:own`
+       - `manager`: `hris.broadcast.send:team`, `hris.broadcast.read:team`, `hris.broadcast.read:own`
+       - `staff`: `hris.broadcast.read:own`
+       - `admin_it`: `hris.broadcast.read:own`
+     - Menambahkan `broadcast` ke `RESOURCE_METADATA` di `apps/sysmgmt/src/server/queries/role.queries.ts`.
+     - Menambahkan unit tests komprehensif di `packages/rbac/src/can.test.ts`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket)
+  - `pnpm test`: ✅ Lolos 100% (30 test files, 206 unit tests passed)
+
 ## [HRIS Core] Penambahan Nomor Kontrak & Unggah Berkas PDF Kontrak Kerja — 2026-10-19
 
 - **Status:** Selesai (Tuntas & Terverifikasi)
