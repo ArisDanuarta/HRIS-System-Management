@@ -217,8 +217,11 @@ export async function GET(
       return new Response("Invalid file path", { status: 400 });
     }
 
-    // Avatar foto profil dan branding aset payroll bersifat publik untuk rendering antarmuka UI.
-    const isPublicAsset = key.startsWith("avatars/") || key.startsWith("branding/");
+    // Avatar foto profil, branding aset payroll, dan gambar broadcast bersifat publik untuk rendering antarmuka UI dan klien email.
+    const isPublicAsset =
+      key.startsWith("avatars/") ||
+      key.startsWith("branding/") ||
+      key.startsWith("broadcast-images/");
 
     const reqHeaders = await headers();
     let session = null;
