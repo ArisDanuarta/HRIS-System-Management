@@ -162,8 +162,8 @@ export function RichTextEditor({
     setShowLinkModal(true);
   };
 
-  const handleSaveLink = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveLink = (e?: React.FormEvent | React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     if (!linkUrl.trim()) {
       editor.chain().focus().unsetLink().run();
       setShowLinkModal(false);
@@ -231,8 +231,8 @@ export function RichTextEditor({
     }
   };
 
-  const handleInsertUrlImage = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInsertUrlImage = (e?: React.FormEvent | React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     if (!imageUrl.trim()) return;
 
     editor
@@ -513,7 +513,7 @@ export function RichTextEditor({
               </button>
             </div>
 
-            <form onSubmit={handleSaveLink} className="p-4 space-y-3">
+            <div className="p-4 space-y-3">
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1">
                   Teks yang Ditampilkan
@@ -522,6 +522,12 @@ export function RichTextEditor({
                   type="text"
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSaveLink();
+                    }
+                  }}
                   placeholder="Contoh: Buka Dokumen Panduan"
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent"
                 />
@@ -536,6 +542,12 @@ export function RichTextEditor({
                   required
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSaveLink();
+                    }
+                  }}
                   placeholder="https://drive.google.com/... atau https://pspk.id"
                   className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent font-mono text-xs"
                 />
@@ -564,14 +576,15 @@ export function RichTextEditor({
                     Batal
                   </button>
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => handleSaveLink()}
                     className="px-4.5 py-2 text-xs font-semibold bg-[#102E50] hover:bg-[#0c233d] text-white rounded-lg transition-all shadow-sm cursor-pointer"
                   >
                     Simpan Tautan
                   </button>
                 </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -675,7 +688,7 @@ export function RichTextEditor({
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleInsertUrlImage} className="p-4 space-y-3">
+              <div className="p-4 space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1">
                     Alamat URL Gambar <span className="text-red-500">*</span>
@@ -685,8 +698,14 @@ export function RichTextEditor({
                     required
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleInsertUrlImage();
+                      }
+                    }}
                     placeholder="https://example.com/banner.jpg"
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent font-mono text-xs"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent font-mono text-xs"
                   />
                 </div>
 
@@ -698,8 +717,14 @@ export function RichTextEditor({
                     type="text"
                     value={imageAlt}
                     onChange={(e) => setImageAlt(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleInsertUrlImage();
+                      }
+                    }}
                     placeholder="Contoh: Bagan Alur Kerja Tim"
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-transparent"
                   />
                 </div>
 
@@ -712,13 +737,14 @@ export function RichTextEditor({
                     Batal
                   </button>
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => handleInsertUrlImage()}
                     className="px-4.5 py-2 text-xs font-semibold bg-[#102E50] hover:bg-[#0c233d] text-white rounded-lg transition-all shadow-sm cursor-pointer"
                   >
                     Sisipkan Gambar
                   </button>
                 </div>
-              </form>
+              </div>
             )}
           </div>
         </div>
