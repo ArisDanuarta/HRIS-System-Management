@@ -27,8 +27,13 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
      - Membuat `apps/sysmgmt/src/app/loading.tsx` dengan `<PspkLoader fullScreen={true} />` untuk transisi level root.
      - Membuat `apps/sysmgmt/src/app/(app)/loading.tsx` dengan `<PspkLoader fullScreen={false} />` untuk transisi rute internal ber-sidebar/navbar.
   4. **Halaman Login & Perpindahan Portal (`LoginPage`):**
-     - Menerapkan `<PspkLoader fullScreen={true} variant="loop" />` saat pengguna mengeklik tab perpindahan portal antar-aplikasi (HRIS <-> Sysmgmt).
-     - Menghilangkan efek tirai `PageReveal` sesuai arahan pengguna agar loading tetap simpel, elegan, dan fokus pada animasi logo.
+     - Menerapkan `<PspkLoader fullScreen={true} />` saat pengguna mengeklik tab perpindahan portal antar-aplikasi (HRIS <-> Sysmgmt).
+     - Menghilangkan efek tirai `PageReveal` sesuai arahan pengguna agar loading tetap simpel, elegan, dan fokus pada animasi logo resmi.
+     - **Alur Transisi Cerdas (Single-Draw to Loop on Lag):**
+       - Saat tab ditekan, animasi logo menggambar 4 bentuk garis secara berurutan (`variant="draw"`) hingga tuntas 100% (~1.46 detik).
+       - Setelah selesai menggambar, diberikan jeda sejenak (180ms) untuk menampilkan bentuk logo utuh sempurna sebelum navigasi halaman (`window.location.href`) dipicu.
+       - **Kondisi Jaringan Bagus:** Halaman langsung berpindah secara bersih hanya dengan 1 siklus animasi draw penuh (tanpa looping berulang).
+       - **Kondisi Jaringan Lag:** Jika halaman belum ter-unload setelah 800ms sejak navigasi dipicu, sistem secara otomatis beralih ke `variant="loop"` agar animasi tetap bergerak aktif mengindikasikan koneksi sedang berlangsung.
 - **Verifikasi Kualitas:**
   - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
   - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)

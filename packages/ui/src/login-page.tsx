@@ -37,7 +37,39 @@ export function LoginPage({
   const [activeTab, setActiveTab] = useState<"hris" | "sysmgmt">(currentApp);
   const [isSwitching, setIsSwitching] = useState(false);
   const [loaderVariant, setLoaderVariant] = useState<"draw" | "loop">("draw");
-  const switchNavRef = React.useRef<(() => void) | null>(null);
+
+  const hasNavigatedRef = React.useRef(false);
+  const lagTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const fallbackTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const holdTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Bersihkan semua timer saat unmount
+  React.useEffect(() => {
+    return () => {
+      if (lagTimerRef.current) clearTimeout(lagTimerRef.current);
+      if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
+      if (holdTimerRef.current) clearTimeout(holdTimerRef.current);
+    };
+  }, []);
+
+  const triggerNavigation = React.useCallback((targetUrl: string) => {
+    if (hasNavigatedRef.current) return;
+    hasNavigatedRef.current = true;
+
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+
+    // Eksekusi perpindahan halaman
+    window.location.href = targetUrl;
+
+    // Jika jaringan lambat / lag (halaman belum ter-unload setelah 800ms),
+    // aktifkan animasi loop agar logo terus bergerak dan pengguna mengetahui sistem sedang menunggu server
+    lagTimerRef.current = setTimeout(() => {
+      setLoaderVariant("loop");
+    }, 800);
+  }, []);
 
   // Form states: "idle" | "loading" | "error"
   const [formState, setFormState] = useState<"idle" | "loading" | "error">("idle");
@@ -47,39 +79,44 @@ export function LoginPage({
 
   const handleSwitchPortal = (target: "hris" | "sysmgmt") => {
     if (target === currentApp && !isSwitching) return;
+    if (isSwitching) return;
+
     setActiveTab(target);
     setLoaderVariant("draw");
     setIsSwitching(true);
+    hasNavigatedRef.current = false;
 
     const targetUrl = target === "hris" ? `${hrisUrl}/login` : `${sysmgmtUrl}/login`;
 
-    // Daftarkan aksi navigasi yang akan dieksekusi tepat saat animasi selesai menggambar
-    switchNavRef.current = () => {
-      window.location.href = targetUrl;
-      // Jika jaringan lambat/lag, lanjutkan animasi secara loop agar tidak macet
-      setLoaderVariant("loop");
-    };
+    // Cek preferensi pengguna untuk reduced-motion (animasi statis)
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Fallback pengaman maksimal jika animasi terhambat (misal tab tidak aktif):
-    setTimeout(() => {
-      if (switchNavRef.current) {
-        switchNavRef.current();
-        switchNavRef.current = null;
-      }
-    }, 2800);
+    if (prefersReducedMotion) {
+      holdTimerRef.current = setTimeout(() => {
+        triggerNavigation(targetUrl);
+      }, 250);
+      return;
+    }
+
+    // Fallback pengaman maksimal jika event animasi terhambat (misal tab tidak aktif di background):
+    // Durasi draw normal ~1.46s, batas pengaman diset 2400ms
+    fallbackTimerRef.current = setTimeout(() => {
+      triggerNavigation(targetUrl);
+    }, 2400);
   };
 
   const handleAnimationComplete = () => {
-    if (switchNavRef.current) {
-      // Berikan jeda 150ms agar seluruh logo yang baru saja selesai terbentuk sempurna
-      // dapat terlihat utuh sebelum browser melakukan navigasi halaman
-      setTimeout(() => {
-        if (switchNavRef.current) {
-          switchNavRef.current();
-          switchNavRef.current = null;
-        }
-      }, 150);
-    }
+    if (hasNavigatedRef.current) return;
+
+    const targetUrl = activeTab === "hris" ? `${hrisUrl}/login` : `${sysmgmtUrl}/login`;
+
+    // Animasi gambar garis logo telah selesai 100% (keempat bentuk utuh sempurna).
+    // Berikan jeda 180ms agar bentuk logo utuh terlihat sejenak sebelum browser berpindah halaman.
+    holdTimerRef.current = setTimeout(() => {
+      triggerNavigation(targetUrl);
+    }, 180);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -449,48 +486,6 @@ export function LoginPage({
               isSwitching ? "scale-[0.985] shadow-xs" : "scale-100 hover:shadow-md"
             }`}
           >
-            {/* Transition Handshake Overlay */}
-            {isSwitching && (
-              <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm transition-all duration-300 animate-in fade-in zoom-in-95">
-                <div className="relative flex items-center justify-center mb-3">
-
-                  <div className="w-12 h-12 rounded-full bg-[#102e50] flex items-center justify-center shadow-lg text-white">
-                    <svg className="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                      />
-                      <path
-                        className={`opacity-90 fill-current ${activeTab === "sysmgmt" ? "text-[#60a5fa]" : "text-[#feba48]"}`}
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div className="text-center px-4">
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-[#102e50]">
-                    Mengalihkan Akses Portal
-                  </p>
-                  <h3 className="text-base font-serif font-bold text-[#102e50] mt-0.5">
-                    Menghubungkan ke {activeTab === "sysmgmt" ? "System Management" : "Portal HRIS"}
-                    ...
-                  </h3>
-                  <p className="text-[11px] text-[#5b6675] mt-1">Sistem Tata Kelola Terpadu PSPK</p>
-                </div>
-                {/* Micro Loading Beam Indicator */}
-                <div className="w-36 h-1 bg-[#e6eeff] rounded-full mt-4 overflow-hidden">
-                  <div
-                    className={`h-full animate-shimmer-beam rounded-full ${
-                      activeTab === "sysmgmt" ? "bg-[#60a5fa]" : "bg-[#feba48]"
-                    }`}
-                  />
-                </div>
-              </div>
-            )}
 
             {/* Card Header */}
             <div className="mb-6">
