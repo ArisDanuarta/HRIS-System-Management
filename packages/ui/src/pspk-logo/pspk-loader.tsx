@@ -17,6 +17,8 @@ export interface PspkLoaderProps {
   /** Teks tampil opsional di bawah logo, mis. "Memuat data…". */
   label?: string;
   className?: string;
+  /** Dipanggil saat animasi satu putaran selesai (khususnya untuk variant draw dan assemble) */
+  onComplete?: () => void;
 }
 
 export function PspkLoader({
@@ -26,6 +28,7 @@ export function PspkLoader({
   background = "#ffffff",
   label,
   className,
+  onComplete,
 }: PspkLoaderProps) {
   const logoSize = size ?? (fullScreen ? 120 : 88);
 
@@ -47,7 +50,12 @@ export function PspkLoader({
           : { width: "100%", minHeight: "50vh", padding: 24 }),
       }}
     >
-      <PspkLogo variant={variant} size={logoSize} title={null} />
+      <PspkLogo
+        variant={variant}
+        size={logoSize}
+        title={null}
+        onComplete={onComplete}
+      />
       {label ? (
         <span style={{ fontSize: 14, color: "#133357" }}>{label}</span>
       ) : null}
