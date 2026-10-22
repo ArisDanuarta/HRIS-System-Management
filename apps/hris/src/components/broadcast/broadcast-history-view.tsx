@@ -22,6 +22,7 @@ import {
   BroadcastDetailItem,
 } from "../../server/queries/broadcast.queries";
 import { getBroadcastDetailAction } from "../../server/actions/broadcast.actions";
+import { PspkLoader } from "@pspk/ui";
 
 interface BroadcastHistoryViewProps {
   initialItems: BroadcastHistoryItem[];
@@ -372,10 +373,11 @@ export function BroadcastHistoryView({
             {/* Modal Body */}
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
               {isLoadingDetail ? (
-                <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-500 text-xs">
-                  <Loader2 className="w-6 h-6 animate-spin text-navy-800" />
-                  <span>Memuat rincian dan log penerima...</span>
-                </div>
+                <PspkLoader
+                  fullScreen={false}
+                  size={64}
+                  label="Memuat rincian dan log penerima..."
+                />
               ) : detailError ? (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800">
                   {detailError}
