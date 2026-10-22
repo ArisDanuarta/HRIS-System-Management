@@ -2,6 +2,36 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Desain & UI Platform] Penerapan Komponen Animasi Logo PSPK ke Seluruh Loading Screen — 2026-10-22
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Pemasangan komponen animasi vector SVG resmi lembaga (`PspkLogo`, `PspkLoader`, `PageReveal`) ke dalam pustaka shared UI `@pspk/ui`.
+  - Instalasi dependensi resmi `motion` pada `@pspk/ui` untuk menggerakkan animasi stroke vector SVG tanpa mengubah bentuk path resmi, warna (`#133357`, `#B52B17`, `#F5A623`, `#959595`), atau `strokeWidth`.
+  - Inventarisasi seluruh loading screen di `apps/hris` dan `apps/sysmgmt`.
+  - Penerapan indikator loading berbasis logo PSPK pada level root (`loading.tsx`), layout terlindungi `(app)` (`loading.tsx`), dan section modal/tab dinamis di kedua aplikasi.
+  - Memastikan skeleton placeholder layout tetap dipertahankan dan micro spinner tombol tidak terganggu.
+- **Hasil Pekerjaan:**
+  1. **Package Shared UI (`packages/ui`):**
+     - Memasang berkas komponen di `packages/ui/src/pspk-logo/` (`pspk-logo.tsx`, `pspk-loader.tsx`, `page-reveal.tsx`, `index.ts`).
+     - Mengekspos komponen melalui `packages/ui/src/index.ts`.
+     - Menginstal dependensi resmi `motion` v14 ke `packages/ui/package.json`.
+     - Verifikasi integritas logo resmi: `grep -c "M 142 125 H 400 V 385 H 205 L 142 442 Z"` mengembalikan nilai 1.
+  2. **Aplikasi HRIS (`apps/hris`):**
+     - Membuat `apps/hris/src/app/loading.tsx` dengan `<PspkLoader fullScreen={true} />` untuk transisi halaman level root.
+     - Membuat `apps/hris/src/app/(app)/loading.tsx` dengan `<PspkLoader fullScreen={false} />` untuk transisi rute internal ber-sidebar/navbar.
+     - Memperbarui `apps/hris/src/components/broadcast/broadcast-history-view.tsx` menggunakan `<PspkLoader fullScreen={false} size={64} label="Memuat rincian dan log penerima..." />` serta membersihkan impor `Loader2` yang tak terpakai.
+     - Memperbarui `apps/hris/src/components/cuti/leave-settings-view.tsx` menggunakan `<PspkLoader fullScreen={false} size={64} label="Memuat data jadwal kerja..." />`.
+     - Mempertahankan skeleton layout di modul profil, notifikasi, dan kinerja.
+  3. **Aplikasi System Management (`apps/sysmgmt`):**
+     - Membuat `apps/sysmgmt/src/app/loading.tsx` dengan `<PspkLoader fullScreen={true} />` untuk transisi level root.
+     - Membuat `apps/sysmgmt/src/app/(app)/loading.tsx` dengan `<PspkLoader fullScreen={false} />` untuk transisi rute internal ber-sidebar/navbar.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test`: ✅ Lolos 100% (34 file pengujian, 237 test case lulus)
+  - `pnpm turbo run build --filter=@pspk/hris --filter=@pspk/sysmgmt`: ✅ Lolos 100% (kedua aplikasi terkompilasi optimal dalam mode standalone)
+
 ## [Modul Komunikasi] Tahap 5: Pengujian Integrasi, Edge Cases & Verifikasi Mutu Menyeluruh — 2026-10-21
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

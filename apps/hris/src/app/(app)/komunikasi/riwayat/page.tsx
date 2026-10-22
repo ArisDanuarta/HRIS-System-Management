@@ -40,9 +40,20 @@ export default async function KomunikasiRiwayatPage({
     redirect("/login");
   }
 
-  const canSendAll = can(authCtx, "hris.broadcast.send:all");
-  const canSendTeam = can(authCtx, "hris.broadcast.send:team");
-  const canRead = can(authCtx, "hris.broadcast.read:*");
+  const isSuperAdmin = authCtx.roles.includes("super_admin");
+  const isAdminHr = authCtx.roles.includes("admin_hr");
+  const isManager = authCtx.roles.includes("manager");
+
+  const canSendAll = isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+  const canSendTeam = isManager || can(authCtx, "hris.broadcast.send:team");
+  const canRead =
+    isSuperAdmin ||
+    isAdminHr ||
+    isManager ||
+    can(authCtx, "hris.broadcast.read") ||
+    can(authCtx, "hris.broadcast.read:all") ||
+    can(authCtx, "hris.broadcast.read:team") ||
+    can(authCtx, "hris.broadcast.read:own");
 
   // Jika tidak memiliki izin membaca atau mengirim broadcast
   if (!canRead && !canSendAll && !canSendTeam) {

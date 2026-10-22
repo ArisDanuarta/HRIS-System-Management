@@ -64,3 +64,13 @@ Dokumen ini mencatat keputusan penting, arsitektur, dan versi dependensi proyek.
   5. **Dokumentasi Backlog & Roadmap:** Menutup pertanyaan terbuka #13 di `docs/OPEN_QUESTIONS.md` dengan status Selesai / Dihapus dari cakupan.
 - **Alasan:** Berdasarkan arahan dan konfirmasi langsung dari pengguna/pengelola PSPK bahwa organisasi tidak membutuhkan modul rekrutmen/ATS maupun pelatihan mandiri, dan modul-modul tersebut tidak akan dibangun. Penghapusan ini memangkas kompleksitas kode, menyederhanakan antarmuka RBAC, menghemat beban database, dan memusatkan sistem pada modul inti yang benar-benar digunakan lembaga (Karyawan, Presensi, Cuti, Kalender Kerja, Timesheet, Kinerja, Penggajian, Aset, Dokumen, dan Tata Kelola Sistem).
 
+## 10. Penerapan Komponen Animasi Logo PSPK & Pustaka `motion` (Oktober 2026)
+
+- **Keputusan:**
+  1. Menempatkan komponen animasi logo resmi lembaga (`PspkLogo`, `PspkLoader`, `PageReveal`) di dalam package shared UI `@pspk/ui` (`packages/ui/src/pspk-logo/`) dan mengeksposnya secara publik melalui `@pspk/ui`.
+  2. Memasang dependensi resmi `motion` (Framer Motion v12 / `motion/react`) pada `@pspk/ui` untuk menggerakkan animasi stroke vector SVG logo PSPK (`variant="loop"`, `variant="draw"`, `variant="assemble"`).
+  3. Memastikan bentuk dan warna identik 100% dengan panduan brand PSPK: stroke width 42, `viewBox="0 0 1000 1000"`, dan 4 warna resmi (`#133357` Deep Navy, `#B52B17` Crimson Red, `#F5A623` Amber Gold, `#959595` Slate Grey).
+  4. Menerapkan `<PspkLoader />` (layar penuh) pada root loading (`app/loading.tsx`) dan `<PspkLoader fullScreen={false} />` pada layout internal (`app/(app)/loading.tsx`) di kedua aplikasi Next.js (`apps/hris` dan `apps/sysmgmt`).
+  5. Menghormati preferensi aksesibilitas `prefers-reduced-motion` secara otomatis (beralih ke state static tanpa animasi ketika pengguna mengaktifkan preferensi kurangi gerak di sistem operasi).
+- **Alasan:** Memberikan pengalaman loading terpadu yang profesional, konsisten dengan identitas brand resmi PSPK, menghilangkan inkonsistensi spinner generic browser, dan memastikan performa rendering tetap mulus serta aman terhadap aksesibilitas pengguna.
+
