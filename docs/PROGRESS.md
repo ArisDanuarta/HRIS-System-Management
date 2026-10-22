@@ -26,6 +26,9 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   3. **Aplikasi System Management (`apps/sysmgmt`):**
      - Membuat `apps/sysmgmt/src/app/loading.tsx` dengan `<PspkLoader fullScreen={true} />` untuk transisi level root.
      - Membuat `apps/sysmgmt/src/app/(app)/loading.tsx` dengan `<PspkLoader fullScreen={false} />` untuk transisi rute internal ber-sidebar/navbar.
+  4. **Halaman Login & Perpindahan Portal (`LoginPage`):**
+     - Menerapkan `<PspkLoader fullScreen={true} variant="loop" />` saat pengguna mengeklik tab perpindahan portal antar-aplikasi (HRIS <-> Sysmgmt).
+     - Menghilangkan efek tirai `PageReveal` sesuai arahan pengguna agar loading tetap simpel, elegan, dan fokus pada animasi logo.
 - **Verifikasi Kualitas:**
   - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
   - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { PspkLoader, PageReveal } from "./pspk-logo";
+import { PspkLoader } from "./pspk-logo";
 
 export interface LoginPageProps {
   currentApp: "hris" | "sysmgmt";
@@ -85,8 +85,6 @@ export function LoginPage({
       className="w-full h-screen max-h-screen overflow-hidden flex flex-col lg:flex-row bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#feba48]/30"
       style={{ height: "100vh", maxHeight: "100vh" }}
     >
-      {/* Transisi pembuka tirai 4-warna saat halaman pertama kali termuat */}
-      <PageReveal />
 
       {/* Loading overlay animasi logo PSPK saat pengguna mengeklik tab perpindahan portal */}
       {isSwitching && (
