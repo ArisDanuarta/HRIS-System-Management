@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { PspkLoader, PageReveal } from "./pspk-logo";
 
 export interface LoginPageProps {
   currentApp: "hris" | "sysmgmt";
@@ -48,10 +49,10 @@ export function LoginPage({
     setIsSwitching(true);
 
     const targetUrl = target === "hris" ? `${hrisUrl}/login` : `${sysmgmtUrl}/login`;
-    // Allow the fluid transition animation to play smoothly before navigating
+    // Beri jeda animasi logo yang halus sebelum browser berpindah origin/port
     setTimeout(() => {
       window.location.href = targetUrl;
-    }, 420);
+    }, 700);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,6 +85,22 @@ export function LoginPage({
       className="w-full h-screen max-h-screen overflow-hidden flex flex-col lg:flex-row bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#feba48]/30"
       style={{ height: "100vh", maxHeight: "100vh" }}
     >
+      {/* Transisi pembuka tirai 4-warna saat halaman pertama kali termuat */}
+      <PageReveal />
+
+      {/* Loading overlay animasi logo PSPK saat pengguna mengeklik tab perpindahan portal */}
+      {isSwitching && (
+        <PspkLoader
+          fullScreen={true}
+          variant="loop"
+          label={
+            activeTab === "hris"
+              ? "Beralih ke Portal HRIS..."
+              : "Beralih ke Portal System Management..."
+          }
+        />
+      )}
+
       {/* Top transition progress bar with radiant glowing beam */}
       <div
         className={`fixed top-0 left-0 right-0 h-1 z-50 overflow-hidden transition-opacity duration-300 ${
