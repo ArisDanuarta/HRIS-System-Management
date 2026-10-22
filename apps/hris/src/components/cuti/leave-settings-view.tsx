@@ -7,6 +7,7 @@ import { ActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { WorkScheduleSettingsView } from "./work-schedule-settings-view";
 import { EmployeeLeaveBalancesView } from "./employee-leave-balances-view";
 import { EmployeeLeaveBalanceOverview } from "@/server/queries/leave.queries";
+import { PspkLoader } from "@pspk/ui";
 
 interface LeaveTypeItem {
   id: string;
@@ -205,9 +206,11 @@ export function LeaveSettingsView({
         (workSchedule ? (
           <WorkScheduleSettingsView initialSchedule={workSchedule} />
         ) : (
-          <div className="p-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-200">
-            Memuat data jadwal kerja...
-          </div>
+          <PspkLoader
+            fullScreen={false}
+            size={64}
+            label="Memuat data jadwal kerja..."
+          />
         ))}
 
       {/* TAB 1: JENIS CUTI */}
