@@ -4,3 +4,4 @@ export * from "./app-switcher";
 export * from "./login-page";
 export * from "./states";
 export * from "./help-center-view";
+export * from "./pspk-logo";
