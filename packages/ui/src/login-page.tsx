@@ -277,9 +277,9 @@ export function LoginPage({
               <img
                 alt="Logo Resmi PSPK"
                 className="h-8 w-auto object-contain"
-                src="/images/logo_pspk_horizontal_trimmed.png"
-                width={485}
-                height={80}
+                src="/images/logo_pspk_horizontal.jpg"
+                width={2752}
+                height={1536}
                 style={{ width: "auto" }}
               />
             </div>
@@ -493,11 +493,11 @@ export function LoginPage({
               <div className="lg:hidden flex items-center justify-between mb-5 pb-4 border-b border-[#e6eeff]">
                 <div className="h-10 px-3 py-1 bg-white border border-[#c8d8f0] rounded-xl shadow-xs inline-flex items-center">
                   <img
-                    src="/images/logo_pspk_horizontal_trimmed.png"
+                    src="/images/logo_pspk_horizontal.jpg"
                     alt="Logo PSPK"
                     className="h-6 w-auto object-contain"
-                    width={485}
-                    height={80}
+                    width={2752}
+                    height={1536}
                     style={{ width: "auto" }}
                   />
                 </div>
