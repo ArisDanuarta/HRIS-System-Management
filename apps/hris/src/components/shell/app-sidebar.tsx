@@ -198,9 +198,9 @@ export function AppSidebar({
               <Image
                 alt="Logo PSPK"
                 className="w-full h-full object-contain"
-                src="/images/logo_pspk_circle_trimmed.png"
-                width={36}
-                height={36}
+                src="/images/logo_pspk_circle.jpg"
+                width={2048}
+                height={2048}
                 priority
               />
             </div>
@@ -209,9 +209,9 @@ export function AppSidebar({
               <Image
                 alt="Pusat Studi Pendidikan dan Kebijakan"
                 className="h-7 w-auto object-contain"
-                src="/images/logo_pspk_horizontal_trimmed.png"
-                width={485}
-                height={80}
+                src="/images/logo_pspk_horizontal.jpg"
+                width={2752}
+                height={1536}
                 style={{ width: "auto" }}
                 priority
               />

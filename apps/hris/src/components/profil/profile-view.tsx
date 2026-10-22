@@ -128,10 +128,10 @@ export function ProfileView({ profile }: ProfileViewProps) {
           {/* Watermark Logo (faded in background) */}
           <div className="absolute -right-6 top-1/2 -translate-y-1/2 opacity-[0.06] pointer-events-none select-none hidden sm:block">
             <Image
-              src="/images/logo_pspk_horizontal_trimmed.png"
+              src="/images/logo_pspk_horizontal.jpg"
               alt=""
-              width={485}
-              height={80}
+              width={2752}
+              height={1536}
               className="h-36 w-auto object-contain filter grayscale"
               style={{ width: "auto" }}
               priority={false}
@@ -141,10 +141,10 @@ export function ProfileView({ profile }: ProfileViewProps) {
           {/* Featured PSPK Logo */}
           <div className="flex flex-col items-center justify-center gap-1.5 sm:ml-28 md:ml-0 z-0">
             <Image
-              src="/images/logo_pspk_horizontal_trimmed.png"
+              src="/images/logo_pspk_horizontal.jpg"
               alt="Pusat Studi Pendidikan dan Kebijakan"
-              width={485}
-              height={80}
+              width={2752}
+              height={1536}
               className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-xs"
               style={{ width: "auto" }}
               priority
