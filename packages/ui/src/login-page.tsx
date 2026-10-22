@@ -36,6 +36,8 @@ export function LoginPage({
   // Active portal tab state (enables instant animated sliding indicator)
   const [activeTab, setActiveTab] = useState<"hris" | "sysmgmt">(currentApp);
   const [isSwitching, setIsSwitching] = useState(false);
+  const [loaderVariant, setLoaderVariant] = useState<"draw" | "loop">("draw");
+  const switchNavRef = React.useRef<(() => void) | null>(null);
 
   // Form states: "idle" | "loading" | "error"
   const [formState, setFormState] = useState<"idle" | "loading" | "error">("idle");
@@ -46,13 +48,38 @@ export function LoginPage({
   const handleSwitchPortal = (target: "hris" | "sysmgmt") => {
     if (target === currentApp && !isSwitching) return;
     setActiveTab(target);
+    setLoaderVariant("draw");
     setIsSwitching(true);
 
     const targetUrl = target === "hris" ? `${hrisUrl}/login` : `${sysmgmtUrl}/login`;
-    // Beri jeda animasi logo yang halus sebelum browser berpindah origin/port
-    setTimeout(() => {
+
+    // Daftarkan aksi navigasi yang akan dieksekusi tepat saat animasi selesai menggambar
+    switchNavRef.current = () => {
       window.location.href = targetUrl;
-    }, 700);
+      // Jika jaringan lambat/lag, lanjutkan animasi secara loop agar tidak macet
+      setLoaderVariant("loop");
+    };
+
+    // Fallback pengaman maksimal jika animasi terhambat (misal tab tidak aktif):
+    setTimeout(() => {
+      if (switchNavRef.current) {
+        switchNavRef.current();
+        switchNavRef.current = null;
+      }
+    }, 2800);
+  };
+
+  const handleAnimationComplete = () => {
+    if (switchNavRef.current) {
+      // Berikan jeda 150ms agar seluruh logo yang baru saja selesai terbentuk sempurna
+      // dapat terlihat utuh sebelum browser melakukan navigasi halaman
+      setTimeout(() => {
+        if (switchNavRef.current) {
+          switchNavRef.current();
+          switchNavRef.current = null;
+        }
+      }, 150);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -90,7 +117,8 @@ export function LoginPage({
       {isSwitching && (
         <PspkLoader
           fullScreen={true}
-          variant="loop"
+          variant={loaderVariant}
+          onComplete={handleAnimationComplete}
           label={
             activeTab === "hris"
               ? "Beralih ke Portal HRIS..."
