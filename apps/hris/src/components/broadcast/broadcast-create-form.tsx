@@ -820,9 +820,19 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   </div>
 
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
-                    Pengumuman diterbitkan oleh:{" "}
-                    <strong className="text-slate-900">{senderCtx.userName}</strong> (
-                    {senderCtx.employeeTitle})
+                    {previewSender.isPersonal ? (
+                      <>
+                        Pengumuman diterbitkan oleh:{" "}
+                        <strong className="text-slate-900">{previewSender.displayName}</strong> (
+                        {previewSender.displayTitle})
+                      </>
+                    ) : (
+                      <>
+                        Diterbitkan secara resmi oleh:{" "}
+                        <strong className="text-slate-900">{previewSender.displayName}</strong> &bull;{" "}
+                        <span className="italic">{previewSender.displayTitle}</span>
+                      </>
+                    )}
                   </div>
 
                   <div className="text-sm font-semibold text-[#102E50]">
@@ -839,9 +849,25 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     }}
                   />
 
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 leading-relaxed">
-                    <strong>Diskusi &amp; Pertanyaan:</strong> Anda dapat langsung membalas (*Reply*) email ini dari aplikasi email Anda untuk terhubung langsung dengan <strong>{senderCtx.userName}</strong>.
-                  </div>
+                  {previewSender.replyToMode === "NO_REPLY" ? (
+                    <div className="p-3 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-700 leading-relaxed">
+                      <strong>Pemberitahuan:</strong> Email ini bersifat pengumuman satu arah resmi dari{" "}
+                      <strong>{previewSender.displayName}</strong>. Mohon tidak membalas langsung ke alamat email ini.
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 leading-relaxed">
+                      <strong>Diskusi &amp; Pertanyaan:</strong> Anda dapat langsung membalas (*Reply*) email ini dari aplikasi email Anda untuk terhubung langsung dengan{" "}
+                      <strong>
+                        {previewSender.replyToMode === "ORGANIZATION_HR"
+                          ? "Tim People & Culture (HR) PSPK"
+                          : previewSender.replyToEmail || previewSender.displayName}
+                      </strong>
+                      {previewSender.replyToEmail && previewSender.replyToEmail !== "no-reply@pspk.id" ? (
+                        <span> ({previewSender.replyToEmail})</span>
+                      ) : null}
+                      .
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer Mockup */}
@@ -858,12 +884,12 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           )}
         </div>
 
-        {/* SECTION 3: OPSI PENGIRIMAN & DUAL NOTIFIKASI */}
+        {/* SECTION 4: OPSI PENGIRIMAN & DUAL NOTIFIKASI */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
             <Bell className="w-4 h-4 text-navy-800" />
             <h3 className="font-semibold text-sm text-slate-900">
-              3. Opsi Pengiriman Tambahan
+              4. Opsi Pengiriman Tambahan
             </h3>
           </div>
 
@@ -932,7 +958,13 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   </span>
                 </div>
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
-                  <span className="text-slate-500">Akun Pengirim Resmi:</span>
+                  <span className="text-slate-500">Identitas Pengirim Resmi:</span>
+                  <span className="font-semibold text-slate-900 text-right">
+                    {previewSender.displayName} ({previewSender.displayTitle})
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-slate-500">Akun Pengirim Teknis:</span>
                   <span className="font-mono font-medium text-[#102E50]">
                     PSPK HRIS &lt;no-reply@pspk.id&gt;
                   </span>
@@ -940,7 +972,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
                   <span className="text-slate-500">Alamat Balasan (*Reply-To*):</span>
                   <span className="font-semibold text-slate-900">
-                    {senderCtx.userName} &lt;{senderCtx.userEmail}&gt;
+                    {previewSender.replyToMode === "NO_REPLY"
+                      ? "Satu Arah (Tidak Menerima Balasan)"
+                      : previewSender.replyToEmail}
                   </span>
                 </div>
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
