@@ -105,6 +105,9 @@ describe("broadcast-email.service.ts", () => {
       expect(html).toContain("Head of Operations");
       expect(html).toContain("PENGUMUMAN ORGANISASI");
       expect(html).toContain("&copy; 2026");
+      expect(html).toContain("no-reply@pspk.id");
+    });
+
     it("harus merender kartu institusi resmi dan kotak no-reply jika bukan perorangan", () => {
       const html = renderBroadcastEmailHtml({
         subject: "Selamat Tahun Baru 2026",
@@ -339,6 +342,34 @@ describe("broadcast-email.service.ts", () => {
           }),
         }),
       );
+    });
+  });
+
+  describe("executeSendBroadcast - Otorisasi Persona", () => {
+    it("harus menolak jika Manajer mencoba mengirim atas nama Lembaga (ORGANIZATION)", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-mgr-2",
+        employeeId: "emp-mgr-2",
+        roles: ["manager"],
+        permissions: new Set(["hris.broadcast.send:team"]),
+      });
+
+      vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+        id: "emp-mgr-2",
+        fullName: "Agus Manajer",
+        workEmail: "agus@pspk.id",
+        currentPosition: { title: "Lead Peneliti", isUnitHead: true },
+        currentDepartment: { id: "dept-2", name: "Riset Kebijakan" },
+      } as unknown as MockEmployeeFirst);
+
+      await expect(
+        executeSendBroadcast("user-mgr-2", {
+          subject: "Pengumuman Palsu Lembaga",
+          contentHtml: "<p>Ini tidak boleh lolos.</p>",
+          targetScope: "TEAM",
+          senderPersona: "ORGANIZATION",
+        }),
+      ).rejects.toThrow("Akses ditolak: Hanya Administrator HR dan Super Administrator");
     });
   });
 });
