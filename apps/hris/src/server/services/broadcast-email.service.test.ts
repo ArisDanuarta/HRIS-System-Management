@@ -3,6 +3,8 @@ import {
   sanitizeBroadcastContent,
   htmlToPlainText,
   renderBroadcastEmailHtml,
+  resolveSenderIdentity,
+  executeSendBroadcast,
   getBroadcastSenderContext,
   getBroadcastRecipients,
 } from "./broadcast-email.service";
@@ -103,7 +105,107 @@ describe("broadcast-email.service.ts", () => {
       expect(html).toContain("Head of Operations");
       expect(html).toContain("PENGUMUMAN ORGANISASI");
       expect(html).toContain("&copy; 2026");
-      expect(html).toContain("no-reply@pspk.id");
+    it("harus merender kartu institusi resmi dan kotak no-reply jika bukan perorangan", () => {
+      const html = renderBroadcastEmailHtml({
+        subject: "Selamat Tahun Baru 2026",
+        contentHtml: "<p>Selamat menyambut tahun baru seluruh keluarga besar PSPK.</p>",
+        recipientName: "Rekan PSPK",
+        senderName: "Pusat Studi Pendidikan dan Kebijakan (PSPK)",
+        senderTitle: "Pengumuman Resmi Institusi",
+        scopeBadge: "PENGUMUMAN ORGANISASI",
+        isPersonal: false,
+        replyToMode: "NO_REPLY",
+        year: 2026,
+      });
+
+      expect(html).toContain("Diterbitkan secara resmi oleh:");
+      expect(html).toContain("Pusat Studi Pendidikan dan Kebijakan (PSPK)");
+      expect(html).toContain("Pengumuman Resmi Institusi");
+      expect(html).toContain("Email ini bersifat pengumuman satu arah resmi");
+      expect(html).toContain("reply-box-noreply");
+    });
+
+    it("harus merender informasi kontak Tim HR jika mode balasan ORGANIZATION_HR", () => {
+      const html = renderBroadcastEmailHtml({
+        subject: "Pembaruan Kebijakan Asuransi",
+        contentHtml: "<p>Mohon perbarui formulir data tanggungan keluarga.</p>",
+        recipientName: "Budi Santoso",
+        senderName: "Tim People & Culture (HR) PSPK",
+        senderTitle: "Pengumuman Kepegawaian & Operasional",
+        scopeBadge: "PENGUMUMAN ORGANISASI",
+        isPersonal: false,
+        replyToMode: "ORGANIZATION_HR",
+        replyToEmail: "hr@pspk.id",
+      });
+
+      expect(html).toContain("Tim People &amp; Culture (HR) PSPK");
+      expect(html).toContain("hr@pspk.id");
+    });
+  });
+
+  describe("resolveSenderIdentity", () => {
+    const mockCtx = {
+      userId: "user-1",
+      userEmail: "aris@pspk.id",
+      userName: "Aris Danuarta",
+      employeeId: "emp-1",
+      employeeTitle: "IT Administrator",
+      isSuperAdmin: true,
+      isAdminHr: true,
+      isManager: false,
+      allowedScopes: ["ALL_EMPLOYEES" as const],
+      teamMembersCount: 0,
+    };
+
+    it("harus menyelesaikan persona ORGANIZATION secara default", () => {
+      const resolved = resolveSenderIdentity(mockCtx);
+      expect(resolved.displayName).toBe("Pusat Studi Pendidikan dan Kebijakan (PSPK)");
+      expect(resolved.displayTitle).toBe("Pengumuman Resmi Institusi");
+      expect(resolved.isPersonal).toBe(false);
+      expect(resolved.replyToEmail).toBe("no-reply@pspk.id");
+      expect(resolved.replyToMode).toBe("NO_REPLY");
+    });
+
+    it("harus menyelesaikan persona HR_TEAM dengan balasan ORGANIZATION_HR", () => {
+      const resolved = resolveSenderIdentity(
+        mockCtx,
+        "HR_TEAM",
+        undefined,
+        "ORGANIZATION_HR",
+      );
+      expect(resolved.displayName).toBe("Tim People & Culture (HR) PSPK");
+      expect(resolved.displayTitle).toBe("Pengumuman Kepegawaian & Operasional");
+      expect(resolved.isPersonal).toBe(false);
+      expect(resolved.replyToEmail).toBe("hr@pspk.id");
+      expect(resolved.replyToHeader).toContain("hr@pspk.id");
+    });
+
+    it("harus menyelesaikan persona PERSONAL dengan balasan SENDER_PERSONAL", () => {
+      const resolved = resolveSenderIdentity(
+        mockCtx,
+        "PERSONAL",
+        undefined,
+        "SENDER_PERSONAL",
+      );
+      expect(resolved.displayName).toBe("Aris Danuarta");
+      expect(resolved.displayTitle).toBe("IT Administrator");
+      expect(resolved.isPersonal).toBe(true);
+      expect(resolved.replyToEmail).toBe("aris@pspk.id");
+      expect(resolved.replyToHeader).toContain("aris@pspk.id");
+    });
+
+    it("harus menyelesaikan persona CUSTOM dengan nama dan email kustom", () => {
+      const resolved = resolveSenderIdentity(
+        mockCtx,
+        "CUSTOM",
+        "Panitia Raker 2026",
+        "CUSTOM",
+        "raker@pspk.id",
+      );
+      expect(resolved.displayName).toBe("Panitia Raker 2026");
+      expect(resolved.isPersonal).toBe(false);
+      expect(resolved.replyToEmail).toBe("raker@pspk.id");
+      expect(resolved.replyToHeader).toContain("raker@pspk.id");
     });
   });
 
