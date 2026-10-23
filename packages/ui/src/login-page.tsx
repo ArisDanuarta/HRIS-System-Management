@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { PspkLoader, PspkLogo, PspkLocku } from "./pspk-logo";
+import { PspkLoader, PspkLogo, PspkLockup } from "./pspk-logo";
 
 export interface LoginPageProps {
   currentApp: "hris" | "sysmgmt";
