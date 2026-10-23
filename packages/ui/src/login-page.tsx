@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { PspkLoader } from "./pspk-logo";
+import { PspkLoader, PspkLogo, PspkLocku } from "./pspk-logo";
 
 export interface LoginPageProps {
   currentApp: "hris" | "sysmgmt";
@@ -18,6 +18,53 @@ export interface LoginPageProps {
   helpHref?: string;
 }
 
+type PortalKey = "hris" | "sysmgmt";
+
+// Warna dari Brand Guideline PSPK: primer #102e50 / #f2af3e, sekunder #0874aa.
+// onDark = versi lebih terang dari warna aksen supaya terbaca di atas navy
+// (guideline mengizinkan mengubah saturation/kecerahan warna yang sama).
+const PORTALS: Record<
+  PortalKey,
+  {
+    tabLabel: string;
+    name: string;
+    kicker: string;
+    description: string;
+    blurb: string;
+    accent: string;
+    onDark: string;
+    pillBg: string;
+    pillText: string;
+  }
+> = {
+  hris: {
+    tabLabel: "Portal HRIS",
+    name: "HRIS",
+    kicker: "Akses pegawai",
+    description: "Gunakan akun email PSPK Anda untuk mengelola kehadiran, cuti, dan data kepegawaian.",
+    blurb: "Portal internal pegawai PSPK untuk kehadiran, cuti, dan administrasi kepegawaian.",
+    accent: "#f2af3e",
+    onDark: "#f2af3e",
+    pillBg: "#fef3c7",
+    pillText: "#805600",
+  },
+  sysmgmt: {
+    tabLabel: "System Management",
+    name: "System Management",
+    kicker: "Akses administrator",
+    description: "Gunakan akun administrator Anda untuk mengelola pengguna, hak akses, dan aset lembaga.",
+    blurb: "Portal administrator PSPK untuk pengguna, hak akses, perangkat, dan audit log.",
+    accent: "#0874aa",
+    onDark: "#8fd0ee",
+    pillBg: "#dbeafe",
+    pillText: "#0b4f73",
+  },
+};
+
+// Judul memakai Lora (guideline). Muat font lewat next/font di layout dan
+// sambungkan ke variabel --font-lora. Tanpa itu otomatis jatuh ke serif bawaan.
+const HEADING_FONT = 'var(--font-lora, Lora, Georgia, "Times New Roman", serif)';
+
 export function LoginPage({
   currentApp = "hris",
   hrisUrl = "http://localhost:3001",
@@ -32,9 +79,10 @@ export function LoginPage({
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
 
   // Active portal tab state (enables instant animated sliding indicator)
-  const [activeTab, setActiveTab] = useState<"hris" | "sysmgmt">(currentApp);
+  const [activeTab, setActiveTab] = useState<PortalKey>(currentApp);
   const [isSwitching, setIsSwitching] = useState(false);
   const [loaderVariant, setLoaderVariant] = useState<"draw" | "loop">("draw");
 
@@ -76,8 +124,9 @@ export function LoginPage({
   const [errorMessage, setErrorMessage] = useState<string>("");
 
   const isHris = activeTab === "hris";
+  const portal = PORTALS[activeTab];
 
-  const handleSwitchPortal = (target: "hris" | "sysmgmt") => {
+  const handleSwitchPortal = (target: PortalKey) => {
     if (target === currentApp && !isSwitching) return;
     if (isSwitching) return;
 
@@ -145,11 +194,7 @@ export function LoginPage({
   };
 
   return (
-    <div
-      className="w-full h-screen max-h-screen overflow-hidden flex flex-col lg:flex-row bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#feba48]/30"
-      style={{ height: "100vh", maxHeight: "100vh" }}
-    >
-
+    <div className="flex min-h-dvh w-full flex-col bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#f2af3e]/30 lg:flex-row">
       {/* Loading overlay animasi logo PSPK saat pengguna mengeklik tab perpindahan portal */}
       {isSwitching && (
         <PspkLoader
@@ -157,263 +202,102 @@ export function LoginPage({
           variant={loaderVariant}
           onComplete={handleAnimationComplete}
           label={
-            activeTab === "hris"
-              ? "Beralih ke Portal HRIS..."
-              : "Beralih ke Portal System Management..."
+            isHris ? "Beralih ke Portal HRIS..." : "Beralih ke Portal System Management..."
           }
         />
       )}
 
-      {/* Top transition progress bar with radiant glowing beam */}
+      {/* Progress bar tipis saat berpindah portal */}
       <div
-        className={`fixed top-0 left-0 right-0 h-1 z-50 overflow-hidden transition-opacity duration-300 ${
-          isSwitching ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`pointer-events-none fixed left-0 right-0 top-0 z-50 h-1 overflow-hidden transition-opacity duration-300 ${
+          isSwitching ? "opacity-100" : "opacity-0"
         }`}
-        style={{
-          background: isHris
-            ? "linear-gradient(90deg, #102e50 0%, #feba48 50%, #f2af3e 100%)"
-            : "linear-gradient(90deg, #102e50 0%, #60a5fa 50%, #3b82f6 100%)",
-        }}
+        style={{ background: `linear-gradient(90deg, #102e50 0%, ${portal.accent} 100%)` }}
       >
-        <div className="w-full h-full animate-shimmer-beam bg-white/40 blur-[1px]" />
+        <div className="animate-shimmer-beam h-full w-full bg-white/40" />
       </div>
 
-      {/* LEFT PANEL: Institutional Navy Brand Identity with Dynamic Ambient Orbs */}
-      <div
-        className="relative w-full lg:w-[46%] h-auto lg:h-full bg-[#102e50] text-white flex flex-col justify-between p-6 sm:p-8 lg:p-10 xl:p-12 overflow-hidden transition-colors duration-700"
+      {/* PANEL KIRI: identitas PSPK (hanya layar besar). Navy polos + logogram pudar. */}
+      <aside
+        className="relative hidden overflow-hidden bg-[#102e50] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-[46%] lg:flex-col lg:justify-between lg:p-12"
         style={{ backgroundColor: "#102e50", color: "#ffffff" }}
       >
-        {/* Dynamic Atmospheric Ambient Glow Orbs */}
+        {/* Logogram besar sebagai watermark. Merakit sekali saat halaman dibuka. */}
         <div
-          className="absolute -top-24 -right-24 w-96 h-96 rounded-full pointer-events-none filter blur-3xl transition-all duration-700 ease-out"
-          style={{
-            background: isHris
-              ? "radial-gradient(circle, rgba(254, 186, 72, 0.22) 0%, rgba(16, 46, 80, 0) 70%)"
-              : "radial-gradient(circle, rgba(96, 165, 250, 0.25) 0%, rgba(16, 46, 80, 0) 70%)",
-          }}
-        />
-        <div
-          className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full pointer-events-none filter blur-2xl transition-all duration-700 ease-out"
-          style={{
-            background: isHris
-              ? "radial-gradient(circle, rgba(242, 175, 62, 0.16) 0%, rgba(16, 46, 80, 0) 70%)"
-              : "radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, rgba(16, 46, 80, 0) 70%)",
-          }}
-        />
-
-        {/* Ambient Mathematical Geometry (Vector Lines with Smooth Micro-Rotations) */}
-        <div className="absolute inset-0 pointer-events-none select-none opacity-40">
-          <svg
-            className="w-full h-full"
-            fill="none"
-            viewBox="0 0 680 960"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle
-              cx="580"
-              cy="180"
-              r="320"
-              stroke={isHris ? "#feba48" : "#60a5fa"}
-              strokeDasharray="4 8"
-              strokeOpacity="0.35"
-              strokeWidth="1.2"
-              className="origin-[580px_180px] animate-[spin_120s_linear_infinite] transition-colors duration-500"
-            />
-            <circle
-              cx="580"
-              cy="180"
-              r="460"
-              stroke="#ffffff"
-              strokeOpacity="0.12"
-              strokeWidth="0.75"
-            />
-            <path
-              d="M-100 850L750 320"
-              stroke={isHris ? "#feba48" : "#60a5fa"}
-              strokeOpacity="0.22"
-              strokeWidth="0.75"
-              className="transition-colors duration-500"
-            />
-            <path d="M-80 920L780 380" stroke="#ffffff" strokeOpacity="0.15" strokeWidth="0.5" />
-            <polygon
-              fill={isHris ? "#feba48" : "#60a5fa"}
-              fillOpacity="0.32"
-              points="420,40 430,70 460,80 430,90 420,120 410,90 380,80 410,70"
-              className="transition-colors duration-500"
-            />
-            <circle
-              cx="120"
-              cy="620"
-              r="180"
-              stroke={isHris ? "#feba48" : "#60a5fa"}
-              strokeOpacity="0.2"
-              strokeWidth="1.2"
-              className="transition-colors duration-500"
-            />
-            <path
-              d="M50 780C210 650 390 680 540 860"
-              stroke="#ffffff"
-              strokeOpacity="0.15"
-              strokeWidth="1"
-            />
-            <rect
-              height="160"
-              rx="4"
-              stroke={isHris ? "#feba48" : "#60a5fa"}
-              strokeOpacity="0.22"
-              strokeWidth="0.5"
-              width="160"
-              x="40"
-              y="80"
-              className="transition-colors duration-500"
-            />
-          </svg>
-        </div>
-
-        {/* Top Header: Official Logo, Identity & App Portal Tag */}
-        <div className="relative z-10 flex flex-col gap-3">
-          <div className="flex items-center gap-3">
-            <div className="h-12 px-3.5 py-1.5 rounded-xl bg-white shadow-md flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-105 border border-white/20">
-              <img
-                alt="Logo Resmi PSPK"
-                className="h-8 w-auto object-contain"
-                src="/images/logo_pspk_horizontal.jpg"
-                width={2752}
-                height={1536}
-                style={{ width: "auto" }}
-              />
-            </div>
-            <div className="h-8 w-px bg-white/20" />
-            <div className="flex flex-col">
-              <span
-                key={activeTab}
-                className={`text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
-                  isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"
-                }`}
-              >
-                {isHris ? "HRIS Portal" : "System Management"}
-              </span>
-              <span className="text-[10px] text-white/70 tracking-wider uppercase font-medium">
-                Platform Tata Kelola Terpadu
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Center Copy: Distinct App Mission & Value with Staggered Transitions */}
-        <div
-          key={`center-${activeTab}`}
-          className="relative z-10 my-auto py-3 max-w-lg transition-all duration-500 animate-in fade-in slide-in-from-left-4"
+          aria-hidden
+          className="pointer-events-none absolute -bottom-24 -right-28 select-none"
+          style={{ opacity: 0.08, filter: "brightness(0) invert(1)" }}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className={`w-1.5 h-1.5 rounded-full ${
-                isHris ? "bg-[#feba48]" : "bg-[#60a5fa]"
-              }`}
-            />
-            <p
-              className={`text-xs tracking-widest uppercase font-semibold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}
-            >
-              {isHris
-                ? "Manajemen SDM • Kesejahteraan • Kinerja"
-                : "Keamanan • Hak Akses • Integritas Sistem"}
-            </p>
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-[36px] text-white leading-tight mb-3 font-serif transition-all duration-300">
-            {isHris
-              ? "Pengelolaan data SDM, absensi, dan cuti terpadu PSPK."
-              : "Tata kelola pengguna, kontrol akses RBAC, dan audit log."}
-          </h1>
-          <p className="text-xs sm:text-sm text-[#d9e3f6] leading-relaxed font-light">
-            {isHris
-              ? "Akses mandiri administrasi kepegawaian, pengajuan izin cuti, evaluasi kinerja, dan rekam kehadiran tim riset Pusat Studi Pendidikan dan Kebijakan."
-              : "Pusat kendali izin peran & permission (RBAC), inventarisasi perangkat dan aset lembaga, manajemen SOP, serta pencatatan audit log terenkripsi."}
+          <PspkLogo variant="assemble" size={640} title={null} className="overflow-visible" />
+        </div>
+
+        <div className="relative z-10">
+          <PspkLockup variant="horizontal" tone="white" size={60} />
+        </div>
+
+        <div key={`copy-${activeTab}`} className="relative z-10 max-w-md animate-in fade-in duration-500">
+          <p
+            className="mb-4 text-xs font-bold uppercase tracking-[0.18em]"
+            style={{ color: portal.onDark }}
+          >
+            {portal.kicker}
           </p>
-
-          {/* Metric / Distinct Highlights */}
-          <div className="mt-5 pt-5 border-t border-white/10 grid grid-cols-2 gap-4">
-            <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-xs transition-transform duration-300 hover:translate-y-[-2px] hover:bg-white/10">
-              <div
-                className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}
-              >
-                {isHris ? "SDM Terpadu" : "RBAC 5 Peran"}
-              </div>
-              <div className="text-[10px] sm:text-[11px] text-[#d9e3f6] uppercase mt-0.5 tracking-wider">
-                {isHris ? "Manajemen Pegawai & Cuti" : "Kontrol Akses Multi-Level"}
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-white/5 border border-white/10 backdrop-blur-xs transition-transform duration-300 hover:translate-y-[-2px] hover:bg-white/10">
-              <div
-                className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isHris ? "text-[#ffddb0]" : "text-[#93c5fd]"}`}
-              >
-                {isHris ? "256-Bit TLS" : "Audit Trail"}
-              </div>
-              <div className="text-[10px] sm:text-[11px] text-[#d9e3f6] uppercase mt-0.5 tracking-wider">
-                {isHris ? "Enkripsi Kredensial" : "Log Terenkripsi"}
-              </div>
-            </div>
-          </div>
+          <h1
+            className="mb-4 text-[40px] font-bold leading-[1.15] text-white"
+            style={{ fontFamily: HEADING_FONT }}
+          >
+            Equitable Education for{" "}
+            <span style={{ color: "#f2af3e" }}>Every Child</span>
+          </h1>
+          <p className="text-[15px] leading-relaxed text-[#d6e0f0]">{portal.blurb}</p>
         </div>
 
-        {/* Bottom Trust Signals */}
-        <div className="relative z-10 pt-3 flex items-center justify-between gap-4 border-t border-white/15 text-[#d9e3f6]">
-          <div className="flex items-center gap-2">
-            <svg
-              className={`w-3.5 h-3.5 transition-colors duration-300 ${isHris ? "text-[#feba48]" : "text-[#60a5fa]"}`}
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
-            </svg>
-            <span className="text-[11px] text-white/90 font-medium">
-              {isHris ? "Keamanan Data Pegawai PSPK" : "Protokol Keamanan Sistem PSPK"}
-            </span>
-          </div>
-          <span className="text-[10px] text-[#d9e3f6]/70 font-mono">v1.0.0-prod</span>
+        <div className="relative z-10 flex items-center justify-between text-xs text-[#aebdd6]">
+          <span>#BerpihakKepadaAnak</span>
+          <a
+            href="https://pspk.id"
+            target="_blank"
+            rel="noreferrer"
+            className="transition-colors hover:text-white"
+          >
+            pspk.id
+          </a>
         </div>
-      </div>
+      </aside>
 
-      {/* RIGHT PANEL: Authentication Workspace & Animated Portal Switcher */}
-      <div
-        className="w-full lg:w-[54%] h-full flex flex-col justify-between p-6 sm:p-8 lg:p-10 xl:p-12 bg-[#f8f9ff] overflow-y-auto lg:overflow-hidden"
-        style={{ backgroundColor: "#f8f9ff" }}
-      >
-        {/* Top Header: Animated Sliding Segmented Control & Help Link */}
-        <div className="w-full flex items-center justify-between pb-2">
-          {/* Animated Segmented Control with Tactile Sliding Pill Indicator */}
-          <div className="relative grid grid-cols-2 p-1 rounded-xl bg-[#e6eeff]/90 backdrop-blur-sm border border-[#c8d8f0] shadow-xs select-none w-72 sm:w-[330px]">
-            {/* Sliding Active Pill Background with Spring Physics */}
+      {/* PANEL KANAN: area autentikasi */}
+      <main className="flex flex-1 flex-col bg-[#f8f9ff] p-6 sm:p-8 lg:p-10 xl:p-12">
+        {/* Header: pemilih portal + bantuan */}
+        <div className="flex w-full items-center justify-between gap-4 pb-2">
+          <div className="relative grid w-72 select-none grid-cols-2 rounded-xl border border-[#c8d8f0] bg-[#e6eeff]/90 p-1 sm:w-[330px]">
+            {/* Penanda aktif yang bergeser */}
             <div
-              className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg bg-[#102e50] shadow-[0_4px_12px_rgba(16,46,80,0.25)] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
-              style={{
-                left: activeTab === "hris" ? "4px" : "calc(50% + 0px)",
-              }}
+              className="pointer-events-none absolute bottom-1 top-1 w-[calc(50%-4px)] rounded-lg bg-[#102e50] shadow-[0_4px_12px_rgba(16,46,80,0.25)] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+              style={{ left: isHris ? "4px" : "calc(50% + 0px)" }}
             />
 
             {/* HRIS Tab */}
             <button
               type="button"
               onClick={() => handleSwitchPortal("hris")}
-              className={`relative z-10 w-full flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === "hris"
-                  ? "text-white"
-                  : "text-[#43474e] hover:text-[#102e50] hover:scale-[1.01]"
+              aria-pressed={isHris}
+              className={`relative z-10 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                isHris ? "text-white" : "text-[#43474e] hover:text-[#102e50]"
               }`}
               title="Pindah ke Login Portal HRIS"
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300 ${
-                  activeTab === "hris"
-                    ? "bg-[#feba48] opacity-100 scale-100"
-                    : "opacity-0 scale-50"
+                className={`h-1.5 w-1.5 shrink-0 rounded-full bg-[#f2af3e] transition-all duration-300 ${
+                  isHris ? "scale-100 opacity-100" : "scale-50 opacity-0"
                 }`}
               />
               <svg
-                className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                className="h-3.5 w-3.5 shrink-0"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -428,26 +312,24 @@ export function LoginPage({
             <button
               type="button"
               onClick={() => handleSwitchPortal("sysmgmt")}
-              className={`relative z-10 w-full flex items-center justify-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                activeTab === "sysmgmt"
-                  ? "text-white"
-                  : "text-[#43474e] hover:text-[#102e50] hover:scale-[1.01]"
+              aria-pressed={!isHris}
+              className={`relative z-10 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors duration-200 ${
+                !isHris ? "text-white" : "text-[#43474e] hover:text-[#102e50]"
               }`}
               title="Pindah ke Login System Management"
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full shrink-0 transition-all duration-300 ${
-                  activeTab === "sysmgmt"
-                    ? "bg-[#60a5fa] opacity-100 scale-100"
-                    : "opacity-0 scale-50"
+                className={`h-1.5 w-1.5 shrink-0 rounded-full bg-[#8fd0ee] transition-all duration-300 ${
+                  !isHris ? "scale-100 opacity-100" : "scale-50 opacity-0"
                 }`}
               />
               <svg
-                className="w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                className="h-3.5 w-3.5 shrink-0"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -460,15 +342,16 @@ export function LoginPage({
           </div>
 
           <a
-            className="inline-flex items-center gap-1.5 text-xs text-[#5b6675] hover:text-[#102e50] font-semibold transition-colors duration-200 hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#5b6675] transition-colors duration-200 hover:text-[#102e50] hover:underline"
             href={helpHref}
           >
             <svg
-              className="w-3.5 h-3.5"
+              className="h-3.5 w-3.5"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <circle cx="12" cy="12" r="10" />
               <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
@@ -478,65 +361,44 @@ export function LoginPage({
           </a>
         </div>
 
-        {/* Main Central Card Area */}
-        <div className="w-full max-w-lg mx-auto my-auto py-2">
-          {/* Authentication Card with Transition Feedback */}
+        {/* Kartu form */}
+        <div className="mx-auto my-auto w-full max-w-md py-6">
+          <div className="mb-7 flex justify-center">
+            <PspkLockup variant="vertical" tone="color" size={84} />
+          </div>
+
           <div
-            className={`relative bg-white rounded-xl p-6 sm:p-8 shadow-sm border border-[#e6eeff]/80 transition-all duration-300 overflow-hidden ${
-              isSwitching ? "scale-[0.985] shadow-xs" : "scale-100 hover:shadow-md"
+            className={`relative overflow-hidden rounded-xl border border-[#e6eeff] bg-white p-6 shadow-sm transition-transform duration-300 sm:p-8 ${
+              isSwitching ? "scale-[0.985]" : "scale-100"
             }`}
           >
-
-            {/* Card Header */}
             <div className="mb-6">
-              {/* Mobile-only Brand Header */}
-              <div className="lg:hidden flex items-center justify-between mb-5 pb-4 border-b border-[#e6eeff]">
-                <div className="h-10 px-3 py-1 bg-white border border-[#c8d8f0] rounded-xl shadow-xs inline-flex items-center">
-                  <img
-                    src="/images/logo_pspk_horizontal.jpg"
-                    alt="Logo PSPK"
-                    className="h-6 w-auto object-contain"
-                    width={2752}
-                    height={1536}
-                    style={{ width: "auto" }}
-                  />
-                </div>
-                <span
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
-                    isHris ? "bg-[#fef3c7] text-[#92400e]" : "bg-[#dbeafe] text-[#1e40af]"
-                  }`}
-                >
-                  {isHris ? "HRIS Portal" : "System Management"}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span
-                  className={`w-2 h-2 rounded-full transition-colors duration-300 ${isHris ? "bg-[#f2af3e]" : "bg-[#60a5fa]"}`}
-                ></span>
-                <span
-                  className={`text-[11px] font-bold tracking-widest uppercase transition-colors duration-300 ${isHris ? "text-[#805600]" : "text-[#102e50]"}`}
-                >
-                  {isHris ? "Akses Masuk Pegawai HRIS" : "Akses Administrator Sistem"}
-                </span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl text-[#102e50] mt-1 mb-1 font-serif font-semibold transition-all duration-300">
-                Masuk ke {isHris ? "HRIS" : "System Management"}
+              <span
+                className="mb-3 inline-block rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition-colors duration-300"
+                style={{ backgroundColor: portal.pillBg, color: portal.pillText }}
+              >
+                {portal.name}
+              </span>
+              <h2
+                className="mb-1 text-2xl font-bold text-[#102e50] sm:text-[28px]"
+                style={{ fontFamily: HEADING_FONT }}
+              >
+                Masuk ke {portal.name}
               </h2>
-              <p className="text-xs sm:text-sm text-[#43474e] transition-all duration-300">
-                {isHris
-                  ? "Masukkan kredensial akun PSPK Anda untuk mengelola data kepegawaian dan kehadiran."
-                  : "Masukkan kredensial akun administrator untuk mengelola hak akses, aset, dan audit log."}
-              </p>
+              <p className="text-sm text-[#43474e]">{portal.description}</p>
             </div>
 
-            {/* Inline Error Banner Frame */}
+            {/* Banner error */}
             {formState === "error" && (
-              <div className="mb-5 p-3.5 rounded bg-[#ffdad6] text-[#93000a] flex items-start gap-3 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
+              <div
+                role="alert"
+                className="mb-5 flex animate-in items-start gap-3 rounded bg-[#ffdad6] p-3.5 text-[#93000a] duration-300 fade-in slide-in-from-top-2"
+              >
                 <svg
-                  className="w-5 h-5 text-[#ba1a1a] shrink-0 mt-0.5"
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#ba1a1a]"
                   fill="currentColor"
                   viewBox="0 0 20 20"
+                  aria-hidden="true"
                 >
                   <path
                     fillRule="evenodd"
@@ -545,25 +407,26 @@ export function LoginPage({
                   />
                 </svg>
                 <div className="flex-1">
-                  <p className="text-xs sm:text-sm font-bold text-[#ba1a1a] leading-tight">
-                    Autentikasi Gagal
+                  <p className="text-sm font-bold leading-tight text-[#ba1a1a]">
+                    Autentikasi gagal
                   </p>
-                  <p className="text-xs sm:text-sm text-[#93000a] mt-0.5">
+                  <p className="mt-0.5 text-sm text-[#93000a]">
                     {errorMessage || "Email atau kata sandi yang Anda masukkan tidak sesuai."}
                   </p>
                 </div>
                 <button
                   type="button"
                   aria-label="Tutup pesan kesalahan"
-                  className="text-[#ba1a1a] hover:opacity-75 transition-opacity"
+                  className="text-[#ba1a1a] transition-opacity hover:opacity-75"
                   onClick={() => setFormState("idle")}
                 >
                   <svg
-                    className="w-4 h-4"
+                    className="h-4 w-4"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
@@ -572,30 +435,30 @@ export function LoginPage({
               </div>
             )}
 
-            {/* Login Form */}
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              {/* Email Field */}
+              {/* Email */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label
-                    className="text-xs sm:text-sm text-[#121c2a] font-medium flex items-center gap-1"
+                    className="flex items-center gap-1 text-sm font-medium text-[#121c2a]"
                     htmlFor="email-field"
                   >
-                    Alamat Email PSPK
-                    <span className="text-[#ba1a1a]">*</span>
+                    Alamat email PSPK
+                    <span className="text-[#ba1a1a]" aria-hidden="true">
+                      *
+                    </span>
                   </label>
-                  <span className="text-[11px] text-[#74777f] font-mono">
-                    Domain resmi @pspk.id
-                  </span>
+                  <span className="text-[11px] text-[#74777f]">Domain resmi @pspk.id</span>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#43474e]">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#43474e]">
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      className="h-5 w-5"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <path
                         strokeLinecap="round"
@@ -609,39 +472,45 @@ export function LoginPage({
                     name="email"
                     type="email"
                     required
+                    autoComplete="username"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nama.pegawai@pspk.id"
-                    className="w-full h-10 sm:h-11 pl-10 sm:pl-11 pr-4 rounded bg-white text-[#121c2a] text-xs sm:text-sm placeholder:text-[#74777f] border border-[#adc8f2] focus:outline-none focus:ring-2 focus:ring-[#102e50] shadow-xs transition-all duration-200"
+                    placeholder="nama@pspk.id"
+                    className="h-11 w-full rounded border border-[#adc8f2] bg-white pl-11 pr-4 text-sm text-[#121c2a] shadow-xs transition-all duration-200 placeholder:text-[#74777f] focus:outline-none focus:ring-2 focus:ring-[#102e50]"
                   />
                 </div>
               </div>
 
-              {/* Password Field */}
+              {/* Kata sandi */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label
-                    className="text-xs sm:text-sm text-[#121c2a] font-medium flex items-center gap-1"
+                    className="flex items-center gap-1 text-sm font-medium text-[#121c2a]"
                     htmlFor="password-field"
                   >
-                    Kata Sandi
-                    <span className="text-[#ba1a1a]">*</span>
+                    Kata sandi
+                    <span className="text-[#ba1a1a]" aria-hidden="true">
+                      *
+                    </span>
                   </label>
                   <a
-                    className="text-xs text-[#805600] hover:underline font-semibold"
+                    className="text-xs font-semibold text-[#805600] hover:underline"
                     href={forgotPasswordHref}
                   >
-                    Lupa password?
+                    Lupa kata sandi?
                   </a>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#43474e]">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[#43474e]">
                     <svg
-                      className="w-4 h-4 sm:w-5 sm:h-5"
+                      className="h-5 w-5"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="2"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0110 0v4" />
@@ -652,25 +521,32 @@ export function LoginPage({
                     name="password"
                     type={showPassword ? "text" : "password"}
                     required
+                    autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Masukkan kata sandi akun"
-                    className="w-full h-10 sm:h-11 pl-10 sm:pl-11 pr-11 sm:pr-12 rounded bg-white text-[#121c2a] text-xs sm:text-sm placeholder:text-[#74777f] border border-[#adc8f2] focus:outline-none focus:ring-2 focus:ring-[#102e50] shadow-xs transition-all duration-200"
+                    onKeyDown={(e) => setCapsLock(e.getModifierState("CapsLock"))}
+                    onKeyUp={(e) => setCapsLock(e.getModifierState("CapsLock"))}
+                    onBlur={() => setCapsLock(false)}
+                    aria-describedby={capsLock ? "caps-hint" : undefined}
+                    placeholder="Masukkan kata sandi"
+                    className="h-11 w-full rounded border border-[#adc8f2] bg-white pl-11 pr-12 text-sm text-[#121c2a] shadow-xs transition-all duration-200 placeholder:text-[#74777f] focus:outline-none focus:ring-2 focus:ring-[#102e50]"
                   />
                   <button
                     id="toggle-password-btn"
                     type="button"
-                    aria-label="Tampilkan atau sembunyikan kata sandi"
+                    aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                    aria-pressed={showPassword}
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#43474e] hover:text-[#121c2a] focus:outline-none transition-transform duration-150 active:scale-90"
+                    className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-[#43474e] transition-transform duration-150 hover:text-[#121c2a] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#102e50] active:scale-90"
                   >
                     {showPassword ? (
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5"
+                        className="h-5 w-5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -680,11 +556,12 @@ export function LoginPage({
                       </svg>
                     ) : (
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5"
+                        className="h-5 w-5"
                         fill="none"
                         stroke="currentColor"
                         strokeWidth="2"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -700,51 +577,45 @@ export function LoginPage({
                     )}
                   </button>
                 </div>
+                {capsLock && (
+                  <p id="caps-hint" role="status" className="text-xs font-medium text-[#805600]">
+                    Caps Lock sedang aktif.
+                  </p>
+                )}
               </div>
 
-              {/* Remember Me & Trust Device Checkbox */}
+              {/* Ingat saya */}
               <div className="flex items-center justify-between pt-0.5">
-                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <label className="flex cursor-pointer select-none items-center gap-2.5">
                   <input
                     id="remember-me"
                     name="remember"
                     type="checkbox"
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
-                    className="w-4 h-4 rounded text-[#102e50] border-gray-300 focus:ring-[#feba48] cursor-pointer transition-transform duration-150 active:scale-95"
+                    className="h-4 w-4 cursor-pointer rounded border-gray-300 transition-transform duration-150 focus:ring-[#f2af3e] active:scale-95"
                     style={{ accentColor: "#102e50" }}
                   />
-                  <span className="text-xs sm:text-sm text-[#121c2a]">
-                    Ingat saya di perangkat ini
-                  </span>
+                  <span className="text-sm text-[#121c2a]">Ingat saya di perangkat ini</span>
                 </label>
-                <div className="hidden sm:flex items-center gap-1 text-[#74777f] text-[11px]">
-                  <svg
-                    className="w-3.5 h-3.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <polyline points="12 6 12 12 16 14" />
-                  </svg>
-                  <span>Sesi 30 hari</span>
-                </div>
+                {remember && (
+                  <span className="hidden text-[11px] text-[#74777f] sm:inline">Sesi 30 hari</span>
+                )}
               </div>
 
-              {/* Primary Action Button: Idle vs Loading State */}
+              {/* Tombol utama */}
               {formState === "loading" ? (
                 <button
                   id="submit-btn-loading"
                   type="button"
                   disabled
-                  className="w-full h-11 mt-1 px-6 rounded bg-[#102e50]/85 text-white text-sm font-semibold tracking-wide flex items-center justify-center gap-3 cursor-wait shadow-xs"
+                  className="mt-1 flex h-11 w-full cursor-wait items-center justify-center gap-3 rounded bg-[#102e50]/85 px-6 text-sm font-semibold tracking-wide text-white"
                 >
                   <svg
-                    className="animate-spin h-4 w-4 text-[#ffddb0]"
+                    className="h-4 w-4 animate-spin text-[#f2af3e]"
                     fill="none"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <circle
                       className="opacity-25"
@@ -760,21 +631,22 @@ export function LoginPage({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  <span>Memverifikasi Kredensial...</span>
+                  <span>Memverifikasi...</span>
                 </button>
               ) : (
                 <button
                   id="submit-btn-idle"
                   type="submit"
-                  className="w-full h-11 mt-1 px-6 rounded bg-[#102e50] hover:bg-[#001934] active:scale-[0.99] text-white text-sm font-semibold tracking-wide flex items-center justify-center gap-2 transition-all duration-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#102e50] cursor-pointer"
+                  className="mt-1 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded bg-[#102e50] px-6 text-sm font-semibold tracking-wide text-white shadow-sm transition-all duration-200 hover:bg-[#001934] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#102e50] focus:ring-offset-2 active:scale-[0.99]"
                 >
-                  <span>Masuk ke {isHris ? "HRIS" : "System Management"}</span>
+                  <span>Masuk ke {portal.name}</span>
                   <svg
-                    className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1"
+                    className="h-4 w-4"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <line x1="5" y1="12" x2="19" y2="12" />
                     <polyline points="12 5 19 12 12 19" />
@@ -785,26 +657,30 @@ export function LoginPage({
           </div>
         </div>
 
-        {/* Small Institutional Footer */}
-        <footer className="w-full pt-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-[#43474e] border-t border-[#dee9fc] text-xs">
-          <div className="text-center sm:text-left text-[#5b6675]">
+        {/* Footer */}
+        <footer className="flex w-full flex-col items-center justify-between gap-3 border-t border-[#dee9fc] pt-3 text-xs text-[#43474e] sm:flex-row">
+          <div className="text-center text-[#5b6675] sm:text-left">
             © PSPK • Pusat Studi Pendidikan dan Kebijakan
           </div>
-          <div className="flex items-center gap-4 text-xs">
-            <a className="hover:text-[#001934] transition-colors duration-150" href="/bantuan#keamanan">
-              Kebijakan Privasi
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <a className="transition-colors duration-150 hover:text-[#001934]" href="/bantuan#keamanan">
+              Kebijakan privasi
             </a>
-            <span className="text-[#c4c6cf]">•</span>
-            <a className="hover:text-[#001934] transition-colors duration-150" href="/bantuan#keamanan">
-              Protokol Keamanan
+            <span className="text-[#c4c6cf]" aria-hidden="true">
+              •
+            </span>
+            <a className="transition-colors duration-150 hover:text-[#001934]" href="/bantuan#keamanan">
+              Protokol keamanan
             </a>
-            <span className="text-[#c4c6cf]">•</span>
-            <a className="hover:text-[#001934] transition-colors duration-150" href="/bantuan#kontak">
+            <span className="text-[#c4c6cf]" aria-hidden="true">
+              •
+            </span>
+            <a className="transition-colors duration-150 hover:text-[#001934]" href="/bantuan#kontak">
               Bantuan IT
             </a>
           </div>
         </footer>
-      </div>
+      </main>
     </div>
   );
 }
