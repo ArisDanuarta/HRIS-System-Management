@@ -473,13 +473,262 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           </div>
         </div>
 
-        {/* SECTION 2: SUBJEK & KONTEN PESAN */}
+        {/* SECTION 2: IDENTITAS PENGIRIM & BALASAN (SENDER PERSONA & REPLY-TO) */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-5">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2">
+              <Landmark className="w-4 h-4 text-navy-800" />
+              <h3 className="font-semibold text-sm text-slate-900">
+                2. Identitas Pengirim &amp; Alamat Balasan
+              </h3>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Audit: {senderCtx.userName}</span>
+            </div>
+          </div>
+
+          {/* PILIHAN PERSONA PENGIRIM */}
+          <div className="space-y-2.5">
+            <label className="block text-xs font-semibold text-slate-700">
+              Kirim Pengumuman Sebagai:
+            </label>
+
+            {isSuperOrHrAdmin ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* 1. LEMBAGA (ORGANIZATION) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSenderPersona("ORGANIZATION");
+                    setReplyToMode("NO_REPLY");
+                  }}
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                    senderPersona === "ORGANIZATION"
+                      ? "border-navy-900 bg-navy-50/50 ring-2 ring-navy-200 shadow-xs"
+                      : "border-slate-200 hover:border-slate-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Landmark className="w-4 h-4 text-navy-800" />
+                      <span className="font-semibold text-xs text-slate-900">
+                        Atas Nama Lembaga (PSPK)
+                      </span>
+                    </div>
+                    {senderPersona === "ORGANIZATION" && (
+                      <Check className="w-4 h-4 text-navy-900" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Pusat Studi Pendidikan dan Kebijakan (PSPK) &bull; Pengumuman Resmi Institusi
+                  </p>
+                </button>
+
+                {/* 2. TIM HR (HR_TEAM) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSenderPersona("HR_TEAM");
+                    setReplyToMode("ORGANIZATION_HR");
+                  }}
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                    senderPersona === "HR_TEAM"
+                      ? "border-navy-900 bg-navy-50/50 ring-2 ring-navy-200 shadow-xs"
+                      : "border-slate-200 hover:border-slate-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-navy-800" />
+                      <span className="font-semibold text-xs text-slate-900">
+                        Tim People &amp; Culture (HR)
+                      </span>
+                    </div>
+                    {senderPersona === "HR_TEAM" && (
+                      <Check className="w-4 h-4 text-navy-900" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Tim People &amp; Culture (HR) PSPK &bull; Kepegawaian &amp; Operasional
+                  </p>
+                </button>
+
+                {/* 3. PRIBADI (PERSONAL) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSenderPersona("PERSONAL");
+                    setReplyToMode("SENDER_PERSONAL");
+                  }}
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                    senderPersona === "PERSONAL"
+                      ? "border-navy-900 bg-navy-50/50 ring-2 ring-navy-200 shadow-xs"
+                      : "border-slate-200 hover:border-slate-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-navy-800" />
+                      <span className="font-semibold text-xs text-slate-900">
+                        Nama Pribadi ({senderCtx.userName})
+                      </span>
+                    </div>
+                    {senderPersona === "PERSONAL" && (
+                      <Check className="w-4 h-4 text-navy-900" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    {senderCtx.userName} &bull; {senderCtx.employeeTitle}
+                  </p>
+                </button>
+
+                {/* 4. KUSTOM (CUSTOM) */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSenderPersona("CUSTOM");
+                  }}
+                  className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                    senderPersona === "CUSTOM"
+                      ? "border-navy-900 bg-navy-50/50 ring-2 ring-navy-200 shadow-xs"
+                      : "border-slate-200 hover:border-slate-300 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-gold-500" />
+                      <span className="font-semibold text-xs text-slate-900">
+                        Nama Pengirim Kustom
+                      </span>
+                    </div>
+                    {senderPersona === "CUSTOM" && (
+                      <Check className="w-4 h-4 text-navy-900" />
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                    Tuliskan nama khusus (misal: Panitia Raker 2026, Satgas Internal)
+                  </p>
+                </button>
+              </div>
+            ) : (
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2.5">
+                  <User className="w-4 h-4 text-navy-800" />
+                  <div>
+                    <span className="font-semibold text-slate-900">{senderCtx.userName}</span>
+                    <span className="text-slate-500 text-[11px] block">
+                      {senderCtx.employeeTitle} (Pengumuman Internal Tim)
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[11px] bg-slate-200/70 text-slate-700 px-2.5 py-0.5 rounded-full font-medium">
+                  Pengirim Terkunci
+                </span>
+              </div>
+            )}
+
+            {/* Input Tambahan Jika Memilih Kustom */}
+            {senderPersona === "CUSTOM" && (
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 animate-in fade-in duration-150">
+                <label className="block text-xs font-semibold text-slate-800">
+                  Nama Tampilan Pengirim Kustom <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={customSenderName}
+                  onChange={(e) => setCustomSenderName(e.target.value)}
+                  placeholder="Contoh: Panitia Rapat Kerja PSPK 2026"
+                  maxLength={100}
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent text-slate-900"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* PENGATURAN BALASAN (REPLY-TO) */}
+          <div className="space-y-2 pt-2 border-t border-slate-100">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+              <Reply className="w-3.5 h-3.5 text-navy-800" />
+              <span>Tujuan Balasan Email (Reply-To):</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <label
+                className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
+                  replyToMode === "NO_REPLY"
+                    ? "border-navy-900 bg-navy-50/40 text-navy-900 font-semibold"
+                    : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="replyToMode"
+                  value="NO_REPLY"
+                  checked={replyToMode === "NO_REPLY"}
+                  onChange={() => setReplyToMode("NO_REPLY")}
+                  className="text-navy-900 focus:ring-navy-600"
+                />
+                <div>
+                  <span className="block text-xs">Satu Arah (No-Reply)</span>
+                  <span className="text-[10px] text-slate-500 font-normal">no-reply@pspk.id</span>
+                </div>
+              </label>
+
+              {isSuperOrHrAdmin && (
+                <label
+                  className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
+                    replyToMode === "ORGANIZATION_HR"
+                      ? "border-navy-900 bg-navy-50/40 text-navy-900 font-semibold"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="replyToMode"
+                    value="ORGANIZATION_HR"
+                    checked={replyToMode === "ORGANIZATION_HR"}
+                    onChange={() => setReplyToMode("ORGANIZATION_HR")}
+                    className="text-navy-900 focus:ring-navy-600"
+                  />
+                  <div>
+                    <span className="block text-xs">Email Tim HR</span>
+                    <span className="text-[10px] text-slate-500 font-normal">hr@pspk.id</span>
+                  </div>
+                </label>
+              )}
+
+              <label
+                className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
+                  replyToMode === "SENDER_PERSONAL"
+                    ? "border-navy-900 bg-navy-50/40 text-navy-900 font-semibold"
+                    : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="replyToMode"
+                  value="SENDER_PERSONAL"
+                  checked={replyToMode === "SENDER_PERSONAL"}
+                  onChange={() => setReplyToMode("SENDER_PERSONAL")}
+                  className="text-navy-900 focus:ring-navy-600"
+                />
+                <div>
+                  <span className="block text-xs">Email Pribadi Saya</span>
+                  <span className="text-[10px] text-slate-500 font-normal">{senderCtx.userEmail}</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* SECTION 3: SUBJEK & KONTEN PESAN */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2">
               <Mail className="w-4 h-4 text-navy-800" />
               <h3 className="font-semibold text-sm text-slate-900">
-                2. Subjek &amp; Naskah Pengumuman
+                3. Subjek &amp; Naskah Pengumuman
               </h3>
             </div>
 
