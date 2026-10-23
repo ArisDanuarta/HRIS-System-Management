@@ -466,7 +466,7 @@ export function renderBroadcastEmailHtml(params: {
         <strong>Pemberitahuan:</strong> Email ini bersifat pengumuman satu arah resmi dari <strong>${escapeHtml(senderName)}</strong>. Mohon tidak membalas langsung ke alamat email ini.
       </div>`
           : `<div class="reply-box">
-        <strong>Diskusi &amp; Pertanyaan:</strong> Anda dapat langsung membalas (*Reply*) email ini dari aplikasi email Anda untuk terhubung langsung dengan <strong>${escapeHtml(replyToMode === "ORGANIZATION_HR" ? "Tim People & Culture (HR) PSPK" : replyToEmail || senderName)}</strong>.
+        <strong>Diskusi &amp; Pertanyaan:</strong> Anda dapat langsung membalas (*Reply*) email ini dari aplikasi email Anda untuk terhubung langsung dengan <strong>${escapeHtml(replyToMode === "ORGANIZATION_HR" ? "Tim People & Culture (HR) PSPK" : replyToEmail || senderName)}</strong>${replyToEmail && replyToEmail !== "no-reply@pspk.id" ? ` (${escapeHtml(replyToEmail)})` : ""}.
       </div>`
       }
     </div>
