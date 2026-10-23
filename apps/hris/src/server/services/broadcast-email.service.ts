@@ -292,86 +292,10 @@ export function htmlToPlainText(html: string): string {
     .trim();
 }
 
-export interface ResolvedSenderIdentity {
-  displayName: string;
-  displayTitle: string;
-  isPersonal: boolean;
-  replyToHeader: string;
-  replyToEmail: string;
-  replyToMode: ReplyToMode;
-}
-
-/**
- * Menerjemahkan pilihan persona dan mode balasan menjadi nama tampilan resmi, sub-judul,
- * dan header Reply-To email.
- */
-export function resolveSenderIdentity(
-  senderCtx: BroadcastSenderContext,
-  persona: SenderPersona = "ORGANIZATION",
-  customSenderName?: string | null,
-  replyToMode: ReplyToMode = "NO_REPLY",
-  customReplyToEmail?: string | null,
-): ResolvedSenderIdentity {
-  let displayName = "Pusat Studi Pendidikan dan Kebijakan (PSPK)";
-  let displayTitle = "Pengumuman Resmi Institusi";
-  let isPersonal = false;
-
-  switch (persona) {
-    case "HR_TEAM":
-      displayName = "Tim People & Culture (HR) PSPK";
-      displayTitle = "Pengumuman Kepegawaian & Operasional";
-      break;
-    case "PERSONAL":
-      displayName = senderCtx.userName;
-      displayTitle = senderCtx.employeeTitle;
-      isPersonal = true;
-      break;
-    case "CUSTOM":
-      displayName = customSenderName?.trim() || "Pusat Studi Pendidikan dan Kebijakan (PSPK)";
-      displayTitle = "Pengumuman Khusus Lembaga";
-      break;
-    case "ORGANIZATION":
-    default:
-      displayName = "Pusat Studi Pendidikan dan Kebijakan (PSPK)";
-      displayTitle = "Pengumuman Resmi Institusi";
-      break;
-  }
-
-  // Resolusi alamat Reply-To
-  let replyToEmail = "no-reply@pspk.id";
-  let replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
-
-  switch (replyToMode) {
-    case "ORGANIZATION_HR":
-      replyToEmail = "hr@pspk.id";
-      replyToHeader = `"Tim People & Culture PSPK" <hr@pspk.id>`;
-      break;
-    case "SENDER_PERSONAL":
-      replyToEmail = senderCtx.userEmail || "no-reply@pspk.id";
-      replyToHeader = `"${senderCtx.userName}" <${replyToEmail}>`;
-      break;
-    case "CUSTOM":
-      if (customReplyToEmail?.trim()) {
-        replyToEmail = customReplyToEmail.trim();
-        replyToHeader = `"${displayName}" <${replyToEmail}>`;
-      }
-      break;
-    case "NO_REPLY":
-    default:
-      replyToEmail = "no-reply@pspk.id";
-      replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
-      break;
-  }
-
-  return {
-    displayName,
-    displayTitle,
-    isPersonal,
-    replyToHeader,
-    replyToEmail,
-    replyToMode,
-  };
-}
+export {
+  resolveSenderIdentity,
+  type ResolvedSenderIdentity,
+} from "../schemas/broadcast.schema";
 
 /**
  * Menyusun template HTML email resmi PSPK yang responsif dan kompatibel dengan Gmail/Outlook.
