@@ -6,6 +6,8 @@ import {
   SendBroadcastInput,
   SenderPersona,
   ReplyToMode,
+  resolveSenderIdentity,
+  type ResolvedSenderIdentity,
 } from "../schemas/broadcast.schema";
 
 export interface RecipientInfo {
