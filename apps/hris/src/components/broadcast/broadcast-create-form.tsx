@@ -18,12 +18,21 @@ import {
   ArrowRight,
   Info,
   Check,
+  Landmark,
+  User,
+  Reply,
+  Sparkles,
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import {
   sendBroadcastAction,
   BroadcastFormData,
 } from "../../server/actions/broadcast.actions";
+import {
+  SenderPersona,
+  ReplyToMode,
+  resolveSenderIdentity,
+} from "../../server/schemas/broadcast.schema";
 
 interface BroadcastCreateFormProps {
   initialData: BroadcastFormData;
@@ -33,15 +42,26 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
   const router = useRouter();
   const { senderCtx, departments, employees, teamMembers } = initialData;
 
+  const isSuperOrHrAdmin = senderCtx.isAdminHr || senderCtx.isSuperAdmin;
+
   // Form State
   const [targetScope, setTargetScope] = useState<
     "ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM"
-  >(senderCtx.isAdminHr || senderCtx.isSuperAdmin ? "ALL_EMPLOYEES" : "TEAM");
+  >(isSuperOrHrAdmin ? "ALL_EMPLOYEES" : "TEAM");
 
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>(
     departments[0]?.id || "",
   );
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+
+  // Sender Persona & Reply-To State
+  const [senderPersona, setSenderPersona] = useState<SenderPersona>(
+    isSuperOrHrAdmin ? "ORGANIZATION" : "PERSONAL",
+  );
+  const [customSenderName, setCustomSenderName] = useState("");
+  const [replyToMode, setReplyToMode] = useState<ReplyToMode>("NO_REPLY");
+  const [customReplyToEmail, setCustomReplyToEmail] = useState("");
+
   const [subject, setSubject] = useState("");
   const [contentHtml, setContentHtml] = useState("");
   const [sendInApp, setSendInApp] = useState(true);
@@ -57,6 +77,15 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     message: string;
     broadcastId?: string;
   } | null>(null);
+
+  // Calculate resolved sender identity dynamically for live preview and modal
+  const previewSender = resolveSenderIdentity(
+    senderCtx,
+    senderPersona,
+    customSenderName,
+    replyToMode,
+    customReplyToEmail,
+  );
 
   // Calculate effective recipient count for display
   const getRecipientSummary = () => {
@@ -101,6 +130,22 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
   const handleOpenConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
+
+    if (senderPersona === "CUSTOM" && !customSenderName.trim()) {
+      setFeedback({
+        type: "error",
+        message: "Nama pengirim kustom wajib diisi jika memilih opsi persona Kustom.",
+      });
+      return;
+    }
+
+    if (replyToMode === "CUSTOM" && !customReplyToEmail.trim()) {
+      setFeedback({
+        type: "error",
+        message: "Alamat email balasan kustom wajib diisi jika memilih mode balasan Kustom.",
+      });
+      return;
+    }
 
     if (!subject.trim()) {
       setFeedback({
@@ -151,6 +196,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         customEmployeeIds:
           targetScope === "CUSTOM" ? selectedEmployeeIds : [],
         sendInApp,
+        senderPersona,
+        customSenderName: senderPersona === "CUSTOM" ? customSenderName.trim() : undefined,
+        replyToMode,
+        customReplyToEmail: replyToMode === "CUSTOM" ? customReplyToEmail.trim() : undefined,
       });
 
       if (res.success) {
