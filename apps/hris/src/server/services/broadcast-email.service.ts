@@ -2,7 +2,11 @@ import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
 import { prisma, writeAudit } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
-import { SendBroadcastInput } from "../schemas/broadcast.schema";
+import {
+  SendBroadcastInput,
+  SenderPersona,
+  ReplyToMode,
+} from "../schemas/broadcast.schema";
 
 export interface RecipientInfo {
   id: string;
