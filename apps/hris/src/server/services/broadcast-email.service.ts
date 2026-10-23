@@ -292,6 +292,87 @@ export function htmlToPlainText(html: string): string {
     .trim();
 }
 
+export interface ResolvedSenderIdentity {
+  displayName: string;
+  displayTitle: string;
+  isPersonal: boolean;
+  replyToHeader: string;
+  replyToEmail: string;
+  replyToMode: ReplyToMode;
+}
+
+/**
+ * Menerjemahkan pilihan persona dan mode balasan menjadi nama tampilan resmi, sub-judul,
+ * dan header Reply-To email.
+ */
+export function resolveSenderIdentity(
+  senderCtx: BroadcastSenderContext,
+  persona: SenderPersona = "ORGANIZATION",
+  customSenderName?: string | null,
+  replyToMode: ReplyToMode = "NO_REPLY",
+  customReplyToEmail?: string | null,
+): ResolvedSenderIdentity {
+  let displayName = "Pusat Studi Pendidikan dan Kebijakan (PSPK)";
+  let displayTitle = "Pengumuman Resmi Institusi";
+  let isPersonal = false;
+
+  switch (persona) {
+    case "HR_TEAM":
+      displayName = "Tim People & Culture (HR) PSPK";
+      displayTitle = "Pengumuman Kepegawaian & Operasional";
+      break;
+    case "PERSONAL":
+      displayName = senderCtx.userName;
+      displayTitle = senderCtx.employeeTitle;
+      isPersonal = true;
+      break;
+    case "CUSTOM":
+      displayName = customSenderName?.trim() || "Pusat Studi Pendidikan dan Kebijakan (PSPK)";
+      displayTitle = "Pengumuman Khusus Lembaga";
+      break;
+    case "ORGANIZATION":
+    default:
+      displayName = "Pusat Studi Pendidikan dan Kebijakan (PSPK)";
+      displayTitle = "Pengumuman Resmi Institusi";
+      break;
+  }
+
+  // Resolusi alamat Reply-To
+  let replyToEmail = "no-reply@pspk.id";
+  let replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
+
+  switch (replyToMode) {
+    case "ORGANIZATION_HR":
+      replyToEmail = "hr@pspk.id";
+      replyToHeader = `"Tim People & Culture PSPK" <hr@pspk.id>`;
+      break;
+    case "SENDER_PERSONAL":
+      replyToEmail = senderCtx.userEmail || "no-reply@pspk.id";
+      replyToHeader = `"${senderCtx.userName}" <${replyToEmail}>`;
+      break;
+    case "CUSTOM":
+      if (customReplyToEmail?.trim()) {
+        replyToEmail = customReplyToEmail.trim();
+        replyToHeader = `"${displayName}" <${replyToEmail}>`;
+      }
+      break;
+    case "NO_REPLY":
+    default:
+      replyToEmail = "no-reply@pspk.id";
+      replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
+      break;
+  }
+
+  return {
+    displayName,
+    displayTitle,
+    isPersonal,
+    replyToHeader,
+    replyToEmail,
+    replyToMode,
+  };
+}
+
 /**
  * Menyusun template HTML email resmi PSPK yang responsif dan kompatibel dengan Gmail/Outlook.
  */
@@ -302,6 +383,9 @@ export function renderBroadcastEmailHtml(params: {
   senderName: string;
   senderTitle: string;
   scopeBadge: string;
+  isPersonal?: boolean;
+  replyToMode?: ReplyToMode;
+  replyToEmail?: string;
   year?: number;
 }): string {
   const {
@@ -311,8 +395,13 @@ export function renderBroadcastEmailHtml(params: {
     senderName,
     senderTitle,
     scopeBadge,
+    isPersonal = true,
+    replyToMode = "NO_REPLY",
+    replyToEmail,
     year = new Date().getFullYear(),
   } = params;
+
+  const isNoReply = replyToMode === "NO_REPLY";
 
   return `
 <!DOCTYPE html>
@@ -342,6 +431,7 @@ export function renderBroadcastEmailHtml(params: {
     .content-area a { color: #102E50; text-decoration: underline; font-weight: 600; }
     .content-area img { max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0; border: 1px solid #e2e8f0; }
     .reply-box { margin-top: 32px; padding: 14px 16px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 12.5px; color: #166534; line-height: 1.5; }
+    .reply-box-noreply { background-color: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
     .email-footer { background-color: #f8fafc; padding: 22px 24px; text-align: center; font-size: 11.5px; color: #64748b; border-top: 1px solid #e2e8f0; line-height: 1.6; }
   </style>
 </head>
@@ -357,7 +447,11 @@ export function renderBroadcastEmailHtml(params: {
       </div>
 
       <div class="sender-card">
-        Pengumuman diterbitkan oleh: <span class="sender-name">${escapeHtml(senderName)}</span> (${escapeHtml(senderTitle)})
+        ${
+          isPersonal
+            ? `Pengumuman diterbitkan oleh: <span class="sender-name">${escapeHtml(senderName)}</span> (${escapeHtml(senderTitle)})`
+            : `Diterbitkan secara resmi oleh: <span class="sender-name">${escapeHtml(senderName)}</span> &bull; <em>${escapeHtml(senderTitle)}</em>`
+        }
       </div>
 
       <div class="greeting">Halo ${escapeHtml(recipientName)},</div>
@@ -366,9 +460,15 @@ export function renderBroadcastEmailHtml(params: {
         ${contentHtml}
       </div>
 
-      <div class="reply-box">
-        <strong>Diskusi &amp; Pertanyaan:</strong> Anda dapat langsung membalas (*Reply*) email ini dari aplikasi email Anda untuk terhubung langsung dengan <strong>${escapeHtml(senderName)}</strong>.
-      </div>
+      ${
+        isNoReply
+          ? `<div class="reply-box reply-box-noreply">
+        <strong>Pemberitahuan:</strong> Email ini bersifat pengumuman satu arah resmi dari <strong>${escapeHtml(senderName)}</strong>. Mohon tidak membalas langsung ke alamat email ini.
+      </div>`
+          : `<div class="reply-box">
+        <strong>Diskusi &amp; Pertanyaan:</strong> Anda dapat langsung membalas (*Reply*) email ini dari aplikasi email Anda untuk terhubung langsung dengan <strong>${escapeHtml(replyToMode === "ORGANIZATION_HR" ? "Tim People & Culture (HR) PSPK" : replyToEmail || senderName)}</strong>.
+      </div>`
+      }
     </div>
     <div class="email-footer">
       <p style="margin: 0 0 6px 0;">Email ini dikirimkan secara resmi melalui Sistem HRIS PSPK menggunakan akun <strong>no-reply@pspk.id</strong>.</p>
