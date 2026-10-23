@@ -653,7 +653,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
               <span>Tujuan Balasan Email (Reply-To):</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
               <label
                 className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
                   replyToMode === "NO_REPLY"
@@ -718,7 +718,43 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   <span className="text-[10px] text-slate-500 font-normal">{senderCtx.userEmail}</span>
                 </div>
               </label>
+
+              <label
+                className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
+                  replyToMode === "CUSTOM"
+                    ? "border-navy-900 bg-navy-50/40 text-navy-900 font-semibold"
+                    : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="replyToMode"
+                  value="CUSTOM"
+                  checked={replyToMode === "CUSTOM"}
+                  onChange={() => setReplyToMode("CUSTOM")}
+                  className="text-navy-900 focus:ring-navy-600"
+                />
+                <div>
+                  <span className="block text-xs">Email Kustom</span>
+                  <span className="text-[10px] text-slate-500 font-normal">Tentukan alamat spesifik</span>
+                </div>
+              </label>
             </div>
+
+            {replyToMode === "CUSTOM" && (
+              <div className="pt-2 animate-in fade-in duration-150">
+                <label className="block text-xs font-medium text-slate-700 mb-1">
+                  Alamat Email Balasan Khusus (Reply-To):
+                </label>
+                <input
+                  type="email"
+                  value={customReplyToEmail}
+                  onChange={(e) => setCustomReplyToEmail(e.target.value)}
+                  placeholder="misal: panitia.acara@pspk.id atau project@pspk.id"
+                  className="w-full sm:w-80 px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:border-navy-800 focus:ring-1 focus:ring-navy-800 transition-colors"
+                />
+              </div>
+            )}
           </div>
         </div>
 

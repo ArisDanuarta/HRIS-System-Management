@@ -4,10 +4,8 @@ import { prisma, writeAudit } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
 import {
   SendBroadcastInput,
-  SenderPersona,
   ReplyToMode,
   resolveSenderIdentity,
-  type ResolvedSenderIdentity,
 } from "../schemas/broadcast.schema";
 
 export interface RecipientInfo {
