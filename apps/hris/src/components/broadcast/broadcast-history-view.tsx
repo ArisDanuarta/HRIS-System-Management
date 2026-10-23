@@ -314,12 +314,14 @@ export function BroadcastHistoryView({
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 text-[11px] text-slate-500 pt-1">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 pt-1">
                   <span className="font-medium text-slate-700">
                     Dari: {item.senderName}
                   </span>
                   <span>•</span>
-                  <span>no-reply@pspk.id</span>
+                  <span className="text-slate-500">
+                    Balasan: {item.replyToEmail || "no-reply@pspk.id"}
+                  </span>
                   {item.sendInApp && (
                     <>
                       <span>•</span>
@@ -385,28 +387,28 @@ export function BroadcastHistoryView({
                 <>
                   {/* Meta Bar */}
                   <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 text-xs">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <span className="text-slate-500">Diterbitkan Oleh:</span>
-                        <p className="font-semibold text-slate-900">
-                          {activeDetail.senderName} ({activeDetail.senderEmail})
+                        <span className="text-slate-500">Atas Nama Pengirim:</span>
+                        <p className="font-semibold text-slate-900 mt-0.5">
+                          {activeDetail.senderName}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Alamat Balasan (Reply-To):</span>
+                        <p className="font-semibold text-slate-900 font-mono text-[11px] mt-0.5">
+                          {activeDetail.replyToEmail || "no-reply@pspk.id (Satu Arah)"}
                         </p>
                       </div>
                       <div>
                         <span className="text-slate-500">Waktu Kirim:</span>
-                        <p className="font-semibold text-slate-900">
+                        <p className="font-semibold text-slate-900 mt-0.5">
                           {formatDateTime(activeDetail.createdAt)}
                         </p>
                       </div>
                       <div>
-                        <span className="text-slate-500">Akun Pengirim Resmi:</span>
-                        <p className="font-mono text-[#102E50] font-medium">
-                          PSPK HRIS &lt;no-reply@pspk.id&gt;
-                        </p>
-                      </div>
-                      <div>
                         <span className="text-slate-500">Status Keterkiriman:</span>
-                        <p className="font-semibold text-emerald-700">
+                        <p className="font-semibold text-emerald-700 mt-0.5">
                           {activeDetail.sentCount} dari {activeDetail.totalRecipients} Penerima Sukses
                         </p>
                       </div>
