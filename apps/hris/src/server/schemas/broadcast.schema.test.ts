@@ -6,6 +6,21 @@ import {
 } from "./broadcast.schema";
 
 describe("broadcast.schema.ts - Validasi Skema Broadcast", () => {
+  it("harus memiliki opsi persona dan reply-to yang terdefinisi dengan tepat", () => {
+    expect(senderPersonaSchema.options).toEqual([
+      "ORGANIZATION",
+      "HR_TEAM",
+      "PERSONAL",
+      "CUSTOM",
+    ]);
+    expect(replyToModeSchema.options).toEqual([
+      "NO_REPLY",
+      "ORGANIZATION_HR",
+      "SENDER_PERSONAL",
+      "CUSTOM",
+    ]);
+  });
+
   it("harus mengisi nilai default untuk senderPersona dan replyToMode jika tidak disediakan", () => {
     const input = {
       subject: "Pengumuman Awal Tahun 2026",
