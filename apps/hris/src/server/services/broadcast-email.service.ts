@@ -506,7 +506,30 @@ export async function executeSendBroadcast(
     targetDepartmentId,
     customEmployeeIds = [],
     sendInApp = true,
+    senderPersona = "ORGANIZATION",
+    customSenderName,
+    replyToMode = "NO_REPLY",
+    customReplyToEmail,
   } = input;
+
+  // Cek otorisasi persona:
+  // Hanya Super Admin & Admin HR yang dapat memilih ORGANIZATION atau HR_TEAM
+  if (!senderCtx.isSuperAdmin && !senderCtx.isAdminHr) {
+    if (senderPersona === "ORGANIZATION" || senderPersona === "HR_TEAM") {
+      throw new Error(
+        "Akses ditolak: Hanya Administrator HR dan Super Administrator yang dapat menerbitkan pengumuman atas nama Lembaga atau Tim HR.",
+      );
+    }
+  }
+
+  // Resolusi identitas persona pengirim & mode balasan
+  const resolvedSender = resolveSenderIdentity(
+    senderCtx,
+    senderPersona,
+    customSenderName,
+    replyToMode,
+    customReplyToEmail,
+  );
 
   // 1. Sanitasi konten HTML
   const sanitizedContent = sanitizeBroadcastContent(rawContentHtml);
@@ -534,9 +557,9 @@ export async function executeSendBroadcast(
       contentText: plainTextContent,
       senderUserId: senderCtx.userId,
       senderEmployeeId: senderCtx.employeeId,
-      senderName: senderCtx.userName,
-      senderEmail: senderCtx.userEmail,
-      replyToEmail: senderCtx.userEmail,
+      senderName: resolvedSender.displayName,
+      senderEmail: "no-reply@pspk.id",
+      replyToEmail: resolvedSender.replyToEmail,
       targetScope,
       targetDepartmentId: targetDepartmentId || null,
       totalRecipients: recipients.length,
@@ -603,18 +626,26 @@ export async function executeSendBroadcast(
             subject,
             contentHtml: sanitizedContent,
             recipientName: rcpt.recipientName,
-            senderName: senderCtx.userName,
-            senderTitle: senderCtx.employeeTitle,
+            senderName: resolvedSender.displayName,
+            senderTitle: resolvedSender.displayTitle,
             scopeBadge,
+            isPersonal: resolvedSender.isPersonal,
+            replyToMode: resolvedSender.replyToMode,
+            replyToEmail: resolvedSender.replyToEmail,
           });
+
+          const plainTextFooter =
+            resolvedSender.replyToMode === "NO_REPLY"
+              ? `Pengumuman resmi dari: ${resolvedSender.displayName}\nEmail ini bersifat satu arah.`
+              : `Pengumuman dari: ${resolvedSender.displayName} (${resolvedSender.displayTitle})\nBalas email ini untuk berdiskusi dengan pengirim.`;
 
           try {
             await transporter.sendMail({
               from: smtpFrom,
               to: rcpt.email,
-              replyTo: `"${senderCtx.userName}" <${senderCtx.userEmail}>`,
+              replyTo: resolvedSender.replyToHeader,
               subject: `[PSPK HRIS] ${subject}`,
-              text: `Halo ${rcpt.recipientName},\n\n${plainTextContent}\n\nPengumuman dari: ${senderCtx.userName} (${senderCtx.employeeTitle})\nBalas email ini untuk berdiskusi dengan pengirim.`,
+              text: `Halo ${rcpt.recipientName},\n\n${plainTextContent}\n\n${plainTextFooter}`,
               html: personalizedHtml,
               headers: {
                 "X-Mailer": "PSPK-Broadcast-Mailer",
@@ -658,7 +689,8 @@ export async function executeSendBroadcast(
 📢 [SIMULASI PENGIRIMAN BROADCAST EMAIL PSPK]
 --------------------------------------------------------------------------------
 Dari (From)      : ${smtpFrom}
-Balasan (Reply-To): ${senderCtx.userName} <${senderCtx.userEmail}>
+Pengirim Resmi   : ${resolvedSender.displayName} (${resolvedSender.displayTitle})
+Balasan (Reply-To): ${resolvedSender.replyToHeader}
 Subjek           : [PSPK HRIS] ${subject}
 Cakupan Target   : ${targetScope} (${recipients.length} Orang Penerima)
 Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).join(", ")}
@@ -689,7 +721,7 @@ Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).joi
         data: validUserRecipients.map((r) => ({
           userId: r.userId!,
           title: `Pengumuman: ${subject}`,
-          message: `${senderCtx.userName}: "${snippet}"`,
+          message: `${resolvedSender.displayName}: "${snippet}"`,
           type: "INFO",
           category: "SYSTEM",
           link: `/komunikasi/riwayat?id=${broadcast.id}`,
@@ -727,6 +759,10 @@ Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).joi
       broadcastId: broadcast.id,
       subject,
       targetScope,
+      senderPersona,
+      senderDisplayName: resolvedSender.displayName,
+      replyToMode: resolvedSender.replyToMode,
+      replyToEmail: resolvedSender.replyToEmail,
       totalRecipients: recipients.length,
       sentCount,
       failedCount,
