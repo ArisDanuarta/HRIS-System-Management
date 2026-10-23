@@ -2,6 +2,39 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Modul Komunikasi / Broadcast Email] Fleksibilitas Identitas Pengirim Institusional & Reply-To Dinamis — 2026-10-23
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Pengumuman institusional umum (seperti ucapan hari raya/tahun baru, pengumuman kebijakan lembaga, atau edaran HR) sebelumnya selalu memuat nama perorangan pengirim secara kaku.
+  - Diperlukan fitur pemilihan profil pengirim (*Sender Persona*) fleksibel: Lembaga PSPK (`ORGANIZATION`), Tim People & Culture / HR (`HR_TEAM`), Nama Pribadi (`PERSONAL`), maupun Kustom (`CUSTOM`).
+  - Diperlukan konfigurasi alamat balasan (*Reply-To Mode*): Satu Arah (`NO_REPLY`), Email Tim HR (`ORGANIZATION_HR`), Email Pribadi Pengirim (`SENDER_PERSONAL`), maupun Email Kustom Tertentu (`CUSTOM`).
+  - Menjaga integritas audit: akun pengguna riil yang melakukan pengiriman tetap dicatat pada `senderUserId` dan audit trail log, sementara nama publik yang tampil di email mencerminkan institusi/tim yang dipilih.
+  - Pembatasan RBAC: Pengumuman atas nama Lembaga dan Tim HR hanya dapat dipilih oleh Super Admin dan Admin HR.
+- **Hasil Pekerjaan:**
+  1. **Skema & Domain Logic (`broadcast.schema.ts`):**
+     - Menambahkan enum `senderPersonaSchema` dan `replyToModeSchema` beserta validasi kondisional Zod untuk `customSenderName` dan `customReplyToEmail`.
+     - Fungsi `resolveSenderIdentity()` untuk memetakan nama pengirim resmi, gelar/atribut, alamat balasan, dan deskripsi institusi secara konsisten baik di client maupun server.
+     - Penambahan unit test komprehensif di `broadcast.schema.test.ts` (5 test cases).
+  2. **Layanan Backend & Rendering Email (`broadcast-email.service.ts`):**
+     - Pengecekan RBAC di server: Hanya Super Admin dan Admin HR yang dapat memilih `ORGANIZATION` atau `HR_TEAM`.
+     - Pembaruan template email HTML resmi (`renderBroadcastEmailHtml`) dengan kartu penerbit resmi institusi (`Diterbitkan secara resmi oleh...`), badge dinamis, dan kotak panduan balasan (*Single-direction notice* vs *Discussion reply box*).
+     - Penyimpanan `senderName` dan `replyToEmail` hasil resolusi ke dalam record `EmailBroadcast`, pengisian `replyTo` pada Nodemailer, dan pencatatan audit log lengkap.
+     - Penambahan unit test komprehensif di `broadcast-email.service.test.ts` (15 test cases).
+  3. **Antarmuka Form Pembuatan Pengumuman (`broadcast-create-form.tsx`):**
+     - Bagian baru "2. Identitas Pengirim & Alamat Balasan" dengan kartu interaktif untuk 4 persona pengirim dan 4 mode balasan.
+     - Input kondisional untuk nama kustom dan email balasan kustom.
+     - Live Preview responsif yang menampilkan mockup kartu identitas pengirim dan kotak panduan balasan secara real-time.
+     - Modal konfirmasi akhir yang merinci profil pengirim, alamat teknis `no-reply@pspk.id`, dan alamat reply-to sebelum pengiriman diproses.
+  4. **Tampilan Riwayat & Rincian Broadcast (`broadcast-history-view.tsx`):**
+     - Penyesuaian kartu riwayat pengumuman dengan label `Dari: [Atas Nama]` dan `Balasan: [Alamat Reply-To]`.
+     - Penyesuaian modal detail pengumuman dengan meta bar yang membedakan akun teknis `no-reply@pspk.id`, atas nama pengirim resmi, dan alamat balasan yang dituju.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test`: ✅ Lolos 100% (35 test suite, 249 unit tests lulus)
+  - `pnpm build`: ✅ Lolos 100% (Next.js standalone build untuk `@pspk/hris` dan `@pspk/sysmgmt` sukses)
+
 ## [Desain & UI Platform] Penerapan Komponen Animasi Logo PSPK ke Seluruh Loading Screen — 2026-10-22
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
