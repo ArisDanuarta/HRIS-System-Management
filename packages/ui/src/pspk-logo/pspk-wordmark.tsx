@@ -77,7 +77,7 @@ export function PspkWordmark({
       {fadeIn ? (
         <style>{`@keyframes pspk-wordmark-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}@media (prefers-reduced-motion:reduce){svg[aria-label="${title}"]{animation:none!important;opacity:1!important}}`}</style>
       ) : null}
-      <path fill={color} d="{w.d}" />
+      <path fill={color} d={w.d} />
     </svg>
   );
 }
