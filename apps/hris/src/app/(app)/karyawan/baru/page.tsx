@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { ArrowLeft, UserPlus } from "lucide-react";
 import { getSession, getUserProfile } from "@pspk/auth";
 import type { Metadata } from "next";
@@ -20,12 +21,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-
 export default async function TambahKaryawanPage() {
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
-  const userProfile = session?.user?.id ? await getUserProfile(session.user.id) : null;
-  const isSuperAdmin = userProfile?.roles.some((r) => r.role.key === "super_admin") ?? false;
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const userProfile = await getUserProfile(session.user.id);
+  const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
+  const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
+
+  if (!isHrOrAdmin) {
+    redirect("/karyawan");
+  }
+
+  const isSuperAdmin = roleKeys.includes("super_admin");
 
   const [departments, managers, roles, employmentTypes] = await Promise.all([
     getOrgStructureData(),
