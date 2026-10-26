@@ -129,6 +129,9 @@ export async function toggleModuleAction(input: { moduleKey: string; enabled: bo
     });
 
     revalidatePath("/pengguna");
+    revalidatePath("/dashboard");
+    revalidatePath("/aset");
+    revalidatePath("/", "layout");
 
     return {
       ok: true as const,
@@ -195,6 +198,9 @@ export async function resetAllModulesToDefaultAction() {
     });
 
     revalidatePath("/pengguna");
+    revalidatePath("/dashboard");
+    revalidatePath("/aset");
+    revalidatePath("/", "layout");
 
     return {
       ok: true as const,

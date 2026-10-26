@@ -20,7 +20,7 @@ export default function AppError({
         error={error}
         reset={reset}
         inShell={true}
-        homeUrl="/users"
+        homeUrl="/pengguna"
         title="Terjadi Kesalahan pada System Management"
         message="Aplikasi mengalami kendala teknis saat memuat konfigurasi sistem. Silakan coba muat ulang halaman ini atau kembali ke menu pengguna."
       />

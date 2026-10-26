@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { DocumentDetailWithVersions } from "@/server/queries/document.queries";
+import { SerializedDocumentCategory } from "@/server/queries/settings.queries";
 import { DocumentVisibility, DocumentStatus } from "@pspk/db";
 import { formatDate, formatDateTime } from "@pspk/shared";
 import { DocumentPreviewCard } from "./document-preview-card";
@@ -32,12 +33,14 @@ interface DocumentDetailViewProps {
   document: DocumentDetailWithVersions;
   canManage: boolean;
   canDelete: boolean;
+  categories?: SerializedDocumentCategory[];
 }
 
 export function DocumentDetailView({
   document: doc,
   canManage,
   canDelete,
+  categories,
 }: DocumentDetailViewProps) {
   // Modal states (untuk Sub-Tahap 4D)
   const [isNewVersionModalOpen, setIsNewVersionModalOpen] = useState(false);
@@ -273,6 +276,7 @@ export function DocumentDetailView({
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         document={doc}
+        categories={categories}
         allowedVisibilities={[
           DocumentVisibility.ALL_STAFF,
           DocumentVisibility.MANAGERS,

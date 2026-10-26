@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
 import { getDocumentById } from "@/server/queries/document.queries";
+import { getDocumentCategories } from "@/server/queries/settings.queries";
 import { DocumentDetailView } from "@/components/documents/document-detail-view";
 import { ShieldAlert } from "lucide-react";
 
@@ -81,7 +82,10 @@ export default async function DocumentDetailPage({ params }: DocumentDetailPageP
     );
   }
 
-  const doc = await getDocumentById(id, authCtx.roles);
+  const [doc, categories] = await Promise.all([
+    getDocumentById(id, authCtx.roles),
+    getDocumentCategories({ includeInactive: false }),
+  ]);
 
   if (!doc) {
     notFound();
@@ -90,6 +94,7 @@ export default async function DocumentDetailPage({ params }: DocumentDetailPageP
   return (
     <DocumentDetailView
       document={doc}
+      categories={categories}
       canManage={canManage}
       canDelete={canDelete}
     />

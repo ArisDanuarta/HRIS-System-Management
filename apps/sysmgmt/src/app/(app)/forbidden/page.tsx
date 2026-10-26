@@ -24,8 +24,8 @@ export default async function ForbiddenPage({ searchParams }: ForbiddenPageProps
       <ForbiddenView
         inShell={true}
         currentApp="sysmgmt"
-        homeUrl="/users"
-        homeLabel="Kembali ke Manajemen User"
+        homeUrl="/pengguna"
+        homeLabel="Kembali ke Manajemen Pengguna"
         title="Akses Administrator Dibatasi"
         message={
           from

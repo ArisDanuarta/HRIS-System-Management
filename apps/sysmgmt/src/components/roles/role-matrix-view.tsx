@@ -44,6 +44,8 @@ import {
   Loader2,
   AlertTriangle,
   CheckCircle2,
+  Megaphone,
+  Settings,
 } from "lucide-react";
 
 interface RoleMatrixViewProps {
@@ -62,6 +64,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   payslip: FileText,
   timesheet: Clock,
   performance: TrendingUp,
+  broadcast: Megaphone,
   dashboard: LayoutDashboard,
   user: UserCog,
   role: ShieldCheck,
@@ -69,6 +72,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   license: KeyRound,
   document: FolderLock,
   audit: History,
+  settings: Settings,
 };
 
 function createInitialMatrixState(
