@@ -7,6 +7,10 @@ import {
   SerializedAsset,
   ActiveEmployeeOption,
 } from "@/server/queries/asset.queries";
+import {
+  SerializedAssetType,
+  SerializedAssetLocation,
+} from "@/server/queries/settings.queries";
 import { AssetFormModal } from "./asset-form-modal";
 import { AssetDeleteModal } from "./asset-delete-modal";
 import { AssetCheckoutModal } from "./asset-checkout-modal";
@@ -32,6 +36,8 @@ interface AssetDetailViewProps {
   employees: ActiveEmployeeOption[];
   canWrite: boolean;
   isAssignmentModuleActive: boolean;
+  assetTypes?: SerializedAssetType[];
+  assetLocations?: SerializedAssetLocation[];
 }
 
 export function AssetDetailView({
@@ -39,6 +45,8 @@ export function AssetDetailView({
   employees,
   canWrite,
   isAssignmentModuleActive,
+  assetTypes,
+  assetLocations,
 }: AssetDetailViewProps) {
   const router = useRouter();
 
@@ -480,6 +488,8 @@ export function AssetDetailView({
         asset={asset}
         suggestedTagIt={asset.assetTag}
         suggestedTagNonIt={asset.assetTag}
+        assetTypes={assetTypes}
+        assetLocations={assetLocations}
       />
 
       <AssetDeleteModal

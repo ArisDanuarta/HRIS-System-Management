@@ -8,6 +8,7 @@ import {
   getAssetById,
   getActiveEmployeesForAssignment,
 } from "@/server/queries/asset.queries";
+import { getAssetTypes, getAssetLocations } from "@/server/queries/settings.queries";
 import { AssetDetailView } from "@/components/assets/asset-detail-view";
 import { ShieldAlert } from "lucide-react";
 
@@ -77,9 +78,11 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
 
   const isAssignmentModuleActive = isModuleActive(moduleFlags, "asset_assignment");
 
-  const [asset, employees] = await Promise.all([
+  const [asset, employees, assetTypes, assetLocations] = await Promise.all([
     getAssetById(id),
     isAssignmentModuleActive ? getActiveEmployeesForAssignment() : Promise.resolve([]),
+    getAssetTypes({ includeInactive: false }),
+    getAssetLocations({ includeInactive: false }),
   ]);
 
   if (!asset) {
@@ -90,6 +93,8 @@ export default async function AssetDetailPage({ params }: AssetDetailPageProps) 
     <AssetDetailView
       asset={asset}
       employees={employees}
+      assetTypes={assetTypes}
+      assetLocations={assetLocations}
       canWrite={canWrite}
       isAssignmentModuleActive={isAssignmentModuleActive}
     />

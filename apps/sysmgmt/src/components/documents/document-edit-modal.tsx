@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { DocumentDetailWithVersions } from "@/server/queries/document.queries";
+import { SerializedDocumentCategory } from "@/server/queries/settings.queries";
 import { DocumentVisibility, DocumentStatus } from "@pspk/db";
 import { updateDocumentMetadataAction } from "@/server/actions/document.actions";
 import {
@@ -18,9 +19,10 @@ interface DocumentEditModalProps {
   onClose: () => void;
   document: DocumentDetailWithVersions;
   allowedVisibilities: DocumentVisibility[];
+  categories?: SerializedDocumentCategory[];
 }
 
-const CATEGORY_OPTIONS = [
+const DEFAULT_CATEGORY_OPTIONS = [
   "Kebijakan Lembaga",
   "SOP HR & Kepegawaian",
   "SOP IT & Sistem",
@@ -33,8 +35,29 @@ export function DocumentEditModal({
   onClose,
   document: doc,
   allowedVisibilities,
+  categories,
 }: DocumentEditModalProps) {
   const router = useRouter();
+
+  const categoryOptions = React.useMemo(() => {
+    const list: string[] = [];
+    if (categories && categories.length > 0) {
+      categories
+        .filter((c) => c.isActive)
+        .forEach((c) => {
+          if (!list.includes(c.name)) list.push(c.name);
+        });
+    } else {
+      DEFAULT_CATEGORY_OPTIONS.forEach((c) => {
+        if (!list.includes(c)) list.push(c);
+      });
+    }
+    // Pastikan kategori saat ini selalu tersedia di opsi walaupun tidak aktif
+    if (doc.category && !list.includes(doc.category)) {
+      list.push(doc.category);
+    }
+    return list;
+  }, [categories, doc.category]);
 
   const [title, setTitle] = useState(doc.title);
   const [category, setCategory] = useState(doc.category);
@@ -171,7 +194,7 @@ export function DocumentEditModal({
               disabled={isSubmitting}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] cursor-pointer"
             >
-              {CATEGORY_OPTIONS.map((cat) => (
+              {categoryOptions.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>

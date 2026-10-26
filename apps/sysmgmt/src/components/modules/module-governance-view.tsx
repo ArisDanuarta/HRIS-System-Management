@@ -290,7 +290,18 @@ export function ModuleGovernanceView({ governanceData }: ModuleGovernanceViewPro
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              HRIS Core
+              HRIS Core ({modules.filter((m) => m.category === "hris").length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterCategory("sysmgmt")}
+              className={`px-3 py-1 text-xs rounded-lg font-semibold transition-all ${
+                filterCategory === "sysmgmt"
+                  ? "bg-white text-[#102E50] shadow-2xs font-bold"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              System Management ({modules.filter((m) => m.category === "sysmgmt").length})
             </button>
           </div>
         </div>
