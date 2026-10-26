@@ -2,6 +2,37 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [System Management] Audit Komprehensif & Perbaikan Bug Terputus / Disconnected Pages — 2026-10-26
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Pengecekan menyeluruh terhadap seluruh modul System Management (`apps/sysmgmt`): tata kelola pengguna, RBAC matrix, tata kelola modul, inventaris aset, lisensi perangkat lunak, dokumen & SOP, buku besar audit log, dan pengaturan master data.
+  - Memastikan tidak ada tombol mati, tautan 404, modal yang tidak terhubung ke master data, atau kategori filter yang terlewat.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Tata Kelola Modul (`module-governance-view.tsx`):**
+     - Memperbaiki hilangnya tab filter "System Management" pada bilah filter kategori modul (`ALL` | `hris` | `sysmgmt`). Sebelumnya hanya ada tombol "Semua" dan "HRIS Core".
+     - Menambahkan tab "System Management" lengkap dengan indikator jumlah modul aktif per kategori (`HRIS Core (4)` dan `System Management (2)`).
+  2. **Modal Ubah Data Aset di Halaman Rincian (`/aset/[id]` & `asset-detail-view.tsx`):**
+     - Memperbaiki modal ubah data aset (`AssetFormModal`) pada halaman detail yang sebelumnya tidak menerima data master `assetTypes` dan `assetLocations`.
+     - Mengambil master data tipe dan lokasi aset di `apps/sysmgmt/src/app/(app)/aset/[id]/page.tsx` dan meneruskannya ke `AssetDetailView` sehingga dropdown tipe dan lokasi pada modal ubah selalu sinkron dengan pengaturan lembaga.
+  3. **Modal Ubah Metadata Dokumen & SOP (`/dokumen/[id]` & `document-edit-modal.tsx`):**
+     - Memperbaiki modal ubah metadata dokumen (`DocumentEditModal`) yang sebelumnya memakai daftar kategori hardcoded statis sehingga kategori kustom yang ditambahkan di master data tidak dapat dipilih.
+     - Menjadikan opsi kategori bersifat dinamis berbasis master data (`getDocumentCategories`) dengan fallback aman serta proteksi agar kategori dokumen saat ini selalu tersedia di opsi.
+  4. **Peta Ikon Kategori Matriks Peran RBAC (`role-matrix-view.tsx`):**
+     - Menambahkan pemetaan ikon `Megaphone` untuk resource `broadcast` dan `Settings` untuk resource `settings` pada `CATEGORY_ICONS` di `role-matrix-view.tsx` agar tidak jatuh ke ikon fallback generic (`Layers`).
+  5. **Perbaikan Tautan Balik Error / 404 / 403 (`forbidden.tsx`, `error.tsx`, `not-found.tsx`, `forbidden/page.tsx`):**
+     - Memperbaiki tautan tombol "Kembali ke Manajemen User" yang sebelumnya mengarah ke rute mati `/users` (menghasilkan 404).
+     - Memperbarui seluruh `homeUrl` ke rute valid `/pengguna` dengan label "Kembali ke Manajemen Pengguna".
+  6. **Revalidasi Cache Tata Kelola Modul (`module.actions.ts`):**
+     - Memperluas pemanggilan revalidasi cache Next.js pada mutasi sakelar modul (`toggleModuleAction` & `resetAllModulesToDefaultAction`) ke `/dashboard`, `/aset`, dan layout root (`/`, `layout`) selain `/pengguna`.
+  7. **Aksi Cepat Dashboard (`dashboard-view.tsx`):**
+     - Menambahkan tombol pintas cepat "Inventaris Aset" (`/aset`) ke dalam bilah Aksi Cepat pada Dashboard System Management.
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/sysmgmt typecheck`: ✅ Lolos 100% (0 errors)
+  - `pnpm --filter @pspk/sysmgmt lint`: ✅ Lolos 100% (0 errors, 0 warnings)
+  - `pnpm test apps/sysmgmt`: ✅ Lolos 100% (15 test suites, 91 unit tests lulus)
+  - `pnpm --filter @pspk/sysmgmt build`: ✅ Lolos 100% (Next.js standalone build sukses dengan 20 rute static/dynamic terkompilasi sempurna)
+
 ## [Modul Komunikasi / Broadcast Email] Fleksibilitas Identitas Pengirim Institusional & Reply-To Dinamis — 2026-10-23
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

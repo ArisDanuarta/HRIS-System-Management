@@ -4,14 +4,20 @@ File ini mendefinisikan alur kerja baku yang **WAJIB** diikuti oleh agent coding
 
 ---
 
-### Alur Kerja (Workflow) 6 Langkah:
+### Alur Kerja (Workflow) Baku Agent:
 
 1. **Dilarang push / commit git otomatis**
    - **MUTLAK**: Agent dilarang menjalankan `git commit` maupun `git push` secara otomatis.
    - Semua pembuatan commit dan push harus menunggu instruksi atau persetujuan eksplisit dari pengguna.
    - Jangan pernah menyertakan `git commit` atau `git push` dalam rangkaian perbaikan otomatis.
 
-2. **Analisis kode & analisis dokumen yang ada**
+2. **Prinsip "Cek Dulu, Perbaiki Nanti" (Perintah Pemeriksaan vs Perbaikan)**
+   - **MUTLAK**: Jika pengguna memberikan perintah dengan kata kunci pengecekan/pemeriksaan (seperti: *"cek"*, *"periksa"*, *"audit"*, *"tinjau"*, *"review"*, *"analisis"*):
+     - **DILARANG KERAS langsung mengubah, menambah, atau mengedit kode file apa pun.**
+     - Tugas agent HANYA melakukan investigasi kode, mencatat temuan bug/kondisi terputus, dan menyajikan laporan temuan terstruktur (lokasi file, masalah, dampak, dan rekomendasi solusi).
+     - Agent WAJIB berhenti dan MENUNGGU instruksi/persetujuan eksplisit dari pengguna (misal: *"perbaiki"*, *"terapkan perbaikan"*, *"lanjutkan"*) sebelum mulai mengubah kode.
+
+3. **Analisis kode & analisis dokumen yang ada**
    - Sebelum melakukan perubahan atau menulis kode, pelajari dan pahami kode sumber yang terlibat.
    - Pahami skema Prisma, tipe data, serta aliran data dari database -> server query/action -> client component.
    - Baca dan rujuk dokumen spesifikasi yang ada:
@@ -19,24 +25,25 @@ File ini mendefinisikan alur kerja baku yang **WAJIB** diikuti oleh agent coding
      - `docs/HRIS_BACKLOG.md` (spesifikasi fungsional fitur)
      - Blueprint atau dokumen panduan terkait lainnya.
 
-3. **Melakukan perbaikan berdasarkan analisis poin 2**
+4. **Melakukan perbaikan berdasarkan analisis (HANYA jika diinstruksikan)**
+   - Eksekusi perbaikan hanya dilakukan jika pengguna memang meminta perbaikan atau telah menyetujui rekomendasi perbaikan dari tahap analisis.
    - Terapkan perbaikan atau implementasi fitur secara terstruktur dan tepat sasaran.
    - Pertahankan konsistensi arsitektur: validasi Zod di server action, otorisasi server-side, serialisasi plain JSON object melintasi batas server/client, serta penggunaan komponen desain brand PSPK.
 
-4. **Crosscheck kembali kesesuaian dengan hasil analisis**
+5. **Crosscheck kembali kesesuaian dengan hasil analisis**
    - Setelah mengedit kode, lakukan tinjauan mandiri (_self-review_):
      - Apakah semua temuan di tahap analisis sudah terselesaikan?
      - Apakah ada efek samping (_side effects_) pada komponen atau fungsi lain yang memanggil kode tersebut?
      - Apakah penanganan nilai _nullable_, _edge cases_, dan konversi tipe (_Decimal_ ke _number_, _Date_ ke _string_) sudah tuntas?
 
-5. **Catat hal penting (jika ada)**
+6. **Catat hal penting (jika ada)**
    - Jika terdapat keputusan arsitektur baru, asumsi aturan bisnis, perubahan skema, atau hal krusial lain, catat pada:
      - `docs/PROGRESS.md`
      - `docs/DECISIONS.md`
      - `docs/OPEN_QUESTIONS.md`
    - Jika perbaikan bersifat rutin/minor dan tidak ada hal baru yang substansial, langkah pencatatan ini boleh dilewati (_skip_).
 
-6. **Verifikasi yang sudah dikerjakan**
+7. **Verifikasi yang sudah dikerjakan**
    - Lakukan verifikasi teknis secara menyeluruh:
      - `pnpm typecheck` (wajib 0 error di seluruh paket)
      - `pnpm lint` (wajib tidak ada lint error baru)

@@ -37,14 +37,15 @@ Aturan dan alur kerja ini **wajib** dipatuhi di seluruh sesi pengembangan proyek
 
 ### 0.1 Alur Kerja (Workflow) Wajib Agent
 
-Setiap kali menerima tugas, menangani error, atau mengembangkan fitur, agent WAJIB mengikuti 6 langkah terstruktur berikut secara berurutan:
+Setiap kali menerima tugas, menangani error, atau mengembangkan fitur, agent WAJIB mengikuti alur terstruktur berikut:
 
 1. **Dilarang push / commit git otomatis:** DILARANG keras menjalankan `git commit` atau `git push` secara otomatis tanpa instruksi atau persetujuan eksplisit dari pengguna. Biarkan pengguna yang menentukan kapan dan pesan apa yang akan di-commit/push.
-2. **Analisis kode & analisis dokumen yang ada:** Pelajari kode yang bermasalah secara menyeluruh, pahami aliran data dan relasi Prisma/skema, serta periksa dokumen pedoman/spesifikasi proyek (`AGENTS.md`, blueprint, `docs/HRIS_BACKLOG.md`) sebelum menyentuh atau mengubah kode.
-3. **Melakukan perbaikan berdasarkan hasil analisis (poin 2):** Implementasikan perbaikan yang terarah, rapi, dan tepat sasaran sesuai dengan prinsip arsitektur proyek.
-4. **Crosscheck kembali:** Tinjau ulang seluruh kode yang telah diubah untuk memastikan kesesuaian dengan hasil analisis poin 2, tidak ada efek samping (_side effects_), dan tidak ada kondisi batas (_edge cases_) atau _props/fields_ yang terlewat.
-5. **Catat hal penting (jika ada):** Jika terdapat keputusan arsitektur baru, asumsi bisnis, atau catatan fungsional penting, catat ke dalam dokumen terkait (`docs/PROGRESS.md`, `docs/DECISIONS.md`, atau `docs/OPEN_QUESTIONS.md`). Jika tidak ada hal substansial yang perlu dicatat, langkah ini boleh di-skip.
-6. **Verifikasi yang sudah dikerjakan:** Jalankan verifikasi teknis secara menyeluruh (`pnpm typecheck`, `pnpm lint`, `pnpm test`, serta cek endpoint/dev server jika relevan) untuk memastikan tidak ada error dan kode berfungsi sempurna sebelum melapor ke pengguna.
+2. **Prinsip "Cek Dulu, Perbaiki Nanti" (Perintah Pemeriksaan vs Perbaikan):** Jika pengguna meminta *"cek"*, *"periksa"*, *"audit"*, *"tinjau"*, *"review"*, atau *"analisis"*, agent **DILARANG KERAS langsung mengubah atau mengedit kode file apa pun**. Tugas agent HANYA melakukan investigasi, mencatat temuan bug/kondisi terputus, dan menyajikan laporan temuan terstruktur (lokasi file, masalah, dampak, dan opsi/rekomendasi solusi). Agent WAJIB MENUNGGU instruksi atau persetujuan eksplisit pengguna (misal: *"perbaiki"*, *"terapkan"*, *"lanjutkan perbaikan"*) sebelum mulai menyentuh kode.
+3. **Analisis kode & analisis dokumen yang ada:** Pelajari kode yang bermasalah secara menyeluruh, pahami aliran data dan relasi Prisma/skema, serta periksa dokumen pedoman/spesifikasi proyek (`AGENTS.md`, blueprint, `docs/HRIS_BACKLOG.md`) sebelum menyentuh atau mengubah kode.
+4. **Melakukan perbaikan berdasarkan hasil analisis (HANYA jika diinstruksikan):** Implementasikan perbaikan yang terarah, rapi, dan tepat sasaran sesuai dengan prinsip arsitektur proyek setelah pengguna menyetujui atau memerintahkan perbaikan.
+5. **Crosscheck kembali:** Tinjau ulang seluruh kode yang telah diubah untuk memastikan kesesuaian dengan hasil analisis, tidak ada efek samping (_side effects_), dan tidak ada kondisi batas (_edge cases_) atau _props/fields_ yang terlewat.
+6. **Catat hal penting (jika ada):** Jika terdapat keputusan arsitektur baru, asumsi bisnis, atau catatan fungsional penting, catat ke dalam dokumen terkait (`docs/PROGRESS.md`, `docs/DECISIONS.md`, atau `docs/OPEN_QUESTIONS.md`). Jika tidak ada hal substansial yang perlu dicatat, langkah ini boleh di-skip.
+7. **Verifikasi yang sudah dikerjakan:** Jalankan verifikasi teknis secara menyeluruh (`pnpm typecheck`, `pnpm lint`, `pnpm test`, serta cek endpoint/dev server jika relevan) untuk memastikan tidak ada error dan kode berfungsi sempurna sebelum melapor ke pengguna.
 
 ### 0.2 Aturan Pokok Agent
 
