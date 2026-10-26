@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   User,
@@ -120,32 +121,32 @@ export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
 
           {/* Links */}
           <div className="py-1">
-            <a
+            <Link
               href="/profil"
               className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
               onClick={() => setIsOpen(false)}
             >
               <User className="w-4 h-4 text-[#74777f]" />
               <span>Profil Saya & Berkas</span>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/profil#keamanan"
               className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
               onClick={() => setIsOpen(false)}
             >
               <KeyRound className="w-4 h-4 text-[#74777f]" />
               <span>Ganti Kata Sandi</span>
-            </a>
+            </Link>
 
-            <a
+            <Link
               href="/bantuan"
               className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
               onClick={() => setIsOpen(false)}
             >
               <HelpCircle className="w-4 h-4 text-[#74777f]" />
               <span>Pusat Bantuan & FAQ</span>
-            </a>
+            </Link>
 
             {canAccessSysmgmt && (
               <a
