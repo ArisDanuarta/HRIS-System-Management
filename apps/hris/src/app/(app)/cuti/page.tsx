@@ -8,6 +8,7 @@ import { getEmployeeLeaveBalances, getPersonalLeaveRequests } from "@/server/que
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { LeaveRequestTable } from "@/components/cuti/leave-request-table";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
+import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee-notice";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -35,11 +36,7 @@ export default async function CutiPage() {
     }));
 
   if (!employee) {
-    return (
-      <div className="p-8 text-center bg-white rounded-xl border border-gray-200">
-        <p className="text-gray-600">Profil pegawai tidak ditemukan untuk akun ini.</p>
-      </div>
-    );
+    return <UnlinkedEmployeeNotice roleName="Cuti Pegawai" />;
   }
 
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
