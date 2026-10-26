@@ -10,6 +10,7 @@ import {
   getHolidays,
 } from "@/server/queries/leave.queries";
 import { LeaveRequestForm } from "@/components/cuti/leave-request-form";
+import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee-notice";
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -37,11 +38,7 @@ export default async function AjukanCutiPage() {
     }));
 
   if (!employee) {
-    return (
-      <div className="p-8 text-center bg-white rounded-xl border border-gray-200">
-        <p className="text-gray-600">Profil pegawai tidak ditemukan untuk akun ini.</p>
-      </div>
-    );
+    return <UnlinkedEmployeeNotice roleName="Pengajuan Cuti" />;
   }
 
   const currentYear = new Date().getFullYear();

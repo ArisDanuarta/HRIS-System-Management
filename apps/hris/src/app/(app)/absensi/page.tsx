@@ -10,6 +10,7 @@ import {
 } from "@/server/queries/attendance.queries";
 import { getActiveWorkSchedule } from "@/server/services/work-schedule.service";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
+import { UnlinkedEmployeeNotice } from "@/components/dashboard/unlinked-employee-notice";
 import { CalendarCheck, CheckCircle2, AlertTriangle, Clock, Calendar } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -44,11 +45,7 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
     }));
 
   if (!employee) {
-    return (
-      <div className="p-8 text-center bg-white rounded-xl border border-gray-200">
-        <p className="text-gray-600">Profil pegawai tidak ditemukan untuk akun ini.</p>
-      </div>
-    );
+    return <UnlinkedEmployeeNotice roleName="Presensi Pegawai" />;
   }
 
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
