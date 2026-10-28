@@ -55,6 +55,31 @@ export default async function DashboardPage() {
 
   const employeeName = userProfile?.employee?.fullName || session.user.name || "Karyawan PSPK";
 
+  // Dashboard HR + kartu presensi pribadi (hanya jika akun tertaut ke data pegawai).
+  // Kegagalan memuat presensi pribadi tidak boleh merusak dashboard HR.
+  const renderHrDashboard = async () => {
+    const [hrData, staffData] = await Promise.all([
+      getHrDashboard(ctx),
+      ctx.employeeId ? getStaffDashboard(ctx).catch(() => null) : Promise.resolve(null),
+    ]);
+
+    return (
+      <HrDashboard
+        data={hrData}
+        isSuperAdmin={isSuperAdmin}
+        personalAttendance={
+          staffData
+            ? {
+                todayAttendance: staffData.todayAttendance,
+                workSchedule: staffData.workSchedule,
+                employeeName,
+              }
+            : undefined
+        }
+      />
+    );
+  };
+
   // CASE 1: SUPER ADMIN PREVIEW SWITCH
   if (activePreviewRole === "staff") {
     if (!ctx.employeeId) {
@@ -73,14 +98,12 @@ export default async function DashboardPage() {
   }
 
   if (activePreviewRole === "admin_hr") {
-    const hrData = await getHrDashboard(ctx);
-    return <HrDashboard data={hrData} isSuperAdmin={isSuperAdmin} />;
+    return renderHrDashboard();
   }
 
   // CASE 2: NORMAL ROLE RESOLUTION (Prioritas: Super Admin / Admin HR > Manager > Admin IT > Staff)
   if (isSuperAdmin || isAdminHr) {
-    const hrData = await getHrDashboard(ctx);
-    return <HrDashboard data={hrData} isSuperAdmin={isSuperAdmin} />;
+    return renderHrDashboard();
   }
 
   if (isManager) {
