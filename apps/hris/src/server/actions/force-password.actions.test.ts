@@ -18,9 +18,15 @@ vi.mock("@pspk/db", () => ({
   prisma: {
     user: {
       update: vi.fn(),
+      findUnique: vi.fn(),
     },
   },
   writeAudit: vi.fn(),
+}));
+
+// Mock email service
+vi.mock("../services/email.service", () => ({
+  sendPasswordChangedConfirmationEmail: vi.fn().mockResolvedValue({ success: true }),
 }));
 
 // Mock next/headers

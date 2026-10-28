@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { formatDateTime } from "@pspk/shared";
 
 export interface SendCredentialsEmailParams {
   to: string;
@@ -205,5 +206,184 @@ Catatan                : SMTP_HOST belum dikonfigurasi di file .env.
     success: true,
     simulated: true,
     message: `Informasi akun disimulasikan ke log server (SMTP belum dikonfigurasi di server).`,
+  };
+}
+
+export interface SendPasswordChangedNotificationParams {
+  to: string; // Email pribadi pegawai
+  fullName: string;
+  workEmail: string;
+  changedAt?: Date;
+}
+
+/**
+ * Mengirimkan email konfirmasi keamanan ke surel pribadi setelah kata sandi berhasil diperbarui.
+ */
+export async function sendPasswordChangedConfirmationEmail(
+  params: SendPasswordChangedNotificationParams,
+): Promise<EmailSendResult> {
+  const { to, fullName, workEmail } = params;
+  const changedAt = params.changedAt || new Date();
+  const timeFormatted = formatDateTime(changedAt);
+
+  const smtpHost = process.env.SMTP_HOST?.trim();
+  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const rawSmtpPass = process.env.SMTP_PASS?.trim();
+  const smtpPass =
+    smtpHost && smtpHost.includes("gmail") && rawSmtpPass
+      ? rawSmtpPass.replace(/\s+/g, "")
+      : rawSmtpPass;
+  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <noreply@pspk.id>";
+
+  const emailSubject = `[PSPK HRIS] Keamanan Akun: Kata Sandi Anda Berhasil Diperbarui - ${fullName}`;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="id">
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Keamanan Akun PSPK</title>
+      <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        .header { background-color: #102E50; padding: 28px 24px; text-align: center; border-bottom: 4px solid #10b981; }
+        .header h1 { margin: 0; color: #ffffff; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+        .header p { margin: 6px 0 0 0; color: #94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+        .content { padding: 32px 28px; }
+        .greeting { font-size: 16px; font-weight: 600; color: #102E50; margin-bottom: 12px; }
+        .badge-success { display: inline-block; background-color: #d1fae5; color: #065f46; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; margin-bottom: 12px; }
+        .card { background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .card-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e2e8f0; font-size: 14px; }
+        .card-row:last-child { border-bottom: none; }
+        .card-label { font-weight: 600; color: #475569; width: 40%; }
+        .card-value { font-family: 'SFMono-Regular', Consolas, Monaco, monospace; color: #0f172a; font-weight: 600; width: 60%; word-break: break-all; }
+        .warning { background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 14px 16px; border-radius: 4px; font-size: 13px; color: #78350f; margin-top: 24px; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Pusat Studi Pendidikan dan Kebijakan</h1>
+          <p>Notifikasi Keamanan Akun Portal PSPK</p>
+        </div>
+        <div class="content">
+          <span class="badge-success">Kata Sandi Berhasil Diperbarui</span>
+          <div class="greeting">Halo ${fullName},</div>
+          <p style="font-size: 14px; color: #334155; margin: 0 0 16px 0;">
+            Pemberitahuan keamanan: Kata sandi untuk akun Portal HRIS resmi Anda telah berhasil diubah dan diperbarui. Akun Anda kini telah aktif dengan kata sandi baru pilihan Anda.
+          </p>
+
+          <div class="card">
+            <div style="font-size: 13px; font-weight: 700; color: #102E50; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+              Rincian Aktivitas Akun
+            </div>
+            <div class="card-row">
+              <span class="card-label">Email Akun Kantor</span>
+              <span class="card-value">${workEmail}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Waktu Perubahan</span>
+              <span class="card-value">${timeFormatted} WIB</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Tujuan Notifikasi</span>
+              <span class="card-value">${to}</span>
+            </div>
+          </div>
+
+          <div class="warning">
+            <strong>Keamanan Akun:</strong> Jika Anda yang melakukan perubahan ini, Anda dapat mengabaikan email ini. Namun, jika Anda <strong>merasa tidak pernah melakukan perubahan kata sandi ini</strong>, segera amankan akun Anda atau hubungi Administrator IT PSPK melalui surel <a href="mailto:it@pspk.id" style="color: #102E50; font-weight: bold;">it@pspk.id</a>.
+          </div>
+        </div>
+        <div class="footer">
+          <p style="margin: 0 0 4px 0;">Email notifikasi ini dikirimkan otomatis ke surel pribadi pegawai untuk tujuan verifikasi keamanan.</p>
+          <p style="margin: 0;">&copy; ${new Date().getFullYear()} Yayasan Pusat Studi Pendidikan dan Kebijakan (PSPK).</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textContent = `
+Halo ${fullName},
+
+Pemberitahuan keamanan: Kata sandi untuk akun Portal HRIS resmi Anda (${workEmail}) telah berhasil diperbarui pada ${timeFormatted} WIB.
+
+Rincian:
+- Akun Kantor: ${workEmail}
+- Waktu: ${timeFormatted} WIB
+- Dikirimkan ke: ${to} (Email Pribadi)
+
+Penting: Jika Anda yang melakukan perubahan ini, Anda dapat mengabaikan email ini. Namun, jika Anda TIDAK merasa melakukan perubahan kata sandi ini, segera hubungi Administrator IT PSPK melalui surel it@pspk.id.
+
+---
+Sistem HRIS PSPK
+Pusat Studi Pendidikan dan Kebijakan
+  `.trim();
+
+  // Jika SMTP dikonfigurasi, kirim email sungguhan
+  if (smtpHost && smtpUser && smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: smtpFrom,
+        to,
+        subject: emailSubject,
+        text: textContent,
+        html: htmlContent,
+        headers: {
+          "Auto-Submitted": "auto-generated",
+          "X-Auto-Response-Suppress": "OOF, AutoReply",
+          "X-Mailer": "PSPK-HRIS-Mailer",
+        },
+      });
+
+      return {
+        success: true,
+        simulated: false,
+        message: `Email konfirmasi kata sandi berhasil dikirim ke email pribadi: ${to}`,
+      };
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Kesalahan pengiriman SMTP";
+      console.error("[EMAIL SERVICE] Gagal mengirim konfirmasi kata sandi via SMTP:", err);
+      return {
+        success: false,
+        simulated: false,
+        message: `Gagal mengirim email via SMTP: ${errorMsg}`,
+        error: errorMsg,
+      };
+    }
+  }
+
+  // Fallback simulasi jika SMTP belum dikonfigurasi
+  console.log(`
+================================================================================
+📧 [SIMULASI PENGIRIMAN KONFIRMASI GANTI PASSWORD HRIS PSPK]
+--------------------------------------------------------------------------------
+Kepada (Email Pribadi) : ${to}
+Nama Pegawai           : ${fullName}
+Email Akun Kantor      : ${workEmail}
+Waktu Perubahan        : ${timeFormatted} WIB
+Catatan                : SMTP_HOST belum dikonfigurasi di file .env.
+                         Email ini disimulasikan ke log server.
+================================================================================
+  `);
+
+  return {
+    success: true,
+    simulated: true,
+    message: `Konfirmasi ganti kata sandi disimulasikan ke log server (SMTP belum dikonfigurasi).`,
   };
 }

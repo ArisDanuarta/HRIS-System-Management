@@ -6,6 +6,7 @@ import { z } from "zod";
 import { auth, getSession } from "@pspk/auth";
 import { prisma, writeAudit } from "@pspk/db";
 import { getStorageProvider } from "@pspk/storage";
+import { sendPasswordChangedConfirmationEmail } from "../services/email.service";
 
 const changePasswordSchema = z
   .object({
@@ -86,6 +87,38 @@ export async function changePasswordAction(data: ChangePasswordInput) {
         passwordChangedAt: new Date(),
       },
     });
+
+    // Kirim notifikasi keamanan ke surel pribadi jika tersedia
+    try {
+      const userWithEmp = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          name: true,
+          email: true,
+          employee: {
+            select: {
+              fullName: true,
+              personalEmail: true,
+              workEmail: true,
+            },
+          },
+        },
+      });
+
+      const personalEmail = userWithEmp?.employee?.personalEmail?.trim();
+      if (personalEmail) {
+        sendPasswordChangedConfirmationEmail({
+          to: personalEmail,
+          fullName: userWithEmp?.employee?.fullName || userWithEmp?.name || "Pegawai PSPK",
+          workEmail: userWithEmp?.employee?.workEmail || userWithEmp?.email || session.user.email,
+          changedAt: new Date(),
+        }).catch((err) => {
+          console.error("Gagal mengirim email konfirmasi ganti password:", err);
+        });
+      }
+    } catch (mailLookupErr) {
+      console.error("Gagal memeriksa email pribadi pegawai:", mailLookupErr);
+    }
 
     revalidatePath("/profil");
     revalidatePath("/", "layout");
@@ -197,6 +230,38 @@ export async function forceChangePasswordAction(data: ForceChangePasswordInput) 
         revokedOtherSessions: true,
       },
     });
+
+    // Kirim notifikasi keamanan ke surel pribadi jika tersedia
+    try {
+      const userWithEmp = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          name: true,
+          email: true,
+          employee: {
+            select: {
+              fullName: true,
+              personalEmail: true,
+              workEmail: true,
+            },
+          },
+        },
+      });
+
+      const personalEmail = userWithEmp?.employee?.personalEmail?.trim();
+      if (personalEmail) {
+        sendPasswordChangedConfirmationEmail({
+          to: personalEmail,
+          fullName: userWithEmp?.employee?.fullName || userWithEmp?.name || "Pegawai PSPK",
+          workEmail: userWithEmp?.employee?.workEmail || userWithEmp?.email || session.user.email,
+          changedAt: new Date(),
+        }).catch((err) => {
+          console.error("Gagal mengirim email konfirmasi ganti password pertama kali:", err);
+        });
+      }
+    } catch (mailLookupErr) {
+      console.error("Gagal memeriksa email pribadi pegawai:", mailLookupErr);
+    }
 
     revalidatePath("/", "layout");
 
