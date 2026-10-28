@@ -2657,7 +2657,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
   - **Data yang Dipertahankan**:
     1. Sistem Role & Permission RBAC (5 peran sistem: `super_admin`, `admin_hr`, `admin_it`, `manager`, `staff` serta 61 permission).
     2. Akun tunggal **Super Administrator**:
-       - Email: `superadmin@pspk.id`
+       - Email: `it@pspk.id` (sebelumnya `superadmin@pspk.id`)
        - Password: `Superadmin321!`
        - Role: `super_admin`
   - Sistem sekarang berada dalam kondisi _clean-slate_ murni untuk pengujian input manual satu per satu dari antarmuka web.
