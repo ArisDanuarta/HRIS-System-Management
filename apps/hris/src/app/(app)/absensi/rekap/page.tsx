@@ -6,7 +6,7 @@ import { getManagerTeamInfo } from "@/server/queries/employee.queries";
 import { AttendanceRekapView } from "@/components/absensi/attendance-rekap-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import { prisma } from "@pspk/db";
-import { FileSpreadsheet } from "lucide-react";
+import { Building2, ShieldCheck, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -55,10 +55,13 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
 
   const resolvedParams = await searchParams;
   const now = new Date();
-  const currentYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
-  const currentMonth = resolvedParams.month
-    ? parseInt(resolvedParams.month, 10)
-    : now.getMonth() + 1;
+  const rawYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
+  const rawMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
+
+  const currentYear = Number.isNaN(rawYear) ? now.getFullYear() : rawYear;
+  const currentMonth =
+    Number.isNaN(rawMonth) || rawMonth < 1 || rawMonth > 12 ? now.getMonth() + 1 : rawMonth;
+
   const selectedDeptId = isTeamView ? "ALL" : resolvedParams.dept || "ALL";
   const searchQuery = resolvedParams.q || resolvedParams.search || "";
 
@@ -95,44 +98,23 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
     }),
   ]);
 
+  const monthNames = [
+    "Januari",
+    "Februari",
+    "Maret",
+    "April",
+    "Mei",
+    "Juni",
+    "Juli",
+    "Agustus",
+    "September",
+    "Oktober",
+    "November",
+    "Desember",
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
-              {isTeamView ? "Rekap Kehadiran Tim" : "Rekap Kehadiran Karyawan"}
-            </h1>
-            {isTeamView ? (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#F2AF3E]"></span>
-                {managerTeamInfo?.currentDepartment?.name || "Divisi Saya"}
-              </span>
-            ) : (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#feba48]/20 text-[#805600] border border-[#feba48]/30">
-                Admin HR
-              </span>
-            )}
-          </div>
-          <p className="text-sm text-gray-500 mt-1">
-            {isTeamView
-              ? `Monitoring kehadiran anggota tim ${managerTeamInfo?.currentDepartment?.name ? `di ${managerTeamInfo.currentDepartment.name}` : ""} dan rekapitulasi bulanan.`
-              : "Monitoring kehadiran seluruh pegawai, statistik absensi bulanan, dan koreksi manual HR."}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#102e50] bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors shadow-xs cursor-pointer"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            Ekspor Data (CSV)
-          </button>
-        </div>
-      </div>
-
       {/* Unified Subnavigation Tabs */}
       <AttendanceLeaveSubnav
         activeTab="rekap"
@@ -141,7 +123,63 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
         pendingLeavesCount={pendingLeavesCount}
       />
 
-      {/* Main Rekap Component with Filtering & Correction Modal */}
+      {/* Navy Hero Section (PSPK Brand Identity) */}
+      <div className="bg-[#102e50] rounded-2xl p-6 sm:p-7 text-white relative overflow-hidden shadow-xs">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[#f2af3e]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#f2af3e] via-[#df632f] to-[#0874aa]" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[#f2af3e] text-[11px] font-semibold tracking-wide uppercase">
+                {isTeamView ? (
+                  <>
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Monitoring Presensi Tim</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>Manajemen Presensi Lembaga (HR)</span>
+                  </>
+                )}
+              </span>
+
+              {isTeamView && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0874aa]/30 border border-[#0874aa]/50 text-white text-[11px] font-semibold">
+                  <Building2 className="w-3 h-3 text-[#f2af3e]" />
+                  <span>{managerTeamInfo?.currentDepartment?.name || "Divisi Saya"}</span>
+                </span>
+              )}
+            </div>
+
+            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
+              {isTeamView ? "Rekapitulasi Kehadiran Tim" : "Rekapitulasi Kehadiran Pegawai"}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              {isTeamView
+                ? `Pemantauan matriks harian dan ringkasan kehadiran anggota tim ${
+                    managerTeamInfo?.currentDepartment?.name
+                      ? `pada ${managerTeamInfo.currentDepartment.name}`
+                      : ""
+                  }.`
+                : "Pemantauan matriks presensi bulanan seluruh pegawai PSPK, evaluasi ketepatan waktu, dan koreksi teraudit."}
+            </p>
+          </div>
+
+          {/* Active Period Summary Box */}
+          <div className="self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-4 py-2.5 text-left md:text-right shrink-0">
+            <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
+              Periode Laporan Aktif
+            </span>
+            <span className="text-sm sm:text-base font-bold text-white">
+              {monthNames[currentMonth - 1]} {currentYear}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Rekap Component with KPI Cards, Matrix 1-31 & Correction Modal */}
       <AttendanceRekapView
         employees={rekapData.employees}
         attendances={rekapData.attendances}
