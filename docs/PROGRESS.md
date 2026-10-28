@@ -2,6 +2,29 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Tahap 4: Halaman & Form Pergantian Kata Sandi Wajib (/ganti-password-wajib) — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Membuat Server Action dan antarmuka pengguna khusus yang mandiri (*standalone*) untuk memfasilitasi penggantian kata sandi pertama kali oleh karyawan baru.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Server Action `forceChangePasswordAction` (`apps/hris/src/server/actions/profile.actions.ts`):**
+     - Memvalidasi kata sandi sementara saat ini ke API Better Auth.
+     - Menerapkan validasi Zod ketat: minimal 8 karakter, kombinasi huruf besar/kecil dan angka.
+     - Menerapkan aturan anti-reuse: kata sandi baru tidak boleh sama dengan kata sandi sementara (`newPassword !== currentPassword`).
+     - Memperbarui database: menonaktifkan `mustChangePassword = false` dan mengisi `passwordChangedAt = now()`.
+     - Mencatat audit log resmi: `action: "UPDATE"`, `entityType: "UserPassword"`, event `FIRST_LOGIN_PASSWORD_INITIALIZED`.
+  2. **Halaman Server Component (`apps/hris/src/app/ganti-password-wajib/page.tsx`):**
+     - Berdiri sendiri di luar grup `(app)` tanpa sidebar/navbar shell.
+     - Memeriksa sesi dan status `mustChangePassword`. Jika user sudah tidak berstatus wajib ganti, otomatis dialihkan ke `/dashboard`.
+  3. **Komponen Client (`apps/hris/src/app/ganti-password-wajib/ganti-password-client.tsx`):**
+     - Desain berstandar brand PSPK (Navy `#102E50`, Gold `#F2AF3E`, latar lembut `#F8FAFC`).
+     - Indikator kekuatan kata sandi (*password strength meter*) interaktif dan live checklist 5 kriteria keamanan.
+     - Menyediakan tombol primer "Simpan Kata Sandi & Buka Dashboard" dan tombol sekunder "Keluar (Logout)" untuk keluar dengan aman jika belum siap membuat kata sandi baru.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm test`: ✅ Lolos 100% (35 test files, 250 unit tests lulus)
+
 ## [Keamanan & Auth] Tahap 3: Logika Pemicu (Triggers) & Template Email Notifikasi — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
