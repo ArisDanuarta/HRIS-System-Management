@@ -2,6 +2,25 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Tahap 5: Proteksi Rute Ketat (Strict Route Guarding) di HRIS & Sysmgmt — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Memastikan pengguna yang memiliki status `mustChangePassword === true` tidak dapat mengakses dashboard atau menu apa pun dengan mengetikkan URL langsung di peramban.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Proteksi Root Dispatcher HRIS & Sysmgmt (`apps/hris/src/app/page.tsx` & `apps/sysmgmt/src/app/page.tsx`):**
+     - Memeriksa profil pengguna saat membuka root URL `/`. Jika `mustChangePassword === true`, pengguna langsung di-redirect ke `/ganti-password-wajib`.
+  2. **Proteksi Shell Layout Dashboard (`apps/hris/src/app/(app)/layout.tsx` & `apps/sysmgmt/src/app/(app)/layout.tsx`):**
+     - Mencegat seluruh rute internal (`/dashboard`, `/karyawan`, `/absensi`, `/cuti`, `/pengguna`, `/aset`, dll.).
+     - Jika `userProfile?.mustChangePassword === true`, server seketika membanting (*redirect*) kembali ke `/ganti-password-wajib` tanpa merender sidebar atau konten dashboard.
+  3. **Halaman & Action Native di System Management (`apps/sysmgmt/src/app/ganti-password-wajib` & `user.actions.ts`):**
+     - Menghadirkan halaman `/ganti-password-wajib` dan `forceChangePasswordSysAction()` di portal System Management agar administrator yang kata sandinya di-reset dapat langsung memperbarui kata sandi secara native.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm test`: ✅ Lolos 100% (35 test files, 250 unit tests lulus)
+  - `pnpm --filter @pspk/hris build`: ✅ Lolos 100% (rute `/ganti-password-wajib` terkompilasi)
+  - `pnpm --filter @pspk/sysmgmt build`: ✅ Lolos 100% (rute `/ganti-password-wajib` terkompilasi)
+
 ## [Keamanan & Auth] Tahap 4: Halaman & Form Pergantian Kata Sandi Wajib (/ganti-password-wajib) — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
