@@ -3,28 +3,57 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  Calendar,
-  Clock,
-  FileText,
-  Receipt,
-  ArrowRight,
-  BookOpen,
-  CalendarCheck,
-  ShieldCheck,
   Plus,
+  CalendarCheck,
+  Clock,
+  Receipt,
+  FileText,
+  BookOpen,
   UserCheck,
+  Calendar,
   Download,
   ExternalLink,
+  Info,
 } from "lucide-react";
 import { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
 import { formatRupiah } from "@pspk/shared";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { SupervisorProfileModal } from "./supervisor-profile-modal";
+import {
+  DashboardHeader,
+  Panel,
+  Stat,
+  StatStrip,
+  Pill,
+  EmptyState,
+  btnPrimary,
+  type Tone,
+} from "./dashboard-ui";
 
 interface StaffDashboardProps {
   data: StaffDashboardData;
   employeeName: string;
+}
+
+const LEAVE_STATUS: Record<string, { label: string; tone: Tone }> = {
+  APPROVED: { label: "Disetujui", tone: "green" },
+  PENDING: { label: "Menunggu", tone: "amber" },
+  REJECTED: { label: "Ditolak", tone: "red" },
+  CANCELLED: { label: "Dibatalkan", tone: "slate" },
+};
+
+function categoryClass(color?: string | null) {
+  switch (color) {
+    case "emerald":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "amber":
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    case "purple":
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    default:
+      return "bg-blue-50 text-[#102e50] border-blue-200";
+  }
 }
 
 export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
@@ -43,333 +72,207 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
     b.leaveType.name.toLowerCase().includes("tahunan"),
   );
 
+  const supervisorInitials = data.manager
+    ? data.manager.fullName
+        .split(" ")
+        .slice(0, 2)
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+    : "";
+
   return (
-    <div className="flex flex-col gap-6 max-w-[1440px] mx-auto pb-12 w-full animate-in fade-in duration-200">
-      {/* Top Welcome Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#dee9fc]">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#74777f] mb-1">
-            <span>Portal Karyawan Mandiri</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#f2af3e]" />
-            <span>PSPK</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl text-[#102e50] font-heading font-bold tracking-tight">
-            Halo, {employeeName}
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Kelola kehadiran harian, kuota cuti kerja, serta informasi kepegawaian pribadi Anda.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/cuti/ajukan"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#102e50] text-white hover:bg-[#0c233d] text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4 text-[#ffddb0]" />
-            <span>Ajukan Cuti Baru</span>
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12 animate-in fade-in duration-200">
+      <DashboardHeader
+        eyebrow="Portal Karyawan"
+        title={`Halo, ${employeeName}`}
+        description="Presensi hari ini, kuota cuti, dan informasi kepegawaian Anda."
+        actions={
+          <Link href="/cuti/ajukan" className={btnPrimary}>
+            <Plus className="h-4 w-4 text-[#ffddb0]" aria-hidden="true" />
+            <span>Ajukan Cuti</span>
           </Link>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Atasan Langsung Info Card */}
-      {data.manager && (
-        <>
-          <div className="flex items-center justify-between px-4 py-3 bg-[#f0f4fd] border border-[#d6e3f8] rounded-xl text-xs sm:text-sm">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-[#102e50] text-[#ffddb0] flex items-center justify-center font-bold text-xs shrink-0">
-                <UserCheck className="w-4 h-4" />
-              </div>
-              <div className="flex flex-wrap items-center gap-x-2">
-                <span className="text-slate-500 font-medium">Atasan Langsung:</span>
-                <span className="font-bold text-[#102e50]">{data.manager.fullName}</span>
-                {data.manager.position && (
-                  <span className="text-xs px-2 py-0.5 rounded bg-white text-slate-600 border border-slate-200">
-                    {data.manager.position}
-                  </span>
-                )}
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSupervisorModal(true)}
-              className="text-xs font-semibold text-[#102e50] hover:text-[#0c233d] flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-[#d6e3f8] shadow-2xs transition-all shrink-0 ml-2 cursor-pointer active:scale-[0.98]"
-            >
-              <span>Lihat Profil Atasan</span>
-              <ArrowRight className="w-3 h-3 text-[#102e50]" />
-            </button>
-          </div>
-
-          <SupervisorProfileModal
-            isOpen={showSupervisorModal}
-            onClose={() => setShowSupervisorModal(false)}
-            supervisor={data.manager}
-          />
-        </>
-      )}
-
-      {/* Widget 1: Kartu Absensi Hari Ini (Interactive check-in/out) */}
+      {/* 1. Aksi harian: presensi */}
       <TodayAttendanceCard
         todayAttendance={data.todayAttendance}
         employeeName={employeeName}
         workSchedule={data.workSchedule}
       />
 
-      {/* 3 Personal Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Metric 1: Sisa Cuti Tahunan */}
-        <div className="bg-white rounded-xl border border-[#dee9fc] p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Sisa Cuti Tahunan
-              </span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl sm:text-4xl font-extrabold text-[#102e50] font-heading leading-none">
-                  {annualLeave ? annualLeave.remainingDays : 0}
-                </span>
-                <span className="text-xs font-semibold text-slate-500">
-                  / {annualLeave ? annualLeave.quotaDays : 12} Hari
-                </span>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-[#eff4ff] text-[#102e50] flex items-center justify-center">
-              <CalendarCheck className="w-5 h-5 text-[#102e50]" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">
-              Terpakai: {annualLeave ? annualLeave.usedDaysNumber : 0} hari
-            </span>
-            <Link
-              href="/cuti"
-              className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>Detail</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
+      {/* 2. Ringkasan pribadi */}
+      <StatStrip cols={3}>
+        <Stat
+          label="Sisa cuti tahunan"
+          icon={CalendarCheck}
+          value={annualLeave ? annualLeave.remainingDays : "—"}
+          unit={annualLeave ? `/ ${annualLeave.quotaDays} hari` : undefined}
+          hint={
+            annualLeave
+              ? `Terpakai ${annualLeave.usedDaysNumber} hari`
+              : "Belum ada kuota cuti tahunan"
+          }
+          href="/cuti"
+        />
+        <Stat
+          label="Cuti menunggu persetujuan"
+          icon={Clock}
+          tone={data.pendingLeavesCount > 0 ? "amber" : "navy"}
+          value={data.pendingLeavesCount}
+          unit="permohonan"
+          hint={data.pendingLeavesCount > 0 ? "Menunggu respon atasan" : "Tidak ada antrean"}
+          href="/cuti"
+        />
+        {data.latestPayslip ? (
+          <Stat
+            label="Slip gaji terbaru"
+            icon={Receipt}
+            size="md"
+            value={formatRupiah(data.latestPayslip.netAmount)}
+            hint={
+              <>
+                Periode {data.latestPayslip.month}/{data.latestPayslip.year}
+                {data.latestPayslip.wageType === "HOURLY" && data.latestPayslip.totalHours ? (
+                  <span className="ml-1.5 font-semibold text-amber-800">
+                    • {data.latestPayslip.totalHours} jam
+                  </span>
+                ) : null}
+              </>
+            }
+            href="/slip-gaji"
+          />
+        ) : (
+          <Stat
+            label="Slip gaji terbaru"
+            icon={Receipt}
+            tone="slate"
+            size="md"
+            value="Belum ada"
+            hint="Menunggu publikasi resmi"
+            href="/slip-gaji"
+          />
+        )}
+      </StatStrip>
 
-        {/* Metric 2: Cuti Menunggu Persetujuan */}
-        <div className="bg-white rounded-xl border border-[#dee9fc] p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Cuti Menunggu
-              </span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span
-                  className={`text-3xl sm:text-4xl font-extrabold font-heading leading-none ${
-                    data.pendingLeavesCount > 0 ? "text-amber-600" : "text-[#102e50]"
-                  }`}
-                >
-                  {data.pendingLeavesCount}
-                </span>
-                <span className="text-xs font-semibold text-slate-500">Permohonan</span>
-              </div>
-            </div>
-            <div
-              className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                data.pendingLeavesCount > 0
-                  ? "bg-amber-50 text-amber-600"
-                  : "bg-slate-50 text-slate-400"
-              }`}
-            >
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">
-              {data.pendingLeavesCount > 0 ? "Menunggu respon atasan" : "Tidak ada antrean"}
-            </span>
-            <Link
-              href="/cuti"
-              className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>Riwayat Cuti</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Metric 3: Slip Gaji Terbaru */}
-        <div className="bg-white rounded-xl border border-[#dee9fc] p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Slip Gaji Terbaru
-              </span>
-              <div className="mt-2">
-                {data.latestPayslip ? (
-                  <>
-                    <span className="text-2xl sm:text-3xl font-extrabold text-[#102e50] font-mono leading-none block">
-                      {formatRupiah(data.latestPayslip.netAmount)}
-                    </span>
-                    <span className="text-xs text-slate-600 font-medium mt-1 block">
-                      Periode {data.latestPayslip.month}/{data.latestPayslip.year}
-                      {data.latestPayslip.wageType === "HOURLY" &&
-                        data.latestPayslip.totalHours && (
-                          <span className="text-amber-800 font-semibold ml-1.5">
-                            • {data.latestPayslip.totalHours} Jam
-                          </span>
-                        )}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-sm font-semibold text-slate-700 block">
-                      Belum Ada Slip
-                    </span>
-                    <span className="text-xs text-slate-400 mt-1 block">
-                      Menunggu publikasi resmi
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-[#eff4ff] text-[#102e50] flex items-center justify-center shrink-0">
-              <Receipt className="w-5 h-5 text-[#102e50]" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">
-              {data.latestPayslip ? "Siap cetak / unduh" : "Dikelola oleh Keuangan"}
-            </span>
-            <Link
-              href="/slip-gaji"
-              className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>{data.latestPayslip ? "Lihat Slip" : "Buka Arsip"}</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Widget 2: Rincian Kuota Saldo Cuti */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-[#102e50] font-heading uppercase tracking-wider">
-            Hak Cuti & Kuota Tahun Berjalan
-          </h2>
-          <Link href="/cuti" className="text-xs font-semibold text-[#102e50] hover:underline">
-            Lihat Semua Jenis
-          </Link>
-        </div>
-        <LeaveBalanceCards balances={data.leaveBalances} />
-      </div>
-
-      {/* 2 Column Layout: Recent Leave Requests (Left) & SOP Guidelines (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: 5 Recent Leave Requests (2 cols) */}
-        <div className="lg:col-span-2 bg-white rounded-xl border border-[#dee9fc] shadow-xs flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-[#dee9fc] flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-[#102e50] font-heading">
-                Pengajuan Cuti Terakhir
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Kolom utama */}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          <section aria-labelledby="saldo-cuti" className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2
+                id="saldo-cuti"
+                className="font-heading text-base font-bold text-[#102e50]"
+              >
+                Hak cuti tahun berjalan
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Status riwayat permohonan cuti dan izin kerja pribadi Anda
-              </p>
+              <Link href="/cuti" className="text-xs font-semibold text-[#102e50] hover:underline">
+                Semua jenis cuti
+              </Link>
             </div>
-            <Link
-              href="/cuti"
-              className="text-xs font-semibold text-[#102e50] hover:text-[#f2af3e] transition-colors inline-flex items-center gap-1"
-            >
-              <span>Semua Riwayat</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
+            <LeaveBalanceCards balances={data.leaveBalances} />
+            <p className="flex items-center gap-1.5 text-xs text-slate-500">
+              <Info className="h-3.5 w-3.5 shrink-0 text-[#f2af3e]" aria-hidden="true" />
+              <span>
+                Pengajuan cuti minimal <strong className="text-slate-700">3 hari kerja</strong>{" "}
+                sebelum jadwal pelaksanaan.
+              </span>
+            </p>
+          </section>
 
-          <div className="divide-y divide-slate-100 overflow-x-auto">
+          <Panel
+            title="Pengajuan cuti terakhir"
+            icon={Calendar}
+            action={{ href: "/cuti", label: "Semua riwayat" }}
+            padded={false}
+          >
             {data.recentLeaves.length === 0 ? (
-              <div className="p-8 text-center flex flex-col items-center justify-center gap-2 text-slate-400">
-                <FileText className="w-8 h-8 text-slate-300" />
-                <p className="text-xs">Belum ada riwayat permohonan cuti yang diajukan.</p>
-                <Link
-                  href="/cuti/ajukan"
-                  className="mt-1 text-xs font-bold text-[#102e50] hover:underline"
-                >
-                  + Ajukan Cuti Sekarang
+              <EmptyState icon={FileText} title="Belum ada pengajuan cuti">
+                <Link href="/cuti/ajukan" className="font-bold text-[#102e50] hover:underline">
+                  + Ajukan cuti sekarang
                 </Link>
-              </div>
+              </EmptyState>
             ) : (
-              data.recentLeaves.map((leave) => (
-                <div
-                  key={leave.id}
-                  className="p-4 flex items-center justify-between gap-4 hover:bg-[#f8f9ff] transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                      <Calendar className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-xs text-slate-800 truncate">
-                          {leave.leaveType.name}
-                        </span>
-                        <span className="text-[11px] font-bold text-[#102e50] bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                          {leave.days} Hari
-                        </span>
-                      </div>
-                      <span className="text-[11px] text-slate-500 mt-0.5">
-                        {formatDate(leave.startDate)} s/d {formatDate(leave.endDate)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                        leave.status === "APPROVED"
-                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          : leave.status === "PENDING"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200"
-                            : "bg-red-50 text-red-700 border border-red-200"
-                      }`}
+              <ul className="divide-y divide-slate-100">
+                {data.recentLeaves.map((leave) => {
+                  const status = LEAVE_STATUS[leave.status] ?? {
+                    label: leave.status,
+                    tone: "slate" as Tone,
+                  };
+                  return (
+                    <li
+                      key={leave.id}
+                      className="flex items-center justify-between gap-4 px-5 py-3.5 transition-colors hover:bg-[#f8f9ff]"
                     >
-                      {leave.status === "APPROVED"
-                        ? "Disetujui"
-                        : leave.status === "PENDING"
-                          ? "Menunggu"
-                          : "Ditolak"}
-                    </span>
-                  </div>
-                </div>
-              ))
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
+                          <Calendar className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                            <span className="truncate">{leave.leaveType.name}</span>
+                            <span className="shrink-0 rounded border border-blue-100 bg-blue-50 px-1.5 py-0.5 text-[11px] font-bold text-[#102e50]">
+                              {leave.days} hari
+                            </span>
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            {formatDate(leave.startDate)} s/d {formatDate(leave.endDate)}
+                          </p>
+                        </div>
+                      </div>
+                      <Pill tone={status.tone}>{status.label}</Pill>
+                    </li>
+                  );
+                })}
+              </ul>
             )}
-          </div>
+          </Panel>
         </div>
 
-        {/* Right Column: SOP & Documents (1 col) */}
+        {/* Kolom samping */}
         <div className="flex flex-col gap-6">
-          <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-[#102e50]">
-                <BookOpen className="w-4 h-4 text-[#f2af3e]" />
-                <h3 className="text-xs font-bold uppercase tracking-wider">Dokumen & Panduan Staf</h3>
-              </div>
-              {data.publishedDocuments && data.publishedDocuments.length > 0 && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#102e50] border border-blue-100">
-                  {data.publishedDocuments.length} Dokumen
+          {data.manager && (
+            <Panel title="Atasan langsung" icon={UserCheck}>
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#102e50] font-heading text-sm font-bold text-[#ffddb0]">
+                  {supervisorInitials}
                 </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Akses cepat ketentuan kerja, pedoman cuti, dan standar operasional prosedur PSPK yang diterbitkan resmi:
-            </p>
-
-            {(!data.publishedDocuments || data.publishedDocuments.length === 0) ? (
-              <div className="py-6 px-3 text-center bg-slate-50/70 rounded-xl border border-dashed border-slate-200 text-xs text-slate-500">
-                <FileText className="w-6 h-6 text-slate-300 mx-auto mb-1.5" />
-                <p className="font-semibold text-slate-600">Belum ada dokumen SOP aktif</p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Dokumen resmi yang diterbitkan via System Management akan tampil di sini.
-                </p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-[#102e50]">
+                    {data.manager.fullName}
+                  </p>
+                  {data.manager.position && (
+                    <p className="truncate text-xs text-slate-500">{data.manager.position}</p>
+                  )}
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => setShowSupervisorModal(true)}
+                className="mt-4 w-full cursor-pointer rounded-lg border border-[#dee9fc] bg-white px-3 py-2 text-xs font-semibold text-[#102e50] transition-colors hover:bg-[#eff4ff]"
+              >
+                Lihat profil & kontak
+              </button>
+            </Panel>
+          )}
+
+          <Panel
+            title="Dokumen & panduan"
+            icon={BookOpen}
+            badge={
+              data.publishedDocuments && data.publishedDocuments.length > 0 ? (
+                <Pill tone="navy">{data.publishedDocuments.length}</Pill>
+              ) : undefined
+            }
+            padded={false}
+          >
+            {!data.publishedDocuments || data.publishedDocuments.length === 0 ? (
+              <EmptyState icon={FileText} title="Belum ada dokumen aktif">
+                Dokumen resmi yang diterbitkan lewat System Management akan tampil di sini.
+              </EmptyState>
             ) : (
-              <div className="flex flex-col divide-y divide-slate-100 text-xs">
+              <ul className="divide-y divide-slate-100">
                 {data.publishedDocuments.map((doc) => {
                   const latestVer = doc.currentVersion;
                   const previewHref = latestVer
@@ -380,38 +283,29 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
                     : null;
 
                   return (
-                    <div
-                      key={doc.id}
-                      className="py-3 flex items-center justify-between gap-2 hover:bg-slate-50/60 px-1 -mx-1 rounded-lg transition-colors group"
-                    >
-                      <div className="flex flex-col min-w-0 pr-1">
+                    <li key={doc.id} className="flex items-center justify-between gap-2 px-5 py-3">
+                      <div className="min-w-0">
                         {previewHref ? (
                           <a
                             href={previewHref}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-semibold text-slate-800 hover:text-[#102e50] hover:underline line-clamp-1 flex items-center gap-1"
+                            className="line-clamp-1 text-sm font-semibold text-slate-800 hover:text-[#102e50] hover:underline"
                             title={`Buka ${doc.title}`}
                           >
-                            <span>{doc.title}</span>
+                            {doc.title}
                           </a>
                         ) : (
-                          <span className="font-semibold text-slate-700 line-clamp-1">{doc.title}</span>
+                          <span className="line-clamp-1 text-sm font-semibold text-slate-700">
+                            {doc.title}
+                          </span>
                         )}
-                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                          <span className="font-mono text-[10px] font-bold text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded border border-slate-200">
+                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                          <span className="rounded border border-slate-200 bg-slate-100 px-1.5 py-px font-mono text-[10px] font-bold text-slate-600">
                             {doc.code}
                           </span>
                           <span
-                            className={`text-[10px] px-1.5 py-0.2 rounded border font-medium ${
-                              doc.categoryColor === "emerald"
-                                ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                                : doc.categoryColor === "amber"
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : doc.categoryColor === "purple"
-                                    ? "bg-purple-50 text-purple-700 border-purple-200"
-                                    : "bg-blue-50 text-[#102e50] border-blue-200"
-                            }`}
+                            className={`rounded border px-1.5 py-px text-[10px] font-medium ${categoryClass(doc.categoryColor)}`}
                           >
                             {doc.category}
                           </span>
@@ -424,49 +318,48 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
                       </div>
 
                       {latestVer && (
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex shrink-0 items-center gap-1">
                           {previewHref && (
                             <a
                               href={previewHref}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#eff4ff] text-[#102e50] hover:bg-[#dee9fc] text-[11px] font-bold transition-all shadow-2xs cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg bg-[#eff4ff] px-2.5 py-1.5 text-[11px] font-bold text-[#102e50] transition-colors hover:bg-[#dee9fc]"
                               title={`Buka berkas ${latestVer.fileName}`}
                             >
                               <span>Buka</span>
-                              <ExternalLink className="w-3 h-3 text-[#102e50]" />
+                              <ExternalLink className="h-3 w-3" aria-hidden="true" />
                             </a>
                           )}
                           {downloadHref && (
                             <a
                               href={downloadHref}
                               download={latestVer.fileName}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+                              className="rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
                               title={`Unduh ${latestVer.fileName}`}
+                              aria-label={`Unduh ${latestVer.fileName}`}
                             >
-                              <Download className="w-3.5 h-3.5" />
+                              <Download className="h-3.5 w-3.5" />
                             </a>
                           )}
                         </div>
                       )}
-                    </div>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             )}
-
-            <div className="pt-2 border-t border-slate-100">
-              <div className="p-3 bg-[#eff4ff] rounded-lg text-xs text-[#102e50] flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#f2af3e] shrink-0 mt-0.5" />
-                <span>
-                  Pengajuan cuti wajib diajukan minimal <strong>3 hari kerja</strong> sebelum jadwal
-                  pelaksanaan.
-                </span>
-              </div>
-            </div>
-          </div>
+          </Panel>
         </div>
       </div>
+
+      {data.manager && (
+        <SupervisorProfileModal
+          isOpen={showSupervisorModal}
+          onClose={() => setShowSupervisorModal(false)}
+          supervisor={data.manager}
+        />
+      )}
     </div>
   );
 }
