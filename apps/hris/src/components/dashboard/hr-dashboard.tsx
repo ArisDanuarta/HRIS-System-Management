@@ -9,20 +9,58 @@ import {
   UserCheck,
   Clock,
   AlertTriangle,
-  ArrowRight,
   ShieldCheck,
   CalendarDays,
   ExternalLink,
   ShieldAlert,
+  BarChart3,
+  Briefcase,
 } from "lucide-react";
 import { HrDashboardData } from "@/server/queries/dashboard/hr-dashboard";
+import type { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
+import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
+import {
+  DashboardHeader,
+  Panel,
+  Stat,
+  StatStrip,
+  Pill,
+  btnPrimary,
+  btnSecondary,
+} from "./dashboard-ui";
 
 interface HrDashboardProps {
   data: HrDashboardData;
   isSuperAdmin?: boolean;
+  /** Presensi pribadi HR. Diisi hanya jika akun tertaut ke data pegawai. */
+  personalAttendance?: {
+    todayAttendance: StaffDashboardData["todayAttendance"];
+    workSchedule: StaffDashboardData["workSchedule"];
+    employeeName: string;
+  };
 }
 
-export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
+/** Query kontrak dibatasi 5 baris → angka 5 berarti "5 atau lebih" */
+const QUEUE_CAP = 5;
+
+const CHART = {
+  present: "#102e50",
+  late: "#f2af3e",
+  leave: "#0874aa",
+  absent: "#a8281c",
+};
+
+const CONTRACT_SEGMENTS = [
+  { key: "PERMANENT", label: "Tetap (PKWTT)", color: "#102e50" },
+  { key: "FIXED_TERM", label: "Kontrak (PKWT)", color: "#f2af3e" },
+  { key: "PART_TIME_PROJECT", label: "Paruh waktu / proyek", color: "#0874aa" },
+] as const;
+
+export function HrDashboard({
+  data,
+  isSuperAdmin = false,
+  personalAttendance,
+}: HrDashboardProps) {
   const formatDate = (d: Date) => {
     const dateObj = typeof d === "string" ? new Date(d) : d;
     return dateObj.toLocaleDateString("id-ID", {
@@ -32,7 +70,7 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
     });
   };
 
-  // Find max attendance value for 7-day bar chart scaling
+  // Skala grafik tren 7 hari
   const maxDayCount = Math.max(
     ...data.trendDays.map((d) => d.present + d.late + d.leave + d.absent),
     data.totalActiveEmployees,
@@ -44,34 +82,31 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
     data.contractStats.FIXED_TERM +
     data.contractStats.PART_TIME_PROJECT;
 
-  const permanentPct =
-    totalContracts > 0 ? Math.round((data.contractStats.PERMANENT / totalContracts) * 100) : 0;
-  const fixedTermPct =
-    totalContracts > 0 ? Math.round((data.contractStats.FIXED_TERM / totalContracts) * 100) : 0;
-  const projectPct =
-    totalContracts > 0
-      ? Math.round((data.contractStats.PART_TIME_PROJECT / totalContracts) * 100)
-      : 0;
+  const expiringLabel =
+    data.expiringContractsCount >= QUEUE_CAP
+      ? `${QUEUE_CAP}+`
+      : String(data.expiringContractsCount);
+
+  const actionCount = data.expiringContracts.length + data.pendingLeavesLong.length;
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1440px] mx-auto pb-12 w-full animate-in fade-in duration-200">
-      {/* Super Admin Top Banner (Only if logged in as Super Admin) */}
+    <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12 animate-in fade-in duration-200">
       {isSuperAdmin && (
-        <div className="p-4 rounded-xl bg-[#0c233d] text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm border border-slate-700">
+        <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-slate-700 bg-[#0c233d] p-4 text-white shadow-xs sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#f2af3e] text-[#102e50] flex items-center justify-center shrink-0 font-bold">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#f2af3e] text-[#102e50]">
+              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+            </span>
             <div>
-              <p className="text-xs font-bold text-white flex items-center gap-2">
-                <span>Pusat Kendali Super Administrator PSPK</span>
-                <span className="text-[10px] bg-[#f2af3e] text-[#102e50] font-bold px-2 py-0.2 rounded">
-                  Akses Penuh
+              <p className="flex flex-wrap items-center gap-2 text-xs font-bold">
+                <span>Pusat Kendali Super Administrator</span>
+                <span className="rounded bg-[#f2af3e] px-2 py-px text-[10px] font-bold text-[#102e50]">
+                  Akses penuh
                 </span>
               </p>
-              <p className="text-[11px] text-slate-300 mt-0.5">
-                Kelola hak akses RBAC, pengguna sistem, inventaris aset, dan audit trail di portal
-                System Management.
+              <p className="mt-0.5 text-[11px] text-slate-300">
+                Kelola hak akses RBAC, pengguna, inventaris aset, dan audit trail di System
+                Management.
               </p>
             </div>
           </div>
@@ -79,422 +114,332 @@ export function HrDashboard({ data, isSuperAdmin = false }: HrDashboardProps) {
             href={process.env.NEXT_PUBLIC_SYSMGMT_URL || "http://localhost:3002"}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all shrink-0 border border-white/20"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/20"
           >
             <span>Buka System Management</span>
-            <ExternalLink className="w-3.5 h-3.5 text-[#ffddb0]" />
+            <ExternalLink className="h-3.5 w-3.5 text-[#ffddb0]" aria-hidden="true" />
           </a>
         </div>
       )}
 
-      {/* Header & Quick Actions */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#dee9fc]">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#74777f] mb-1">
-            <span>Portal HRIS Lembaga</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#f2af3e]" />
-            <span>Tahun Operasional 2026</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl text-[#102e50] font-heading font-bold tracking-tight">
-            Dashboard Eksekutif HR
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Pusat pemantauan data kepegawaian, distribusi riset, dan operasional seluruh SDM PSPK.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <Link
-            href="/karyawan/impor"
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-white border border-[#dee9fc] text-[#102e50] hover:bg-[#eff4ff] text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
-          >
-            <Upload className="w-4 h-4 text-[#102e50]" />
-            <span>Impor Data Excel</span>
-          </Link>
-          <Link
-            href="/karyawan/baru"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#102e50] text-white hover:bg-[#0c233d] text-xs sm:text-sm font-semibold transition-all shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]"
-          >
-            <UserPlus className="w-4 h-4 text-[#ffddb0]" />
-            <span>+ Tambah Pegawai Baru</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* 4 Organisasi Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Total Pegawai Aktif */}
-        <div className="bg-white p-5 rounded-xl border border-[#dee9fc] shadow-xs hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="text-xs font-medium text-slate-500">Pegawai Aktif</span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl sm:text-4xl font-extrabold text-[#102e50] font-heading leading-none">
-                  {data.totalActiveEmployees}
-                </span>
-                <span className="text-xs font-medium text-slate-500">Orang</span>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-[#eff4ff] text-[#102e50] flex items-center justify-center">
-              <Users className="w-5 h-5 text-[#102e50]" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-emerald-700 font-semibold">Organisasi Keseluruhan</span>
-            <Link
-              href="/karyawan"
-              className="text-[#102e50] font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>Direktori</span>
-              <ArrowRight className="w-3 h-3" />
+      <DashboardHeader
+        eyebrow={`Portal HRIS · ${new Date().getFullYear()}`}
+        title="Dashboard HR"
+        description="Ringkasan kepegawaian, presensi, dan hal yang perlu ditindak hari ini."
+        actions={
+          <>
+            <Link href="/karyawan/impor" className={btnSecondary}>
+              <Upload className="h-4 w-4" aria-hidden="true" />
+              <span>Impor Excel</span>
             </Link>
-          </div>
-        </div>
-
-        {/* Card 2: Hadir Hari Ini */}
-        <div className="bg-white p-5 rounded-xl border border-[#dee9fc] shadow-xs hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="text-xs font-medium text-slate-500">Hadir Hari Ini</span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl sm:text-4xl font-extrabold text-emerald-700 font-heading leading-none">
-                  {data.presentTodayCount}
-                </span>
-                <span className="text-xs font-medium text-slate-500">
-                  / {data.totalActiveEmployees}
-                </span>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-              <UserCheck className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-emerald-700 font-bold">
-              {data.attendancePercentage}% Presensi
-            </span>
-            <Link
-              href="/absensi/rekap"
-              className="text-emerald-800 font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>Rekap</span>
-              <ArrowRight className="w-3 h-3" />
+            <Link href="/karyawan/baru" className={btnPrimary}>
+              <UserPlus className="h-4 w-4 text-[#ffddb0]" aria-hidden="true" />
+              <span>Tambah pegawai</span>
             </Link>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        {/* Card 3: Cuti Menunggu Persetujuan */}
-        <div className="bg-white p-5 rounded-xl border border-[#dee9fc] shadow-xs hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="text-xs font-medium text-slate-500">Cuti Menunggu</span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span
-                  className={`text-3xl sm:text-4xl font-extrabold font-heading leading-none ${
-                    data.pendingLeavesCount > 0 ? "text-amber-600" : "text-[#102e50]"
-                  }`}
-                >
-                  {data.pendingLeavesCount}
-                </span>
-                <span className="text-xs font-medium text-slate-500">Pengajuan</span>
+      {/* Presensi pribadi HR (check-in / check-out harian) */}
+      {personalAttendance && (
+        <TodayAttendanceCard
+          todayAttendance={personalAttendance.todayAttendance}
+          employeeName={personalAttendance.employeeName}
+          workSchedule={personalAttendance.workSchedule}
+        />
+      )}
+
+      <StatStrip cols={4}>
+        <Stat
+          label="Pegawai aktif"
+          icon={Users}
+          value={data.totalActiveEmployees}
+          unit="orang"
+          hint="Seluruh organisasi · Direktori"
+          href="/karyawan"
+        />
+        <Stat
+          label="Hadir hari ini"
+          icon={UserCheck}
+          tone="green"
+          value={data.presentTodayCount}
+          unit={`/ ${data.totalActiveEmployees}`}
+          hint={`${data.attendancePercentage}% presensi · Rekap`}
+          href="/absensi/rekap"
+        />
+        <Stat
+          label="Cuti menunggu"
+          icon={Clock}
+          tone={data.pendingLeavesCount > 0 ? "amber" : "navy"}
+          value={data.pendingLeavesCount}
+          unit="pengajuan"
+          hint="Seluruh departemen · Evaluasi"
+          href="/cuti/persetujuan"
+        />
+        <Stat
+          label="Kontrak berakhir ≤ 30 hari"
+          icon={AlertTriangle}
+          tone={data.expiringContractsCount > 0 ? "red" : "navy"}
+          value={expiringLabel}
+          unit="kontrak"
+          hint="Perlu tinjauan PKWT · Tinjau"
+          href="/karyawan?expiring=true"
+        />
+      </StatStrip>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Kolom utama */}
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          {/* Perlu tindakan */}
+          <Panel
+            title="Perlu tindakan HR"
+            icon={ShieldAlert}
+            badge={actionCount > 0 ? <Pill tone="red">{actionCount} item</Pill> : undefined}
+          >
+            {actionCount === 0 ? (
+              <p className="py-4 text-center text-sm italic text-slate-400">
+                Tidak ada tindakan mendesak. Operasional berjalan normal.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <h3 className="mb-1 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <span>Kontrak segera berakhir</span>
+                    <Link
+                      href="/karyawan?expiring=true"
+                      className="normal-case tracking-normal text-[#102e50] hover:underline"
+                    >
+                      Kelola
+                    </Link>
+                  </h3>
+                  {data.expiringContracts.length === 0 ? (
+                    <p className="py-3 text-xs italic text-slate-400">Tidak ada.</p>
+                  ) : (
+                    <ul className="divide-y divide-slate-100">
+                      {data.expiringContracts.map((c) => (
+                        <li key={c.id} className="py-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sm font-semibold text-slate-800">
+                              {c.employeeName}
+                            </span>
+                            <Pill tone="red">Habis {formatDate(c.endDate)}</Pill>
+                          </div>
+                          <p className="mt-0.5 truncate text-[11px] text-slate-500">
+                            {c.position} • {c.department}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <div>
+                  <h3 className="mb-1 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <span>Cuti menunggu &gt; 2 hari</span>
+                    <Link
+                      href="/cuti/persetujuan"
+                      className="normal-case tracking-normal text-[#102e50] hover:underline"
+                    >
+                      Persetujuan
+                    </Link>
+                  </h3>
+                  {data.pendingLeavesLong.length === 0 ? (
+                    <p className="py-3 text-xs italic text-slate-400">Tidak ada.</p>
+                  ) : (
+                    <ul className="divide-y divide-slate-100">
+                      {data.pendingLeavesLong.map((pl) => (
+                        <li key={pl.id} className="py-2.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate text-sm font-semibold text-slate-800">
+                              {pl.employeeName}
+                            </span>
+                            <Pill tone="amber">Tertunda</Pill>
+                          </div>
+                          <p className="mt-0.5 truncate text-[11px] text-slate-500">
+                            {pl.leaveTypeName} • {pl.days} hari
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
+            )}
+          </Panel>
+
+          {/* Tren presensi */}
+          <Panel title="Tren presensi 7 hari terakhir" icon={BarChart3}>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-[11px] text-slate-600">
+              <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {[
+                  { c: CHART.present, l: "Hadir / WFH" },
+                  { c: CHART.late, l: "Terlambat" },
+                  { c: CHART.leave, l: "Cuti" },
+                  { c: CHART.absent, l: "Absen" },
+                ].map((i) => (
+                  <li key={i.l} className="flex items-center gap-1.5">
+                    <span
+                      className="h-2.5 w-2.5 rounded-sm"
+                      style={{ backgroundColor: i.c }}
+                      aria-hidden="true"
+                    />
+                    <span>{i.l}</span>
+                  </li>
+                ))}
+              </ul>
+              <span className="text-slate-400">Skala 0–{maxDayCount} orang</span>
             </div>
+
             <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                data.pendingLeavesCount > 0
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-slate-50 text-slate-400"
-              }`}
+              className="flex h-52 items-end justify-between gap-2 sm:gap-3"
+              role="img"
+              aria-label="Grafik batang tren presensi tujuh hari terakhir"
             >
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-[#805600] font-medium">Seluruh Departemen</span>
-            <Link
-              href="/cuti/persetujuan"
-              className="text-amber-700 font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>Evaluasi</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Card 4: Kontrak Berakhir <= 30 Hari */}
-        <div className="bg-white p-5 rounded-xl border border-[#dee9fc] shadow-xs hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
-            <div>
-              <span className="text-xs font-medium text-slate-500">Kontrak ≤ 30 Hari</span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-3xl sm:text-4xl font-extrabold text-[#ba1a1a] font-heading leading-none">
-                  {data.expiringContractsCount}
-                </span>
-                <span className="text-xs font-medium text-slate-500">Kontrak</span>
-              </div>
-            </div>
-            <div className="w-10 h-10 rounded-lg bg-red-50 text-[#ba1a1a] flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-[#ba1a1a]" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-[#ba1a1a] font-semibold">Perlu Tinjauan PKWT</span>
-            <Link
-              href="/karyawan?expiring=true"
-              className="text-[#ba1a1a] font-bold hover:underline inline-flex items-center gap-1"
-            >
-              <span>Tinjau</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Grid: Charts & Action Center */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Kolom Kiri: Charts (2 cols) */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          {/* Grafik 1: Tren Kehadiran 7 Hari Terakhir */}
-          <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div>
-                <h2 className="text-sm font-bold text-[#102e50] font-heading">
-                  Tren Presensi 7 Hari Terakhir
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Distribusi kehadiran harian pegawai aktif PSPK
-                </p>
-              </div>
-
-              {/* Legenda */}
-              <div className="flex items-center gap-3 text-[11px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-[#102e50]" />
-                  <span className="text-slate-600">Hadir / WFH</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-[#f2af3e]" />
-                  <span className="text-slate-600">Terlambat</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-blue-400" />
-                  <span className="text-slate-600">Cuti</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Bar Chart Visual */}
-            <div className="flex items-end justify-between gap-3 h-48 pt-6 px-2">
               {data.trendDays.map((day) => {
-                const presentHeight = (day.present / maxDayCount) * 100;
-                const lateHeight = (day.late / maxDayCount) * 100;
-                const leaveHeight = (day.leave / maxDayCount) * 100;
+                const total = day.present + day.late + day.leave + day.absent;
+                const pct = (n: number) => `${(n / maxDayCount) * 100}%`;
+                const attended = day.present + day.late;
 
                 return (
                   <div
                     key={day.dateStr}
-                    className="flex-1 flex flex-col items-center gap-2 h-full justify-end"
+                    className="flex h-full flex-1 flex-col items-center justify-end gap-1.5"
                   >
-                    <div className="w-full max-w-[36px] flex flex-col-reverse items-center gap-0.5 h-full justify-start">
-                      {/* Bar 1: Hadir */}
-                      <div
-                        className="w-full bg-[#102e50] rounded-t-sm transition-all duration-300 hover:opacity-85"
-                        style={{ height: `${Math.max(presentHeight, 2)}%` }}
-                        title={`Hadir: ${day.present} orang`}
-                      />
-                      {/* Bar 2: Late */}
-                      {day.late > 0 && (
+                    <span className="text-[11px] font-bold tabular-nums text-slate-600">
+                      {attended > 0 ? attended : ""}
+                    </span>
+                    <div className="flex min-h-0 w-full max-w-[40px] flex-1 flex-col-reverse gap-px">
+                      {total === 0 ? (
                         <div
-                          className="w-full bg-[#f2af3e] transition-all duration-300 hover:opacity-85"
-                          style={{ height: `${lateHeight}%` }}
-                          title={`Terlambat: ${day.late} orang`}
+                          className="h-0.5 w-full rounded bg-slate-200"
+                          title="Tidak ada data"
                         />
-                      )}
-                      {/* Bar 3: Leave */}
-                      {day.leave > 0 && (
-                        <div
-                          className="w-full bg-blue-400 transition-all duration-300 hover:opacity-85"
-                          style={{ height: `${leaveHeight}%` }}
-                          title={`Cuti: ${day.leave} orang`}
-                        />
+                      ) : (
+                        <>
+                          {day.present > 0 && (
+                            <div
+                              className="w-full rounded-b-sm transition-opacity hover:opacity-85"
+                              style={{ height: pct(day.present), backgroundColor: CHART.present }}
+                              title={`Hadir: ${day.present} orang`}
+                            />
+                          )}
+                          {day.late > 0 && (
+                            <div
+                              className="w-full transition-opacity hover:opacity-85"
+                              style={{ height: pct(day.late), backgroundColor: CHART.late }}
+                              title={`Terlambat: ${day.late} orang`}
+                            />
+                          )}
+                          {day.leave > 0 && (
+                            <div
+                              className="w-full transition-opacity hover:opacity-85"
+                              style={{ height: pct(day.leave), backgroundColor: CHART.leave }}
+                              title={`Cuti: ${day.leave} orang`}
+                            />
+                          )}
+                          {day.absent > 0 && (
+                            <div
+                              className="w-full rounded-t-sm transition-opacity hover:opacity-85"
+                              style={{ height: pct(day.absent), backgroundColor: CHART.absent }}
+                              title={`Absen: ${day.absent} orang`}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
-                    <span className="text-[11px] font-semibold text-slate-600 truncate">
+                    <span className="w-full truncate text-center text-[11px] font-semibold text-slate-600">
                       {day.dayLabel}
                     </span>
                   </div>
                 );
               })}
             </div>
-          </div>
-
-          {/* Grafik 2: Komposisi Tipe Kepegawaian */}
-          <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-[#102e50] font-heading">
-                Komposisi Tipe Kepegawaian & Ikatan Kerja
-              </h2>
-              <span className="text-[11px] text-slate-500">{totalContracts} Kontrak Aktif</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">Tetap (PKWTT)</span>
-                  <span className="text-xs font-extrabold text-[#102e50]">{permanentPct}%</span>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-extrabold text-[#102e50]">
-                    {data.contractStats.PERMANENT}
-                  </span>
-                  <span className="text-xs text-slate-500">Pegawai</span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#102e50] rounded-full"
-                    style={{ width: `${permanentPct}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">Fixed-Term (PKWT)</span>
-                  <span className="text-xs font-extrabold text-[#805600]">{fixedTermPct}%</span>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-extrabold text-[#805600]">
-                    {data.contractStats.FIXED_TERM}
-                  </span>
-                  <span className="text-xs text-slate-500">Pegawai</span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-[#f2af3e] rounded-full"
-                    style={{ width: `${fixedTermPct}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/70 flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700">Paruh Waktu / Proyek</span>
-                  <span className="text-xs font-extrabold text-blue-700">{projectPct}%</span>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-extrabold text-blue-700">
-                    {data.contractStats.PART_TIME_PROJECT}
-                  </span>
-                  <span className="text-xs text-slate-500">Pegawai</span>
-                </div>
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 rounded-full"
-                    style={{ width: `${projectPct}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          </Panel>
         </div>
 
-        {/* Kolom Kanan: Perlu Tindakan & Sedang Cuti Hari Ini (1 col) */}
+        {/* Kolom samping */}
         <div className="flex flex-col gap-6">
-          {/* Action Center: Perlu Tindakan Segera */}
-          <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-3">
-            <div className="flex items-center justify-between pb-3 border-b border-[#dee9fc]">
-              <div className="flex items-center gap-2 text-[#102e50]">
-                <ShieldAlert className="w-4 h-4 text-amber-600" />
-                <h2 className="text-sm font-bold font-heading">Perlu Tindakan HR</h2>
-              </div>
-              <span className="text-[11px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                Prioritas
-              </span>
-            </div>
-
-            <div className="flex flex-col divide-y divide-slate-100 text-xs">
-              {/* Expiring contracts notices */}
-              {data.expiringContracts.map((c) => (
-                <div key={c.id} className="py-2.5 flex flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-800">{c.employeeName}</span>
-                    <span className="text-[10px] font-bold text-red-700 bg-red-50 px-1.5 py-0.5 rounded">
-                      Habis {formatDate(c.endDate)}
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-slate-500">
-                    {c.position} • {c.department}
-                  </span>
-                </div>
-              ))}
-
-              {/* Long pending leaves notices */}
-              {data.pendingLeavesLong.map((pl) => (
-                <div key={pl.id} className="py-2.5 flex flex-col gap-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-slate-800">{pl.employeeName}</span>
-                    <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">
-                      Pending &gt; 2 hari
-                    </span>
-                  </div>
-                  <span className="text-[11px] text-slate-500">
-                    {pl.leaveTypeName} ({pl.days} hari)
-                  </span>
-                </div>
-              ))}
-
-              {data.expiringContracts.length === 0 && data.pendingLeavesLong.length === 0 && (
-                <div className="py-4 text-center text-slate-400 italic">
-                  Tidak ada tindakan mendesak saat ini. Semua operasional berjalan normal.
-                </div>
-              )}
-            </div>
-
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <Link
-                href="/karyawan?expiring=true"
-                className="text-[#102e50] font-bold hover:underline"
-              >
-                Kelola Kontrak
-              </Link>
-              <Link href="/cuti/persetujuan" className="text-[#805600] font-bold hover:underline">
-                Persetujuan Cuti
-              </Link>
-            </div>
-          </div>
-
-          {/* Sedang Cuti Hari Ini */}
-          <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs p-5 flex flex-col gap-3">
-            <div className="flex items-center justify-between pb-3 border-b border-[#dee9fc]">
-              <div className="flex items-center gap-2 text-[#102e50]">
-                <CalendarDays className="w-4 h-4 text-blue-600" />
-                <h2 className="text-sm font-bold font-heading">Sedang Cuti Hari Ini</h2>
-              </div>
-              <span className="text-[11px] text-slate-400 font-semibold">
-                {data.onLeaveTodayList.length} Pegawai
-              </span>
-            </div>
-
-            <div className="flex flex-col divide-y divide-slate-100 text-xs">
-              {data.onLeaveTodayList.length === 0 ? (
-                <p className="text-xs text-slate-400 italic py-4 text-center">
-                  Tidak ada karyawan yang tercatat cuti hari ini.
-                </p>
-              ) : (
-                data.onLeaveTodayList.map((ol) => (
-                  <div key={ol.id} className="py-2.5 flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="font-semibold text-slate-800">{ol.employeeName}</span>
-                      <span className="text-[11px] text-slate-400">{ol.department}</span>
+          <Panel
+            title="Sedang cuti hari ini"
+            icon={CalendarDays}
+            badge={<Pill tone="slate">{data.onLeaveTodayList.length}</Pill>}
+            padded={false}
+          >
+            {data.onLeaveTodayList.length === 0 ? (
+              <p className="px-5 py-8 text-center text-xs italic text-slate-400">
+                Tidak ada pegawai yang tercatat cuti hari ini.
+              </p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {data.onLeaveTodayList.map((ol) => (
+                  <li key={ol.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-slate-800">
+                        {ol.employeeName}
+                      </p>
+                      <p className="truncate text-[11px] text-slate-400">{ol.department}</p>
                     </div>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-100">
-                      {ol.leaveTypeName}
-                    </span>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+                    <Pill tone="blue">{ol.leaveTypeName}</Pill>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+
+          <Panel
+            title="Komposisi kepegawaian"
+            icon={Briefcase}
+            badge={<Pill tone="slate">{totalContracts} kontrak aktif</Pill>}
+          >
+            {totalContracts === 0 ? (
+              <p className="py-4 text-center text-xs italic text-slate-400">
+                Belum ada kontrak aktif.
+              </p>
+            ) : (
+              <>
+                <div
+                  className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100"
+                  role="img"
+                  aria-label="Komposisi tipe kontrak aktif"
+                >
+                  {CONTRACT_SEGMENTS.map((s) => {
+                    const n = data.contractStats[s.key];
+                    return n > 0 ? (
+                      <div
+                        key={s.key}
+                        style={{ width: `${(n / totalContracts) * 100}%`, backgroundColor: s.color }}
+                        title={`${s.label}: ${n}`}
+                      />
+                    ) : null;
+                  })}
+                </div>
+
+                <ul className="mt-4 flex flex-col gap-3">
+                  {CONTRACT_SEGMENTS.map((s) => {
+                    const n = data.contractStats[s.key];
+                    return (
+                      <li key={s.key} className="flex items-center justify-between gap-3 text-sm">
+                        <span className="flex items-center gap-2 text-slate-700">
+                          <span
+                            className="h-2.5 w-2.5 rounded-sm"
+                            style={{ backgroundColor: s.color }}
+                            aria-hidden="true"
+                          />
+                          {s.label}
+                        </span>
+                        <span className="tabular-nums">
+                          <strong className="font-heading text-base text-[#102e50]">{n}</strong>
+                          <span className="ml-1.5 text-xs text-slate-400">
+                            {Math.round((n / totalContracts) * 100)}%
+                          </span>
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </>
+            )}
+          </Panel>
         </div>
       </div>
     </div>
