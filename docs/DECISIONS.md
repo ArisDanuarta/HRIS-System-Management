@@ -74,3 +74,20 @@ Dokumen ini mencatat keputusan penting, arsitektur, dan versi dependensi proyek.
   5. Menghormati preferensi aksesibilitas `prefers-reduced-motion` secara otomatis (beralih ke state static tanpa animasi ketika pengguna mengaktifkan preferensi kurangi gerak di sistem operasi).
 - **Alasan:** Memberikan pengalaman loading terpadu yang profesional, konsisten dengan identitas brand resmi PSPK, menghilangkan inkonsistensi spinner generic browser, dan memastikan performa rendering tetap mulus serta aman terhadap aksesibilitas pengguna.
 
+## 11. Kebijakan Penggantian Kata Sandi Wajib pada Login Pertama Kali & Reset Admin (Oktober 2026)
+
+- **Keputusan:**
+  1. Menambahkan kolom `mustChangePassword Boolean @default(false)` dan `passwordChangedAt DateTime?` pada model `core.users`.
+  2. Mengaktifkan flag `mustChangePassword: true` secara otomatis ketika:
+     - Karyawan baru didaftarkan dan akun login otomatis dibuat (`createEmployee` di `employee.service.ts`).
+     - Akun login baru dibuatkan secara manual untuk pegawai eksisting (`createEmployeeLoginAccountAction` di `user-role.actions.ts`).
+     - Kata sandi akun diatur ulang oleh Super Admin atau Administrator IT (`resetUserPasswordAction` di `user.actions.ts`).
+  3. Memasang proteksi rute ketat (*strict route guarding*) di root dispatcher (`/`) dan shell layout `(app)/layout.tsx` pada kedua aplikasi (`hris` dan `sysmgmt`):
+     - Jika `userProfile?.mustChangePassword === true`, server seketika membanting (*redirect*) pengguna ke `/ganti-password-wajib`.
+     - Pengguna terkunci dan tidak dapat membuka halaman dashboard atau fitur internal lembaga apa pun sampai kata sandi baru berhasil disimpan.
+  4. Halaman `/ganti-password-wajib` berdiri sendiri (*standalone*) di luar grup `(app)` tanpa merender sidebar atau navigasi dashboard untuk mencegah kebocoran data internal lembaga.
+  5. Menerapkan aturan anti-reuse: kata sandi baru dilarang sama dengan kata sandi sementara (`newPassword !== currentPassword`), memiliki minimal 8 karakter, serta kombinasi huruf besar, huruf kecil, dan angka.
+  6. Setiap keberhasilan penggantian kata sandi wajib langsung menonaktifkan status `mustChangePassword`, mengisi `passwordChangedAt = now()`, dan mencatat rekam jejak audit resmi bertipe `FIRST_LOGIN_PASSWORD_INITIALIZED` di tabel `core.audit_logs`.
+- **Alasan:** Memenuhi standar kepatuhan tata kelola keamanan informasi (ISO 27001 & OWASP ASVS). Kata sandi sementara yang pernah dikirim melalui email pribadi atau dibuat oleh administrator berisiko tinggi disalahgunakan jika dibiarkan aktif permanen. Dengan kebijakan ini, integritas akun dijamin 100% karena pengguna pertama kali dipaksa mengamankan akun pribadi mereka sebelum dapat mengakses data organisasi.
+
+

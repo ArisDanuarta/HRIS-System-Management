@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { X, ShieldAlert, CheckCircle2, AlertCircle, Clock } from "lucide-react";
 import { correctAttendanceAction } from "@/server/actions/attendance.actions";
 import {
@@ -28,12 +28,14 @@ export function AttendanceCorrectionModal({
   initialDate,
 }: AttendanceCorrectionModalProps) {
   const [date, setDate] = useState(initialDate || toDateString(new Date()));
+  const [prevInitialDate, setPrevInitialDate] = useState(initialDate);
 
-  useEffect(() => {
+  if (initialDate !== prevInitialDate) {
+    setPrevInitialDate(initialDate);
     if (initialDate) {
       setDate(initialDate);
     }
-  }, [initialDate]);
+  }
 
   const [selectedTz, setSelectedTz] = useState<string>(() => {
     try {

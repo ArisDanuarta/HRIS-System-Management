@@ -2,6 +2,27 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Tahap 6: Verifikasi Menyeluruh, Audit Log, dan Dokumentasi Akhir — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Melakukan audit menyeluruh terhadap seluruh kode yang terhubung, memastikan tidak ada yang terlewat, membuat automated unit tests untuk validasi Server Action pergantian kata sandi wajib, serta memperbarui dokumentasi arsitektur.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Pengujian Unit Otomatis (`force-password.actions.test.ts`):**
+     - Membuat test suite untuk HRIS (`apps/hris/src/server/actions/force-password.actions.test.ts` - 7 unit tests).
+     - Membuat test suite untuk Sysmgmt (`apps/sysmgmt/src/server/actions/force-password.actions.test.ts` - 3 unit tests).
+     - Menguji skenario: penolakan sesi kedaluwarsa, penolakan konfirmasi kata sandi tidak cocok, penolakan kata sandi sama dengan password sementara (anti-reuse), penolakan syarat kompleksitas kata sandi, keberhasilan update database dan pencatatan audit log `FIRST_LOGIN_PASSWORD_INITIALIZED`, serta penanganan pesan error ramah dari Better Auth.
+  2. **Pembersihan Linting & Kerapihan Kode:**
+     - Menghilangkan warning dan error linting pada modal koreksi presensi dan dashboard manajer.
+  3. **Dokumentasi Keputusan Arsitektur (`docs/DECISIONS.md`):**
+     - Menambahkan Bagian 11: Kebijakan Penggantian Kata Sandi Wajib pada Login Pertama Kali & Reset Admin.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings di seluruh monorepo)
+  - `pnpm test`: ✅ Lolos 100% (37 test files, 260 unit tests lulus)
+  - `pnpm --filter @pspk/hris build`: ✅ Lolos 100% (Production build Next.js sukses)
+  - `pnpm --filter @pspk/sysmgmt build`: ✅ Lolos 100% (Production build Next.js sukses)
+
 ## [Keamanan & Auth] Tahap 5: Proteksi Rute Ketat (Strict Route Guarding) di HRIS & Sysmgmt — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
