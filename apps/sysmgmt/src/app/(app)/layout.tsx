@@ -19,6 +19,12 @@ export default async function SysmgmtProtectedLayout({ children }: { children: R
   }
 
   const userProfile = await getUserProfile(session.user.id);
+
+  // Proteksi: Pengguna berstatus wajib ganti kata sandi dilarang mengakses layout dashboard
+  if (userProfile?.mustChangePassword) {
+    redirect("/ganti-password-wajib");
+  }
+
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
 
   const isSuperAdmin = roleKeys.includes("super_admin");

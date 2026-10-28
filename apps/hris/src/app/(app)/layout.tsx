@@ -23,6 +23,11 @@ export default async function AppProtectedLayout({ children }: { children: React
     getModuleFlags(prisma),
   ]);
 
+  // Proteksi: Pengguna berstatus wajib ganti kata sandi dilarang mengakses layout dashboard
+  if (userProfile?.mustChangePassword) {
+    redirect("/ganti-password-wajib");
+  }
+
   // Map roles to determine primary view mode
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
   const isSuperAdmin = roleKeys.includes("super_admin");
