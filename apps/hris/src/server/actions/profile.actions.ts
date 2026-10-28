@@ -78,7 +78,17 @@ export async function changePasswordAction(data: ChangePasswordInput) {
       },
     });
 
+    // Pastikan flag mustChangePassword dinonaktifkan jika sebelumnya aktif
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        mustChangePassword: false,
+        passwordChangedAt: new Date(),
+      },
+    });
+
     revalidatePath("/profil");
+    revalidatePath("/", "layout");
 
     return {
       success: true,
@@ -94,6 +104,117 @@ export async function changePasswordAction(data: ChangePasswordInput) {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Terjadi kesalahan pada sistem",
+    };
+  }
+}
+
+const forceChangePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Kata sandi sementara wajib diisi"),
+    newPassword: z
+      .string()
+      .min(8, "Kata sandi baru minimal 8 karakter")
+      .regex(/[a-z]/, "Wajib mengandung minimal 1 huruf kecil")
+      .regex(/[A-Z]/, "Wajib mengandung minimal 1 huruf besar")
+      .regex(/[0-9]/, "Wajib mengandung minimal 1 angka"),
+    confirmPassword: z.string().min(1, "Konfirmasi kata sandi wajib diisi"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Konfirmasi kata sandi baru tidak cocok",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "Kata sandi baru tidak boleh sama dengan kata sandi sementara",
+    path: ["newPassword"],
+  });
+
+export type ForceChangePasswordInput = z.infer<typeof forceChangePasswordSchema>;
+
+/**
+ * Server Action: Wajib ganti kata sandi pada login pertama / setelah reset
+ */
+export async function forceChangePasswordAction(data: ForceChangePasswordInput) {
+  try {
+    const validated = forceChangePasswordSchema.parse(data);
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        error: "Sesi Anda telah kedaluwarsa. Silakan masuk kembali.",
+      };
+    }
+
+    try {
+      await auth.api.changePassword({
+        body: {
+          currentPassword: validated.currentPassword,
+          newPassword: validated.newPassword,
+          revokeOtherSessions: true,
+        },
+        headers: reqHeaders,
+      });
+    } catch (authErr: unknown) {
+      console.error("Better Auth forceChangePassword error:", authErr);
+      const errMsg = authErr instanceof Error ? authErr.message : String(authErr);
+      if (
+        errMsg.toLowerCase().includes("invalid password") ||
+        errMsg.toLowerCase().includes("password is incorrect") ||
+        errMsg.toLowerCase().includes("credentials")
+      ) {
+        return {
+          success: false,
+          error: "Kata sandi sementara yang Anda masukkan tidak sesuai dengan yang dikirimkan via email.",
+        };
+      }
+      return {
+        success: false,
+        error: "Gagal memperbarui kata sandi. Pastikan data sudah sesuai ketentuan.",
+      };
+    }
+
+    // Perbarui status mustChangePassword menjadi false dan catat waktu perubahan
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        mustChangePassword: false,
+        passwordChangedAt: new Date(),
+      },
+    });
+
+    // Catat log audit resmi
+    await writeAudit({
+      actorUserId: session.user.id,
+      actorEmail: session.user.email,
+      app: "hris",
+      action: "UPDATE",
+      entityType: "UserPassword",
+      entityId: session.user.id,
+      after: {
+        event: "FIRST_LOGIN_PASSWORD_INITIALIZED",
+        email: session.user.email,
+        revokedOtherSessions: true,
+      },
+    });
+
+    revalidatePath("/", "layout");
+
+    return {
+      success: true,
+      message: "Kata sandi baru Anda berhasil disimpan. Mengalihkan ke dashboard...",
+    };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return {
+        success: false,
+        error: error.errors[0]?.message || "Validasi formulir gagal",
+      };
+    }
+    console.error("forceChangePasswordAction unexpected error:", error);
+    return {
+      success: false,
+      error: "Terjadi kesalahan internal pada server. Silakan coba beberapa saat lagi.",
     };
   }
 }
