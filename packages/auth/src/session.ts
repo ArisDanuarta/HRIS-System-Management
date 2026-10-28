@@ -99,6 +99,8 @@ export async function getUserProfile(userId: string) {
       email: true,
       image: true,
       isActive: true,
+      mustChangePassword: true,
+      passwordChangedAt: true,
       roles: {
         select: {
           role: {
@@ -182,3 +184,5 @@ export async function getUserProfile(userId: string) {
 
   return profile;
 }
+
+export type UserProfile = NonNullable<Awaited<ReturnType<typeof getUserProfile>>>;

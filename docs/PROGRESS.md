@@ -2,6 +2,24 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Tahap 1: Skema Database & Migrasi Prisma (Wajib Ganti Password Pertama Kali) — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Akun pengguna baru atau akun yang kata sandinya di-reset oleh admin belum memiliki kolom penanda apakah pengguna menggunakan kata sandi sementara yang wajib diganti sebelum masuk ke dashboard.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Perubahan Skema Prisma (`packages/db/prisma/schema/core.prisma`):**
+     - Menambahkan kolom `mustChangePassword Boolean @default(false) @map("must_change_password")` pada model `User`.
+     - Menambahkan kolom `passwordChangedAt DateTime? @map("password_changed_at") @db.Timestamptz(6)` pada model `User`.
+  2. **Migrasi Database PostgreSQL:**
+     - Menjalankan migrasi `20261028044602_add_must_change_password_to_user`.
+     - Kolom `must_change_password` dan `password_changed_at` sukses diterapkan pada tabel `core.users`.
+  3. **Penyelarasan Prisma Client:**
+     - Menjalankan `prisma generate` untuk memperbarui tipe data TypeScript pada Prisma Client monorepo.
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/db typecheck`: ✅ Lolos 100% (0 error)
+  - Database schema & Prisma Client sinkron sempurna.
+
 ## [HRIS Core] Integrasi Card Presensi & Hak Cuti Pribadi pada Dashboard HR — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

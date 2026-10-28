@@ -43,4 +43,11 @@ describe("@pspk/auth configuration and exports", () => {
       max: 5,
     });
   });
+
+  it("harus mendaftarkan additionalFields mustChangePassword pada konfigurasi user", () => {
+    const additionalFields = auth.options.user?.additionalFields;
+    expect(additionalFields).toBeDefined();
+    expect(additionalFields?.mustChangePassword).toBeDefined();
+    expect(additionalFields?.mustChangePassword.type).toBe("boolean");
+  });
 });
