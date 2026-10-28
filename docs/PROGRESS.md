@@ -2,6 +2,24 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Tahap 3: Logika Pemicu (Triggers) & Template Email Notifikasi — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Menandai pengguna sebagai wajib ganti password (`mustChangePassword: true`) pada seluruh alur pembuatan kredensial sementara dan reset kata sandi, serta memperbarui pesan email kredensial.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Pembuatan Karyawan Baru (`apps/hris/src/server/services/employee.service.ts`):**
+     - Memperbarui `createEmployee()` agar otomatis mengisi `mustChangePassword: true` saat akun pengguna dibuatkan atau saat kredensial akun diperbarui.
+  2. **Pembuatan Akun Login Pegawai Eksisting (`apps/hris/src/server/actions/user-role.actions.ts`):**
+     - Memperbarui `createEmployeeLoginAccountAction()` agar mengisi `mustChangePassword: true`.
+  3. **Reset Kata Sandi oleh Administrator IT (`apps/sysmgmt/src/server/actions/user.actions.ts`):**
+     - Memperbarui `resetUserPasswordAction()` agar meng-update `mustChangePassword: true` di tabel `core.users`.
+  4. **Template Notifikasi Email (`apps/hris/src/server/services/email.service.ts`):**
+     - Memperbarui template email HTML & teks agar secara jelas memberitahukan bahwa password bersifat sementara dan pengguna akan langsung diwajibkan membuat kata sandi baru pada login pertama sebelum masuk ke dashboard.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm test`: ✅ Lolos 100% (35 test files, 250 unit tests lulus)
+
 ## [Keamanan & Auth] Tahap 2: Integrasi Layer Autentikasi & Sesi Pengguna — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

@@ -112,7 +112,7 @@ export async function sendEmployeeCredentialsEmail(
           </div>
 
           <div class="warning">
-            <strong>Penting:</strong> Demi keamanan data dan akun Anda, harap segera masuk ke sistem dan perbarui kata sandi Anda melalui menu profil setelah login pertama kali. Jangan membagikan kata sandi ini kepada pihak lain.
+            <strong>Penting &amp; Wajib:</strong> Kata sandi di atas bersifat sementara. Demi keamanan data dan akun Anda, saat pertama kali masuk ke sistem, Anda akan otomatis diarahkan untuk mengganti kata sandi sementara ini dengan kata sandi baru pilihan Anda sebelum dapat mengakses dashboard. Jangan membagikan kata sandi ini kepada pihak lain.
           </div>
         </div>
         <div class="footer">
@@ -135,7 +135,7 @@ Kredensial Login Anda:
 - Hak Akses (Role): ${roleName}
 - Tautan Masuk: ${loginUrl}
 
-Penting: Demi keamanan data Anda, harap segera masuk dan perbarui kata sandi Anda melalui menu profil setelah login pertama kali.
+Penting & Wajib: Kata sandi di atas bersifat sementara. Demi keamanan data dan akun Anda, saat pertama kali masuk ke sistem, Anda akan otomatis diarahkan untuk membuat kata sandi baru pribadi sebelum dapat mengakses dashboard.
 
 ---
 Sistem HRIS PSPK
