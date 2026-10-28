@@ -62,7 +62,7 @@ export function AttendanceLeaveSubnav({
 
   return (
     <div
-      className={`flex items-center gap-1.5 sm:gap-2 border-b border-gray-200/80 pb-2 overflow-x-auto no-scrollbar scroll-smooth ${className}`}
+      className={`flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-xs overflow-x-auto no-scrollbar scroll-smooth ${className}`}
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
@@ -70,18 +70,20 @@ export function AttendanceLeaveSubnav({
           <Link
             key={tab.id}
             href={tab.href}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 text-xs rounded-lg transition-all whitespace-nowrap shrink-0 ${
+            className={`inline-flex items-center gap-2 px-4 py-2 text-xs rounded-xl transition-all whitespace-nowrap shrink-0 ${
               isActive
-                ? "bg-[#102e50] text-white font-bold shadow-xs scale-[1.01]"
-                : "text-slate-600 hover:text-[#102e50] hover:bg-slate-100 font-medium"
+                ? "bg-[#102e50] text-white font-bold shadow-xs"
+                : "text-slate-600 hover:text-[#102e50] hover:bg-slate-50 font-semibold"
             }`}
           >
             <span className={isActive ? "text-[#f2af3e]" : "text-slate-400"}>{tab.icon}</span>
             <span>{tab.label}</span>
             {tab.badge !== undefined && (
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  isActive ? "bg-[#ba1a1a] text-white" : "bg-[#ba1a1a] text-white"
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
+                  isActive
+                    ? "bg-[#f2af3e] text-[#102e50]"
+                    : "bg-[#a8281c] text-white"
                 }`}
               >
                 {tab.badge}
