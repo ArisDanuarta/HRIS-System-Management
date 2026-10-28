@@ -2,6 +2,24 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Tahap 2: Integrasi Layer Autentikasi & Sesi Pengguna — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Menghubungkan kolom `mustChangePassword` dan `passwordChangedAt` ke konfigurasi Better Auth dan fungsi pembacaan sesi/profil (`getUserProfile`).
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Konfigurasi Better Auth (`packages/auth/src/index.ts`):**
+     - Mendaftarkan `user.additionalFields` dengan properti `mustChangePassword` (boolean, input: false) dan `passwordChangedAt` (date, input: false) agar Better Auth mengenali atribut user baru pada sesi.
+  2. **Penyelarasan Query Profil (`packages/auth/src/session.ts`):**
+     - Menambahkan `mustChangePassword: true` dan `passwordChangedAt: true` pada klausa `select` query `getUserProfile()`.
+     - Mengekspor tipe data `UserProfile` untuk konsumsi terpusat dan type-safe di aplikasi Next.js.
+  3. **Penyesuaian Mocks & Unit Test:**
+     - Menambahkan unit test di `packages/auth/src/index.test.ts` untuk memastikan `additionalFields.mustChangePassword` terdaftar.
+     - Memperbarui mock session pada test suites `broadcast.actions.test.ts` dan `document.actions.test.ts`.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm test`: ✅ Lolos 100% (35 test files, 250 unit tests lulus)
+
 ## [Keamanan & Auth] Tahap 1: Skema Database & Migrasi Prisma (Wajib Ganti Password Pertama Kali) — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

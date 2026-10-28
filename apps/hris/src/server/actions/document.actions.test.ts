@@ -217,6 +217,7 @@ describe("HRIS document.actions.ts", () => {
         email: "hr@pspk.id",
         name: "Admin HR",
         emailVerified: true,
+        mustChangePassword: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
