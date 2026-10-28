@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { forceChangePasswordAction } from "./profile.actions";
 import { auth, getSession } from "@pspk/auth";
 import { prisma, writeAudit } from "@pspk/db";
+import { sendPasswordChangedConfirmationEmail } from "../services/email.service";
 
 // Mock @pspk/auth
 vi.mock("@pspk/auth", () => ({
@@ -135,6 +136,15 @@ describe("forceChangePasswordAction tests", () => {
     vi.mocked(getSession).mockResolvedValueOnce(mockSession);
     vi.mocked(auth.api.changePassword).mockResolvedValueOnce({} as never);
     vi.mocked(prisma.user.update).mockResolvedValueOnce({} as never);
+    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+      name: "Staf Baru",
+      email: "staf.baru@pspk.id",
+      employee: {
+        fullName: "Staf Baru",
+        personalEmail: "staf.pribadi@gmail.com",
+        workEmail: "staf.baru@pspk.id",
+      },
+    } as never);
     vi.mocked(writeAudit).mockResolvedValueOnce({} as never);
 
     const res = await forceChangePasswordAction({
@@ -165,6 +175,15 @@ describe("forceChangePasswordAction tests", () => {
         passwordChangedAt: expect.any(Date),
       }),
     });
+
+    // Pastikan email konfirmasi keamanan dikirimkan ke email pribadi pegawai, BUKAN email kantor
+    expect(sendPasswordChangedConfirmationEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "staf.pribadi@gmail.com",
+        workEmail: "staf.baru@pspk.id",
+        fullName: "Staf Baru",
+      }),
+    );
 
     // Pastikan Audit Log ditulis
     expect(writeAudit).toHaveBeenCalledWith(

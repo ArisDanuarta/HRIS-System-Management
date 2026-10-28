@@ -43,7 +43,7 @@ export async function sendEmployeeCredentialsEmail(
     smtpHost && smtpHost.includes("gmail") && rawSmtpPass
       ? rawSmtpPass.replace(/\s+/g, "")
       : rawSmtpPass;
-  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <noreply@pspk.id>";
+  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK Notification <no-reply@pspk.id>";
 
   const emailSubject = `[PSPK HRIS] Informasi Akun & Kredensial Akses Portal Pegawai - ${fullName}`;
 

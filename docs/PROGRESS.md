@@ -2,6 +2,29 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Auth] Notifikasi Email Konfirmasi Perubahan Kata Sandi ke Email Pribadi (Poin 4) — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Menerapkan rekomendasi Poin 4 untuk mengirimkan email notifikasi konfirmasi pasca perubahan kata sandi langsung ke email pribadi pegawai (`personalEmail`), bukan email kantor PSPK, sebagai standar keamanan deteksi akses/perubahan akun.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Layanan Email Konfirmasi (`sendPasswordChangedConfirmationEmail` di `apps/hris/src/server/services/email.service.ts`):**
+     - Mengirimkan email konfirmasi pasca penggantian sandi dengan rincian nama staf, email akun PSPK (`workEmail`), serta waktu kejadian (WIB).
+     - Surel ditujukan khusus ke alamat email pribadi pegawai (`personalEmail`) dengan pengirim resmi `PSPK Notification <no-reply@pspk.id>`.
+     - Mendukung simulasi log di konsol development apabila SMTP belum dikonfigurasi.
+  2. **Integrasi Server Action (`apps/hris/src/server/actions/profile.actions.ts`):**
+     - Mengintegrasikan pemanggilan email konfirmasi pada `forceChangePasswordAction` (saat login pertama kali) dan `changePasswordAction` (saat ganti sandi di profil akun).
+     - Mengambil `user.employee.personalEmail` dan memicu pengiriman secara *non-blocking* dengan penanganan error aman (*safe try-catch*).
+  3. **Pengujian Unit Otomatis:**
+     - Menambahkan pengujian di `apps/hris/src/server/services/email.service.test.ts` untuk memastikan format dan pengiriman ke email pribadi terverifikasi.
+     - Memperbarui `apps/hris/src/server/actions/force-password.actions.test.ts` untuk memverifikasi pemanggilan `sendPasswordChangedConfirmationEmail` dengan parameter yang tepat.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings di seluruh monorepo)
+  - `pnpm test`: ✅ Lolos 100% (37 test files, 261 unit tests lulus)
+  - `pnpm --filter @pspk/hris build`: ✅ Lolos 100% (Production build Next.js sukses)
+  - `pnpm --filter @pspk/sysmgmt build`: ✅ Lolos 100% (Production build Next.js sukses)
+
 ## [Keamanan & Auth] Tahap 6: Verifikasi Menyeluruh, Audit Log, dan Dokumentasi Akhir — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
