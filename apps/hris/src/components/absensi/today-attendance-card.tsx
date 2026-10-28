@@ -13,6 +13,8 @@ import {
   Check,
   FileText,
   X,
+  Building2,
+  Home,
 } from "lucide-react";
 import { checkInAction, checkOutAction } from "@/server/actions/attendance.actions";
 import {
@@ -80,11 +82,14 @@ export function TodayAttendanceCard({
   const [showTzDropdown, setShowTzDropdown] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Time & Date state
+  // Time, Date & Shift Progress state
   const [time, setTime] = useState<string>("");
   const [dateStr, setDateStr] = useState<string>("");
   const [secondaryTime, setSecondaryTime] = useState<string>("");
+  const [shiftProgress, setShiftProgress] = useState<number>(0);
 
+  // Form & Action state
+  const [workMode, setWorkMode] = useState<"WFO" | "WFH">("WFO");
   const [notes, setNotes] = useState<string>("");
   const [showNotesInput, setShowNotesInput] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -122,16 +127,35 @@ export function TodayAttendanceCard({
     setShowTzDropdown(false);
   };
 
-  // Cutoff calculation in head office time (WIB)
-  const cutoffTimeWib = workSchedule
+  // Cutoff & Shift Marker calculation in head office time (WIB)
+  const scheduleMetrics = workSchedule
     ? (() => {
-        const [h, m] = workSchedule.workStartTime.split(":").map((v) => parseInt(v, 10));
-        const total = (h || 9) * 60 + (m || 0) + workSchedule.gracePeriodMins;
-        const cH = Math.floor(total / 60) % 24;
-        const cM = total % 60;
-        return `${String(cH).padStart(2, "0")}:${String(cM).padStart(2, "0")}`;
+        const [startH, startM] = workSchedule.workStartTime.split(":").map((v) => parseInt(v, 10));
+        const [endH, endM] = workSchedule.workEndTime.split(":").map((v) => parseInt(v, 10));
+        const startMins = (startH || 9) * 60 + (startM || 0);
+        const endMins = (endH || 17) * 60 + (endM || 0);
+        const cutoffMins = startMins + (workSchedule.gracePeriodMins || 0);
+
+        const cH = Math.floor(cutoffMins / 60) % 24;
+        const cM = cutoffMins % 60;
+        const cutoffTimeWib = `${String(cH).padStart(2, "0")}:${String(cM).padStart(2, "0")}`;
+
+        const totalDuration = Math.max(endMins - startMins, 1);
+        const gracePercentage = Math.min(
+          Math.max(((cutoffMins - startMins) / totalDuration) * 100, 0),
+          100,
+        );
+
+        return {
+          startMins,
+          endMins,
+          cutoffTimeWib,
+          gracePercentage,
+        };
       })()
     : null;
+
+  const cutoffTimeWib = scheduleMetrics?.cutoffTimeWib || null;
 
   // Local converted schedule times (if user timezone differs from WIB)
   const localWorkStart = workSchedule
@@ -144,7 +168,7 @@ export function TodayAttendanceCard({
     ? convertTimeStringZone(cutoffTimeWib, "Asia/Jakarta", effectiveTz)
     : null;
 
-  // Live Digital Clock updating every second
+  // Live Digital Clock & Shift Progress updating every second
   useEffect(() => {
     function updateClock() {
       const now = new Date();
@@ -168,9 +192,7 @@ export function TodayAttendanceCard({
         }),
       );
 
-      // Secondary reference clock:
-      // If effective zone is NOT WIB, show synchronous Jakarta (WIB) time
-      // If effective zone IS WIB but user local device is NOT WIB, show user local time
+      // Secondary reference clock
       if (!isWib) {
         const wib = formatTimeInZone(now, "Asia/Jakarta", {
           hour: "2-digit",
@@ -190,15 +212,50 @@ export function TodayAttendanceCard({
       } else {
         setSecondaryTime("");
       }
+
+      // Shift progress calculation against Head Office (WIB) schedule
+      if (scheduleMetrics) {
+        const wibParts = new Intl.DateTimeFormat("en-US", {
+          timeZone: "Asia/Jakarta",
+          hour: "numeric",
+          minute: "numeric",
+          hourCycle: "h23",
+        }).formatToParts(now);
+
+        const curH = parseInt(wibParts.find((p) => p.type === "hour")?.value ?? "0", 10);
+        const curM = parseInt(wibParts.find((p) => p.type === "minute")?.value ?? "0", 10);
+        const curTotalMins = curH * 60 + curM;
+
+        if (curTotalMins <= scheduleMetrics.startMins) {
+          setShiftProgress(0);
+        } else if (curTotalMins >= scheduleMetrics.endMins) {
+          setShiftProgress(100);
+        } else {
+          const pct =
+            ((curTotalMins - scheduleMetrics.startMins) /
+              (scheduleMetrics.endMins - scheduleMetrics.startMins)) *
+            100;
+          setShiftProgress(Math.min(Math.max(pct, 0), 100));
+        }
+      }
     }
 
     updateClock();
     const interval = setInterval(updateClock, 1000);
     return () => clearInterval(interval);
-  }, [effectiveTz, detectedTz, isWib, detectedAbbr]);
+  }, [effectiveTz, detectedTz, isWib, detectedAbbr, scheduleMetrics]);
 
   const hasCheckedIn = !!todayAttendance?.checkInAt;
   const hasCheckedOut = !!todayAttendance?.checkOutAt;
+
+  // Detect recorded work mode from existing notes if already checked in
+  const recordedMode = todayAttendance?.notes?.includes("[WFH]")
+    ? "WFH"
+    : todayAttendance?.notes?.includes("[WFO]")
+      ? "WFO"
+      : todayAttendance?.status === "WFH"
+        ? "WFH"
+        : null;
 
   // Time formatters for attendance logs
   const formatAttendanceTime = (d: Date | null | undefined, tz: string = effectiveTz) => {
@@ -213,8 +270,11 @@ export function TodayAttendanceCard({
   const handleCheckIn = () => {
     setMessage(null);
     startTransition(async () => {
+      const modeTag = `[${workMode}]`;
       const tzTag = `[${effectiveAbbr}]`;
-      const combinedNotes = notes ? `${notes} ${tzTag}` : tzTag;
+      const cleanNote = notes.trim();
+      const combinedNotes = cleanNote ? `${modeTag} ${cleanNote} ${tzTag}` : `${modeTag} ${tzTag}`;
+
       const res = await checkInAction({ notes: combinedNotes });
       if (res.success) {
         setMessage({ type: "success", text: res.message });
@@ -230,7 +290,9 @@ export function TodayAttendanceCard({
     setMessage(null);
     startTransition(async () => {
       const tzTag = `[${effectiveAbbr}]`;
-      const combinedNotes = notes ? `${notes} ${tzTag}` : tzTag;
+      const cleanNote = notes.trim();
+      const combinedNotes = cleanNote ? `${cleanNote} ${tzTag}` : tzTag;
+
       const res = await checkOutAction({ notes: combinedNotes });
       if (res.success) {
         setMessage({ type: "success", text: res.message });
@@ -243,311 +305,453 @@ export function TodayAttendanceCard({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#dee9fc] shadow-sm p-6 sm:p-7 relative overflow-visible transition-all">
-      {/* PSPK Brand Accent Bar */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#102e50] via-[#f2af3e] to-[#102e50] rounded-t-2xl" />
+    <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs relative overflow-visible transition-all">
+      {/* PSPK Brand Signature Top Bar (Navy, Golden Yellow, Crimson Red, Warm Grey) */}
+      <div className="flex h-1.5 w-full rounded-t-2xl overflow-hidden">
+        <div className="w-1/2 bg-[#102e50]" />
+        <div className="w-1/4 bg-[#f2af3e]" />
+        <div className="w-1/6 bg-[#a8281c]" />
+        <div className="flex-1 bg-slate-300" />
+      </div>
 
-      {/* Top Meta Row: Date, Timezone Dropdown & Status Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[#74777f]">
-            <Calendar className="w-4 h-4 text-[#f2af3e]" />
-            <span>{dateStr || "Memuat tanggal..."}</span>
-          </div>
+      <div className="p-6 sm:p-8">
+        {/* Top Meta Bar: Date, Timezone Selector & Status Pill */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 border-b border-slate-100">
+          <div className="flex flex-wrap items-center gap-2.5 text-xs">
+            <div className="inline-flex items-center gap-2 font-semibold text-[#102e50]">
+              <Calendar className="w-4 h-4 text-[#f2af3e]" />
+              <span>{dateStr || "Memuat tanggal..."}</span>
+            </div>
 
-          <span className="w-1.5 h-1.5 rounded-full bg-[#f2af3e] hidden sm:inline-block" />
+            <span className="text-slate-300 hidden sm:inline">|</span>
 
-          {/* Timezone Selector Dropdown */}
-          <div className="relative inline-block" ref={dropdownRef}>
-            <button
-              type="button"
-              onClick={() => setShowTzDropdown(!showTzDropdown)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#eff4ff] hover:bg-[#dee9fc] text-[#102e50] border border-[#dee9fc] font-semibold text-[11px] transition-colors cursor-pointer"
-              title="Ubah tampilan zona waktu"
-            >
-              <Globe className="w-3.5 h-3.5 text-[#f2af3e]" />
-              <span>
-                {effectiveAbbr}
-                {isShowingLocal ? " (Lokal)" : effectiveTz === "Asia/Jakarta" ? " (Pusat)" : ""}
-              </span>
-              <ChevronDown className="w-3 h-3 text-[#5b6675]" />
-            </button>
+            {/* Timezone Selector Dropdown */}
+            <div className="relative inline-block" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setShowTzDropdown(!showTzDropdown)}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-[#102e50] border border-slate-200/80 font-medium text-xs transition-colors cursor-pointer"
+                title="Ubah tampilan zona waktu"
+              >
+                <Globe className="w-3.5 h-3.5 text-[#0874aa]" />
+                <span>
+                  {effectiveAbbr}
+                  {isShowingLocal ? " (Lokal)" : effectiveTz === "Asia/Jakarta" ? " (Pusat)" : ""}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
 
-            {/* Dropdown Menu */}
-            {showTzDropdown && (
-              <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-xl shadow-xl border border-[#dee9fc] p-1.5 z-50 text-xs font-normal normal-case animate-in fade-in zoom-in-95 duration-150">
-                <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#74777f] border-b border-[#dee9fc]/60">
-                  Pilih Zona Waktu
-                </div>
+              {showTzDropdown && (
+                <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 p-1.5 z-50 text-xs font-normal normal-case animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                    Pilih Zona Waktu
+                  </div>
 
-                <div className="flex flex-col gap-0.5 mt-1">
-                  {/* Option 1: Auto Browser Local */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelectTimezone("AUTO")}
-                    className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
-                      selectedTz === "AUTO"
-                        ? "bg-[#eff4ff] text-[#102e50] font-bold"
-                        : "hover:bg-slate-50 text-slate-700"
-                    }`}
-                  >
-                    <div className="flex flex-col">
-                      <span className="font-semibold">Otomatis (Lokal Browser)</span>
-                      <span className="text-[11px] text-[#74777f]">
-                        {detectedAbbr} • {detectedTz}
-                      </span>
-                    </div>
-                    {selectedTz === "AUTO" && <Check className="w-4 h-4 text-[#102e50]" />}
-                  </button>
-
-                  {/* Standard Indonesian Timezones */}
-                  {INDONESIA_TIMEZONES.map((tz) => (
+                  <div className="flex flex-col gap-0.5 mt-1">
                     <button
-                      key={tz.key}
                       type="button"
-                      onClick={() => handleSelectTimezone(tz.key)}
+                      onClick={() => handleSelectTimezone("AUTO")}
                       className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
-                        selectedTz === tz.key
-                          ? "bg-[#eff4ff] text-[#102e50] font-bold"
+                        selectedTz === "AUTO"
+                          ? "bg-[#102e50]/5 text-[#102e50] font-semibold"
                           : "hover:bg-slate-50 text-slate-700"
                       }`}
                     >
                       <div className="flex flex-col">
-                        <span className="font-semibold">{tz.label}</span>
-                        <span className="text-[11px] text-[#74777f]">
-                          UTC+{tz.offsetHours} • {tz.abbr}
+                        <span>Otomatis (Lokal Browser)</span>
+                        <span className="text-[11px] text-slate-400">
+                          {detectedAbbr} • {detectedTz}
                         </span>
                       </div>
-                      {selectedTz === tz.key && <Check className="w-4 h-4 text-[#102e50]" />}
+                      {selectedTz === "AUTO" && <Check className="w-4 h-4 text-[#102e50]" />}
                     </button>
-                  ))}
+
+                    {INDONESIA_TIMEZONES.map((tz) => (
+                      <button
+                        key={tz.key}
+                        type="button"
+                        onClick={() => handleSelectTimezone(tz.key)}
+                        className={`flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+                          selectedTz === tz.key
+                            ? "bg-[#102e50]/5 text-[#102e50] font-semibold"
+                            : "hover:bg-slate-50 text-slate-700"
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span>{tz.label}</span>
+                          <span className="text-[11px] text-slate-400">
+                            UTC+{tz.offsetHours} • {tz.abbr}
+                          </span>
+                        </div>
+                        {selectedTz === tz.key && <Check className="w-4 h-4 text-[#102e50]" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Status Badge */}
+          <div className="flex items-center gap-2">
+            {recordedMode && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#102e50]/5 text-[#102e50] border border-[#102e50]/15">
+                {recordedMode === "WFH" ? (
+                  <Home className="w-3 h-3 text-[#0874aa]" />
+                ) : (
+                  <Building2 className="w-3 h-3 text-[#102e50]" />
+                )}
+                {recordedMode}
+              </span>
+            )}
+
+            {!hasCheckedIn ? (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                <span className="w-2 h-2 rounded-full bg-slate-400" />
+                Belum Check-In
+              </span>
+            ) : !hasCheckedOut ? (
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full border ${
+                  todayAttendance?.status === "LATE"
+                    ? "bg-[#f4b867]/20 text-[#8e2d3f] border-[#f2af3e]/50"
+                    : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                }`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full animate-pulse ${
+                    todayAttendance?.status === "LATE" ? "bg-[#df632f]" : "bg-emerald-600"
+                  }`}
+                />
+                <span>
+                  Sedang Bertugas ({formatAttendanceTime(todayAttendance?.checkInAt)}{" "}
+                  {effectiveAbbr})
+                </span>
+                {todayAttendance?.status === "LATE" && " • Terlambat"}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-[#0874aa]/10 text-[#0874aa] border border-[#0874aa]/25">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#0874aa]" />
+                <span>Selesai Bertugas</span>
+              </span>
             )}
           </div>
         </div>
 
-        {/* Status Pill in Header */}
-        <div className="flex items-center">
-          {!hasCheckedIn ? (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-              <span className="w-2 h-2 rounded-full bg-slate-400" />
-              Belum Check-In
-            </span>
-          ) : !hasCheckedOut ? (
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border ${
-                todayAttendance?.status === "LATE"
-                  ? "bg-amber-50 text-amber-800 border-amber-300"
-                  : "bg-emerald-50 text-emerald-800 border-emerald-300"
-              }`}
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  todayAttendance?.status === "LATE"
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-                }`}
-              />
-              <span>
-                Hadir ({formatAttendanceTime(todayAttendance?.checkInAt)} {effectiveAbbr}
-                {!isWib && (
-                  <span className="text-slate-500 font-normal">
-                    {" "}
-                    • {formatAttendanceTime(todayAttendance?.checkInAt, "Asia/Jakarta")} WIB
+        {/* Main Content Grid: Left (Clock & Shift Visual) | Right (Check-In/Out Controls) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6 items-center">
+          {/* Left Column (7 cols): Live Clock & Visual Shift Timeline */}
+          <div className="lg:col-span-7 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-baseline gap-3">
+                <span className="text-4xl sm:text-5xl font-bold text-[#102e50] font-mono tracking-tight tabular-nums">
+                  {time || "--:--:--"}
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-[#102e50] text-white">
+                  {effectiveAbbr}
+                </span>
+
+                {secondaryTime && (
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md bg-slate-50 text-slate-600 border border-slate-200/80"
+                    title="Waktu referensi sinkronisasi"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-[#f2af3e]" />
+                    <span>
+                      {!isWib ? `Kantor Pusat: ${secondaryTime}` : `Lokal Anda: ${secondaryTime}`}
+                    </span>
                   </span>
                 )}
-                )
-              </span>
-              {todayAttendance?.status === "LATE" && " • Terlambat"}
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
-              <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>
-                Selesai Bekerja ({formatAttendanceTime(todayAttendance?.checkInAt)} -{" "}
-                {formatAttendanceTime(todayAttendance?.checkOutAt)} {effectiveAbbr})
-              </span>
-            </span>
-          )}
-        </div>
-      </div>
+              </div>
 
-      {/* Main Content: Clock on Left, Action Panel on Right */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pt-4">
-        {/* Left Column: Live Monospace Clock, Zone Badges, & Schedule */}
-        <div className="flex flex-col gap-2.5 min-w-0 flex-1">
-          {/* Clock & Badges */}
-          <div className="flex flex-wrap items-baseline gap-3">
-            <span className="text-4xl sm:text-5xl font-extrabold text-[#102e50] font-mono tracking-tight tabular-nums">
-              {time || "--:--:--"}
-            </span>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#eff4ff] text-[#102e50] border border-[#dee9fc]">
-                {isShowingLocal
-                  ? `Waktu Lokal (${effectiveAbbr})`
-                  : effectiveTz === "Asia/Jakarta"
-                    ? "Waktu Kantor Pusat (WIB)"
-                    : `Zona ${effectiveAbbr}`}
-              </span>
-
-              {secondaryTime && (
-                <span
-                  className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-50 text-slate-700 border border-slate-200"
-                  title="Waktu tersinkronisasi kantor pusat Jakarta"
-                >
-                  <Clock className="w-3.5 h-3.5 text-[#f2af3e]" />
-                  <span>
-                    {!isWib ? `Kantor Pusat: ${secondaryTime}` : `Lokal Anda: ${secondaryTime}`}
-                  </span>
-                </span>
+              {employeeName && (
+                <p className="text-xs text-slate-500">
+                  Pegawai bertugas:{" "}
+                  <strong className="text-[#102e50] font-semibold">{employeeName}</strong>
+                </p>
               )}
+            </div>
+
+            {/* Visual Shift Timeline & Check-In/Out Summary Boxes */}
+            <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-200/70 space-y-3.5">
+              {workSchedule && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-[#102e50]">
+                      {workSchedule.name || "Jadwal Kerja Reguler"}
+                    </span>
+                    <span className="text-slate-500 text-[11px]">
+                      Batas Tepat Waktu:{" "}
+                      <strong className="text-[#a8281c]">
+                        {cutoffTimeWib} WIB
+                        {!isWib && localCutoffTime ? ` (${localCutoffTime} ${effectiveAbbr})` : ""}
+                      </strong>
+                    </span>
+                  </div>
+
+                  {/* Shift Progress Bar */}
+                  <div className="relative h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${
+                        hasCheckedOut
+                          ? "bg-[#0874aa]"
+                          : hasCheckedIn
+                            ? "bg-[#102e50]"
+                            : "bg-[#f2af3e]"
+                      }`}
+                      style={{ width: `${shiftProgress}%` }}
+                    />
+                    {/* Grace Period Marker */}
+                    {scheduleMetrics && scheduleMetrics.gracePercentage > 0 && (
+                      <div
+                        className="absolute top-0 bottom-0 w-0.5 bg-[#a8281c]"
+                        style={{ left: `${scheduleMetrics.gracePercentage}%` }}
+                        title={`Batas toleransi masuk: ${cutoffTimeWib} WIB`}
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                    <span>
+                      Masuk: <strong className="text-[#102e50]">{workSchedule.workStartTime} WIB</strong>
+                      {!isWib && localWorkStart ? ` (${localWorkStart} ${effectiveAbbr})` : ""}
+                    </span>
+                    <span>
+                      Pulang: <strong className="text-[#102e50]">{workSchedule.workEndTime} WIB</strong>
+                      {!isWib && localWorkEnd ? ` (${localWorkEnd} ${effectiveAbbr})` : ""}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Recorded Check-In & Check-Out Stamp Row */}
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200/70">
+                <div className="bg-white rounded-lg p-2.5 border border-slate-200/60 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block">
+                      Jam Masuk
+                    </span>
+                    <span className="text-sm font-bold font-mono text-[#102e50]">
+                      {todayAttendance?.checkInAt
+                        ? `${formatAttendanceTime(todayAttendance.checkInAt)} ${effectiveAbbr}`
+                        : "--:--"}
+                    </span>
+                  </div>
+                  <LogIn
+                    className={`w-4 h-4 ${
+                      hasCheckedIn ? "text-emerald-600" : "text-slate-300"
+                    }`}
+                  />
+                </div>
+
+                <div className="bg-white rounded-lg p-2.5 border border-slate-200/60 flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 block">
+                      Jam Pulang
+                    </span>
+                    <span className="text-sm font-bold font-mono text-[#102e50]">
+                      {todayAttendance?.checkOutAt
+                        ? `${formatAttendanceTime(todayAttendance.checkOutAt)} ${effectiveAbbr}`
+                        : "--:--"}
+                    </span>
+                  </div>
+                  <LogOut
+                    className={`w-4 h-4 ${
+                      hasCheckedOut ? "text-[#0874aa]" : "text-slate-300"
+                    }`}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Subtitle & Schedule */}
-          {employeeName && (
-            <p className="text-xs text-[#74777f]">
-              Presensi tercatat atas nama:{" "}
-              <strong className="text-[#102e50] font-semibold">{employeeName}</strong>
-            </p>
-          )}
-
-          {workSchedule && (
-            <div className="inline-flex flex-wrap items-center gap-1.5 text-[11px] text-[#5b6675] mt-0.5 bg-slate-50 p-2 sm:px-3 sm:py-2 rounded-xl border border-slate-200/80">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span>
-                Jadwal kantor:{" "}
-                <strong className="text-[#102e50]">
-                  {workSchedule.workStartTime} - {workSchedule.workEndTime} WIB
-                </strong>
-                {!isWib && localWorkStart && localWorkEnd && (
-                  <span className="text-[#102e50] font-semibold">
-                    {" "}
-                    (setara{" "}
-                    <strong>
-                      {localWorkStart} - {localWorkEnd} {effectiveAbbr}
-                    </strong>{" "}
-                    waktu Anda)
-                  </span>
-                )}{" "}
-                • Batas tepat waktu: <strong className="text-[#102e50]">{cutoffTimeWib} WIB</strong>
-                {!isWib && localCutoffTime && (
-                  <span>
-                    {" "}
-                    ({localCutoffTime} {effectiveAbbr})
-                  </span>
+          {/* Right Column (5 cols): Dedicated Action Control Box */}
+          <div className="lg:col-span-5 flex flex-col justify-center gap-3.5 lg:border-l lg:border-slate-100 lg:pl-8">
+            {/* Feedback Message Alert */}
+            {message && (
+              <div
+                className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                  message.type === "success"
+                    ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
+                    : "bg-[#a8281c]/10 text-[#a8281c] border border-[#a8281c]/20"
+                }`}
+              >
+                {message.type === "success" ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-[#a8281c] shrink-0" />
                 )}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column: Dedicated Action Control Box */}
-        <div className="flex flex-col items-stretch sm:items-end justify-center gap-3 w-full lg:w-auto shrink-0 lg:border-l lg:border-slate-100 lg:pl-6">
-          {/* Feedback Message Alert */}
-          {message && (
-            <div
-              className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 w-full sm:w-auto ${
-                message.type === "success"
-                  ? "bg-emerald-50 text-emerald-900 border border-emerald-200"
-                  : "bg-red-50 text-red-900 border border-red-200"
-              }`}
-            >
-              {message.type === "success" ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              ) : (
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              )}
-              <span>{message.text}</span>
-            </div>
-          )}
-
-          {/* Optional Notes Input */}
-          {showNotesInput && (
-            <div className="w-full sm:w-80 flex flex-col gap-1 animate-in fade-in duration-150">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Catatan aktivitas/lokasi (opsional)..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full pl-3 pr-8 py-2 text-xs rounded-xl border border-[#dee9fc] bg-[#f8f9ff] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50]"
-                />
-                {notes && (
-                  <button
-                    type="button"
-                    onClick={() => setNotes("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
+                <span>{message.text}</span>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Action Buttons Row */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             {!hasCheckedIn ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => setShowNotesInput(!showNotesInput)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                    showNotesInput || notes
-                      ? "bg-[#eff4ff] text-[#102e50] border-[#adc8f2]"
-                      : "bg-slate-50 text-slate-600 hover:text-[#102e50] border-slate-200 hover:bg-slate-100"
-                  }`}
-                  title="Tambah catatan lokasi / aktivitas"
-                >
-                  <FileText className="w-3.5 h-3.5 text-slate-500" />
-                  <span>{showNotesInput ? "Batal" : notes ? "Ada Catatan" : "+ Catatan"}</span>
-                </button>
+                {/* Work Mode Radio Selector (WFO vs WFH) */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
+                    Mode Kehadiran Hari Ini
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200/70">
+                    <button
+                      type="button"
+                      onClick={() => setWorkMode("WFO")}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        workMode === "WFO"
+                          ? "bg-white text-[#102e50] shadow-xs border border-slate-200/60"
+                          : "text-slate-600 hover:text-[#102e50]"
+                      }`}
+                    >
+                      <Building2
+                        className={`w-3.5 h-3.5 ${
+                          workMode === "WFO" ? "text-[#102e50]" : "text-slate-400"
+                        }`}
+                      />
+                      <span>WFO (Kantor)</span>
+                    </button>
 
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={handleCheckIn}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 whitespace-nowrap min-w-[210px]"
-                >
-                  <LogIn className="w-4 h-4 text-[#f2af3e] shrink-0" />
-                  <span>{isPending ? "Memproses..." : "Masuk Kerja (Check-In)"}</span>
-                </button>
+                    <button
+                      type="button"
+                      onClick={() => setWorkMode("WFH")}
+                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        workMode === "WFH"
+                          ? "bg-white text-[#102e50] shadow-xs border border-slate-200/60"
+                          : "text-slate-600 hover:text-[#102e50]"
+                      }`}
+                    >
+                      <Home
+                        className={`w-3.5 h-3.5 ${
+                          workMode === "WFH" ? "text-[#0874aa]" : "text-slate-400"
+                        }`}
+                      />
+                      <span>WFH / Remote</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Optional Notes Input */}
+                {showNotesInput && (
+                  <div className="relative animate-in fade-in duration-150">
+                    <input
+                      type="text"
+                      placeholder="Catatan agenda atau lokasi tugas (opsional)..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full pl-3 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50]"
+                    />
+                    {notes && (
+                      <button
+                        type="button"
+                        onClick={() => setNotes("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Check-In Buttons */}
+                <div className="flex items-center gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowNotesInput(!showNotesInput)}
+                    className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                      showNotesInput || notes
+                        ? "bg-[#102e50]/5 text-[#102e50] border-[#102e50]/30"
+                        : "bg-white text-slate-600 hover:text-[#102e50] border-slate-200 hover:bg-slate-50"
+                    }`}
+                    title="Tambah catatan lokasi atau aktivitas"
+                  >
+                    <FileText className="w-4 h-4 text-slate-500" />
+                    <span>{showNotesInput ? "Tutup" : notes ? "Catatan Terisi" : "+ Catatan"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={handleCheckIn}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                  >
+                    <LogIn className="w-4 h-4 text-[#f2af3e] shrink-0" />
+                    <span>{isPending ? "Memproses..." : "Masuk Kerja (Check-In)"}</span>
+                  </button>
+                </div>
               </>
             ) : !hasCheckedOut ? (
               <>
-                <button
-                  type="button"
-                  onClick={() => setShowNotesInput(!showNotesInput)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                    showNotesInput || notes
-                      ? "bg-[#eff4ff] text-[#102e50] border-[#adc8f2]"
-                      : "bg-slate-50 text-slate-600 hover:text-[#102e50] border-slate-200 hover:bg-slate-100"
-                  }`}
-                  title="Tambah catatan aktivitas pulang"
-                >
-                  <FileText className="w-3.5 h-3.5 text-slate-500" />
-                  <span>
-                    {showNotesInput ? "Batal" : notes ? "Ada Catatan" : "+ Catatan Pulang"}
-                  </span>
-                </button>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-600 leading-relaxed">
+                  Anda tercatat hadir pukul{" "}
+                  <strong className="text-[#102e50]">
+                    {formatAttendanceTime(todayAttendance?.checkInAt)} {effectiveAbbr}
+                  </strong>
+                  . Jangan lupa melakukan <strong>Check-Out</strong> setelah menyelesaikan
+                  aktivitas kerja hari ini.
+                </div>
 
-                <button
-                  type="button"
-                  disabled={isPending}
-                  onClick={handleCheckOut}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#f2af3e] text-[#102e50] hover:bg-[#e09d2c] text-sm font-bold shadow-sm hover:shadow-md transition-all cursor-pointer active:scale-[0.98] disabled:opacity-50 whitespace-nowrap min-w-[210px]"
-                >
-                  <LogOut className="w-4 h-4 text-[#102e50]" />
-                  <span>{isPending ? "Memproses..." : "Pulang Kerja (Check-Out)"}</span>
-                </button>
+                {showNotesInput && (
+                  <div className="relative animate-in fade-in duration-150">
+                    <input
+                      type="text"
+                      placeholder="Catatan penyelesaian tugas hari ini (opsional)..."
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      className="w-full pl-3 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50]"
+                    />
+                    {notes && (
+                      <button
+                        type="button"
+                        onClick={() => setNotes("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowNotesInput(!showNotesInput)}
+                    className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                      showNotesInput || notes
+                        ? "bg-[#102e50]/5 text-[#102e50] border-[#102e50]/30"
+                        : "bg-white text-slate-600 hover:text-[#102e50] border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    <FileText className="w-4 h-4 text-slate-500" />
+                    <span>{showNotesInput ? "Tutup" : notes ? "Catatan Terisi" : "+ Catatan"}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={handleCheckOut}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                  >
+                    <LogOut className="w-4 h-4 text-[#102e50] shrink-0" />
+                    <span>{isPending ? "Memproses..." : "Pulang Kerja (Check-Out)"}</span>
+                  </button>
+                </div>
               </>
             ) : (
-              <div className="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Presensi hari ini telah lengkap. Terima kasih atas dedikasi Anda!</span>
+              <div className="p-4 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-[#102e50] space-y-1.5">
+                <div className="flex items-center gap-2 font-bold text-emerald-700">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  <span>Presensi Hari Ini Lengkap</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed">
+                  Terima kasih atas dedikasi Anda hari ini. Jam kerja terekam dari{" "}
+                  <strong className="text-[#102e50]">
+                    {formatAttendanceTime(todayAttendance?.checkInAt)}
+                  </strong>{" "}
+                  hingga{" "}
+                  <strong className="text-[#102e50]">
+                    {formatAttendanceTime(todayAttendance?.checkOutAt)} {effectiveAbbr}
+                  </strong>
+                  .
+                </p>
               </div>
             )}
           </div>
