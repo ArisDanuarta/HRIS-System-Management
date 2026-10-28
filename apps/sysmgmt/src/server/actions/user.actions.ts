@@ -326,6 +326,12 @@ export async function resetUserPasswordAction(input: { userId: string }) {
     const hashedPassword = await hashPassword(temporaryPassword);
 
     await prisma.$transaction(async (tx) => {
+      // Tandai akun pengguna wajib mengganti kata sandi pada login berikutnya
+      await tx.user.update({
+        where: { id: targetUser.id },
+        data: { mustChangePassword: true },
+      });
+
       // Upsert password di tabel core.accounts
       const existingAcc = await tx.account.findFirst({
         where: { userId: targetUser.id, providerId: "credential" },

@@ -79,6 +79,7 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
             name: data.fullName.trim(),
             isActive: true,
             emailVerified: true,
+            mustChangePassword: true,
           },
         });
 
@@ -107,7 +108,12 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
           });
         }
       } else {
-        // Jika user sudah ada, sinkronkan kredensial password
+        // Jika user sudah ada, sinkronkan kredensial password dan tandai wajib ganti password
+        await tx.user.update({
+          where: { id: existingUser.id },
+          data: { mustChangePassword: true },
+        });
+
         const existingAcc = await tx.account.findFirst({
           where: { userId: existingUser.id, providerId: "credential" },
         });

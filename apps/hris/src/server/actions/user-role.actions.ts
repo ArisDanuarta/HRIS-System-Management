@@ -282,7 +282,13 @@ export async function createEmployeeLoginAccountAction(input: {
             name: employee.fullName,
             isActive: true,
             emailVerified: true,
+            mustChangePassword: true,
           },
+        });
+      } else {
+        await tx.user.update({
+          where: { id: user.id },
+          data: { mustChangePassword: true },
         });
       }
 
