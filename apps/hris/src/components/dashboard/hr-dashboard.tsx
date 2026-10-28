@@ -19,6 +19,7 @@ import {
 import { HrDashboardData } from "@/server/queries/dashboard/hr-dashboard";
 import type { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
+import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import {
   DashboardHeader,
   Panel,
@@ -36,6 +37,7 @@ interface HrDashboardProps {
   personalAttendance?: {
     todayAttendance: StaffDashboardData["todayAttendance"];
     workSchedule: StaffDashboardData["workSchedule"];
+    leaveBalances?: StaffDashboardData["leaveBalances"];
     employeeName: string;
   };
 }
@@ -128,6 +130,11 @@ export function HrDashboard({
         description="Ringkasan kepegawaian, presensi, dan hal yang perlu ditindak hari ini."
         actions={
           <>
+            {personalAttendance && (
+              <a href="#presensi-saya" className={btnSecondary}>
+                <span>Presensi saya</span>
+              </a>
+            )}
             <Link href="/karyawan/impor" className={btnSecondary}>
               <Upload className="h-4 w-4" aria-hidden="true" />
               <span>Impor Excel</span>
@@ -139,15 +146,6 @@ export function HrDashboard({
           </>
         }
       />
-
-      {/* Presensi pribadi HR (check-in / check-out harian) */}
-      {personalAttendance && (
-        <TodayAttendanceCard
-          todayAttendance={personalAttendance.todayAttendance}
-          employeeName={personalAttendance.employeeName}
-          workSchedule={personalAttendance.workSchedule}
-        />
-      )}
 
       <StatStrip cols={4}>
         <Stat
