@@ -27,15 +27,21 @@ export function can(ctx: AuthContext, permission: string, resource?: Resource): 
   // Super admin check shortcut or wildcard
   if (ctx.roles.includes("super_admin")) return true;
 
-  // 1. Check ":all" scope
-  if (ctx.permissions.has(`${permission}:all`)) return true;
+  // Exact match check (if full permission string with scope was passed directly)
+  if (ctx.permissions.has(permission)) return true;
+
+  // Resolve base permission (strip scope if passed e.g. "hris.attendance.read:own")
+  const basePermission = permission.replace(/:(all|team|own)$/, "");
+
+  // 1. Check ":all" scope (higher privilege covers own/team)
+  if (ctx.permissions.has(`${basePermission}:all`)) return true;
 
   // 2. Check ":team" scope (requester is manager of resource)
   if (
     resource?.managerEmployeeId &&
     ctx.employeeId &&
     ctx.employeeId === resource.managerEmployeeId &&
-    ctx.permissions.has(`${permission}:team`)
+    ctx.permissions.has(`${basePermission}:team`)
   ) {
     return true;
   }
@@ -45,13 +51,10 @@ export function can(ctx: AuthContext, permission: string, resource?: Resource): 
     resource?.ownerEmployeeId &&
     ctx.employeeId &&
     ctx.employeeId === resource.ownerEmployeeId &&
-    ctx.permissions.has(`${permission}:own`)
+    ctx.permissions.has(`${basePermission}:own`)
   ) {
     return true;
   }
-
-  // Exact match check (if full permission string with scope was passed directly)
-  if (ctx.permissions.has(permission)) return true;
 
   return false;
 }

@@ -72,6 +72,7 @@ export default async function DashboardPage() {
             ? {
                 todayAttendance: staffData.todayAttendance,
                 workSchedule: staffData.workSchedule,
+                leaveBalances: staffData.leaveBalances,
                 employeeName,
               }
             : undefined

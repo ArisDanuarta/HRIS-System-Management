@@ -87,7 +87,7 @@ export interface StaffDashboardData {
 
 export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboardData> {
   // Layer 2 server authorization check
-  assertCan(ctx, "hris.attendance.read:own", { ownerEmployeeId: ctx.employeeId });
+  assertCan(ctx, "hris.attendance.read", { ownerEmployeeId: ctx.employeeId });
 
   if (!ctx.employeeId) {
     throw new Error("Profil karyawan tidak ditemukan untuk akun ini.");
