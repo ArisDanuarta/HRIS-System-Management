@@ -116,6 +116,7 @@ export async function getUserProfile(userId: string) {
           fullName: true,
           nickname: true,
           workEmail: true,
+          currentDepartmentId: true,
           currentPosition: {
             select: { title: true },
           },
@@ -143,6 +144,7 @@ export async function getUserProfile(userId: string) {
           nickname: true,
           workEmail: true,
           userId: true,
+          currentDepartmentId: true,
           currentPosition: {
             select: { title: true },
           },
@@ -167,6 +169,7 @@ export async function getUserProfile(userId: string) {
             fullName: matchedEmp.fullName,
             nickname: matchedEmp.nickname,
             workEmail: matchedEmp.workEmail,
+            currentDepartmentId: matchedEmp.currentDepartmentId,
             currentPosition: matchedEmp.currentPosition,
             currentDepartment: matchedEmp.currentDepartment,
           },
