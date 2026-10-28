@@ -2,6 +2,30 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Core] Integrasi Card Presensi & Hak Cuti Pribadi pada Dashboard HR — 2026-10-28
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Sebelumnya, staf yang memiliki peran Admin HR (`admin_hr`) tidak melihat kartu presensi pribadi untuk check-in/check-out harian di Dashboard HR.
+  - Saat `page.tsx` mencoba memuat `getStaffDashboard(ctx)` untuk akun HR, kueri melempar `ForbiddenError` karena pemeriksaan permission memanggil `assertCan(ctx, "hris.attendance.read:own")` secara kaku tanpa menoleransi pemegang hak akses `:all` milik Admin HR.
+  - Tampilan dashboard HR belum memiliki section presensi & cuti pribadi di bagian paling bawah seperti halnya pada Dashboard Manajer.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Resolusi RBAC Hierarkis (`packages/rbac/src/can.ts`):**
+     - Memperbaiki helper `can()` agar mengekstrak `basePermission = permission.replace(/:(all|team|own)$/, "")`.
+     - Memastikan bahwa pengguna dengan permission `:all` (seperti Admin HR) otomatis mewarisi hak akses `:own` dan `:team` saat pemanggil menyertakan scoped permission string.
+     - Merapikan pemanggilan permission di [`staff-dashboard.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/dashboard/staff-dashboard.ts) menjadi base permission `assertCan(ctx, "hris.attendance.read", ...)`.
+  2. **Pengambilan Data di Dispatcher ([`apps/hris/src/app/(app)/dashboard/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/dashboard/page.tsx)):**
+     - Memuat data presensi dan kuota cuti staf secara paralel lewat `getStaffDashboard(ctx)` jika akun memiliki `ctx.employeeId`.
+     - Meneruskan `personalAttendance` (mencakup `todayAttendance`, `workSchedule`, `leaveBalances`, dan `employeeName`) ke komponen `<HrDashboard />`.
+  3. **Antarmuka Dashboard HR ([`apps/hris/src/components/dashboard/hr-dashboard.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/dashboard/hr-dashboard.tsx)):**
+     - Menambahkan tombol pintas cepat `"Presensi saya"` (`href="#presensi-saya"`) di header tindakan cepat dashboard HR.
+     - Menambahkan section **"Presensi & hak cuti pribadi"** di bagian paling bawah dashboard yang merender `<TodayAttendanceCard />` dan `<LeaveBalanceCards />`.
+     - Proteksi fallback: jika akun adalah Super Admin teknis non-karyawan (`ctx.employeeId === null`), section pribadi diabaikan secara anggun tanpa menyebabkan error.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm lint`: ✅ Lolos 100% (0 error)
+  - `pnpm test`: ✅ Lolos 100% (35 test files, 249 unit tests lulus)
+
 ## [System Management] Audit Komprehensif & Perbaikan Bug Terputus / Disconnected Pages — 2026-10-26
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

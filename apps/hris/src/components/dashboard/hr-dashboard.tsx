@@ -440,6 +440,27 @@ export function HrDashboard({
           </Panel>
         </div>
       </div>
+
+      {/* Bagian pribadi HR (Presensi & hak cuti pribadi) */}
+      {personalAttendance && (
+        <section
+          id="presensi-saya"
+          className="flex scroll-mt-20 flex-col gap-4 border-t border-[#dee9fc] pt-6"
+        >
+          <h2 className="flex items-center gap-2 font-heading text-base font-bold text-[#102e50]">
+            <ShieldCheck className="h-4 w-4 text-[#f2af3e]" aria-hidden="true" />
+            Presensi & hak cuti pribadi
+          </h2>
+          <TodayAttendanceCard
+            todayAttendance={personalAttendance.todayAttendance}
+            employeeName={personalAttendance.employeeName}
+            workSchedule={personalAttendance.workSchedule}
+          />
+          {personalAttendance.leaveBalances && personalAttendance.leaveBalances.length > 0 && (
+            <LeaveBalanceCards balances={personalAttendance.leaveBalances} />
+          )}
+        </section>
+      )}
     </div>
   );
 }
