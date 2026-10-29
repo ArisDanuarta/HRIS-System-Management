@@ -2,6 +2,33 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Keamanan & Aksesibilitas] Perbaikan Guard Rute Notifikasi Broadcast & Audit Hak Akses Antar Role — 2026-10-29
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Menindaklanjuti temuan bahwa staf biasa saat mengeklik notifikasi broadcast pengumuman diarahkan ke konsol pengirim internal (`/komunikasi/riwayat?id=...`). Staf seharusnya hanya menjadi penerima pesan dan melihat riwayat di `/notifikasi`.
+  - Melakukan audit menyeluruh terhadap rute-rute dan tautan notifikasi lain untuk mendeteksi potensi kebocoran akses atau salah arah peran (*role mismatch*).
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Restriksi Konsol Riwayat Broadcast (`apps/hris/src/app/(app)/komunikasi/riwayat/page.tsx` & `komunikasi/page.tsx`):**
+     - Membatasi akses konsol pengirim pengumuman hanya untuk `isSuperAdmin`, `isAdminHr`, atau `isManager` (pengirim berwenang).
+     - Staf biasa yang mengakses URL tersebut otomatis dialihkan (*redirect*) ke `/notifikasi`.
+     - Tautan notifikasi broadcast in-app (`broadcast-email.service.ts`) diperbarui mengarah ke `/notifikasi`.
+     - Komponen notifikasi (`notification-bell.tsx` & `notification-center-view.tsx`) dibersihkan dari tautan yang mengarah ke riwayat pengirim.
+     - Melakukan sinkronisasi data notifikasi lama di basis data PostgreSQL.
+  2. **Audit & Perbaikan Tautan Notifikasi Slip Gaji (`payroll.actions.ts`):**
+     - Memperbaiki tautan notifikasi publikasi slip gaji pegawai yang sebelumnya mengarah ke `/payroll` (konsol manajemen payroll HR yang tertutup bagi staf) menjadi `/slip-gaji` (menu mandiri staf untuk mengunduh slip gaji pribadi).
+  3. **Penguatan Guard Direktori Karyawan (`apps/hris/src/app/(app)/karyawan/page.tsx`):**
+     - Menambahkan proteksi tingkat Server Component pada rute `/karyawan` agar staf biasa yang mengetikkan URL langsung dialihkan ke `/dashboard` (hanya Super Admin, Admin HR, dan Manager yang diizinkan).
+  4. **Penguatan Guard Struktur & Formasi Organisasi (`apps/hris/src/app/(app)/karyawan/organisasi/page.tsx`):**
+     - Menambahkan proteksi akses rute struktur organisasi master hanya untuk `isHrOrAdmin` (staf/manajer diarahkan ke `/dashboard`).
+  5. **Penguatan Guard Portal System Management (`apps/sysmgmt/src/app/(app)/layout.tsx`):**
+     - Menambahkan guard portal pada layout System Management: pengguna selain `super_admin` dan `admin_it` (seperti akun staf) otomatis dicegat dan disajikan tampilan "Hak Akses Terbatas" dengan tautan kembali ke Portal HRIS.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings di seluruh monorepo)
+  - `pnpm test`: ✅ Lolos 100% (37 test files, 261 unit tests lulus)
+  - `pnpm build`: ✅ Lolos 100% (Production build Next.js Turbopack HRIS & Sysmgmt sukses)
+
 ## [Bugfix & Reliability] Perbaikan Turbopack Font Rubik & Penguatan Navigasi Ganti Sandi Wajib — 2026-10-29
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

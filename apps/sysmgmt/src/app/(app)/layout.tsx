@@ -57,6 +57,33 @@ export default async function SysmgmtProtectedLayout({ children }: { children: R
     roleKey: roleKeys[0] || "staff",
   };
 
+  // Proteksi Akses Portal: Hanya Super Admin dan Admin IT yang memiliki wewenang di System Management
+  if (!isSuperAdmin && !isAdminIt) {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
+        <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} moduleFlags={moduleFlags} />
+        <main className="flex-1 max-w-lg w-full mx-auto px-4 py-16 flex items-center justify-center">
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-12 text-center shadow-xs w-full">
+            <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-200">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 mb-2">Hak Akses Terbatas</h2>
+            <p className="text-xs text-slate-500 leading-relaxed mb-6">
+              Portal System Management hanya dapat diakses oleh Administrator IT atau Super
+              Administrator PSPK. Akun Anda saat ini tidak memiliki wewenang administratif.
+            </p>
+            <a
+              href={process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-[#102E50] text-white text-xs font-semibold rounded-lg hover:bg-[#1a4473] transition-colors"
+            >
+              Kembali ke Portal HRIS
+            </a>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans overflow-x-hidden">
       <SysmgmtNavbar user={userData} canAccessHris={canAccessHris} moduleFlags={moduleFlags} />
