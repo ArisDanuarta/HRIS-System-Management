@@ -2,14 +2,9 @@
 
 import React, { useState } from "react";
 import {
-  Calendar,
-  Users,
   X,
-  ArrowRight,
   Filter,
-  CheckCircle2,
   CalendarRange,
-  Info,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
 import type { WorkCalendarLeave, WorkCalendarHoliday } from "@/server/queries/calendar.queries";
@@ -36,8 +31,6 @@ export function TeamLeaveCalendarView({
     holiday: WorkCalendarHoliday | null;
     leaves: WorkCalendarLeave[];
   } | null>(null);
-
-  const [selectedLeaveDetail, setSelectedLeaveDetail] = useState<WorkCalendarLeave | null>(null);
 
   const MONTHS = [
     "Januari",

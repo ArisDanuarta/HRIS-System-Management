@@ -6,12 +6,7 @@ import {
   Users,
   Search,
   Filter,
-  Info,
   X,
-  Clock,
-  Building,
-  HeartPulse,
-  Sparkles,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
 import type { WorkCalendarLeave, WorkCalendarHoliday } from "@/server/queries/calendar.queries";
