@@ -55,9 +55,9 @@ export default async function AjukanCutiPage() {
 
   const currentYear = new Date().getFullYear();
 
-  // Fetch real leave types, current balances, and holiday dates for working day calculations
+  // Fetch real leave types (filtered by gender), current balances, and holiday dates for working day calculations
   const [leaveTypes, balances, holidays] = await Promise.all([
-    getLeaveTypes(),
+    getLeaveTypes(employee.gender),
     getEmployeeLeaveBalances(employee.id, currentYear),
     getHolidays(currentYear),
   ]);

@@ -34,13 +34,35 @@ export const createHolidaySchema = z.object({
   isCollectiveLeave: z.boolean().default(false),
 });
 
+export const createLeaveTypeSchema = z.object({
+  name: z.string().min(2, { message: "Nama jenis cuti minimal 2 karakter" }).max(100),
+  defaultQuotaDays: z
+    .number()
+    .int()
+    .min(0, { message: "Kuota default tidak boleh negatif" })
+    .max(365, { message: "Kuota maksimal 365 hari" }),
+  isPaid: z.boolean().default(true),
+  requiresAttachment: z.boolean().default(false),
+  applicableGender: z.enum(["MALE", "FEMALE"]).nullable().optional(),
+  isActive: z.boolean().default(true),
+});
+
 export const updateLeaveTypeSchema = z.object({
   id: z.string().min(1),
-  name: z.string().min(2, { message: "Nama jenis cuti minimal 2 karakter" }),
-  defaultQuotaDays: z.number().int().min(0, { message: "Kuota default tidak boleh negatif" }),
+  name: z.string().min(2, { message: "Nama jenis cuti minimal 2 karakter" }).max(100),
+  defaultQuotaDays: z
+    .number()
+    .int()
+    .min(0, { message: "Kuota default tidak boleh negatif" })
+    .max(365, { message: "Kuota maksimal 365 hari" }),
   isPaid: z.boolean(),
   requiresAttachment: z.boolean(),
+  applicableGender: z.enum(["MALE", "FEMALE"]).nullable().optional(),
   isActive: z.boolean(),
+});
+
+export const deleteLeaveTypeSchema = z.object({
+  id: z.string().min(1, { message: "ID jenis cuti tidak valid" }),
 });
 
 export const overrideLeaveDecisionSchema = z.object({
@@ -60,4 +82,6 @@ export type RejectLeaveRequestInput = z.infer<typeof rejectLeaveRequestSchema>;
 export type CancelLeaveRequestInput = z.infer<typeof cancelLeaveRequestSchema>;
 export type OverrideLeaveDecisionInput = z.infer<typeof overrideLeaveDecisionSchema>;
 export type CreateHolidayInput = z.infer<typeof createHolidaySchema>;
+export type CreateLeaveTypeInput = z.infer<typeof createLeaveTypeSchema>;
 export type UpdateLeaveTypeInput = z.infer<typeof updateLeaveTypeSchema>;
+export type DeleteLeaveTypeInput = z.infer<typeof deleteLeaveTypeSchema>;

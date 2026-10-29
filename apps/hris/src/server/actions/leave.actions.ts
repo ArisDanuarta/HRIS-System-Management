@@ -14,14 +14,18 @@ import {
   rejectLeaveRequestSchema,
   cancelLeaveRequestSchema,
   createHolidaySchema,
+  createLeaveTypeSchema,
   updateLeaveTypeSchema,
+  deleteLeaveTypeSchema,
   overrideLeaveDecisionSchema,
   CreateLeaveRequestInput,
   ApproveLeaveRequestInput,
   RejectLeaveRequestInput,
   CancelLeaveRequestInput,
   CreateHolidayInput,
+  CreateLeaveTypeInput,
   UpdateLeaveTypeInput,
+  DeleteLeaveTypeInput,
   OverrideLeaveDecisionInput,
 } from "../schemas/leave.schema";
 import {

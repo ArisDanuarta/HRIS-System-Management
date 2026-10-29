@@ -6,9 +6,21 @@ import { prisma, LeaveStatus } from "@pspk/db";
 export async function getEmployeeLeaveBalances(employeeId: string, year?: number) {
   const currentYear = year || new Date().getFullYear();
 
+  const employee = await prisma.employee.findUnique({
+    where: { id: employeeId },
+    select: { gender: true },
+  });
+
   const [activeLeaveTypes, existingBalances] = await Promise.all([
     prisma.leaveType.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        ...(employee?.gender
+          ? {
+              OR: [{ applicableGender: null }, { applicableGender: employee.gender }],
+            }
+          : {}),
+      },
       orderBy: { name: "asc" },
     }),
     prisma.leaveBalance.findMany({
@@ -239,8 +251,19 @@ export async function getLeaveCalendarEvents(year: number, month: number) {
 
 /**
  * Retrieves all leave types configured in the system.
+ * If gender is provided, filters to leave types applicable to that gender (or all).
  */
-export async function getLeaveTypes() {
+export async function getLeaveTypes(gender?: "MALE" | "FEMALE" | null) {
+  if (gender) {
+    return prisma.leaveType.findMany({
+      where: {
+        isActive: true,
+        OR: [{ applicableGender: null }, { applicableGender: gender }],
+      },
+      orderBy: { name: "asc" },
+    });
+  }
+
   return prisma.leaveType.findMany({
     orderBy: { name: "asc" },
   });

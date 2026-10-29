@@ -78,6 +78,22 @@ export async function submitLeaveRequest(
     throw new Error("Jenis cuti yang dipilih tidak aktif atau tidak ditemukan.");
   }
 
+  // Validasi kesesuaian kriteria jenis kelamin pegawai
+  if (leaveType.applicableGender) {
+    const employee = await prisma.employee.findUnique({
+      where: { id: employeeId },
+      select: { gender: true },
+    });
+
+    if (employee?.gender && employee.gender !== leaveType.applicableGender) {
+      const targetText =
+        leaveType.applicableGender === "FEMALE" ? "perempuan (wanita)" : "laki-laki (pria)";
+      throw new Error(
+        `Jenis cuti '${leaveType.name}' khusus diperuntukkan bagi pegawai ${targetText}.`,
+      );
+    }
+  }
+
   if (leaveType.requiresAttachment && !input.attachmentKey) {
     throw new Error(
       `Jenis cuti ${leaveType.name} mewajibkan pengunggahan berkas lampiran pendukung.`,
