@@ -2,6 +2,28 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Bugfix & Reliability] Perbaikan Turbopack Font Rubik & Penguatan Navigasi Ganti Sandi Wajib — 2026-10-29
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Menangani error build Turbopack (`next/font/google queries have exactly one entry`) saat menjalankan `pnpm redev` / `next build` yang dipicu oleh dynamic subset URL Google Fonts pada font `Rubik`.
+  - Memperbaiki transisi navigasi pasca login pada `apps/hris/src/app/login/login-client.tsx` dan `apps/sysmgmt/src/app/login/login-client.tsx` agar langsung mendeteksi status `mustChangePassword` dari respon autentikasi dan melakukan navigasi langsung (*hard navigation*) tanpa hambatan router cache.
+  - Memperbarui status akun uji coba `test@pspk.id` ke `mustChangePassword: true` agar pengujian alur pergantian kata sandi pertama kali dapat diverifikasi langsung.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Optimalisasi Font Rubik (`layout.tsx` di HRIS & Sysmgmt):**
+     - Mengubah pemanggilan `Rubik` dari pembebanan bobot statis (`weight: ["300", ...]`) menjadi *variable font* bawaan dengan `display: "swap"`.
+     - Mengeliminasi bug import mapping Turbopack sehingga `next build` berhasil 100% di kedua aplikasi.
+  2. **Penguatan Navigasi Klien Login (`login-client.tsx`):**
+     - Membaca properti `res.data.user.mustChangePassword` seketika setelah `signIn.email` sukses.
+     - Mengarahkan langsung ke `/ganti-password-wajib` jika akun memerlukan ganti sandi awal, atau ke `/` untuk alur normal.
+  3. **Aktivasi Data Uji:**
+     - Mengaktifkan status `mustChangePassword = true` pada user `test@pspk.id` di basis data PostgreSQL.
+- **Verifikasi Kualitas:**
+  - `pnpm clean && pnpm build`: ✅ Lolos 100% (Turborepo & Next.js Turbopack build HRIS & Sysmgmt sukses)
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket sukses, 0 error)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings di seluruh monorepo)
+  - `pnpm test`: ✅ Lolos 100% (37 test files, 261 unit tests lulus)
+
 ## [Keamanan & Auth] Notifikasi Email Konfirmasi Perubahan Kata Sandi ke Email Pribadi (Poin 4) — 2026-10-28
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

@@ -74,7 +74,9 @@ export function NotificationBell() {
     setIsOpen(false);
 
     if (link) {
-      router.push(link);
+      // Sanitasi keamanan: Tautan riwayat broadcast untuk penerima dialihkan ke pusat notifikasi
+      const targetLink = link.startsWith("/komunikasi/riwayat") ? "/notifikasi" : link;
+      router.push(targetLink);
     }
   };
 

@@ -47,6 +47,11 @@ export default async function KaryawanPage({ searchParams }: KaryawanPageProps) 
   const isSuperOrHr = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
   const isManager = roleKeys.includes("manager");
 
+  // Proteksi Akses: Staf biasa hanya memiliki menu mandiri (/profil) dan dilarang mengakses direktori pegawai
+  if (!isSuperOrHr && !isManager) {
+    redirect("/dashboard");
+  }
+
   const resolvedParams = await searchParams;
   // Mode tim aktif jika pengguna mengakses lewat ?view=team atau jika memiliki role manager non-HR
   const isTeamView = resolvedParams.view === "team" || (isManager && !isSuperOrHr);

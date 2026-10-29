@@ -15,10 +15,13 @@ export default async function KomunikasiIndexPage() {
   const userProfile = await getUserProfile(session.user.id);
   const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
   const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
+  const isManager = roleKeys.includes("manager");
 
   if (isHrOrAdmin) {
     redirect("/komunikasi/baru");
-  } else {
+  } else if (isManager) {
     redirect("/komunikasi/riwayat");
+  } else {
+    redirect("/forbidden");
   }
 }

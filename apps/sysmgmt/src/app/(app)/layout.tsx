@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma, getModuleFlags } from "@pspk/db";
 import { SysmgmtNavbar } from "@/components/shell/sysmgmt-navbar";
+import { ShieldAlert } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 

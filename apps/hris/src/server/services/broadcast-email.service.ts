@@ -648,7 +648,7 @@ Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).joi
           message: `${resolvedSender.displayName}: "${snippet}"`,
           type: "INFO",
           category: "SYSTEM",
-          link: `/komunikasi/riwayat?id=${broadcast.id}`,
+          link: "/notifikasi",
         })),
       });
     }

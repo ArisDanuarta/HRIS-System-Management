@@ -627,7 +627,9 @@ function NotificationGroupSection({
 
                   {/* Action Link & Mark Read */}
                   <div className="flex items-center gap-3 pt-2">
-                    {item.link && (
+                    {item.link &&
+                      item.link !== "/notifikasi" &&
+                      !item.link.startsWith("/komunikasi/riwayat") && (
                       <Link
                         href={item.link}
                         onClick={() => {

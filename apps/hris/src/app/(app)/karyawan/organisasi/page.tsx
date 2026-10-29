@@ -1,8 +1,10 @@
 import React from "react";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { ArrowLeft, Network } from "lucide-react";
 import { redirect } from "next/navigation";
 import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
+import { getSession, getUserProfile } from "@pspk/auth";
 import { getOrgStructureDetail } from "@/server/queries/employee.queries";
 import { getEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { OrganizationPageView } from "@/components/karyawan/organization-page-view";
@@ -19,6 +21,21 @@ interface OrganisasiPageProps {
 }
 
 export default async function OrganisasiPage({ searchParams }: OrganisasiPageProps) {
+  const reqHeaders = await headers();
+  const session = await getSession(reqHeaders);
+  if (!session || !session.user) {
+    redirect("/login");
+  }
+
+  const userProfile = await getUserProfile(session.user.id);
+  const roleKeys = userProfile?.roles.map((r) => r.role.key) || [];
+  const isHrOrAdmin = roleKeys.includes("super_admin") || roleKeys.includes("admin_hr");
+
+  // Proteksi Akses: Hanya Admin HR dan Super Admin yang berwenang mengelola master formasi divisi
+  if (!isHrOrAdmin) {
+    redirect("/dashboard");
+  }
+
   // Route Guard: Pastikan modul Struktur Organisasi aktif
   const moduleFlags = await getModuleFlags(prisma);
   if (!isModuleActive(moduleFlags, "organization_structure")) {

@@ -46,35 +46,15 @@ export default async function KomunikasiRiwayatPage({
 
   const canSendAll = isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
   const canSendTeam = isManager || can(authCtx, "hris.broadcast.send:team");
-  const canRead =
-    isSuperAdmin ||
-    isAdminHr ||
-    isManager ||
-    can(authCtx, "hris.broadcast.read") ||
+  const isSenderOrManager =
+    canSendAll ||
+    canSendTeam ||
     can(authCtx, "hris.broadcast.read:all") ||
-    can(authCtx, "hris.broadcast.read:team") ||
-    can(authCtx, "hris.broadcast.read:own");
+    can(authCtx, "hris.broadcast.read:team");
 
-  // Jika tidak memiliki izin membaca atau mengirim broadcast
-  if (!canRead && !canSendAll && !canSendTeam) {
-    return (
-      <div className="p-8 max-w-4xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center space-y-3">
-          <h2 className="text-base font-bold text-red-900">Akses Ditolak</h2>
-          <p className="text-xs text-red-700">
-            Anda tidak memiliki hak akses untuk melihat arsip riwayat pengumuman email.
-          </p>
-          <div className="pt-2">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center px-4 py-2 bg-[#102E50] text-white rounded-xl text-xs font-semibold hover:bg-[#0c233d] transition-colors"
-            >
-              Kembali ke Beranda
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+  // Proteksi Akses: Pengguna staff biasa (penerima pesan) dilarang mengakses konsol riwayat pengiriman
+  if (!isSenderOrManager) {
+    redirect("/notifikasi");
   }
 
   const resolvedParams = await searchParams;

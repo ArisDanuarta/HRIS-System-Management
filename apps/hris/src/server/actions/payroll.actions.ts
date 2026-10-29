@@ -285,7 +285,7 @@ export async function publishPayrollAction(input: { periodId: string }) {
             message: "Slip gaji resmi Anda telah diterbitkan dan dapat dilihat di portal.",
             type: "SUCCESS",
             category: "PAYROLL",
-            link: "/payroll",
+            link: "/slip-gaji",
             isRead: false,
           })),
         });
