@@ -373,43 +373,43 @@ export default async function EmployeeDetailPage({
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex items-center gap-1 sm:gap-1.5 border-b border-slate-200 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <Link
           href={`/karyawan/${employee.id}?tab=biodata`}
-          className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "biodata"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
           <User className="w-4 h-4" />
-          <span>Biodata & Kontak</span>
+          <span>Biodata</span>
         </Link>
 
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=sensitif`}
-            className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
               effectiveTab === "sensitif"
                 ? "border-[#102E50] text-[#102E50]"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <Shield className="w-4 h-4 text-amber-600" />
-            <span>Data Sensitif & Bank</span>
+            <span>Data Sensitif</span>
           </Link>
         )}
 
         <Link
           href={`/karyawan/${employee.id}?tab=kontrak`}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "kontrak"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Kontrak Kerja</span>
+          <span>Kontrak</span>
           <span
             className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
               effectiveTab === "kontrak"
@@ -423,7 +423,7 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=jabatan`}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "jabatan"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -446,14 +446,14 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=dokumen`}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "dokumen"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
           <FolderArchive className="w-4 h-4 text-[#102E50]" />
-          <span>Dokumen & Berkas</span>
+          <span>Dokumen</span>
           <span
             className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
               effectiveTab === "dokumen"
@@ -468,14 +468,14 @@ export default async function EmployeeDetailPage({
         {isAssetAssignmentActive && (
           <Link
             href={`/karyawan/${employee.id}?tab=aset`}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
               effectiveTab === "aset"
                 ? "border-[#102E50] text-[#102E50]"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <Laptop className="w-4 h-4 text-[#102E50]" />
-            <span>Aset yang Dibawa</span>
+            <span>Aset</span>
             <span
               className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
                 effectiveTab === "aset"
@@ -491,14 +491,14 @@ export default async function EmployeeDetailPage({
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=akun`}
-            className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
               effectiveTab === "akun"
                 ? "border-[#102E50] text-[#102E50]"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <KeyRound className="w-4 h-4 text-[#F2AF3E]" />
-            <span>Akun & Hak Akses</span>
+            <span>Akun & Akses</span>
             {employee.user ? (
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" title="Akun aktif" />
             ) : (
