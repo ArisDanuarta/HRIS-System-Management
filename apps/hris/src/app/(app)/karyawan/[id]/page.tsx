@@ -249,6 +249,7 @@ export default async function EmployeeDetailPage({
               {/* Photo Avatar or Fallback Initials */}
               {employee.photoKey ? (
                 <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden ring-1 ring-slate-200 shadow-sm shrink-0 bg-slate-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/api/documents/${employee.photoKey}`}
                     alt={employee.fullName}

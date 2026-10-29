@@ -69,6 +69,18 @@ export function CareerHistoryCard({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const router = useRouter();
 
+  const sortedHistories = [...histories].sort((a, b) => {
+    // 1. Posisi saat ini (endDate null) selalu paling atas
+    if (a.endDate === null && b.endDate !== null) return -1;
+    if (a.endDate !== null && b.endDate === null) return 1;
+
+    // 2. Tanggal mulai menurun
+    const startDiff = new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+    if (startDiff !== 0) return startDiff;
+
+    return 0;
+  });
+
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
       {/* Header Card */}
@@ -92,74 +104,111 @@ export function CareerHistoryCard({
         )}
       </div>
 
-      {/* Timeline List */}
-      <div className="flex flex-col divide-y divide-slate-100 text-xs">
-        {histories.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-400 italic">
-            Belum ada catatan mutasi jabatan untuk pegawai ini.
-          </div>
-        ) : (
-          histories.map((hist, index) => {
-            return (
-              <div
-                key={hist.id}
-                className={`py-3.5 flex flex-col gap-2 transition-colors ${
-                  index === 0 ? "pt-1" : ""
-                }`}
-              >
-                {/* Status & Date */}
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-slate-800">
-                      {formatDate(hist.startDate)}
-                    </span>
-                    <span className="text-slate-400">s/d</span>
-                    {hist.endDate ? (
-                      <span className="font-mono text-slate-600">{formatDate(hist.endDate)}</span>
+      {/* Vertical Career Timeline */}
+      {histories.length === 0 ? (
+        <div className="py-8 text-center text-xs text-slate-400 italic">
+          Belum ada catatan mutasi jabatan untuk pegawai ini.
+        </div>
+      ) : (
+        <div className="relative pl-6 sm:pl-7 pt-1 pb-1">
+          {/* Timeline spine/line */}
+          <div className="absolute left-2.5 sm:left-3 top-3 bottom-3 w-0.5 bg-slate-200" />
+
+          <div className="flex flex-col gap-5">
+            {sortedHistories.map((hist) => {
+              const isCurrent = !hist.endDate;
+              const startStr = formatDate(hist.startDate);
+              const endStr = hist.endDate ? formatDate(hist.endDate) : null;
+              const isSameDayTransition = endStr === startStr;
+
+              return (
+                <div key={hist.id} className="relative flex flex-col gap-2 group">
+                  {/* Timeline Dot Node */}
+                  <div
+                    className={`absolute -left-6 sm:-left-7 top-0.5 w-5 h-5 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${
+                      isCurrent
+                        ? "bg-emerald-600 ring-4 ring-emerald-100 shadow-xs"
+                        : "bg-slate-300 ring-4 ring-slate-100"
+                    }`}
+                  >
+                    {isCurrent ? (
+                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
                     ) : (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        Posisi Saat Ini
-                      </span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-slate-500" />
                     )}
                   </div>
 
-                  {hist.documentKey && (
-                    <a
-                      href={`/api/documents/${hist.documentKey}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors border border-blue-200/60"
-                      title="Lihat Berkas Surat Keputusan / Kontrak Kerja"
-                    >
-                      <FileText className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Berkas SK / Kontrak</span>
-                      <Download className="w-3 h-3 ml-0.5 text-blue-500" />
-                    </a>
-                  )}
-                </div>
+                  {/* Date & Action Header */}
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-xs font-bold text-slate-800">
+                        {startStr}
+                      </span>
+                      <span className="text-slate-400 text-xs">
+                        {isCurrent ? "—" : "s/d"}
+                      </span>
+                      {isCurrent ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                          Sekarang (Posisi Aktif)
+                        </span>
+                      ) : isSameDayTransition ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                          {endStr} • Transisi
+                        </span>
+                      ) : (
+                        <span className="font-mono text-xs text-slate-600 font-medium">
+                          {endStr}
+                        </span>
+                      )}
+                    </div>
 
-                {/* Position and Department info */}
-                <div className="flex flex-col gap-0.5 bg-slate-50/70 p-2.5 rounded-lg border border-slate-100">
-                  <span className="font-bold text-slate-900 text-xs">
-                    {hist.position?.title || "Jabatan Terdaftar"}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-slate-500 text-[11px]">
-                    <Building2 className="w-3 h-3 text-slate-400" />
-                    <span>{hist.department?.name || "Divisi Terdaftar"}</span>
+                    {hist.documentKey && (
+                      <a
+                        href={`/api/documents/${hist.documentKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-[11px] transition-colors border border-blue-200/60 shadow-2xs"
+                        title="Lihat Berkas Surat Keputusan / Kontrak Kerja"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Berkas SK / Kontrak</span>
+                        <Download className="w-3 h-3 ml-0.5 text-blue-500" />
+                      </a>
+                    )}
+                  </div>
+
+                  {/* Position and Department Card Box */}
+                  <div
+                    className={`p-3.5 rounded-xl border flex flex-col gap-2 transition-all ${
+                      isCurrent
+                        ? "bg-emerald-50/30 border-emerald-200/80 shadow-2xs"
+                        : "bg-slate-50/70 border-slate-200/80 hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-bold text-slate-900 text-xs sm:text-sm">
+                        {hist.position?.title || "Jabatan Terdaftar"}
+                      </span>
+                      <div className="flex items-center gap-1.5 text-slate-600 text-xs mt-0.5">
+                        <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{hist.department?.name || "Divisi Terdaftar"}</span>
+                      </div>
+                    </div>
+
+                    {/* Notes / SK Number */}
+                    {hist.notes && (
+                      <div className="pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 leading-relaxed font-sans">
+                        {hist.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Notes / SK Number */}
-                {hist.notes && (
-                  <span className="text-slate-600 text-[11px] leading-relaxed pl-1">
-                    {hist.notes}
-                  </span>
-                )}
-              </div>
-            );
-          })
-        )}
-      </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Modal Dialog */}
       <TransferPositionModal

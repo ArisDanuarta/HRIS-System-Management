@@ -266,7 +266,7 @@ export async function getEmployeeById(id: string) {
         },
       },
       histories: {
-        orderBy: { startDate: "desc" },
+        orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
         include: {
           department: { select: { id: true, name: true } },
           position: { select: { id: true, title: true } },
@@ -324,6 +324,18 @@ export async function getEmployeeById(id: string) {
     hasNik: !!emp.nikEnc,
     hasNpwp: !!emp.npwpEnc,
     hasBankAccount: !!emp.bankAccountEnc,
+    histories: [...emp.histories].sort((a, b) => {
+      // Posisi saat ini (endDate null) selalu paling atas
+      if (a.endDate === null && b.endDate !== null) return -1;
+      if (a.endDate !== null && b.endDate === null) return 1;
+
+      // Urutkan berdasarkan tanggal mulai menurun
+      const startDiff = new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+      if (startDiff !== 0) return startDiff;
+
+      // Jika tanggal mulai sama, urutkan berdasarkan waktu pembuatan terbaru
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    }),
     contracts: emp.contracts.map((c) => ({
       ...c,
       baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
