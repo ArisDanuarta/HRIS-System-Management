@@ -122,10 +122,9 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
             {/* Right: Google Status Badge */}
             <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
               {googleStatus.isConnected ? (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-xs text-emerald-300 font-semibold">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-400/30 text-xs text-emerald-300 font-semibold">
                   <CalendarCheck2 className="w-3.5 h-3.5" />
                   <span>Google Calendar Terhubung</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 </div>
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/8 border border-white/15 text-xs text-white/50 font-medium">
