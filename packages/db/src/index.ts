@@ -6,7 +6,19 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 const isOutdated = (client?: PrismaClient): boolean => {
   if (!client) return true;
   const c = client as unknown as Record<string, unknown>;
-  return !c.employeeDocument || !c.emailBroadcast;
+  if (!c.employeeDocument || !c.emailBroadcast) return true;
+
+  const runtimeModel = (client as unknown as {
+    _runtimeDataModel?: {
+      models?: Record<string, { fields?: Array<{ name: string }> }>;
+    };
+  })?._runtimeDataModel;
+  const leaveTypeFields = runtimeModel?.models?.LeaveType?.fields;
+  if (leaveTypeFields && !leaveTypeFields.some((f) => f.name === "applicableGender")) {
+    return true;
+  }
+
+  return false;
 };
 
 const createPrismaClient = () => {

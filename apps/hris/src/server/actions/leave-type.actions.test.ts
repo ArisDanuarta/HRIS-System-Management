@@ -88,6 +88,7 @@ describe("Leave Type Master Actions & Gender Restriction", () => {
         email: "hr@pspk.id",
         name: "Admin HR",
         emailVerified: true,
+        mustChangePassword: false,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -103,11 +104,9 @@ describe("Leave Type Master Actions & Gender Restriction", () => {
 
     const mockAdminAuthContext: MockAuthContext = {
       userId: "user-admin-1",
-      email: "hr@pspk.id",
-      roles: ["admin_hr"],
-      permissions: ["hris.leave.configure:all"],
-      departmentId: null,
       employeeId: "emp-hr-1",
+      roles: ["admin_hr"],
+      permissions: new Set(["hris.leave.configure:all"]),
     };
 
     vi.mocked(getSession).mockResolvedValue(mockAdminSession);
