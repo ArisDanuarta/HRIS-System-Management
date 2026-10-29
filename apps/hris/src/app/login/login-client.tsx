@@ -2,10 +2,8 @@
 
 import { LoginPage } from "@pspk/ui";
 import { signIn } from "@pspk/auth/client";
-import { useRouter } from "next/navigation";
 
 export function LoginPageClient() {
-  const router = useRouter();
 
   return (
     <LoginPage
@@ -27,8 +25,15 @@ export function LoginPageClient() {
           };
         }
 
-        router.push("/");
-        router.refresh();
+        // Prioritaskan pengarahan langsung jika akun diwajibkan ganti password saat login pertama kali
+        const userObj =
+          res.data && typeof res.data === "object" && "user" in res.data
+            ? (res.data.user as { mustChangePassword?: boolean })
+            : null;
+
+        const targetPath = userObj?.mustChangePassword ? "/ganti-password-wajib" : "/";
+        // Menggunakan hard navigation pasca login agar sesi dan cookie Better Auth sinkron sempurna
+        window.location.href = targetPath;
       }}
     />
   );
