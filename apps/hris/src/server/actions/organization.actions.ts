@@ -252,7 +252,28 @@ export async function transferEmployeePositionAction(formData: FormData) {
     revalidatePath("/karyawan");
     revalidatePath(`/karyawan/${employeeId}`);
 
-    return { ok: true as const, data: result };
+    const serializedResult = {
+      updatedEmployee: {
+        id: result.updatedEmployee.id,
+        currentDepartmentId: result.updatedEmployee.currentDepartmentId,
+        currentPositionId: result.updatedEmployee.currentPositionId,
+        managerId: result.updatedEmployee.managerId,
+      },
+      newHistory: {
+        id: result.newHistory.id,
+        notes: result.newHistory.notes,
+      },
+      newContract: result.newContract
+        ? {
+            id: result.newContract.id,
+            type: result.newContract.type,
+            baseSalary: result.newContract.baseSalary ? Number(result.newContract.baseSalary) : null,
+            hourlyRate: result.newContract.hourlyRate ? Number(result.newContract.hourlyRate) : null,
+          }
+        : null,
+    };
+
+    return { ok: true as const, data: serializedResult };
   } catch (err: unknown) {
     console.error("transferEmployeePositionAction error:", err);
     return { ok: false as const, error: formatOrgErrorMessage(err, "Gagal memproses mutasi/perubahan jabatan pegawai.") };

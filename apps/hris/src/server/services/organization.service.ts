@@ -583,7 +583,15 @@ export async function transferEmployeePosition(
       tx,
     );
 
-    return { updatedEmployee, newHistory, newContract: newContractRecord };
+    const serializedNewContract = newContractRecord
+      ? {
+          ...newContractRecord,
+          baseSalary: newContractRecord.baseSalary ? Number(newContractRecord.baseSalary) : null,
+          hourlyRate: newContractRecord.hourlyRate ? Number(newContractRecord.hourlyRate) : null,
+        }
+      : null;
+
+    return { updatedEmployee, newHistory, newContract: serializedNewContract };
   });
 
   return result;
