@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can } from "@pspk/rbac";
+import { prisma } from "@pspk/db";
 import { getWorkCalendarEvents } from "@/server/queries/calendar.queries";
 import { checkGoogleConnected } from "@/server/services/google-calendar.service";
 import { WorkCalendarView } from "@/components/kalender/work-calendar-view";
@@ -40,16 +41,35 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
   assertCan(authCtx, "hris.calendar.read:own");
 
   const canSyncHolidays = can(authCtx, "hris.calendar.holiday:sync");
+  const isHrOrAdmin = can(authCtx, "hris.calendar.read:all");
 
   const resolvedParams = await searchParams;
   const now = new Date();
   const year = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
   const month = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
 
-  // Cek koneksi akun Google & ambil meeting milik karyawan yang login
+  // Ambil data divisi pegawai untuk membatasi lingkup cuti tim (khusus staf/manajer)
+  const employee = authCtx.employeeId
+    ? await prisma.employee.findUnique({
+        where: { id: authCtx.employeeId },
+        select: {
+          id: true,
+          currentDepartmentId: true,
+          currentDepartment: { select: { name: true } },
+        },
+      })
+    : null;
+
+  const departmentId = employee?.currentDepartmentId ?? null;
+  const departmentName = employee?.currentDepartment?.name ?? null;
+
+  // Cek koneksi akun Google & ambil meeting serta cuti (dibatasi divisi bila bukan HR)
   const [googleStatus, calendarData] = await Promise.all([
     checkGoogleConnected(session.user.id),
-    getWorkCalendarEvents(year, month, authCtx.employeeId),
+    getWorkCalendarEvents(year, month, authCtx.employeeId, {
+      departmentId,
+      isHrOrAdmin,
+    }),
   ]);
 
   const { leaves, holidays, observances, meetings } = calendarData;
@@ -82,14 +102,19 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
                   <span className="text-[10px] font-semibold text-white/50">
                     {monthLabel} {year}
                   </span>
+                  {departmentName && !isHrOrAdmin && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-slate-200 border border-white/15">
+                      Divisi: {departmentName}
+                    </span>
+                  )}
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold font-heading text-white tracking-tight leading-tight">
                   Jadwal &amp; Agenda Tim
                 </h1>
                 <p className="text-sm text-white/60 mt-1 max-w-lg leading-relaxed">
-                  Cuti tim, hari libur nasional, hari peringatan, dan agenda meeting{" "}
-                  {googleStatus.isConnected ? "Google Meet" : "(opsional: hubungkan Google)"}{" "}
-                  dalam satu tampilan terpadu.
+                  {isHrOrAdmin
+                    ? "Cuti seluruh tim organisasi, hari libur nasional, hari peringatan, dan agenda rapat dalam satu tampilan terpadu."
+                    : `Cuti rekan satu divisi (${departmentName || "Divisi Anda"}), hari libur nasional, hari peringatan, dan agenda rapat dalam satu tampilan terpadu.`}
                 </p>
               </div>
             </div>
@@ -122,11 +147,13 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
               <div className="flex items-center gap-2 mb-1.5">
                 <Users className="w-3.5 h-3.5 text-[#f2af3e]/80" />
                 <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
-                  Cuti Tim
+                  {isHrOrAdmin ? "Cuti Tim (Semua)" : "Cuti Tim Divisi"}
                 </span>
               </div>
               <div className="text-2xl font-bold text-white">{leaves.length}</div>
-              <div className="text-[11px] text-white/40 mt-0.5">entri bulan ini</div>
+              <div className="text-[11px] text-white/40 mt-0.5">
+                {isHrOrAdmin ? "entri bulan ini" : `rekan divisi ${departmentName || ""}`}
+              </div>
             </div>
 
             <div className="bg-white/8 hover:bg-white/12 transition-colors rounded-xl p-3.5 border border-white/10">
@@ -198,6 +225,8 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
         canSyncHolidays={canSyncHolidays}
         initialConnectedNotice={resolvedParams.connected === "true"}
         initialErrorNotice={resolvedParams.error}
+        departmentName={departmentName}
+        isHrOrAdmin={isHrOrAdmin}
       />
     </div>
   );

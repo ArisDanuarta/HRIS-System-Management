@@ -6,7 +6,6 @@ import {
   Layers,
   Fingerprint,
   Calendar,
-  CalendarRange,
   CheckSquare,
   Settings,
 } from "lucide-react";
@@ -15,7 +14,6 @@ export type AttendanceLeaveTab =
   | "rekap"
   | "absensi"
   | "cuti"
-  | "kalender"
   | "persetujuan"
   | "pengaturan";
 
@@ -54,13 +52,6 @@ export function AttendanceLeaveSubnav({
       label: "Cuti Saya",
       href: "/cuti",
       icon: <Calendar className="w-3.5 h-3.5" />,
-      visible: true,
-    },
-    {
-      id: "kalender" as AttendanceLeaveTab,
-      label: "Kalender Cuti Tim",
-      href: "/cuti/kalender",
-      icon: <CalendarRange className="w-3.5 h-3.5" />,
       visible: true,
     },
     {

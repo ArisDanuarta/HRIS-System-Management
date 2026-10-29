@@ -53,27 +53,46 @@ export interface WorkCalendarResult {
   period: { year: number; month: number; startDate: Date; endDate: Date };
 }
 
+export interface CalendarFilterOptions {
+  departmentId?: string | null;
+  isHrOrAdmin?: boolean;
+}
+
 /**
  * Retrieves all calendar events (approved leaves + holidays + personal meetings) for a given month.
  * Fase A: cuti tim + hari libur nasional dari DB.
+ * Pembatasan RBAC: Karyawan staff/manager dibatasi melihat cuti dalam divisi/departemen mereka sendiri.
  * Fase C: ditambahkan Google Calendar events (meeting) per employee.
  */
 export async function getWorkCalendarEvents(
   year: number,
   month: number,
   employeeId?: string | null,
+  options?: CalendarFilterOptions,
 ): Promise<WorkCalendarResult> {
   const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
   const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
+  // Filter cuti: jika bukan HR/Admin, batasi hanya untuk rekan di divisi/departemen yang sama
+  const leaveWhere: Record<string, unknown> = {
+    status: "APPROVED",
+    startDate: { lte: endDate },
+    endDate: { gte: startDate },
+  };
+
+  if (!options?.isHrOrAdmin) {
+    if (options?.departmentId) {
+      leaveWhere.employee = { currentDepartmentId: options.departmentId };
+    } else if (employeeId) {
+      // Jika belum memiliki relasi departemen, hanya tampilkan cuti miliknya sendiri
+      leaveWhere.employeeId = employeeId;
+    }
+  }
+
   const [approvedLeaves, holidays, meetings] = await Promise.all([
-    // Semua cuti yang disetujui dalam bulan ini (seluruh tim — terlihat oleh semua karyawan)
+    // Cuti yang disetujui dalam bulan ini (difilter berdasarkan divisi untuk staf/manajer)
     prisma.leaveRequest.findMany({
-      where: {
-        status: "APPROVED",
-        startDate: { lte: endDate },
-        endDate: { gte: startDate },
-      },
+      where: leaveWhere,
       include: {
         employee: {
           select: {

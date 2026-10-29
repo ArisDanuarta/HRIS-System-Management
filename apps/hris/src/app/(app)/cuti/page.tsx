@@ -96,11 +96,11 @@ export default async function CutiPage() {
           {/* Quick Actions */}
           <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center shrink-0">
             <Link
-              href="/cuti/kalender"
+              href="/kalender"
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/15 text-white border border-white/20 text-xs font-semibold rounded-xl transition-colors"
             >
               <CalendarRange className="w-4 h-4 text-[#f2af3e]" />
-              <span>Kalender Cuti Tim</span>
+              <span>Kalender Kerja</span>
             </Link>
 
             <Link

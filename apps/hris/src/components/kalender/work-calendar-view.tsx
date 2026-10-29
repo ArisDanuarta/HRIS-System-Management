@@ -47,6 +47,8 @@ interface WorkCalendarViewProps {
   canSyncHolidays?: boolean;
   initialConnectedNotice?: boolean;
   initialErrorNotice?: string;
+  departmentName?: string | null;
+  isHrOrAdmin?: boolean;
 }
 
 // ----------- Komponen Utama -----------
@@ -62,6 +64,8 @@ export function WorkCalendarView({
   canSyncHolidays = false,
   initialConnectedNotice = false,
   initialErrorNotice,
+  departmentName,
+  isHrOrAdmin = false,
 }: WorkCalendarViewProps) {
   const router = useRouter();
   const [currentYear, setCurrentYear] = useState(year);
@@ -284,7 +288,12 @@ export function WorkCalendarView({
   // --- Filter ---
   const filterItems = [
     { id: "all" as CalendarFilter, label: "Semua Event" },
-    { id: "leave" as CalendarFilter, label: "Cuti Tim" },
+    {
+      id: "leave" as CalendarFilter,
+      label: isHrOrAdmin
+        ? `Cuti Tim (${leaves.length})`
+        : `Cuti Divisi ${departmentName ? `(${departmentName})` : `(${leaves.length})`}`,
+    },
     { id: "holiday" as CalendarFilter, label: "Hari Libur" },
     { id: "observance" as CalendarFilter, label: `Peringatan (${observances.length})` },
     ...(googleConnected
@@ -309,30 +318,30 @@ export function WorkCalendarView({
     });
   };
 
-  // --- Chip style per tipe cuti ---
+  // --- Chip style per tipe cuti (High Contrast Theme) ---
   const getLeavePillConfig = (typeName: string) => {
     const lower = typeName.toLowerCase();
     if (lower.includes("sakit"))
       return {
-        bg: "bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100",
-        dot: "bg-rose-500",
+        bg: "bg-[#a8281c] text-white border-[#8e2116] hover:bg-[#8e2116]",
+        dot: "bg-white",
         label: "Sakit",
       };
     if (lower.includes("tahunan"))
       return {
-        bg: "bg-[#eff4ff] text-[#102e50] border-[#dee9fc] hover:bg-blue-100",
-        dot: "bg-blue-600",
+        bg: "bg-[#102e50] text-white border-[#0c233d] hover:bg-[#0c233d]",
+        dot: "bg-[#f2af3e]",
         label: "Tahunan",
       };
     if (lower.includes("melahirkan"))
       return {
-        bg: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
-        dot: "bg-purple-600",
+        bg: "bg-[#4338ca] text-white border-[#3730a3] hover:bg-[#3730a3]",
+        dot: "bg-white",
         label: "Melahirkan",
       };
     return {
-      bg: "bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100",
-      dot: "bg-amber-600",
+      bg: "bg-[#df632f] text-white border-[#c8511e] hover:bg-[#c8511e]",
+      dot: "bg-white",
       label: "Penting",
     };
   };
@@ -599,7 +608,7 @@ export function WorkCalendarView({
                     </div>
                     <div className="flex items-center gap-1">
                       {showHoliday && (
-                        <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-red-100 text-[#a8281c] truncate max-w-[60px] md:max-w-[75px]">
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#a8281c] text-white truncate max-w-[60px] md:max-w-[75px] shadow-2xs">
                           {holiday!.isCollectiveLeave ? "Cuti Bers." : "Libur"}
                         </span>
                       )}
