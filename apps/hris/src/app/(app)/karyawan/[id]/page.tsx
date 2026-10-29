@@ -20,6 +20,7 @@ import {
   KeyRound,
   FolderArchive,
   Laptop,
+  Calendar,
 } from "lucide-react";
 import {
   getEmployeeById,
@@ -235,72 +236,138 @@ export default async function EmployeeDetailPage({
         </div>
       )}
 
-      {/* Profile Header Card */}
-      <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#102E50]/10 text-[#102E50] font-bold text-2xl flex items-center justify-center border border-[#102E50]/20 shadow-xs shrink-0">
-            {initial}
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-[#102E50] font-heading tracking-tight">
-                {employee.fullName}
-              </h1>
-              {employee.nickname && (
-                <span className="text-xs text-slate-400 font-medium">
-                  (&ldquo;{employee.nickname}&rdquo;)
-                </span>
+      {/* Modern Profile Header Card */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col">
+        {/* Subtle Brand Accent Top Bar */}
+        <div className="h-2 bg-gradient-to-r from-[#102E50] via-[#102E50]/90 to-[#F2AF3E]" />
+
+        <div className="p-5 sm:p-6 flex flex-col gap-4">
+          {/* Main Top Row: Avatar, Identity & Actions */}
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+            {/* Left: Avatar & Identity */}
+            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+              {/* Photo Avatar or Fallback Initials */}
+              {employee.photoKey ? (
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden ring-1 ring-slate-200 shadow-sm shrink-0 bg-slate-100">
+                  <img
+                    src={`/api/documents/${employee.photoKey}`}
+                    alt={employee.fullName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#102E50]/10 text-[#102E50] font-bold text-2xl sm:text-3xl font-heading flex items-center justify-center border border-[#102E50]/20 shadow-xs shrink-0">
+                  {initial}
+                </div>
               )}
+
+              {/* Name, Title, Badges */}
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-xl sm:text-2xl font-bold text-[#102E50] font-heading tracking-tight">
+                    {employee.fullName}
+                  </h1>
+                  {employee.nickname && (
+                    <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                      &ldquo;{employee.nickname}&rdquo;
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 text-xs text-slate-600 mt-1.5 flex-wrap">
+                  <span className="font-semibold text-slate-800">
+                    {employee.currentPosition?.title || "Belum ada jabatan"}
+                  </span>
+                  <span className="text-slate-300">•</span>
+                  <span className="text-slate-600">
+                    {employee.currentDepartment?.name || "Belum ada divisi"}
+                  </span>
+                </div>
+
+                {/* Badges Row */}
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                    NIP: {employee.employeeNo}
+                  </span>
+                  <StatusBadge status={employee.status} size="sm" />
+                  {activeContract && (
+                    <ContractTypeBadge
+                      type={activeContract.type}
+                      label={activeContract.employmentTypeMaster?.name}
+                    />
+                  )}
+                  {employee.user?.roles && employee.user.roles.length > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
+                      <KeyRound className="w-3 h-3 text-[#F2AF3E]" />
+                      <span>{employee.user.roles.map((r) => r.role.name).join(", ")}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-slate-600 mt-1 flex-wrap">
-              <span className="font-semibold text-slate-800">
-                {employee.currentPosition?.title || "Belum ada jabatan"}
-              </span>
-              <span>•</span>
-              <span>{employee.currentDepartment?.name || "Belum ada divisi"}</span>
-            </div>
-
-            <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-              <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                NIP: {employee.employeeNo}
-              </span>
-              <StatusBadge status={employee.status} size="sm" />
-              {activeContract && (
-                <ContractTypeBadge
-                  type={activeContract.type}
-                  label={activeContract.employmentTypeMaster?.name}
+            {/* Right: Action Buttons */}
+            {isHrOrAdmin && (
+              <div className="flex items-center gap-2 shrink-0 flex-wrap self-start">
+                <EmployeeStatusActions
+                  employeeId={employee.id}
+                  employeeName={employee.fullName}
+                  employeeNo={employee.employeeNo}
+                  isTerminated={isTerminated}
+                  variant="header"
                 />
-              )}
-              {employee.user?.roles && employee.user.roles.length > 0 && (
-                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
-                  <KeyRound className="w-3 h-3 text-[#F2AF3E]" />
-                  <span>{employee.user.roles.map((r) => r.role.name).join(", ")}</span>
-                </span>
-              )}
+                <Link
+                  href={`/karyawan/${employee.id}/ubah`}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Ubah Profil</span>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Contact & Metadata Strip */}
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-slate-600">
+            <a
+              href={`mailto:${employee.workEmail}`}
+              className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors"
+              title="Kirim email kerja"
+            >
+              <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="font-medium text-slate-700">{employee.workEmail}</span>
+            </a>
+
+            {employee.phone && (
+              <a
+                href={`tel:${employee.phone}`}
+                className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors"
+                title="Nomor telepon pegawai"
+              >
+                <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="font-medium text-slate-700">{employee.phone}</span>
+              </a>
+            )}
+
+            {employee.manager && (
+              <Link
+                href={`/karyawan/${employee.manager.id}`}
+                className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors"
+                title="Lihat profil atasan langsung"
+              >
+                <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="text-slate-500">Atasan:</span>
+                <span className="font-semibold text-slate-800">{employee.manager.fullName}</span>
+              </Link>
+            )}
+
+            <div className="inline-flex items-center gap-1.5 text-slate-500">
+              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span>Mulai Bergabung:</span>
+              <span className="font-medium text-slate-700">{formatDate(employee.joinDate)}</span>
             </div>
           </div>
         </div>
-
-        {/* Action Button */}
-        {isHrOrAdmin && (
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
-            <EmployeeStatusActions
-              employeeId={employee.id}
-              employeeName={employee.fullName}
-              employeeNo={employee.employeeNo}
-              isTerminated={isTerminated}
-              variant="header"
-            />
-            <Link
-              href={`/karyawan/${employee.id}/ubah`}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
-            >
-              <Edit className="w-3.5 h-3.5" />
-              <span>Ubah Profil</span>
-            </Link>
-          </div>
-        )}
       </div>
 
       {/* Tabs Navigation */}
