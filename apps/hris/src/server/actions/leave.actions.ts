@@ -456,6 +456,13 @@ export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
     assertCan(authCtx, "hris.leave.configure:all");
 
     const validated = updateLeaveTypeSchema.parse(input);
+    const currentYear = new Date().getFullYear();
+
+    // Dapatkan data jenis cuti lama sebelum diperbarui
+    const existingType = await prisma.leaveType.findUnique({
+      where: { id: validated.id },
+      select: { defaultQuotaDays: true, applicableGender: true },
+    });
 
     const updated = await prisma.leaveType.update({
       where: { id: validated.id },
@@ -468,6 +475,41 @@ export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
         isActive: validated.isActive,
       },
     });
+
+    // 1. Sinkronisasi otomatis kuota tahun berjalan bagi pegawai yang belum pernah memakai cuti ini
+    if (existingType && existingType.defaultQuotaDays !== validated.defaultQuotaDays) {
+      await prisma.leaveBalance.updateMany({
+        where: {
+          leaveTypeId: validated.id,
+          year: currentYear,
+          usedDays: 0,
+        },
+        data: {
+          quotaDays: validated.defaultQuotaDays,
+        },
+      });
+    }
+
+    // 2. Jika kriteria gender diperketat (misal khusus perempuan atau khusus laki-laki),
+    // bersihkan saldo berjalan pegawai yang tidak sesuai kriteria jika belum pernah digunakan
+    if (validated.applicableGender) {
+      const oppositeGender = validated.applicableGender === "FEMALE" ? "MALE" : "FEMALE";
+      const mismatchedEmployees = await prisma.employee.findMany({
+        where: { gender: oppositeGender },
+        select: { id: true },
+      });
+      const mismatchedIds = mismatchedEmployees.map((e) => e.id);
+      if (mismatchedIds.length > 0) {
+        await prisma.leaveBalance.deleteMany({
+          where: {
+            leaveTypeId: validated.id,
+            year: currentYear,
+            employeeId: { in: mismatchedIds },
+            usedDays: 0,
+          },
+        });
+      }
+    }
 
     await writeAudit({
       actorUserId: userId,

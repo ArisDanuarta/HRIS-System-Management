@@ -38,9 +38,11 @@ const mockLeaveTypeFindUnique = vi.fn();
 const mockLeaveTypeDelete = vi.fn();
 const mockLeaveRequestCount = vi.fn();
 const mockLeaveBalanceCount = vi.fn();
+const mockLeaveBalanceUpdateMany = vi.fn();
 const mockLeaveBalanceDeleteMany = vi.fn();
 const mockEmployeeFindFirst = vi.fn();
 const mockEmployeeFindUnique = vi.fn();
+const mockEmployeeFindMany = vi.fn();
 const mockWriteAudit = vi.fn();
 const mockTransaction = vi.fn(async (ops: unknown[]) => Promise.all(ops));
 
@@ -49,6 +51,7 @@ vi.mock("@pspk/db", () => ({
     employee: {
       findFirst: (...args: unknown[]) => mockEmployeeFindFirst(...args),
       findUnique: (...args: unknown[]) => mockEmployeeFindUnique(...args),
+      findMany: (...args: unknown[]) => mockEmployeeFindMany(...args),
     },
     leaveType: {
       create: (...args: unknown[]) => mockLeaveTypeCreate(...args),
@@ -61,6 +64,7 @@ vi.mock("@pspk/db", () => ({
     },
     leaveBalance: {
       count: (...args: unknown[]) => mockLeaveBalanceCount(...args),
+      updateMany: (...args: unknown[]) => mockLeaveBalanceUpdateMany(...args),
       deleteMany: (...args: unknown[]) => mockLeaveBalanceDeleteMany(...args),
     },
     $transaction: (ops: unknown[]) => mockTransaction(ops),
@@ -195,44 +199,78 @@ describe("Leave Type Master Actions & Gender Restriction", () => {
   });
 
   describe("updateLeaveTypeAction", () => {
-    it("berhasil memperbarui kriteria gender jenis cuti", async () => {
+    it("berhasil memperbarui jenis cuti, menyinkronkan saldo tahun berjalan yang belum terpakai, dan membersihkan saldo gender tidak cocok", async () => {
+      mockLeaveTypeFindUnique.mockResolvedValue({
+        id: "lt-maternity",
+        defaultQuotaDays: 90,
+        applicableGender: null,
+      });
+
       mockLeaveTypeUpdate.mockResolvedValue({
-        id: "lt-paternity",
-        name: "Cuti Istri Melahirkan",
-        defaultQuotaDays: 2,
+        id: "lt-maternity",
+        name: "Cuti Melahirkan",
+        defaultQuotaDays: 60,
         isPaid: true,
         requiresAttachment: true,
-        applicableGender: "MALE",
+        applicableGender: "FEMALE",
         isActive: true,
       });
 
+      mockEmployeeFindMany.mockResolvedValue([
+        { id: "emp-male-1" },
+        { id: "emp-male-2" },
+      ]);
+
       const res = await updateLeaveTypeAction({
-        id: "lt-paternity",
-        name: "Cuti Istri Melahirkan",
-        defaultQuotaDays: 2,
+        id: "lt-maternity",
+        name: "Cuti Melahirkan",
+        defaultQuotaDays: 60,
         isPaid: true,
         requiresAttachment: true,
-        applicableGender: "MALE",
+        applicableGender: "FEMALE",
         isActive: true,
       });
 
       expect(res.success).toBe(true);
       expect(mockLeaveTypeUpdate).toHaveBeenCalledWith({
-        where: { id: "lt-paternity" },
+        where: { id: "lt-maternity" },
         data: {
-          name: "Cuti Istri Melahirkan",
-          defaultQuotaDays: 2,
+          name: "Cuti Melahirkan",
+          defaultQuotaDays: 60,
           isPaid: true,
           requiresAttachment: true,
-          applicableGender: "MALE",
+          applicableGender: "FEMALE",
           isActive: true,
         },
       });
+
+      // Verifikasi sinkronisasi otomatis saldo tahun berjalan (usedDays: 0) ke kuota baru 60
+      expect(mockLeaveBalanceUpdateMany).toHaveBeenCalledWith({
+        where: {
+          leaveTypeId: "lt-maternity",
+          year: expect.any(Number),
+          usedDays: 0,
+        },
+        data: {
+          quotaDays: 60,
+        },
+      });
+
+      // Verifikasi pembersihan saldo cuti pegawai pria yang belum terpakai
+      expect(mockLeaveBalanceDeleteMany).toHaveBeenCalledWith({
+        where: {
+          leaveTypeId: "lt-maternity",
+          year: expect.any(Number),
+          employeeId: { in: ["emp-male-1", "emp-male-2"] },
+          usedDays: 0,
+        },
+      });
+
       expect(mockWriteAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: "UPDATE",
           entityType: "LeaveType",
-          entityId: "lt-paternity",
+          entityId: "lt-maternity",
         }),
       );
     });
