@@ -2,9 +2,22 @@
 
 import React from "react";
 import Link from "next/link";
-import { Layers, Fingerprint, Calendar, CheckSquare, Settings } from "lucide-react";
+import {
+  Layers,
+  Fingerprint,
+  Calendar,
+  CalendarRange,
+  CheckSquare,
+  Settings,
+} from "lucide-react";
 
-export type AttendanceLeaveTab = "rekap" | "absensi" | "cuti" | "persetujuan" | "pengaturan";
+export type AttendanceLeaveTab =
+  | "rekap"
+  | "absensi"
+  | "cuti"
+  | "kalender"
+  | "persetujuan"
+  | "pengaturan";
 
 export interface AttendanceLeaveSubnavProps {
   activeTab: AttendanceLeaveTab;
@@ -44,6 +57,13 @@ export function AttendanceLeaveSubnav({
       visible: true,
     },
     {
+      id: "kalender" as AttendanceLeaveTab,
+      label: "Kalender Cuti Tim",
+      href: "/cuti/kalender",
+      icon: <CalendarRange className="w-3.5 h-3.5" />,
+      visible: true,
+    },
+    {
       id: "persetujuan" as AttendanceLeaveTab,
       label: "Persetujuan Cuti",
       href: "/cuti/persetujuan",
@@ -80,10 +100,8 @@ export function AttendanceLeaveSubnav({
             <span>{tab.label}</span>
             {tab.badge !== undefined && (
               <span
-                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
-                  isActive
-                    ? "bg-[#f2af3e] text-[#102e50]"
-                    : "bg-[#a8281c] text-white"
+                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none tabular-nums ${
+                  isActive ? "bg-[#f2af3e] text-[#102e50]" : "bg-[#a8281c] text-white"
                 }`}
               >
                 {tab.badge}
