@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { EmploymentType, WageType } from "@pspk/db";
 import { ContractTypeBadge } from "@/components/karyawan/status-badge";
@@ -59,6 +59,25 @@ export function EmployeeContractsTable({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Selalu urutkan kontrak: ACTIVE di posisi paling atas, diikuti tanggal mulai terbaru
+  const sortedContracts = useMemo(() => {
+    return [...contracts].sort((a, b) => {
+      // 1. Status ACTIVE selalu paling atas
+      if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
+      if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
+
+      // 2. Urutkan berdasarkan tanggal mulai menurun
+      const startA = new Date(a.startDate).getTime();
+      const startB = new Date(b.startDate).getTime();
+      if (startB !== startA) return startB - startA;
+
+      // 3. Jika tanggal mulai sama, urutkan tanggal akhir terjauh
+      const endA = a.endDate ? new Date(a.endDate).getTime() : 0;
+      const endB = b.endDate ? new Date(b.endDate).getTime() : 0;
+      return endB - endA;
+    });
+  }, [contracts]);
 
   // Helper untuk mengekstrak nomor kontrak dari catatan [Nomor: ...]
   const extractContractNumber = (notesStr?: string | null) => {
@@ -210,7 +229,7 @@ export function EmployeeContractsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {contracts.length === 0 ? (
+            {sortedContracts.length === 0 ? (
               <tr>
                 <td
                   colSpan={isHrOrAdmin ? 8 : 7}
@@ -220,17 +239,32 @@ export function EmployeeContractsTable({
                 </td>
               </tr>
             ) : (
-              contracts.map((contract) => {
+              sortedContracts.map((contract) => {
                 const contractNo = extractContractNumber(contract.notes);
                 const displayNotes = cleanContractNotes(contract.notes);
+                const isActive = contract.status === "ACTIVE";
 
                 return (
-                  <tr key={contract.id} className="hover:bg-slate-50/60 transition-colors">
+                  <tr
+                    key={contract.id}
+                    className={`transition-colors ${
+                      isActive
+                        ? "bg-emerald-50/35 hover:bg-emerald-50/50 border-l-4 border-l-emerald-500 font-medium"
+                        : "hover:bg-slate-50/60"
+                    }`}
+                  >
                     <td className="py-3 px-4 font-semibold">
-                      <ContractTypeBadge
-                        type={contract.type}
-                        label={contract.employmentTypeMaster?.name}
-                      />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <ContractTypeBadge
+                          type={contract.type}
+                          label={contract.employmentTypeMaster?.name}
+                        />
+                        {isActive && (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 border border-emerald-300/80 px-1.5 py-0.5 rounded-sm">
+                            Berjalan
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 font-mono font-medium text-slate-700">
                       {contractNo ? (
@@ -256,13 +290,28 @@ export function EmployeeContractsTable({
                     )}
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          contract.status === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                            : "bg-slate-100 text-slate-600"
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          isActive
+                            ? "bg-emerald-100/90 text-emerald-800 border border-emerald-300 shadow-2xs"
+                            : contract.status === "RENEWED"
+                              ? "bg-slate-100 text-slate-600 border border-slate-200"
+                              : contract.status === "EXPIRED"
+                                ? "bg-rose-50 text-rose-700 border border-rose-200"
+                                : "bg-slate-100 text-slate-600"
                         }`}
                       >
-                        {contract.status}
+                        {isActive && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                        )}
+                        <span>
+                          {isActive
+                            ? "ACTIVE (Aktif)"
+                            : contract.status === "RENEWED"
+                              ? "RENEWED (Diperbarui)"
+                              : contract.status === "EXPIRED"
+                                ? "EXPIRED (Berakhir)"
+                                : contract.status}
+                        </span>
                       </span>
                     </td>
                     <td className="py-3 px-4">

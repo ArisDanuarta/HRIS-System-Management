@@ -260,7 +260,7 @@ export async function getEmployeeById(id: string) {
         },
       },
       contracts: {
-        orderBy: { startDate: "desc" },
+        orderBy: [{ startDate: "desc" }, { createdAt: "desc" }],
         include: {
           employmentTypeMaster: true,
         },
@@ -336,21 +336,34 @@ export async function getEmployeeById(id: string) {
       // Jika tanggal mulai sama, urutkan berdasarkan waktu pembuatan terbaru
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }),
-    contracts: emp.contracts.map((c) => ({
-      ...c,
-      baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
-      hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
-      employmentTypeMaster: c.employmentTypeMaster
-        ? {
-            ...c.employmentTypeMaster,
-            defaultHourlyRate: c.employmentTypeMaster.defaultHourlyRate
-              ? Number(c.employmentTypeMaster.defaultHourlyRate)
-              : null,
-            createdAt: c.employmentTypeMaster.createdAt.toISOString(),
-            updatedAt: c.employmentTypeMaster.updatedAt.toISOString(),
-          }
-        : null,
-    })),
+    contracts: emp.contracts
+      .map((c) => ({
+        ...c,
+        baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
+        hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
+        employmentTypeMaster: c.employmentTypeMaster
+          ? {
+              ...c.employmentTypeMaster,
+              defaultHourlyRate: c.employmentTypeMaster.defaultHourlyRate
+                ? Number(c.employmentTypeMaster.defaultHourlyRate)
+                : null,
+              createdAt: c.employmentTypeMaster.createdAt.toISOString(),
+              updatedAt: c.employmentTypeMaster.updatedAt.toISOString(),
+            }
+          : null,
+      }))
+      .sort((a, b) => {
+        // Kontrak ACTIVE selalu paling atas
+        if (a.status === "ACTIVE" && b.status !== "ACTIVE") return -1;
+        if (a.status !== "ACTIVE" && b.status === "ACTIVE") return 1;
+
+        // Urutkan tanggal mulai menurun
+        const startDiff = new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        if (startDiff !== 0) return startDiff;
+
+        // Jika tanggal mulai sama, urutkan waktu pembuatan terbaru
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }),
   };
 }
 

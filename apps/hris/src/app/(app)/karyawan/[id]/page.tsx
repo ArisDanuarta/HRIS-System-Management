@@ -21,6 +21,7 @@ import {
   FolderArchive,
   Laptop,
   Calendar,
+  AlertCircle,
 } from "lucide-react";
 import {
   getEmployeeById,
@@ -372,26 +373,26 @@ export default async function EmployeeDetailPage({
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto">
+      <div className="bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/80 flex items-center gap-1.5 overflow-x-auto shadow-2xs">
         <Link
           href={`/karyawan/${employee.id}?tab=biodata`}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
             effectiveTab === "biodata"
-              ? "border-[#102E50] text-[#102E50] bg-white"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
           }`}
         >
-          <User className="w-4 h-4" />
+          <User className="w-4 h-4 text-slate-500" />
           <span>Biodata & Kontak</span>
         </Link>
 
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=sensitif`}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
               effectiveTab === "sensitif"
-                ? "border-[#102E50] text-[#102E50] bg-white"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
             }`}
           >
             <Shield className="w-4 h-4 text-amber-600" />
@@ -401,61 +402,99 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=kontrak`}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
             effectiveTab === "kontrak"
-              ? "border-[#102E50] text-[#102E50] bg-white"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>Kontrak Kerja ({employee.contracts.length})</span>
+          <FileText className="w-4 h-4 text-slate-500" />
+          <span>Kontrak Kerja</span>
+          <span
+            className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
+              effectiveTab === "kontrak"
+                ? "bg-[#102E50]/10 text-[#102E50]"
+                : "bg-slate-200/80 text-slate-600"
+            }`}
+          >
+            {employee.contracts.length}
+          </span>
         </Link>
 
         <Link
           href={`/karyawan/${employee.id}?tab=jabatan`}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
             effectiveTab === "jabatan"
-              ? "border-[#102E50] text-[#102E50] bg-white"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
           }`}
         >
-          <Briefcase className="w-4 h-4" />
+          <Briefcase className="w-4 h-4 text-slate-500" />
           <span>Jabatan & Tim</span>
+          {employee.histories.length > 0 && (
+            <span
+              className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
+                effectiveTab === "jabatan"
+                  ? "bg-[#102E50]/10 text-[#102E50]"
+                  : "bg-slate-200/80 text-slate-600"
+              }`}
+            >
+              {employee.histories.length}
+            </span>
+          )}
         </Link>
 
         <Link
           href={`/karyawan/${employee.id}?tab=dokumen`}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
             effectiveTab === "dokumen"
-              ? "border-[#102E50] text-[#102E50] bg-white"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
           }`}
         >
           <FolderArchive className="w-4 h-4 text-[#102E50]" />
-          <span>Dokumen & Berkas ({employee.documents?.length || 0})</span>
+          <span>Dokumen & Berkas</span>
+          <span
+            className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
+              effectiveTab === "dokumen"
+                ? "bg-[#102E50]/10 text-[#102E50]"
+                : "bg-slate-200/80 text-slate-600"
+            }`}
+          >
+            {employee.documents?.length || 0}
+          </span>
         </Link>
 
         {isAssetAssignmentActive && (
           <Link
             href={`/karyawan/${employee.id}?tab=aset`}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
               effectiveTab === "aset"
-                ? "border-[#102E50] text-[#102E50] bg-white"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
             }`}
           >
             <Laptop className="w-4 h-4 text-[#102E50]" />
-            <span>Aset yang Dibawa ({activeAssets.length})</span>
+            <span>Aset yang Dibawa</span>
+            <span
+              className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
+                effectiveTab === "aset"
+                  ? "bg-[#102E50]/10 text-[#102E50]"
+                  : "bg-slate-200/80 text-slate-600"
+              }`}
+            >
+              {activeAssets.length}
+            </span>
           </Link>
         )}
 
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=akun`}
-            className={`inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
               effectiveTab === "akun"
-                ? "border-[#102E50] text-[#102E50] bg-white"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
+                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
             }`}
           >
             <KeyRound className="w-4 h-4 text-[#F2AF3E]" />
@@ -528,9 +567,13 @@ export default async function EmployeeDetailPage({
 
               <div className="col-span-2">
                 <span className="text-slate-400 block mb-0.5">Alamat Domisili</span>
-                <span className="font-medium text-slate-700 leading-relaxed">
-                  {employee.address || "-"}
-                </span>
+                {employee.address ? (
+                  <span className="font-medium text-slate-700 leading-relaxed">
+                    {employee.address}
+                  </span>
+                ) : (
+                  <span className="text-slate-400 italic text-xs">Belum dicantumkan</span>
+                )}
               </div>
             </div>
           </div>
@@ -570,16 +613,25 @@ export default async function EmployeeDetailPage({
                 </div>
               </div>
 
-              <div className="p-3.5 bg-amber-50/60 border border-amber-200/60 rounded-lg flex flex-col gap-1">
-                <span className="font-bold text-[#805600] text-xs">Kontak Darurat</span>
-                <div className="flex justify-between items-center text-xs mt-1">
-                  <span className="text-slate-600">
-                    {employee.emergencyContactName || "Belum dicantumkan"}
-                  </span>
-                  <span className="font-mono font-bold text-slate-800">
-                    {employee.emergencyContactPhone || "-"}
-                  </span>
+              <div className="p-3.5 bg-amber-50/50 border border-amber-200/60 rounded-xl flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-[#805600] font-bold text-xs">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                  <span>Kontak Darurat</span>
                 </div>
+                {employee.emergencyContactName || employee.emergencyContactPhone ? (
+                  <div className="flex justify-between items-center text-xs mt-0.5">
+                    <span className="text-slate-700 font-medium">
+                      {employee.emergencyContactName || "Nama tidak dicatat"}
+                    </span>
+                    <span className="font-mono font-bold text-slate-800">
+                      {employee.emergencyContactPhone || "-"}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-slate-500 italic text-xs mt-0.5">
+                    Belum ada kontak darurat yang dicantumkan
+                  </span>
+                )}
               </div>
             </div>
           </div>
