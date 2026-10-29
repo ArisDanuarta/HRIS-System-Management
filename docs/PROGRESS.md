@@ -2,6 +2,44 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Fitur Cuti] Full CRUD Master Jenis Cuti & Kebijakan Kriteria Gender Pegawai — 2026-10-29
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Sebelumnya master jenis cuti pada tab *Jenis & Kuota Cuti* di `/cuti/pengaturan` hanya mendukung pengeditan parsial kuota tanpa kemampuan menambah jenis cuti baru atau menghapus jenis cuti.
+  - Memenuhi kebutuhan HR dan skenario operasional nyata di mana terdapat jenis cuti khusus gender tertentu:
+    - Cuti Melahirkan atau Cuti Haid hanya relevan bagi pegawai perempuan (wanita).
+    - Cuti Istri Melahirkan (*Paternity Leave*) hanya relevan bagi pegawai laki-laki (pria).
+    - Cuti Tahunan, Sakit, atau Cuti Penting berlaku untuk semua pegawai.
+  - Memastikan integritas data historis: jenis cuti yang sudah pernah diajukan oleh staf dilarang keras dihapus permanen agar audit log dan riwayat absensi tetap utuh.
+- **Hasil Pekerjaan & Perbaikan:**
+  1. **Migrasi Database (`packages/db/prisma/schema/hris.prisma`):**
+     - Menambahkan kolom `applicable_gender Gender?` pada model `LeaveType`.
+     - Migrasi Prisma `20261029051718_add_applicable_gender_to_leave_type` diterapkan.
+     - Memperbarui data bawaan (Cuti Melahirkan diatur otomatis khusus perempuan).
+  2. **Validasi & Server Actions (`leave.schema.ts` & `leave.actions.ts`):**
+     - `createLeaveTypeAction`: Menambahkan jenis cuti baru dengan atribut nama, kuota tahunan, tipe berbayar/unpaid, kewajiban lampiran surat keterangan, kriteria gender, dan status aktif.
+     - `updateLeaveTypeAction`: Mengubah konfigurasi lengkap master jenis cuti.
+     - `deleteLeaveTypeAction`: Memeriksa apakah ada permohonan (`LeaveRequest`) atau saldo terpakai (`usedDays > 0`). Jika ada data historis, aksi menolak penghapusan permanen dan menyarankan penonaktifan. Jika belum pernah dipakai, aman dihapus.
+     - Pencatatan Audit Log terstandarisasi (`writeAudit`) untuk seluruh mutasi.
+  3. **Penyaringan Cerdas Sisi Server (`leave.queries.ts` & `leave.service.ts`):**
+     - `getLeaveTypes(gender)` dan `getEmployeeLeaveBalances` otomatis menyaring jenis cuti berdasarkan gender pegawai yang sedang login. Pegawai pria tidak melihat opsi cuti melahirkan di form pengajuan cuti, dan sebaliknya.
+     - `submitLeaveRequest`: Validasi backend ganda memastikan pegawai tidak dapat menerobos pengajuan cuti yang bertentangan dengan kriteria gendernya.
+  4. **Antarmuka Pengguna / UI (`leave-settings-view.tsx`):**
+     - Tombol `+ Tambah Jenis Cuti` di header tab Jenis & Kuota Cuti.
+     - Kolom tabel *Kriteria Pegawai* dengan badge warna khusus (Khusus Wanita [pink], Khusus Pria [sky], Semua Pegawai [neutral]).
+     - Modal Tambah Jenis Cuti Lengkap dengan opsi radio button gender deskriptif.
+     - Modal Edit Jenis Cuti Lengkap.
+     - Dialog Konfirmasi Hapus Aman dengan peringatan proteksi data historis.
+  5. **Pengujian Unit Otomatis:**
+     - `apps/hris/src/server/actions/leave-type.actions.test.ts` (6 unit tests).
+     - `apps/hris/src/server/services/leave.service.test.ts` (3 unit tests).
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 paket monorepo sukses, 0 error)
+  - `pnpm lint`: ✅ Lolos 100% (0 errors, 0 warnings di seluruh monorepo)
+  - `pnpm test`: ✅ Lolos 100% (39 test files, 270 unit tests lulus)
+
+
 ## [Keamanan & Aksesibilitas] Perbaikan Guard Rute Notifikasi Broadcast & Audit Hak Akses Antar Role — 2026-10-29
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

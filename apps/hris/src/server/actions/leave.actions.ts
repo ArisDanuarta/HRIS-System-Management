@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { assertCan, can, AuthContext } from "@pspk/rbac";
-import { prisma } from "@pspk/db";
+import { prisma, writeAudit } from "@pspk/db";
 import { getStorageProvider } from "@pspk/storage";
 import { calculateAdjustedLeaveQuota } from "@pspk/shared";
 import {
@@ -393,23 +393,40 @@ export async function createHolidayAction(input: CreateHolidayInput) {
 }
 
 /**
- * Server Action: Update Leave Type Quota (HR Setting)
+ * Server Action: Create New Leave Type (HR Setting)
  */
-export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
+export async function createLeaveTypeAction(input: CreateLeaveTypeInput) {
   try {
-    const { authCtx } = await getAuthenticatedUser();
+    const { authCtx, userId, userEmail } = await getAuthenticatedUser();
     assertCan(authCtx, "hris.leave.configure:all");
 
-    const validated = updateLeaveTypeSchema.parse(input);
+    const validated = createLeaveTypeSchema.parse(input);
 
-    const updated = await prisma.leaveType.update({
-      where: { id: validated.id },
+    const created = await prisma.leaveType.create({
       data: {
-        name: validated.name,
+        name: validated.name.trim(),
         defaultQuotaDays: validated.defaultQuotaDays,
         isPaid: validated.isPaid,
         requiresAttachment: validated.requiresAttachment,
+        applicableGender: validated.applicableGender || null,
         isActive: validated.isActive,
+      },
+    });
+
+    await writeAudit({
+      actorUserId: userId,
+      actorEmail: userEmail,
+      app: "hris",
+      action: "CREATE",
+      entityType: "LeaveType",
+      entityId: created.id,
+      after: {
+        name: created.name,
+        defaultQuotaDays: created.defaultQuotaDays,
+        isPaid: created.isPaid,
+        requiresAttachment: created.requiresAttachment,
+        applicableGender: created.applicableGender,
+        isActive: created.isActive,
       },
     });
 
@@ -419,13 +436,132 @@ export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
 
     return {
       success: true,
-      message: "Konfigurasi jenis cuti berhasil diperbarui!",
+      message: `Jenis cuti '${created.name}' berhasil ditambahkan!`,
+      data: created,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: formatErrorMessage(err, "Gagal menambahkan jenis cuti baru."),
+    };
+  }
+}
+
+/**
+ * Server Action: Update Leave Type (HR Setting)
+ */
+export async function updateLeaveTypeAction(input: UpdateLeaveTypeInput) {
+  try {
+    const { authCtx, userId, userEmail } = await getAuthenticatedUser();
+    assertCan(authCtx, "hris.leave.configure:all");
+
+    const validated = updateLeaveTypeSchema.parse(input);
+
+    const updated = await prisma.leaveType.update({
+      where: { id: validated.id },
+      data: {
+        name: validated.name.trim(),
+        defaultQuotaDays: validated.defaultQuotaDays,
+        isPaid: validated.isPaid,
+        requiresAttachment: validated.requiresAttachment,
+        applicableGender: validated.applicableGender || null,
+        isActive: validated.isActive,
+      },
+    });
+
+    await writeAudit({
+      actorUserId: userId,
+      actorEmail: userEmail,
+      app: "hris",
+      action: "UPDATE",
+      entityType: "LeaveType",
+      entityId: updated.id,
+      after: {
+        name: updated.name,
+        defaultQuotaDays: updated.defaultQuotaDays,
+        isPaid: updated.isPaid,
+        requiresAttachment: updated.requiresAttachment,
+        applicableGender: updated.applicableGender,
+        isActive: updated.isActive,
+      },
+    });
+
+    revalidatePath("/cuti/pengaturan");
+    revalidatePath("/cuti");
+    revalidatePath("/cuti/ajukan");
+
+    return {
+      success: true,
+      message: `Konfigurasi cuti '${updated.name}' berhasil diperbarui!`,
       data: updated,
     };
   } catch (err) {
     return {
       success: false,
       message: formatErrorMessage(err, "Gagal memperbarui konfigurasi cuti."),
+    };
+  }
+}
+
+/**
+ * Server Action: Delete Leave Type (HR Setting with Historical Data Safety Check)
+ */
+export async function deleteLeaveTypeAction(input: DeleteLeaveTypeInput) {
+  try {
+    const { authCtx, userId, userEmail } = await getAuthenticatedUser();
+    assertCan(authCtx, "hris.leave.configure:all");
+
+    const validated = deleteLeaveTypeSchema.parse(input);
+
+    const leaveType = await prisma.leaveType.findUnique({
+      where: { id: validated.id },
+    });
+
+    if (!leaveType) {
+      return { success: false, message: "Jenis cuti tidak ditemukan." };
+    }
+
+    // Periksa apakah jenis cuti sudah pernah digunakan dalam permohonan cuti
+    const [requestCount, balanceWithUsageCount] = await Promise.all([
+      prisma.leaveRequest.count({ where: { leaveTypeId: validated.id } }),
+      prisma.leaveBalance.count({ where: { leaveTypeId: validated.id, usedDays: { gt: 0 } } }),
+    ]);
+
+    if (requestCount > 0 || balanceWithUsageCount > 0) {
+      return {
+        success: false,
+        message: `Jenis cuti '${leaveType.name}' tidak dapat dihapus permanen karena telah memiliki ${requestCount} riwayat permohonan cuti pegawai. Silakan nonaktifkan jenis cuti ini melalui tombol edit agar data historis tetap aman.`,
+      };
+    }
+
+    // Jika belum pernah digunakan, aman untuk dihapus
+    await prisma.$transaction([
+      prisma.leaveBalance.deleteMany({ where: { leaveTypeId: validated.id } }),
+      prisma.leaveType.delete({ where: { id: validated.id } }),
+    ]);
+
+    await writeAudit({
+      actorUserId: userId,
+      actorEmail: userEmail,
+      app: "hris",
+      action: "DELETE",
+      entityType: "LeaveType",
+      entityId: validated.id,
+      before: { name: leaveType.name },
+    });
+
+    revalidatePath("/cuti/pengaturan");
+    revalidatePath("/cuti");
+    revalidatePath("/cuti/ajukan");
+
+    return {
+      success: true,
+      message: `Jenis cuti '${leaveType.name}' berhasil dihapus permanen.`,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: formatErrorMessage(err, "Gagal menghapus jenis cuti."),
     };
   }
 }
