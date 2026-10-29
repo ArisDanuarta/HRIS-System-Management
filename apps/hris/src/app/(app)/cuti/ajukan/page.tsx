@@ -31,9 +31,21 @@ export default async function AjukanCutiPage() {
 
   const userProfile = await getUserProfile(session.user.id);
   const employee =
-    userProfile?.employee ||
+    (userProfile?.employee?.id
+      ? await prisma.employee.findUnique({
+          where: { id: userProfile.employee.id },
+          include: {
+            currentDepartment: { select: { name: true } },
+            currentPosition: { select: { title: true } },
+          },
+        })
+      : null) ||
     (await prisma.employee.findFirst({
       where: { deletedAt: null },
+      include: {
+        currentDepartment: { select: { name: true } },
+        currentPosition: { select: { title: true } },
+      },
       orderBy: { createdAt: "asc" },
     }));
 
@@ -50,28 +62,40 @@ export default async function AjukanCutiPage() {
     getHolidays(currentYear),
   ]);
 
+  const employeeInfo = {
+    fullName: employee.fullName,
+    employeeNo: employee.employeeNo,
+    department: employee.currentDepartment?.name ?? null,
+    position: employee.currentPosition?.title ?? null,
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header & Back Link */}
       <div>
         <Link
           href="/cuti"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-[#102e50] transition-colors mb-2"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102e50] transition-colors mb-3"
         >
           <ArrowLeft className="w-4 h-4" />
-          Kembali ke Daftar Cuti
+          <span>Kembali ke Dashboard Cuti</span>
         </Link>
         <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">
           Formulir Pengajuan Cuti & Izin
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Lengkapi detail permohonan cuti Anda. Sistem akan menghitung otomatis hari kerja efektif
-          tanpa akhir pekan dan hari libur nasional.
+        <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+          Ajukan permohonan cuti kerja melalui proses multi-tahap yang terverifikasi otomatis dengan
+          kalender hari libur resmi PSPK.
         </p>
       </div>
 
-      {/* Interactive Form Component */}
-      <LeaveRequestForm leaveTypes={leaveTypes} balances={balances} holidays={holidays} />
+      {/* Interactive Multi-Step Form Component */}
+      <LeaveRequestForm
+        leaveTypes={leaveTypes}
+        balances={balances}
+        holidays={holidays}
+        employeeInfo={employeeInfo}
+      />
     </div>
   );
 }
