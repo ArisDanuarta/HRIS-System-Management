@@ -3,7 +3,6 @@
 import React, { useState, useMemo } from "react";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { EmploymentType, WageType } from "@pspk/db";
-import { ContractTypeBadge } from "@/components/karyawan/status-badge";
 import {
   FileText,
   Download,
@@ -253,18 +252,10 @@ export function EmployeeContractsTable({
                         : "hover:bg-slate-50/60"
                     }`}
                   >
-                    <td className="py-3 px-4 font-semibold">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <ContractTypeBadge
-                          type={contract.type}
-                          label={contract.employmentTypeMaster?.name}
-                        />
-                        {isActive && (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100/70 border border-emerald-300/80 px-1.5 py-0.5 rounded-sm">
-                            Berjalan
-                          </span>
-                        )}
-                      </div>
+                    <td className="py-3 px-4">
+                      <span className="font-semibold text-slate-800 text-xs">
+                        {contract.employmentTypeMaster?.name || contract.type}
+                      </span>
                     </td>
                     <td className="py-3 px-4 font-mono font-medium text-slate-700">
                       {contractNo ? (

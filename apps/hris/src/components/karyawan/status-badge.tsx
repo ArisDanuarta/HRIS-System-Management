@@ -85,25 +85,25 @@ export function ContractTypeBadge({ type, label }: ContractTypeBadgeProps) {
   switch (type) {
     case "PERMANENT":
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
           {displayLabel}
         </span>
       );
     case "FIXED_TERM":
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#feba48]/20 text-[#805600] border border-[#feba48]/40">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
           {displayLabel}
         </span>
       );
     case "PART_TIME_PROJECT":
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
           {displayLabel}
         </span>
       );
     default:
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
+        <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
           {displayLabel}
         </span>
       );

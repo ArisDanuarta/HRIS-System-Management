@@ -373,26 +373,26 @@ export default async function EmployeeDetailPage({
       </div>
 
       {/* Tabs Navigation */}
-      <div className="bg-slate-100/90 p-1.5 rounded-xl border border-slate-200/80 flex items-center gap-1.5 overflow-x-auto shadow-2xs">
+      <div className="flex items-center gap-1 border-b border-slate-200 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
         <Link
           href={`/karyawan/${employee.id}?tab=biodata`}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "biodata"
-              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              ? "border-[#102E50] text-[#102E50]"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
-          <User className="w-4 h-4 text-slate-500" />
+          <User className="w-4 h-4" />
           <span>Biodata & Kontak</span>
         </Link>
 
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=sensitif`}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
               effectiveTab === "sensitif"
-                ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                ? "border-[#102E50] text-[#102E50]"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <Shield className="w-4 h-4 text-amber-600" />
@@ -402,19 +402,19 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=kontrak`}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "kontrak"
-              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              ? "border-[#102E50] text-[#102E50]"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
-          <FileText className="w-4 h-4 text-slate-500" />
+          <FileText className="w-4 h-4" />
           <span>Kontrak Kerja</span>
           <span
             className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
               effectiveTab === "kontrak"
                 ? "bg-[#102E50]/10 text-[#102E50]"
-                : "bg-slate-200/80 text-slate-600"
+                : "bg-slate-100 text-slate-500"
             }`}
           >
             {employee.contracts.length}
@@ -423,20 +423,20 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=jabatan`}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "jabatan"
-              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              ? "border-[#102E50] text-[#102E50]"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
-          <Briefcase className="w-4 h-4 text-slate-500" />
+          <Briefcase className="w-4 h-4" />
           <span>Jabatan & Tim</span>
           {employee.histories.length > 0 && (
             <span
               className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
                 effectiveTab === "jabatan"
                   ? "bg-[#102E50]/10 text-[#102E50]"
-                  : "bg-slate-200/80 text-slate-600"
+                  : "bg-slate-100 text-slate-500"
               }`}
             >
               {employee.histories.length}
@@ -446,10 +446,10 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=dokumen`}
-          className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
             effectiveTab === "dokumen"
-              ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-              : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+              ? "border-[#102E50] text-[#102E50]"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
           }`}
         >
           <FolderArchive className="w-4 h-4 text-[#102E50]" />
@@ -458,7 +458,7 @@ export default async function EmployeeDetailPage({
             className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
               effectiveTab === "dokumen"
                 ? "bg-[#102E50]/10 text-[#102E50]"
-                : "bg-slate-200/80 text-slate-600"
+                : "bg-slate-100 text-slate-500"
             }`}
           >
             {employee.documents?.length || 0}
@@ -468,10 +468,10 @@ export default async function EmployeeDetailPage({
         {isAssetAssignmentActive && (
           <Link
             href={`/karyawan/${employee.id}?tab=aset`}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
               effectiveTab === "aset"
-                ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                ? "border-[#102E50] text-[#102E50]"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <Laptop className="w-4 h-4 text-[#102E50]" />
@@ -480,7 +480,7 @@ export default async function EmployeeDetailPage({
               className={`px-1.5 py-0.5 text-[10px] rounded-full font-bold ${
                 effectiveTab === "aset"
                   ? "bg-[#102E50]/10 text-[#102E50]"
-                  : "bg-slate-200/80 text-slate-600"
+                  : "bg-slate-100 text-slate-500"
               }`}
             >
               {activeAssets.length}
@@ -491,10 +491,10 @@ export default async function EmployeeDetailPage({
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=akun`}
-            className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer shrink-0 ${
+            className={`inline-flex items-center gap-2 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
               effectiveTab === "akun"
-                ? "bg-white text-[#102E50] shadow-xs border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                ? "border-[#102E50] text-[#102E50]"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
             }`}
           >
             <KeyRound className="w-4 h-4 text-[#F2AF3E]" />
