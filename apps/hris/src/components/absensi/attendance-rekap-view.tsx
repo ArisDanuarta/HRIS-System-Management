@@ -16,6 +16,7 @@ import {
   LayoutGrid,
   Table2,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { AttendanceCorrectionModal } from "./attendance-correction-modal";
 import { exportAttendanceRekapXlsx } from "@/lib/attendance-export";
@@ -72,6 +73,7 @@ export function AttendanceRekapView({
   const [month, setMonth] = useState(String(currentMonth));
   const [year, setYear] = useState(String(currentYear));
   const [viewMode, setViewMode] = useState<"matrix" | "summary">("matrix");
+  const [isExporting, setIsExporting] = useState(false);
 
   // Selected employee & optional target date for correction modal
   const [selectedForCorrection, setSelectedForCorrection] = useState<{
@@ -210,28 +212,38 @@ export function AttendanceRekapView({
   const activeMonthLabel =
     months.find((m) => Number(m.value) === currentMonth)?.label || `Bulan ${currentMonth}`;
 
-  const handleExportXlsx = () => {
-    const selectedDeptName = isTeamView
-      ? departmentName || "Divisi Tim"
-      : dept === "ALL"
-        ? "Semua Divisi"
-        : departments.find((d) => d.id === dept)?.name || "Divisi";
+  const handleExportXlsx = async () => {
+    if (isExporting) return;
+    setIsExporting(true);
 
-    exportAttendanceRekapXlsx({
-      employees,
-      statsMap,
-      year: currentYear,
-      month: currentMonth,
-      monthLabel: activeMonthLabel,
-      departmentName: selectedDeptName,
-    });
+    try {
+      const selectedDeptName = isTeamView
+        ? departmentName || "Divisi Tim"
+        : dept === "ALL"
+          ? "Semua Divisi"
+          : departments.find((d) => d.id === dept)?.name || "Divisi";
 
-    logAttendanceExportAction({
-      year: currentYear,
-      month: currentMonth,
-      departmentId: dept !== "ALL" ? dept : undefined,
-      totalEmployees: employees.length,
-    }).catch(console.error);
+      await exportAttendanceRekapXlsx({
+        employees,
+        dailyMap,
+        statsMap,
+        year: currentYear,
+        month: currentMonth,
+        monthLabel: activeMonthLabel,
+        departmentName: selectedDeptName,
+      });
+
+      logAttendanceExportAction({
+        year: currentYear,
+        month: currentMonth,
+        departmentId: dept !== "ALL" ? dept : undefined,
+        totalEmployees: employees.length,
+      }).catch(console.error);
+    } catch (err) {
+      console.error("Gagal mengekspor rekapitulasi presensi:", err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Render matrix cell badge
@@ -491,12 +503,21 @@ export function AttendanceRekapView({
           <button
             type="button"
             onClick={handleExportXlsx}
-            disabled={employees.length === 0}
+            disabled={employees.length === 0 || isExporting}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-[0.98]"
             title="Unduh rekapitulasi presensi dalam format Excel (.xlsx)"
           >
-            <FileSpreadsheet className="w-4 h-4 text-[#102e50]" />
-            <span>Ekspor Rekap (.xlsx)</span>
+            {isExporting ? (
+              <>
+                <Loader2 className="w-4 h-4 text-[#102e50] animate-spin" />
+                <span>Membuat Berkas...</span>
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet className="w-4 h-4 text-[#102e50]" />
+                <span>Ekspor Rekap (.xlsx)</span>
+              </>
+            )}
           </button>
         </div>
       </div>
