@@ -19,6 +19,7 @@ import {
   type DepartmentItem,
 } from "@/components/karyawan/organization-management";
 import { EmploymentTypeManagement } from "@/components/karyawan/employment-type-management";
+import { LeaveSettingsView } from "@/components/cuti/leave-settings-view";
 import type { EmploymentTypeDetail } from "@/server/queries/employment-type.queries";
 import type { LeaveTypeItem } from "@/components/cuti/leave-settings-view";
 import type { ActiveWorkSchedule } from "@/server/services/work-schedule.service";
@@ -385,11 +386,24 @@ export function TataKelolaView({
         )}
 
         {activeTab === "jadwal-cuti" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-2">
-            <h2 className="text-base font-bold text-slate-900">Jam Kerja Operasional, Master Cuti & Libur Nasional</h2>
-            <p className="text-xs text-slate-500">
-              Jadwal aktif: {workSchedule?.name || "Reguler"}, {leaveTypes.length} jenis cuti, {holidays.length} hari libur, {employeeBalances.length} catatan saldo pegawai (tipe default: {defaultLeaveType?.name || "-"}).
-            </p>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Header Konteks Jadwal & Cuti */}
+            <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-2xs">
+              <h2 className="text-base font-bold text-slate-900 font-serif">
+                Jam Kerja Kantor, Master Cuti & Hari Libur Nasional
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Konfigurasi jam masuk-pulang operasional lembaga, toleransi keterlambatan presensi, jenis cuti resmi (kuota & syarat lampiran), kalender libur bersama, dan kuota cuti tahunan pegawai.
+              </p>
+            </div>
+
+            <LeaveSettingsView
+              leaveTypes={leaveTypes}
+              holidays={holidays}
+              workSchedule={workSchedule}
+              employeeBalances={employeeBalances}
+              defaultLeaveType={defaultLeaveType}
+            />
           </div>
         )}
 
