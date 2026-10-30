@@ -11,3 +11,11 @@ coverage/
 *.dump
 *.log
 .DS_Store
+
+# Credentials & Private Documentation (Local only)
+docs/credentials.md
+docs/credentials/
+docs/private/
+*.credentials.md
+*.secret.md
+

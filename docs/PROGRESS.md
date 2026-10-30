@@ -2,6 +2,32 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Tata Kelola HR] Pusat Tata Kelola & Master Data Kepegawaian (/tata-kelola) — 2026-10-30
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Solusi:**
+  - Menyatukan konfigurasi dan master data kepegawaian yang sebelumnya tersebar di 5 halaman berbeda (`/karyawan/organisasi`, `/karyawan/ikatan-kerja`, `/cuti/pengaturan`, `/payroll/komponen`, `/payroll/pengaturan`) ke dalam 1 antarmuka terpusat yang modern dan terstruktur: **Tata Kelola & Master HR** (`/tata-kelola`).
+  - Mengadopsi arsitektur tabbing sinkron URL Query Parameter (`?tab=...`), metrik eksekutif, dan *role-based access control* (RBAC) ketat khusus Admin HR dan Super Admin.
+- **Hasil Pekerjaan & Implementasi:**
+  1. **Server Component & Antarmuka Utama (`/tata-kelola/page.tsx` & `tata-kelola-view.tsx`):**
+     - Pengambilan data master komprehensif secara paralel (`Promise.all`) sisi server.
+     - 4 Kartu Metrik Ringkasan: Struktur Divisi, Ikatan Kerja, Regulasi Cuti, serta Gaji & Rekening Bank.
+     - Navigasi 5 Tab Terpadu:
+       - **Tab 1: Struktur Divisi & Formasi Jabatan (`?tab=organisasi`)**: Hirarki divisi, unit kerja, formasi jabatan, dan shortcut ke visual bagan pohon organisasi (`/karyawan/struktur`).
+       - **Tab 2: Tipe Ikatan Kerja & Perjanjian Kontrak (`?tab=ikatan-kerja`)**: Master PKWTT, PKWT, Freelance, Magang, skema bulanan vs per jam, dan tarif honor acuan.
+       - **Tab 3: Jam Kerja Kantor, Regulasi Cuti & Libur Nasional (`?tab=jadwal-cuti`)**: Jam operasional kantor, toleransi keterlambatan, master jenis cuti (kriteria gender & lampiran), sinkronisasi libur Google Calendar, dan saldo cuti pegawai.
+       - **Tab 4: Master Komponen Gaji & Tunjangan (`?tab=payroll-komponen`)**: Komponen penambah (*Earnings*) dan pemotong (*Deductions*).
+       - **Tab 5: Kop Dokumen Resmi & Rekening Bank Penggajian (`?tab=dokumen-bank`)**: Rekening bank operasional PSPK (BCA), identitas lembaga, logo, tanda tangan, stempel digital, dan live preview slip gaji.
+  2. **Restrukturisasi Sidebar (`app-sidebar.tsx`):**
+     - Mengeliminasi menu-menu konfigurasi parsial yang berserakan di sidebar (`/karyawan/organisasi`, `/karyawan/ikatan-kerja`).
+     - Menghadirkan menu baru yang ringkas dan elegan: **Tata Kelola HR** (`/tata-kelola`) berikon `SlidersHorizontal`.
+  3. **Backward Compatibility & Redirects:**
+     - Menambahkan Next.js *Redirects* di `next.config.ts` dan server-side redirect di rute-rute lama sehingga bookmark atau tautan historis otomatis terarah ke tab yang tepat di `/tata-kelola`.
+  4. **Verifikasi Teknis:**
+     - `pnpm --filter @pspk/hris lint`: ✅ Lolos (0 error, 0 warning).
+     - `pnpm --filter @pspk/hris typecheck`: ✅ Lolos (0 error).
+     - `pnpm --filter @pspk/hris build`: ✅ Lolos build Next.js Turbopack produksi tanpa kendala.
+
 ## [Fitur Cuti] Full CRUD Master Jenis Cuti & Kebijakan Kriteria Gender Pegawai — 2026-10-29
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
@@ -2885,7 +2911,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     1. Sistem Role & Permission RBAC (5 peran sistem: `super_admin`, `admin_hr`, `admin_it`, `manager`, `staff` serta 61 permission).
     2. Akun tunggal **Super Administrator**:
        - Email: `it@pspk.id` (sebelumnya `superadmin@pspk.id`)
-       - Password: `Superadmin321!`
+       - Password: `[Kredensial dev lokal - lihat docs/credentials.md atau .env]`
        - Role: `super_admin`
   - Sistem sekarang berada dalam kondisi _clean-slate_ murni untuk pengujian input manual satu per satu dari antarmuka web.
 
