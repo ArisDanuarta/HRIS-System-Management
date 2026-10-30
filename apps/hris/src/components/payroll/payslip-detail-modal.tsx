@@ -77,10 +77,10 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl p-6 relative animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 my-auto">
         {/* Header Modal */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#102E50] text-[#F2AF3E] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
               <FileText className="w-5 h-5" />
@@ -95,14 +95,16 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg text-sm hover:bg-slate-100 transition-colors"
           >
             ✕
           </button>
         </div>
 
-        {/* Profil Karyawan & Rekening */}
-        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80 mb-5">
+        {/* Scrollable Body */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          {/* Profil Karyawan & Rekening */}
+          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <span className="font-bold text-slate-900 text-sm block">
@@ -276,7 +278,7 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
         </div>
 
         {/* Ringkasan Take-Home Pay */}
-        <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center justify-between shadow-md mb-6">
+        <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center justify-between shadow-md">
           <div>
             <span className="text-[11px] text-slate-400 block uppercase tracking-wider font-semibold">
               Gaji Bersih Diterima (Take-Home Pay)
@@ -291,18 +293,19 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
             </span>
           </div>
         </div>
+      </div>
 
-        {/* Tombol Tutup */}
-        <div className="flex justify-end pt-2 border-t border-slate-100">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2 text-xs font-semibold text-white bg-[#102E50] hover:bg-[#1a4473] rounded-lg transition-colors shadow-xs"
-          >
-            Tutup Rincian
-          </button>
-        </div>
+      {/* Tombol Tutup - Fixed at bottom */}
+      <div className="flex justify-end px-6 py-3.5 border-t border-slate-100 shrink-0 bg-slate-50/70">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-5 py-2 text-xs font-semibold text-white bg-[#102E50] hover:bg-[#1a4473] rounded-xl transition-colors shadow-xs"
+        >
+          Tutup Rincian
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 }
