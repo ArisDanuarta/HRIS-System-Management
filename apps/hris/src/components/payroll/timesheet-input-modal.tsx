@@ -11,6 +11,8 @@ import {
   Briefcase,
   Calculator,
   DownloadCloud,
+  ExternalLink,
+  CheckCircle2,
 } from "lucide-react";
 import { formatRupiah } from "@pspk/shared";
 import { updatePayslipTimesheetAction } from "@/server/actions/payroll.actions";
@@ -20,6 +22,13 @@ export interface TimesheetModalPayslip {
   totalHours?: number | null;
   hourlyRate?: number | null;
   timesheetKey?: string | null;
+  timesheetApproval?: {
+    id: string;
+    status: string;
+    approvedAt: string | null;
+    reviewers: string[];
+    title?: string | null;
+  } | null;
   grossAmount: number;
   netAmount: number;
   wageType?: string | null;
@@ -274,23 +283,76 @@ export function TimesheetInputModal({
               Lampiran Berkas Timesheet yang Telah Di-acc Lead
             </label>
 
-            {payslip.timesheetKey && (
-              <div className="mb-2 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 text-emerald-800">
-                  <FileCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Berkas bukti timesheet sebelumnya sudah tersimpan</span>
+            {payslip.timesheetKey && (() => {
+              const isExternal =
+                payslip.timesheetKey.startsWith("http://") ||
+                payslip.timesheetKey.startsWith("https://");
+
+              return (
+                <div className="mb-3 p-3 bg-emerald-50/80 border border-emerald-200 rounded-xl space-y-2.5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        Terverifikasi & Di-acc Lead
+                      </span>
+                      <span className="text-xs font-semibold text-emerald-950">
+                        {isExternal ? "Google Spreadsheet" : "Berkas Tersimpan"}
+                      </span>
+                    </div>
+
+                    {isExternal ? (
+                      <a
+                        href={payslip.timesheetKey}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors shrink-0"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                        <span>Buka Google Spreadsheet</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    ) : (
+                      <a
+                        href={`/api/documents/${payslip.timesheetKey}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white border border-emerald-300 text-emerald-800 hover:bg-emerald-100 rounded-lg text-xs font-semibold shadow-2xs transition-colors shrink-0"
+                      >
+                        <DownloadCloud className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Unduh Berkas Bukti</span>
+                      </a>
+                    )}
+                  </div>
+
+                  {payslip.timesheetApproval?.reviewers &&
+                    payslip.timesheetApproval.reviewers.length > 0 && (
+                      <div className="text-[11px] text-emerald-800/90 pt-1.5 border-t border-emerald-200/60 flex flex-wrap items-center gap-1.5">
+                        <span className="font-semibold text-emerald-950">Disetujui oleh:</span>
+                        <span>{payslip.timesheetApproval.reviewers.join(", ")}</span>
+                        {payslip.timesheetApproval.approvedAt && (
+                          <>
+                            <span className="text-emerald-400">•</span>
+                            <span className="text-emerald-700">
+                              {new Date(payslip.timesheetApproval.approvedAt).toLocaleDateString(
+                                "id-ID",
+                                {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}{" "}
+                              WIB
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
                 </div>
-                <a
-                  href={`/api/documents/${payslip.timesheetKey}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-900 underline"
-                >
-                  <DownloadCloud className="w-3.5 h-3.5" />
-                  <span>Unduh File</span>
-                </a>
-              </div>
-            )}
+              );
+            })()}
 
             <div className="border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl p-3.5 text-center transition-colors bg-slate-50/50">
               <input
