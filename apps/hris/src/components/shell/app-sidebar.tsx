@@ -24,6 +24,7 @@ import {
   Network,
   CalendarRange,
   Mail,
+  SlidersHorizontal,
 } from "lucide-react";
 import { ModuleFlags, isModuleActive } from "@pspk/db";
 
@@ -112,6 +113,16 @@ export function AppSidebar({
     }
     if (href === "/kalender") {
       return pathname.startsWith("/kalender");
+    }
+    if (href === "/tata-kelola") {
+      return (
+        pathname.startsWith("/tata-kelola") ||
+        pathname.startsWith("/karyawan/organisasi") ||
+        pathname.startsWith("/karyawan/ikatan-kerja") ||
+        pathname.startsWith("/cuti/pengaturan") ||
+        pathname.startsWith("/payroll/pengaturan") ||
+        pathname.startsWith("/payroll/komponen")
+      );
     }
     return pathname.startsWith(href);
   };
