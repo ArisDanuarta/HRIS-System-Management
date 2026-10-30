@@ -298,34 +298,6 @@ export async function generatePayrollExcelExport(periodId: string): Promise<Gene
   totalNoteCell.alignment = { vertical: "middle", horizontal: "center" };
   totalNoteCell.border = thinBorder;
 
-  // 8. Bagian Pengesahan / Tanda Tangan
-  const signStartRow = totalRowIdx + 3;
-  wsBank.getCell(signStartRow, 2).value = "Dibuat & Diverifikasi Oleh:";
-  wsBank.getCell(signStartRow, 2).font = { name: "Calibri", size: 9.5, bold: true, color: { argb: "FF334155" } };
-
-  wsBank.getCell(signStartRow + 1, 2).value = "HR Administrator PSPK";
-  wsBank.getCell(signStartRow + 1, 2).font = { name: "Calibri", size: 9, color: { argb: "FF64748B" } };
-
-  const signerName = setting?.authorizedSignerName || "Vinda Permata Andini";
-  wsBank.getCell(signStartRow + 5, 2).value = `( ${signerName} )`;
-  wsBank.getCell(signStartRow + 5, 2).font = { name: "Calibri", size: 9.5, bold: true, color: { argb: "FF0F172A" } };
-
-  wsBank.getCell(signStartRow + 6, 2).value = `Tanggal: ${currentDateFormatted}`;
-  wsBank.getCell(signStartRow + 6, 2).font = { name: "Calibri", size: 8.5, italic: true, color: { argb: "FF64748B" } };
-
-  // Penyetuju Keuangan / Operations Lead
-  wsBank.getCell(signStartRow, 8).value = "Disetujui & Diteruskan ke Bank:";
-  wsBank.getCell(signStartRow, 8).font = { name: "Calibri", size: 9.5, bold: true, color: { argb: "FF334155" } };
-
-  wsBank.getCell(signStartRow + 1, 8).value = "Finance & Operations Lead PSPK";
-  wsBank.getCell(signStartRow + 1, 8).font = { name: "Calibri", size: 9, color: { argb: "FF64748B" } };
-
-  wsBank.getCell(signStartRow + 5, 8).value = "( Jody Fathurachman )";
-  wsBank.getCell(signStartRow + 5, 8).font = { name: "Calibri", size: 9.5, bold: true, color: { argb: "FF0F172A" } };
-
-  wsBank.getCell(signStartRow + 6, 8).value = `Tanggal: ${currentDateFormatted}`;
-  wsBank.getCell(signStartRow + 6, 8).font = { name: "Calibri", size: 8.5, italic: true, color: { argb: "FF64748B" } };
-
   // =========================================================================
   // SHEET 2: RINCIAN KOMPONEN GAJI (PAYROLL LEDGER)
   // =========================================================================

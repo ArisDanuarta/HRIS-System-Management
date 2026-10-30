@@ -15,7 +15,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
          - Kop Lembaga resmi PSPK, metadata periode, status, dan informasi rekening sumber dana lembaga (Bank pengirim, no. rek terdekripsi, kantor cabang).
          - Tabel instruksi transfer: No, NIP, Nama Lengkap, Divisi, Jabatan, Skema Kerja, Nama Bank Penerima, Nomor Rekening (diformat teks `@` agar angka nol di depan tidak terpotong dan tidak berubah menjadi format ilmiah), Atas Nama Rekening, Nominal Transfer (`#,##0`), dan Berita Transfer.
          - Baris total dengan formula `=SUM(...)` dan garis bawah ganda (*accounting double underline*).
-         - Kotak pengesahan/tanda tangan ganda untuk HR Administrator dan Finance & Operations Lead.
+         - Berkas berakhir tuntas di baris total sehingga bersih dan fleksibel diproses tim keuangan tanpa gangguan baris tanda tangan manual.
        - **Sheet 2: `Rincian Komponen Gaji` (Payroll Ledger)**:
          - *Grouped two-tier headers*: Info Pegawai, Komponen Penghasilan (*Earnings*), Total Bruto `=SUM(H:L)`, Komponen Pengurang (*Deductions* BPJS & PPh 21), Total Potongan `=SUM(N:Q)`, dan Gaji Bersih `=M-R`.
          - Baris ringkasan total formula `=SUM(...)` untuk seluruh kolom komponen keuangan.
