@@ -158,6 +158,7 @@ export async function updatePayrollSettingsAction(
       },
     });
 
+    revalidatePath("/tata-kelola");
     revalidatePath("/payroll/pengaturan");
     revalidatePath("/payroll");
     revalidatePath("/slip-gaji");
@@ -263,6 +264,7 @@ export async function deletePayrollBrandingAction(
         },
       });
 
+      revalidatePath("/tata-kelola");
       revalidatePath("/payroll/pengaturan");
       revalidatePath("/payroll");
       revalidatePath("/slip-gaji");

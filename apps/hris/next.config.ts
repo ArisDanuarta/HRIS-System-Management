@@ -14,6 +14,35 @@ const config: NextConfig = {
     "@pspk/storage",
   ],
   serverExternalPackages: ["@prisma/client"],
+  async redirects() {
+    return [
+      {
+        source: "/karyawan/organisasi",
+        destination: "/tata-kelola?tab=organisasi",
+        permanent: false,
+      },
+      {
+        source: "/karyawan/ikatan-kerja",
+        destination: "/tata-kelola?tab=ikatan-kerja",
+        permanent: false,
+      },
+      {
+        source: "/cuti/pengaturan",
+        destination: "/tata-kelola?tab=jadwal-cuti",
+        permanent: false,
+      },
+      {
+        source: "/payroll/komponen",
+        destination: "/tata-kelola?tab=payroll-komponen",
+        permanent: false,
+      },
+      {
+        source: "/payroll/pengaturan",
+        destination: "/tata-kelola?tab=dokumen-bank",
+        permanent: false,
+      },
+    ];
+  },
   async headers() {
     return [
       {

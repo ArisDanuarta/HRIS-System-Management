@@ -79,18 +79,18 @@ export default async function PayrollPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            href="/payroll/komponen"
+            href="/tata-kelola?tab=payroll-komponen"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
           >
             <Sliders className="w-3.5 h-3.5 text-slate-500" />
             <span>Master Komponen Gaji</span>
           </Link>
           <Link
-            href="/payroll/pengaturan"
+            href="/tata-kelola?tab=dokumen-bank"
             className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
           >
             <Settings className="w-3.5 h-3.5 text-slate-500" />
-            <span>Pengaturan Dokumen & Bank</span>
+            <span>Kop Dokumen & Rekening Bank</span>
           </Link>
         </div>
       </div>

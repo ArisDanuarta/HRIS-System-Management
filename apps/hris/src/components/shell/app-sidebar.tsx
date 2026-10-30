@@ -18,9 +18,7 @@ import {
   Calendar,
   PanelLeftClose,
   PanelLeftOpen,
-  Building2,
   Clock,
-  Briefcase,
   Network,
   CalendarRange,
   Mail,
@@ -57,7 +55,6 @@ export function AppSidebar({
 
   // Visibilitas Modul Dinamis Berdasarkan Konfigurasi Sistem
   const showOrgChart = isModuleActive(moduleFlags || {}, "org_chart");
-  const showOrgStructure = isModuleActive(moduleFlags || {}, "organization_structure");
   const showPerformance = isModuleActive(moduleFlags || {}, "performance");
   const showTimesheet = isModuleActive(moduleFlags || {}, "timesheet");
 
@@ -282,22 +279,6 @@ export function AppSidebar({
                   isCollapsed={isCollapsed}
                 />
               )}
-              {showOrgStructure && (
-                <NavItem
-                  href="/karyawan/organisasi"
-                  label="Struktur Organisasi"
-                  icon={<Building2 className="w-5 h-5 shrink-0" />}
-                  isActive={isNavActive("/karyawan/organisasi")}
-                  isCollapsed={isCollapsed}
-                />
-              )}
-              <NavItem
-                href="/karyawan/ikatan-kerja"
-                label="Tipe Ikatan Kerja"
-                icon={<Briefcase className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/karyawan/ikatan-kerja")}
-                isCollapsed={isCollapsed}
-              />
               <NavItem
                 href="/absensi/rekap"
                 label="Kehadiran Organisasi"
@@ -349,6 +330,13 @@ export function AppSidebar({
                 label="Broadcast Email"
                 icon={<Mail className="w-5 h-5 shrink-0" />}
                 isActive={pathname.startsWith("/komunikasi")}
+                isCollapsed={isCollapsed}
+              />
+              <NavItem
+                href="/tata-kelola"
+                label="Tata Kelola HR"
+                icon={<SlidersHorizontal className="w-5 h-5 shrink-0" />}
+                isActive={isNavActive("/tata-kelola")}
                 isCollapsed={isCollapsed}
               />
             </nav>
