@@ -652,17 +652,19 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
 
   // 2. Komponen khusus pegawai (jika ada)
   for (const comp of masterComponents) {
+    // Skip Gaji Pokok untuk pekerja per jam
+    if (comp.code === "BASE_SALARY" || comp.name.toLowerCase().includes("gaji pokok")) {
+      continue;
+    }
+    // Pegawai per jam tidak mendapatkan tunjangan tetap atau iuran BPJS bulanan kantor
+    if (comp.calcType !== "MANUAL") {
+      continue;
+    }
+
     const empOverride = empComponentMap.get(comp.id);
 
     let amount = 0;
-    if (comp.calcType === "FIXED") {
-      if (empOverride) amount = Number(empOverride.amount);
-    } else if (comp.calcType === "PERCENT_OF_BASE") {
-      if (empOverride) {
-        const percent = Number(empOverride.amount);
-        amount = Math.round((percent / 100) * hourlyPay);
-      }
-    } else if (comp.calcType === "MANUAL") {
+    if (comp.calcType === "MANUAL") {
       amount = empOverride ? Number(empOverride.amount) : 0;
     }
 
