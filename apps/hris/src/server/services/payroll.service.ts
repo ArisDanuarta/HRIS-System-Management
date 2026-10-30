@@ -76,6 +76,10 @@ export async function calculatePeriodPayroll(
     where: { isActive: true },
   });
 
+  const baseSalaryComp = masterComponents.find(
+    (c) => c.code === "BASE_SALARY" || c.name.toLowerCase().includes("gaji pokok"),
+  );
+
   const skippedWithoutContract: string[] = [];
   let grandGross = 0;
   let grandDeduction = 0;
@@ -185,7 +189,7 @@ export async function calculatePeriodPayroll(
 
         if (baseSalary > 0) {
           linesData.push({
-            componentId: null,
+            componentId: baseSalaryComp?.id ?? null,
             label: "Gaji Pokok",
             type: "EARNING",
             amount: baseSalary,
@@ -197,20 +201,35 @@ export async function calculatePeriodPayroll(
       const empComponentMap = new Map(emp.salaryComponents.map((sc) => [sc.componentId, sc]));
 
       for (const comp of masterComponents) {
+        // A. Komponen Gaji Pokok sudah dihitung dari kontrak pegawai di atas.
+        // Mencegah duplikasi Gaji Pokok untuk pegawai bulanan dan mencegah pegawai per jam mendapatkan Gaji Pokok.
+        if (comp.code === "BASE_SALARY" || comp.name.toLowerCase().includes("gaji pokok")) {
+          continue;
+        }
+
+        // B. Pegawai Per Jam / Freelance (HOURLY):
+        // Sesuai prinsip "No Work, No Pay", kompensasi pegawai per jam hanya berasal dari jam kerja timesheet.
+        // Tunjangan tetap bulanan dan iuran BPJS reguler tidak berlaku untuk kontrak per jam.
+        if (wageType === "HOURLY") {
+          // Hanya izinkan komponen MANUAL jika ada override khusus pegawai (misal bonus/potongan proyek khusus)
+          if (comp.calcType !== "MANUAL") {
+            continue;
+          }
+        }
+
         const empOverride = empComponentMap.get(comp.id);
 
         let amount = 0;
         if (comp.calcType === "FIXED") {
           // Komponen fixed default kantor hanya otomatis untuk pegawai bulanan,
-          // kecuali staf per jam memiliki override khusus yang dikonfigurasi admin
+          // kecuali ada override khusus yang dikonfigurasi admin
           if (empOverride) {
             amount = Number(empOverride.amount);
           } else if (wageType === "MONTHLY") {
             amount = Number(comp.defaultValue || 0);
           }
         } else if (comp.calcType === "PERCENT_OF_BASE") {
-          // Komponen persentase default (seperti BPJS) hanya untuk pegawai bulanan tetap,
-          // untuk freelance per jam hanya berlaku jika ada konfigurasi khusus (override)
+          // Komponen persentase default (seperti BPJS) hanya untuk pegawai bulanan tetap
           if (empOverride) {
             const percent = Number(empOverride.amount);
             amount = Math.round((percent / 100) * baseForCalculation);
