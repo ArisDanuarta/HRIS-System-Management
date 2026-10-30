@@ -8,9 +8,13 @@ import { SalaryComponentModal, SalaryComponentItem } from "./salary-component-mo
 
 interface SalaryComponentsTableProps {
   components: SalaryComponentItem[];
+  isEmbedded?: boolean;
 }
 
-export function SalaryComponentsTable({ components }: SalaryComponentsTableProps) {
+export function SalaryComponentsTable({
+  components,
+  isEmbedded = false,
+}: SalaryComponentsTableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState<SalaryComponentItem | null>(null);
 
@@ -56,13 +60,15 @@ export function SalaryComponentsTable({ components }: SalaryComponentsTableProps
         </div>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/payroll"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
-          >
-            <Calendar className="w-3.5 h-3.5 text-slate-500" />
-            <span>Siklus Periode</span>
-          </Link>
+          {!isEmbedded && (
+            <Link
+              href="/payroll"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
+            >
+              <Calendar className="w-3.5 h-3.5 text-slate-500" />
+              <span>Siklus Periode</span>
+            </Link>
+          )}
           <button
             type="button"
             onClick={() => {

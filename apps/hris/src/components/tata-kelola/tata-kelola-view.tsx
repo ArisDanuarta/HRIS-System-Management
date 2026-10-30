@@ -20,6 +20,8 @@ import {
 } from "@/components/karyawan/organization-management";
 import { EmploymentTypeManagement } from "@/components/karyawan/employment-type-management";
 import { LeaveSettingsView } from "@/components/cuti/leave-settings-view";
+import { SalaryComponentsTable } from "@/components/payroll/salary-components-table";
+import { PayrollSettingsView } from "@/components/payroll/payroll-settings-view";
 import type { EmploymentTypeDetail } from "@/server/queries/employment-type.queries";
 import type { LeaveTypeItem } from "@/components/cuti/leave-settings-view";
 import type { ActiveWorkSchedule } from "@/server/services/work-schedule.service";
@@ -408,20 +410,14 @@ export function TataKelolaView({
         )}
 
         {activeTab === "payroll-komponen" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-2">
-            <h2 className="text-base font-bold text-slate-900">Master Komponen Gaji & Tunjangan</h2>
-            <p className="text-xs text-slate-500">
-              Terdapat {salaryComponents.length} komponen penggajian standar yang terdaftar di sistem.
-            </p>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <SalaryComponentsTable components={salaryComponents} isEmbedded={true} />
           </div>
         )}
 
         {activeTab === "dokumen-bank" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-2">
-            <h2 className="text-base font-bold text-slate-900">Kop Dokumen & Rekening Bank Pengirim</h2>
-            <p className="text-xs text-slate-500">
-              Rekening resmi operasional penggajian: {payrollSettings.senderBankName} atas nama {payrollSettings.senderAccountName}.
-            </p>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <PayrollSettingsView initialSettings={payrollSettings} isEmbedded={true} />
           </div>
         )}
       </div>

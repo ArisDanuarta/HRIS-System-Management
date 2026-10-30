@@ -29,6 +29,7 @@ import { PayrollDocumentPreview } from "./payroll-document-preview";
 
 interface PayrollSettingsViewProps {
   initialSettings: PayrollSettingsData;
+  isEmbedded?: boolean;
 }
 
 const COMMON_BANKS = [
@@ -71,7 +72,10 @@ const BORDER_PRESETS = [
   },
 ];
 
-export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProps) {
+export function PayrollSettingsView({
+  initialSettings,
+  isEmbedded = false,
+}: PayrollSettingsViewProps) {
   const [activeTab, setActiveTab] = useState<"bank" | "document">("bank");
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<{
@@ -370,21 +374,29 @@ export function PayrollSettingsView({ initialSettings }: PayrollSettingsViewProp
   };
 
   return (
-    <div className="space-y-6 max-w-[1440px] mx-auto pb-16 animate-in fade-in duration-200">
+    <div
+      className={
+        isEmbedded
+          ? "space-y-6"
+          : "space-y-6 max-w-[1440px] mx-auto pb-16 animate-in fade-in duration-200"
+      }
+    >
       {/* Top Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
-            <Link
-              href="/payroll"
-              className="hover:text-[#102E50] inline-flex items-center gap-1 transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Penggajian (Payroll)</span>
-            </Link>
-            <span>/</span>
-            <span className="text-[#102E50] font-bold">Pengaturan Dokumen & Bank</span>
-          </div>
+          {!isEmbedded && (
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+              <Link
+                href="/payroll"
+                className="hover:text-[#102E50] inline-flex items-center gap-1 transition-colors"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Penggajian (Payroll)</span>
+              </Link>
+              <span>/</span>
+              <span className="text-[#102E50] font-bold">Pengaturan Dokumen & Bank</span>
+            </div>
+          )}
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-serif">
             Pengaturan Penggajian & Dokumen Resmi
           </h1>
