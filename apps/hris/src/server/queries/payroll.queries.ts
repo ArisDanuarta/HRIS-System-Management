@@ -120,51 +120,88 @@ export async function getPayrollPeriodById(periodId: string) {
   );
   const totalNet = period.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
 
-  const formattedPayslips = period.payslips.map((p) => ({
-    id: p.id,
-    periodId: p.periodId,
-    employeeId: p.employeeId,
-    status: p.status,
-    publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
-    pdfKey: p.pdfKey,
-    createdAt: p.createdAt.toISOString(),
-    updatedAt: p.updatedAt.toISOString(),
-    grossAmount: Number(p.grossAmount),
-    totalDeduction: Number(p.totalDeduction),
-    netAmount: Number(p.netAmount),
-    wageType: p.wageType,
-    totalHours: p.totalHours ? Number(p.totalHours) : null,
-    hourlyRate: p.hourlyRate ? Number(p.hourlyRate) : null,
-    timesheetKey: p.timesheetKey,
-    contract: p.employee.contracts[0]
-      ? {
-          wageType: p.employee.contracts[0].wageType,
-          hourlyRate: p.employee.contracts[0].hourlyRate
-            ? Number(p.employee.contracts[0].hourlyRate)
-            : null,
-          baseSalary: p.employee.contracts[0].baseSalary
-            ? Number(p.employee.contracts[0].baseSalary)
-            : null,
-        }
-      : null,
-    employee: {
-      id: p.employee.id,
-      employeeNo: p.employee.employeeNo,
-      fullName: p.employee.fullName,
-      bankName: p.employee.bankName,
-      bankAccountEnc: p.employee.bankAccountEnc,
-      currentDepartment: p.employee.currentDepartment,
-      currentPosition: p.employee.currentPosition,
+  // Ambil data approval timesheet yang terhubung dengan periode ini
+  const approvedTimesheets = await prisma.timesheetSubmission.findMany({
+    where: {
+      OR: [
+        { payrollPeriodId: period.id },
+        {
+          periodYear: period.year,
+          periodMonth: period.month,
+          status: "APPROVED",
+        },
+      ],
     },
-    lines: p.lines.map((l) => ({
-      id: l.id,
-      payslipId: l.payslipId,
-      componentId: l.componentId,
-      label: l.label,
-      type: l.type,
-      amount: Number(l.amount),
-    })),
-  }));
+    include: {
+      reviewers: {
+        where: { status: "APPROVED" },
+        include: {
+          reviewer: { select: { fullName: true } },
+        },
+      },
+    },
+  });
+  const tsMap = new Map(approvedTimesheets.map((ts) => [ts.employeeId, ts]));
+
+  const formattedPayslips = period.payslips.map((p) => {
+    const matchedTs = tsMap.get(p.employeeId);
+    const timesheetApproval = matchedTs
+      ? {
+          id: matchedTs.id,
+          status: matchedTs.status,
+          approvedAt: matchedTs.approvedAt ? matchedTs.approvedAt.toISOString() : null,
+          reviewers: matchedTs.reviewers.map((r) => r.reviewer.fullName),
+          title: matchedTs.title,
+        }
+      : null;
+
+    return {
+      id: p.id,
+      periodId: p.periodId,
+      employeeId: p.employeeId,
+      status: p.status,
+      publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
+      pdfKey: p.pdfKey,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+      grossAmount: Number(p.grossAmount),
+      totalDeduction: Number(p.totalDeduction),
+      netAmount: Number(p.netAmount),
+      wageType: p.wageType,
+      totalHours: p.totalHours ? Number(p.totalHours) : null,
+      hourlyRate: p.hourlyRate ? Number(p.hourlyRate) : null,
+      timesheetKey: p.timesheetKey,
+      timesheetApproval,
+      contract: p.employee.contracts[0]
+        ? {
+            wageType: p.employee.contracts[0].wageType,
+            hourlyRate: p.employee.contracts[0].hourlyRate
+              ? Number(p.employee.contracts[0].hourlyRate)
+              : null,
+            baseSalary: p.employee.contracts[0].baseSalary
+              ? Number(p.employee.contracts[0].baseSalary)
+              : null,
+          }
+        : null,
+      employee: {
+        id: p.employee.id,
+        employeeNo: p.employee.employeeNo,
+        fullName: p.employee.fullName,
+        bankName: p.employee.bankName,
+        bankAccountEnc: p.employee.bankAccountEnc,
+        currentDepartment: p.employee.currentDepartment,
+        currentPosition: p.employee.currentPosition,
+      },
+      lines: p.lines.map((l) => ({
+        id: l.id,
+        payslipId: l.payslipId,
+        componentId: l.componentId,
+        label: l.label,
+        type: l.type,
+        amount: Number(l.amount),
+      })),
+    };
+  });
 
   const timesheetValidation = await getTimesheetValidationForPayroll(period.year, period.month);
 
@@ -294,6 +331,38 @@ export async function getPayslipById(payslipId: string) {
 
   if (!p) return null;
 
+  const approvedTs = await prisma.timesheetSubmission.findFirst({
+    where: {
+      employeeId: p.employeeId,
+      OR: [
+        { payrollPeriodId: p.periodId },
+        {
+          periodYear: p.period.year,
+          periodMonth: p.period.month,
+          status: "APPROVED",
+        },
+      ],
+    },
+    include: {
+      reviewers: {
+        where: { status: "APPROVED" },
+        include: {
+          reviewer: { select: { fullName: true } },
+        },
+      },
+    },
+  });
+
+  const timesheetApproval = approvedTs
+    ? {
+        id: approvedTs.id,
+        status: approvedTs.status,
+        approvedAt: approvedTs.approvedAt ? approvedTs.approvedAt.toISOString() : null,
+        reviewers: approvedTs.reviewers.map((r) => r.reviewer.fullName),
+        title: approvedTs.title,
+      }
+    : null;
+
   return {
     id: p.id,
     periodId: p.periodId,
@@ -310,6 +379,7 @@ export async function getPayslipById(payslipId: string) {
     totalHours: p.totalHours ? Number(p.totalHours) : null,
     hourlyRate: p.hourlyRate ? Number(p.hourlyRate) : null,
     timesheetKey: p.timesheetKey,
+    timesheetApproval,
     period: {
       id: p.period.id,
       year: p.period.year,
