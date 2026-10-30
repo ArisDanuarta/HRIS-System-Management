@@ -28,7 +28,7 @@ import {
   publishPayrollAction,
   lockPayrollAction,
   revertPayrollAction,
-  exportPayrollBankCsvAction,
+  exportPayrollExcelAction,
 } from "@/server/actions/payroll.actions";
 import { PayslipDetailModal, PayslipDetailData } from "./payslip-detail-modal";
 import { TimesheetInputModal } from "./timesheet-input-modal";
@@ -176,17 +176,24 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
     });
   };
 
-  const handleExportCsv = async () => {
+  const handleExportExcel = async () => {
     setActionError(null);
     startTransition(async () => {
-      const res = await exportPayrollBankCsvAction({ periodId: period.id });
+      const res = await exportPayrollExcelAction({ periodId: period.id });
       if (!res.ok) {
         setActionError(res.error);
         return;
       }
 
-      // Download file di browser
-      const blob = new Blob([res.csvContent], { type: "text/csv;charset=utf-8;" });
+      // Konversi base64 string ke Blob dan unduh file di browser
+      const binaryString = window.atob(res.base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
@@ -194,6 +201,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     });
   };
 
@@ -241,17 +249,21 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
 
           {/* Tombol Aksi Siklus */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Tombol Ekspor Rekap Bank */}
+            {/* Tombol Ekspor Rekap Payroll (Excel) */}
             {period.status !== "DRAFT" && (
               <button
                 type="button"
                 disabled={isPending}
-                onClick={handleExportCsv}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
-                title="Unduh rekap data transfer perbankan dalam format CSV"
+                onClick={handleExportExcel}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100/80 text-emerald-800 text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                title="Unduh rekap data transfer perbankan & rincian komponen payroll resmi (.xlsx)"
               >
-                <Download className="w-3.5 h-3.5 text-slate-500" />
-                <span>Ekspor Rekap Bank (CSV)</span>
+                {isPending ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                ) : (
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                )}
+                <span>Ekspor Rekap Payroll (Excel)</span>
               </button>
             )}
 

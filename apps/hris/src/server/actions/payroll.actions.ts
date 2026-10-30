@@ -15,6 +15,7 @@ import {
   generatePayrollBankExport,
   updatePayslipTimesheet,
 } from "../services/payroll.service";
+import { generatePayrollExcelExport } from "@/lib/payroll-export";
 
 async function getActorInfo() {
   const reqHeaders = await headers();
@@ -544,6 +545,49 @@ export async function exportPayrollBankCsvAction(input: { periodId: string }) {
     return {
       ok: false as const,
       error: err instanceof Error ? err.message : "Gagal mengekspor rekap perbankan.",
+    };
+  }
+}
+
+/**
+ * Ekspor Rekap Penggajian Resmi & Rekap Transfer Bank PSPK (Excel .xlsx)
+ */
+export async function exportPayrollExcelAction(input: { periodId: string }) {
+  try {
+    const actor = await getActorInfo();
+
+    if (!actor.isSuperAdmin && !actor.isAdminHr) {
+      return {
+        ok: false as const,
+        error: "Hanya Admin HR atau Super Admin yang berwenang mengekspor data penggajian.",
+      };
+    }
+
+    const { filename, base64 } = await generatePayrollExcelExport(input.periodId);
+
+    // Audit log ekspor data penggajian format Excel
+    await writeAudit({
+      actorUserId: actor.userId,
+      actorEmail: actor.email,
+      app: "hris",
+      action: "EXPORT",
+      entityType: "PayrollPeriod",
+      entityId: input.periodId,
+      after: { filename, format: "xlsx" },
+      ip: actor.ip,
+      userAgent: actor.userAgent,
+    });
+
+    return {
+      ok: true as const,
+      filename,
+      base64,
+    };
+  } catch (err: unknown) {
+    console.error("exportPayrollExcelAction error:", err);
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal mengekspor rekap penggajian Excel.",
     };
   }
 }

@@ -2,6 +2,38 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Penggajian / Payroll] Ekspor Rekap Payroll & Transfer Bank Format Excel (.xlsx) Multi-Sheet — 2026-10-30
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Sebelumnya ekspor rekap bank penggajian hanya menggunakan format teks CSV mentah (`.csv`). Saat dibuka di Microsoft Excel atau spreadsheet lainnya, seluruh data menumpuk di Kolom A dengan tanda kutip, tanpa pembagian kolom yang rapi, tanpa format rupiah, dan tanpa formula total.
+  - Kebutuhan tim HR dan Finance PSPK adalah berkas Excel resmi (`.xlsx`) berstandar eksekutif yang siap diserahkan ke pihak Bank (disbursement list) dan tim audit/keuangan internal.
+- **Hasil Pekerjaan & Implementasi:**
+  1. **Engine Generator Excel Resmi (`apps/hris/src/lib/payroll-export.ts`):**
+     - Menggunakan `exceljs` untuk menghasilkan buku kerja Excel multi-sheet profesional berpalet warna resmi brand PSPK (`#102E50` Navy, `#1E3A5F` Slate Blue, `#FEF3C7` Amber):
+       - **Sheet 1: `Rekap Transfer Bank` (Disbursement List)**:
+         - Kop Lembaga resmi PSPK, metadata periode, status, dan informasi rekening sumber dana lembaga (Bank pengirim, no. rek terdekripsi, kantor cabang).
+         - Tabel instruksi transfer: No, NIP, Nama Lengkap, Divisi, Jabatan, Skema Kerja, Nama Bank Penerima, Nomor Rekening (diformat teks `@` agar angka nol di depan tidak terpotong dan tidak berubah menjadi format ilmiah), Atas Nama Rekening, Nominal Transfer (`#,##0`), dan Berita Transfer.
+         - Baris total dengan formula `=SUM(...)` dan garis bawah ganda (*accounting double underline*).
+         - Kotak pengesahan/tanda tangan ganda untuk HR Administrator dan Finance & Operations Lead.
+       - **Sheet 2: `Rincian Komponen Gaji` (Payroll Ledger)**:
+         - *Grouped two-tier headers*: Info Pegawai, Komponen Penghasilan (*Earnings*), Total Bruto `=SUM(H:L)`, Komponen Pengurang (*Deductions* BPJS & PPh 21), Total Potongan `=SUM(N:Q)`, dan Gaji Bersih `=M-R`.
+         - Baris ringkasan total formula `=SUM(...)` untuk seluruh kolom komponen keuangan.
+       - **Sheet 3: `Ringkasan Eksekutif` (Executive Summary)**:
+         - Ringkasan KPI penggajian (Total Pegawai, Bulanan vs PKWT Jam, Total Bruto, Akumulasi BPJS Kesehatan & Ketenagakerjaan, PPh 21, dan Kas Netto).
+         - Distribusi alokasi biaya per unit kerja/divisi lengkap dengan porsi persentase biaya.
+  2. **Server Action & Audit Log (`payroll.actions.ts`):**
+     - Menambahkan `exportPayrollExcelAction` dengan otorisasi RBAC ketat (`isSuperAdmin || isAdminHr`).
+     - Pencatatan Audit Log mutasi data sensitif (`action: "EXPORT"`, `entityType: "PayrollPeriod"`, `format: "xlsx"`).
+  3. **Antarmuka Pengguna (`payroll-detail-view.tsx`):**
+     - Menggantikan tombol CSV lama dengan tombol baru: **Ekspor Rekap Payroll (Excel)** berikon `FileSpreadsheet` bertema hijau emerald elegan (`bg-emerald-50 border-emerald-300`).
+     - Konversi Base64 ke Blob secara *in-memory* di browser untuk proses unduh instan tanpa meninggalkan berkas sementara di server.
+  4. **Pengujian & Verifikasi:**
+     - Menambahkan unit test `apps/hris/src/lib/payroll-export.test.ts` untuk verifikasi kelengkapan 3 sheet, struktur baris, dan akurasi formula.
+     - `pnpm lint`: ✅ Lolos (0 error, 0 warning di seluruh monorepo).
+     - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lulus verifikasi tipe).
+     - `pnpm test`: ✅ Lolos (40 test files, 272 tests passed).
+
 ## [Tata Kelola HR] Pusat Tata Kelola & Master Data Kepegawaian (/tata-kelola) — 2026-10-30
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
