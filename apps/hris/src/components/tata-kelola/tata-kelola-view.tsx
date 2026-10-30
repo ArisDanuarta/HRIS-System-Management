@@ -12,8 +12,13 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   ArrowLeft,
+  Network,
 } from "lucide-react";
-import type { DepartmentItem } from "@/components/karyawan/organization-management";
+import {
+  OrganizationManagement,
+  type DepartmentItem,
+} from "@/components/karyawan/organization-management";
+import { EmploymentTypeManagement } from "@/components/karyawan/employment-type-management";
 import type { EmploymentTypeDetail } from "@/server/queries/employment-type.queries";
 import type { LeaveTypeItem } from "@/components/cuti/leave-settings-view";
 import type { ActiveWorkSchedule } from "@/server/services/work-schedule.service";
@@ -339,20 +344,43 @@ export function TataKelolaView({
       {/* Kontainer Isi Tab Terpilih */}
       <div className="mt-4">
         {activeTab === "organisasi" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-2">
-            <h2 className="text-base font-bold text-slate-900">Struktur Divisi & Formasi Jabatan</h2>
-            <p className="text-xs text-slate-500">
-              Terdapat {departments.length} divisi aktif terdata dalam struktur hirarki organisasi.
-            </p>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Quick Link & Context Bar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4.5 rounded-xl border border-slate-200 shadow-2xs">
+              <div>
+                <h2 className="text-base font-bold text-slate-900 font-serif">
+                  Struktur Divisi & Formasi Jabatan
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Kelola hierarki divisi kerja, unit kerja (Governance, Leadership, Initiative, Support), serta formasi jabatan resmi PSPK.
+                </p>
+              </div>
+              <Link
+                href="/karyawan/struktur"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102E50] bg-[#eff4ff] border border-[#dee9fc] px-3.5 py-2 rounded-lg shadow-2xs hover:bg-[#dee9fc] transition-colors shrink-0 w-fit"
+              >
+                <Network className="w-4 h-4 text-[#102E50]" />
+                <span>Lihat Visual Bagan Pohon ↗</span>
+              </Link>
+            </div>
+
+            <OrganizationManagement initialDepartments={departments} />
           </div>
         )}
 
         {activeTab === "ikatan-kerja" && (
-          <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-2">
-            <h2 className="text-base font-bold text-slate-900">Master Tipe Ikatan Kerja</h2>
-            <p className="text-xs text-slate-500">
-              Terdapat {employmentTypes.length} tipe ikatan kerja (PKWT, PKWTT, Freelance, Magang) terkonfigurasi.
-            </p>
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Header Konteks Ikatan Kerja */}
+            <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-2xs">
+              <h2 className="text-base font-bold text-slate-900 font-serif">
+                Master Tipe Ikatan Kerja & Perjanjian Kontrak
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Konfigurasi master kategori perjanjian kerja (PKWTT, PKWT, Freelance, Magang), metode pengupahan (Bulanan vs Per Jam), dan tarif acuan honorarium riset.
+              </p>
+            </div>
+
+            <EmploymentTypeManagement initialTypes={employmentTypes} />
           </div>
         )}
 
