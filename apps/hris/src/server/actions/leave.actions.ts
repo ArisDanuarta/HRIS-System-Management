@@ -758,13 +758,17 @@ export async function adjustEmployeeLeaveBalanceAction(input: {
       },
     });
 
+    revalidatePath("/tata-kelola");
     revalidatePath("/cuti");
     revalidatePath("/cuti/pengaturan");
 
     return {
       success: true,
       message: `Berhasil menyesuaikan kuota cuti ${updated.employee.fullName} menjadi ${newQuota} hari.`,
-      data: updated,
+      data: {
+        ...updated,
+        usedDays: Number(updated.usedDays),
+      },
     };
   } catch (err) {
     console.error("adjustEmployeeLeaveBalanceAction error:", err);
@@ -794,6 +798,7 @@ export async function overrideLeaveDecisionAction(input: OverrideLeaveDecisionIn
       adminEmployeeId: employeeId,
     });
 
+    revalidatePath("/tata-kelola");
     revalidatePath("/cuti");
     revalidatePath("/cuti/persetujuan");
     revalidatePath("/cuti/pengaturan");
@@ -802,7 +807,10 @@ export async function overrideLeaveDecisionAction(input: OverrideLeaveDecisionIn
     return {
       success: true,
       message: `Status permohonan cuti ${updated.employee?.fullName || "pegawai"} berhasil diubah menjadi ${validated.targetStatus}.`,
-      data: updated,
+      data: {
+        ...updated,
+        days: updated.days ? Number(updated.days) : 0,
+      },
     };
   } catch (err) {
     console.error("overrideLeaveDecisionAction error:", err);
