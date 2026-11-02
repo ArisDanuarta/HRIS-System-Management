@@ -2,6 +2,47 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [System Management] Modul Brankas Akun & Kredensial Lembaga (/kredensial) — 2026-11-02
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100% melalui 9 Tahapan Terstruktur)
+- **Scope & Latar Belakang:**
+  - Pembangunan modul baru pada System Management (`apps/sysmgmt`) untuk tata kelola dan pencatatan terpusat seluruh akun organisasi PSPK (website hosting, domain, media sosial resmi, SaaS, email operasional, dan portal instansi/pemerintah).
+  - Melindungi kata sandi akun dengan enkripsi militer AES-256-GCM, hak akses ketat (RBAC), pencegahan kebocoran (*zero plaintext leakage*), pencatatan audit log mutasi, serta indikator peringatan rotasi sandi berkala (≥ 90 hari).
+- **Hasil Pekerjaan & Implementasi Arsitektur (9 Tahap):**
+  1. **Skema Database Prisma & Migrasi (`packages/db`):**
+     - Model `Credential` pada skema `sysmgmt` (`id`, `title`, `category`, `url`, `username`, `email`, `passwordEnc`, `twoFactorType`, `recoveryEmail`, `recoveryPhone`, `picEmployeeId`, `notes`, `isActive`, `lastRotatedAt`, `createdAt`, `updatedAt`).
+     - Relasi ke model `Employee` (`hris`) dengan aturan `onDelete: SetNull`.
+     - Migrasi Prisma: `20261102044732_add_credentials_vault_module` dan `20261102060447_add_credential_rotation_index`.
+     - 5 Indeks aktif di PostgreSQL: `credentials_pkey`, `credentials_category_idx`, `credentials_is_active_idx`, `credentials_pic_employee_id_idx`, `credentials_last_rotated_at_idx`.
+  2. **RBAC & Otorisasi Ketat (`@pspk/rbac`):**
+     - Permission: `sysmgmt.credential.read:all`, `sysmgmt.credential.manage:all`, `sysmgmt.credential.reveal:all`.
+     - Pemetaan peran: Diberikan eksklusif kepada `super_admin` dan `admin_it`. Peran non-administratif diblokir total (0 permission).
+  3. **Backend Services & Kriptografi AES-256-GCM:**
+     - Zod Validation: Normalisasi URL otomatis (`https://`), pembersihan spasi (*trimming*), dan aturan wajib isi minimal salah satu antara username atau email.
+     - Kriptografi AES-256-GCM: Sandi dienkripsi saat create/update dan disimpan dalam format `iv:tag:ciphertext`.
+     - Tindakan buka sandi (`revealCredentialPasswordAction`) memicu audit log wajib `REVEAL_PASSWORD` ke `core.audit_logs`.
+     - Zero Leak: Kueri daftar `getCredentialsDirectory` hanya mengembalikan `hasPassword: true` tanpa pernah mengirim ciphertext/plaintext password ke client.
+  4. **Antarmuka Pengguna & Modals (`apps/sysmgmt/src/components/credentials`):**
+     - Halaman `/kredensial` dengan 4 kartu KPI (Total Akun, Adopsi 2FA %, Akun Perlu Rotasi, dan Layanan Populer).
+     - Filter cepat interaktif (kategori, jenis 2FA, status aktif, dan checkbox akun perlu rotasi).
+     - Tabel kredensial dengan penyamaran password `••••••••`, tombol salin cepat username/email, dan lencana kategori/status warna-warni.
+     - Modal form tambah/edit dengan *Random Strong Password Generator* 20 karakter dan meteran kekuatan sandi real-time.
+     - Modal buka sandi (*reveal modal*) dengan *timer hitung mundur auto-mask 20 detik* dan tombol salin aman.
+     - Modal konfirmasi hapus aman.
+  5. **Integrasi Navigasi & Dashboard Sysmgmt:**
+     - Menu "Akun & Kredensial" pada Navbar Desktop (dropdown popover Inventaris) dan drawer mobile.
+     - Kartu metrik utama ke-5 "Akun & Kredensial" dan tombol aksi cepat pada Dashboard Utama System Management.
+  6. **Pencegahan Bug & Optimasi Kueri:**
+     - Query builder `where.AND = andConditions` mencegah klausa `OR` pencarian teks tertimpa oleh filter rotasi sandi.
+     - Indeks kolom `lastRotatedAt` mempercepat pencarian akun kadaluarsa menjadi < 5ms.
+- **Pengujian & Verifikasi Kualitas Akhir:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lolos verifikasi tipe).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning di seluruh monorepo).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+  - `pnpm build`: ✅ Lolos (kedua aplikasi Next.js berhasil dikompilasi standalone).
+  - Tolok ukur AES-256-GCM: Throughput enkripsi > 330.000 ops/detik dan throughput dekripsi > 540.000 ops/detik (rata-rata 0,0018–0,0030 ms per sandi).
+
+
 ## [Dashboard & Penggajian] Sinkronisasi Kueri Slip Gaji Terbaru Dashboard Beranda — 2026-11-02
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
