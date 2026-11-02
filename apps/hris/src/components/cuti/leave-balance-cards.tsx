@@ -1,7 +1,17 @@
 import React from "react";
-import { Calendar, HeartPulse, Clock, Award, FileCheck2 } from "lucide-react";
+import {
+  Calendar,
+  HeartPulse,
+  Clock,
+  Award,
+  FileCheck2,
+  Baby,
+  Sparkles,
+  Compass,
+  GraduationCap,
+} from "lucide-react";
 
-interface LeaveBalanceItem {
+export interface LeaveBalanceItem {
   id: string;
   leaveTypeId: string;
   year: number;
@@ -16,11 +26,30 @@ interface LeaveBalanceItem {
   };
 }
 
-interface LeaveBalanceCardsProps {
+export interface LeaveBalanceCardsProps {
   balances: LeaveBalanceItem[];
+  columns?: 1 | 2 | 3 | 4;
 }
 
-export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
+function getGridColsClass(count: number, explicitCols?: number) {
+  if (explicitCols === 1) return "grid-cols-1";
+  if (explicitCols === 2) return "grid-cols-1 sm:grid-cols-2";
+  if (explicitCols === 3) return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+  if (explicitCols === 4) return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+
+  switch (count) {
+    case 1:
+      return "grid-cols-1";
+    case 2:
+      return "grid-cols-1 sm:grid-cols-2";
+    case 3:
+      return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
+    default:
+      return "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4";
+  }
+}
+
+export function LeaveBalanceCards({ balances, columns }: LeaveBalanceCardsProps) {
   const getCategoryTheme = (name: string) => {
     const lower = name.toLowerCase();
     if (lower.includes("tahunan") || lower.includes("annual")) {
@@ -39,7 +68,54 @@ export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
         icon: <HeartPulse className="w-4 h-4 text-[#a8281c]" />,
       };
     }
-    if (lower.includes("penting")) {
+    if (
+      lower.includes("melahirkan") ||
+      lower.includes("maternity") ||
+      lower.includes("hamil") ||
+      lower.includes("bersalin")
+    ) {
+      return {
+        accentBar: "bg-[#8e2d3f]",
+        strokeColor: "#8e2d3f",
+        iconBg: "bg-[#8e2d3f]/10 border-[#8e2d3f]/20 text-[#8e2d3f]",
+        icon: <Baby className="w-4 h-4 text-[#8e2d3f]" />,
+      };
+    }
+    if (lower.includes("nikah") || lower.includes("pernikahan") || lower.includes("marriage")) {
+      return {
+        accentBar: "bg-[#f2af3e]",
+        strokeColor: "#f2af3e",
+        iconBg: "bg-[#f2af3e]/15 border-[#f2af3e]/30 text-[#b47a16]",
+        icon: <Sparkles className="w-4 h-4 text-[#b47a16]" />,
+      };
+    }
+    if (
+      lower.includes("ibadah") ||
+      lower.includes("haji") ||
+      lower.includes("umroh") ||
+      lower.includes("religi")
+    ) {
+      return {
+        accentBar: "bg-[#0874aa]",
+        strokeColor: "#0874aa",
+        iconBg: "bg-[#0874aa]/10 border-[#0874aa]/20 text-[#0874aa]",
+        icon: <Compass className="w-4 h-4 text-[#0874aa]" />,
+      };
+    }
+    if (lower.includes("studi") || lower.includes("belajar") || lower.includes("pelatihan")) {
+      return {
+        accentBar: "bg-[#4c1d95]",
+        strokeColor: "#4c1d95",
+        iconBg: "bg-[#4c1d95]/10 border-[#4c1d95]/20 text-[#4c1d95]",
+        icon: <GraduationCap className="w-4 h-4 text-[#4c1d95]" />,
+      };
+    }
+    if (
+      lower.includes("penting") ||
+      lower.includes("khusus") ||
+      lower.includes("urgent") ||
+      lower.includes("duka")
+    ) {
       return {
         accentBar: "bg-[#df632f]",
         strokeColor: "#df632f",
@@ -48,10 +124,10 @@ export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
       };
     }
     return {
-      accentBar: "bg-[#8e2d3f]",
-      strokeColor: "#8e2d3f",
-      iconBg: "bg-[#8e2d3f]/10 border-[#8e2d3f]/20 text-[#8e2d3f]",
-      icon: <Award className="w-4 h-4 text-[#8e2d3f]" />,
+      accentBar: "bg-[#102e50]",
+      strokeColor: "#102e50",
+      iconBg: "bg-[#102e50]/10 border-[#102e50]/20 text-[#102e50]",
+      icon: <Award className="w-4 h-4 text-[#102e50]" />,
     };
   };
 
@@ -93,8 +169,10 @@ export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
+  const gridClass = getGridColsClass(balances.length, columns);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className={`grid ${gridClass} gap-4`}>
       {balances.map((b) => {
         const theme = getCategoryTheme(b.leaveType.name);
         const remainingRatio =
@@ -190,7 +268,9 @@ export function LeaveBalanceCards({ balances }: LeaveBalanceCardsProps) {
             {/* Bottom Breakdown Footer: Hak Awal vs Terpakai */}
             <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
               <div>
-                <span className="text-[10px] text-slate-400 font-medium block">Hak Tahunan</span>
+                <span className="text-[10px] text-slate-400 font-medium block">
+                  {b.leaveType.name.toLowerCase().includes("tahunan") ? "Hak Tahunan" : "Total Kuota"}
+                </span>
                 <span className="font-bold text-[#102e50] tabular-nums">{b.quotaDays} Hari</span>
               </div>
               <div className="text-right">
