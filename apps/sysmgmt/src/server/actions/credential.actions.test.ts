@@ -202,6 +202,42 @@ describe("credential.actions.ts", () => {
       expect(auditCall?.action).toBe("REVEAL_PASSWORD");
       expect(auditCall?.entityId).toBe("cred-999");
     });
+
+    it("harus menolak permintaan buka password jika otorisasi user tidak memiliki hak akses reveal", async () => {
+      const { getAuthContext } = await import("@pspk/auth");
+
+      // Mock user context tanpa permission reveal
+      vi.mocked(getAuthContext).mockResolvedValueOnce({
+        userId: "user-staff-1",
+        employeeId: "emp-staff-1",
+        roles: ["staff"],
+        permissions: new Set(["sysmgmt.asset.read:own"]),
+      });
+
+      const res = await revealCredentialPasswordAction({ id: "cred-999" });
+
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error).toBeDefined();
+      }
+    });
+
+    it("harus menangani kegagalan dekripsi secara aman jika ciphertext tidak valid", async () => {
+      const { prisma } = await import("@pspk/db");
+
+      vi.mocked(prisma.credential.findUnique).mockResolvedValueOnce({
+        ...sampleCredential,
+        id: "cred-corrupted",
+        passwordEnc: "corrupted:invalid:cipher",
+      });
+
+      const res = await revealCredentialPasswordAction({ id: "cred-corrupted" });
+
+      expect(res.ok).toBe(false);
+      if (!res.ok) {
+        expect(res.error).toContain("Gagal mendekripsi password");
+      }
+    });
   });
 
   describe("deleteCredentialAction", () => {
