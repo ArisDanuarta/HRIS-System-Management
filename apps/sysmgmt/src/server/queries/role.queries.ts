@@ -26,9 +26,10 @@ export const RESOURCE_METADATA: Record<
   role: { label: "Peran & Hak Akses (RBAC)", app: "sysmgmt", order: 22 },
   asset: { label: "Inventaris Aset Fisik", app: "sysmgmt", order: 23 },
   license: { label: "Lisensi Perangkat Lunak", app: "sysmgmt", order: 24 },
-  document: { label: "Repositori Dokumen & SOP", app: "sysmgmt", order: 25 },
-  audit: { label: "Buku Besar Audit Log", app: "sysmgmt", order: 26 },
-  settings: { label: "Master Data & Pengaturan Sistem", app: "sysmgmt", order: 27 },
+  credential: { label: "Brankas Akun & Kredensial", app: "sysmgmt", order: 25 },
+  document: { label: "Repositori Dokumen & SOP", app: "sysmgmt", order: 26 },
+  audit: { label: "Buku Besar Audit Log", app: "sysmgmt", order: 27 },
+  settings: { label: "Master Data & Pengaturan Sistem", app: "sysmgmt", order: 28 },
 };
 
 /**
