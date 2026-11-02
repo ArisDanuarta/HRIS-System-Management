@@ -6,6 +6,7 @@ import {
   deleteCredentialAction,
 } from "./credential.actions";
 import { encryptField } from "@pspk/shared";
+import type { Credential } from "@pspk/db";
 
 // Mock next/headers & next/cache
 vi.mock("next/headers", () => ({
@@ -64,28 +65,30 @@ describe("credential.actions.ts", () => {
     vi.clearAllMocks();
   });
 
+  const sampleCredential: Credential = {
+    id: "cred-123",
+    title: "Instagram Resmi PSPK",
+    category: "SOCIAL_MEDIA",
+    url: "https://instagram.com/pspk.id",
+    username: "pspk.id",
+    email: "humas@pspk.id",
+    passwordEnc: "enc:mocked:pw",
+    twoFactorType: "AUTHENTICATOR_APP",
+    recoveryEmail: "it@pspk.id",
+    recoveryPhone: "08123456789",
+    picEmployeeId: "emp-1",
+    notes: "Kelola bersama tim humas",
+    isActive: true,
+    lastRotatedAt: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+
   describe("createCredentialAction", () => {
     it("harus berhasil membuat kredensial baru dengan password terenkripsi", async () => {
       const { prisma, writeAudit } = await import("@pspk/db");
 
-      vi.mocked(prisma.credential.create).mockResolvedValue({
-        id: "cred-123",
-        title: "Instagram Resmi PSPK",
-        category: "SOCIAL_MEDIA",
-        url: "https://instagram.com/pspk.id",
-        username: "pspk.id",
-        email: "humas@pspk.id",
-        passwordEnc: "enc:mocked:pw",
-        twoFactorType: "AUTHENTICATOR_APP",
-        recoveryEmail: "it@pspk.id",
-        recoveryPhone: "08123456789",
-        picEmployeeId: "emp-1",
-        notes: "Kelola bersama tim humas",
-        isActive: true,
-        lastRotatedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      vi.mocked(prisma.credential.create).mockResolvedValue(sampleCredential);
 
       const res = await createCredentialAction({
         title: "Instagram Resmi PSPK",
@@ -118,7 +121,7 @@ describe("credential.actions.ts", () => {
       const auditCall = vi.mocked(writeAudit).mock.calls[0]?.[0];
       expect(auditCall?.action).toBe("CREATE");
       expect(auditCall?.entityType).toBe("Credential");
-      expect(auditCall?.after?.hasPassword).toBe(true);
+      expect((auditCall?.after as Record<string, unknown>)?.hasPassword).toBe(true);
       // Memastikan plaintext password tidak bocor ke log
       expect(JSON.stringify(auditCall)).not.toContain("SuperSecretPassword123!");
     });
@@ -128,12 +131,45 @@ describe("credential.actions.ts", () => {
         title: "Akun Tanpa Identitas",
         category: "OTHER",
         password: "password123",
-      } as any);
+        username: "",
+        email: "",
+      });
 
       expect(res.ok).toBe(false);
       if (!res.ok) {
         expect(res.error).toContain("Salah satu dari Username atau Email wajib diisi");
       }
+    });
+  });
+
+  describe("updateCredentialAction", () => {
+    it("harus berhasil memperbarui metadata dan merotasi password baru", async () => {
+      const { prisma, writeAudit } = await import("@pspk/db");
+
+      vi.mocked(prisma.credential.findUnique).mockResolvedValue(sampleCredential);
+      vi.mocked(prisma.credential.update).mockResolvedValue({
+        ...sampleCredential,
+        title: "Instagram Resmi PSPK (Updated)",
+        passwordEnc: "enc:new:password",
+      });
+
+      const res = await updateCredentialAction({
+        id: "cred-123",
+        title: "Instagram Resmi PSPK (Updated)",
+        category: "SOCIAL_MEDIA",
+        username: "pspk.id",
+        password: "NewPassword2026!",
+      });
+
+      expect(res.ok).toBe(true);
+      expect(prisma.credential.update).toHaveBeenCalledTimes(1);
+      expect(writeAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: "UPDATE",
+          entityType: "Credential",
+          entityId: "cred-123",
+        }),
+      );
     });
   });
 
@@ -143,13 +179,14 @@ describe("credential.actions.ts", () => {
       const encryptedSecret = encryptField("RahasiaNegara2026!");
 
       vi.mocked(prisma.credential.findUnique).mockResolvedValue({
+        ...sampleCredential,
         id: "cred-999",
         title: "cPanel Hosting",
         category: "WEBSITE_HOSTING",
         username: "root_pspk",
         email: null,
         passwordEnc: encryptedSecret,
-      } as any);
+      });
 
       const res = await revealCredentialPasswordAction({ id: "cred-999" });
 
@@ -172,14 +209,15 @@ describe("credential.actions.ts", () => {
       const { prisma, writeAudit } = await import("@pspk/db");
 
       vi.mocked(prisma.credential.findUnique).mockResolvedValue({
+        ...sampleCredential,
         id: "cred-del-1",
         title: "Twitter Lama",
         category: "SOCIAL_MEDIA",
         username: "pspk_old",
         email: null,
-      } as any);
+      });
 
-      vi.mocked(prisma.credential.delete).mockResolvedValue({ id: "cred-del-1" } as any);
+      vi.mocked(prisma.credential.delete).mockResolvedValue(sampleCredential);
 
       const res = await deleteCredentialAction({ id: "cred-del-1" });
 

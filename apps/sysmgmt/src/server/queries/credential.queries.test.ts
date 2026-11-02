@@ -3,6 +3,7 @@ import {
   getCredentialsDirectory,
   getCredentialStats,
 } from "./credential.queries";
+import type { CredentialCategory, TwoFactorType } from "@pspk/db";
 
 vi.mock("@pspk/db", async () => {
   const actual = await vi.importActual<typeof import("@pspk/db")>("@pspk/db");
@@ -27,12 +28,12 @@ describe("credential.queries.ts", () => {
     {
       id: "cred-1",
       title: "Instagram Resmi PSPK",
-      category: "SOCIAL_MEDIA",
+      category: "SOCIAL_MEDIA" as CredentialCategory,
       url: "https://instagram.com/pspk.id",
       username: "pspk.id",
       email: "humas@pspk.id",
       passwordEnc: "enc:mock1",
-      twoFactorType: "AUTHENTICATOR_APP",
+      twoFactorType: "AUTHENTICATOR_APP" as TwoFactorType,
       recoveryEmail: "it@pspk.id",
       recoveryPhone: null,
       picEmployeeId: "emp-1",
@@ -52,12 +53,12 @@ describe("credential.queries.ts", () => {
     {
       id: "cred-2",
       title: "cPanel Rumahweb",
-      category: "WEBSITE_HOSTING",
+      category: "WEBSITE_HOSTING" as CredentialCategory,
       url: "https://rumahweb.com",
       username: "root_pspk",
       email: "it@pspk.id",
       passwordEnc: "enc:mock2",
-      twoFactorType: "NONE",
+      twoFactorType: "NONE" as TwoFactorType,
       recoveryEmail: null,
       recoveryPhone: null,
       picEmployeeId: null,
@@ -73,12 +74,14 @@ describe("credential.queries.ts", () => {
   it("harus mengembalikan daftar kredensial terformat tanpa membocorkan ciphertext/plaintext password", async () => {
     const { prisma } = await import("@pspk/db");
 
-    vi.mocked(prisma.credential.findMany).mockResolvedValue(mockCredentials as any);
+    vi.mocked(prisma.credential.findMany).mockResolvedValue(
+      mockCredentials as unknown as Awaited<ReturnType<typeof prisma.credential.findMany>>,
+    );
     vi.mocked(prisma.credential.count).mockResolvedValue(2);
     vi.mocked(prisma.credential.groupBy).mockResolvedValue([
       { category: "SOCIAL_MEDIA", _count: { id: 1 } },
       { category: "WEBSITE_HOSTING", _count: { id: 1 } },
-    ] as any);
+    ] as unknown as Awaited<ReturnType<typeof prisma.credential.groupBy>>);
 
     const result = await getCredentialsDirectory();
 
@@ -89,7 +92,7 @@ describe("credential.queries.ts", () => {
     expect(first.title).toBe("Instagram Resmi PSPK");
     expect(first.hasPassword).toBe(true);
     // Memastikan field passwordEnc tidak diekspos di SerializedCredential
-    expect((first as any).passwordEnc).toBeUndefined();
+    expect("passwordEnc" in first).toBe(false);
     expect(first.needsRotation).toBe(false);
 
     const second = result.credentials[1]!;
