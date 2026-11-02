@@ -197,28 +197,6 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
     }),
   ]);
 
-  // Format balances for UI
-  const formattedBalances = leaveBalances.map((b) => {
-    const quotaDays = b.quotaDays;
-    const usedDaysNumber = Number(b.usedDays);
-    const remainingDays = Math.max(0, quotaDays - usedDaysNumber);
-    const usagePercentage = quotaDays > 0 ? Math.round((usedDaysNumber / quotaDays) * 100) : 0;
-    return {
-      id: b.id,
-      leaveTypeId: b.leaveTypeId,
-      year: b.year,
-      quotaDays,
-      usedDaysNumber,
-      remainingDays,
-      usagePercentage,
-      leaveType: {
-        name: b.leaveType.name,
-        isPaid: b.leaveType.isPaid,
-        requiresAttachment: b.leaveType.requiresAttachment,
-      },
-    };
-  });
-
   return {
     todayAttendance: todayAttendance
       ? {
@@ -229,7 +207,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           notes: todayAttendance.notes,
         }
       : null,
-    leaveBalances: formattedBalances,
+    leaveBalances,
     pendingLeavesCount,
     recentLeaves: recentLeaves.map((r) => ({
       id: r.id,

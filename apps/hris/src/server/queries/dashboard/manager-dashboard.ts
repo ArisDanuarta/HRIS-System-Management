@@ -2,6 +2,7 @@ import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
 import { toDateString } from "@pspk/shared";
 import { getActiveWorkSchedule } from "../../services/work-schedule.service";
+import { getEmployeeLeaveBalances } from "../leave.queries";
 
 export interface ManagerDashboardData {
   totalTeamMembers: number;
