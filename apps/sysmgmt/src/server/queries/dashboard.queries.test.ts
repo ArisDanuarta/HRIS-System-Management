@@ -36,6 +36,9 @@ vi.mock("@pspk/db", async () => {
       document: {
         count: vi.fn(),
       },
+      credential: {
+        count: vi.fn(),
+      },
       auditLog: {
         findMany: vi.fn(),
       },
@@ -97,6 +100,13 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
       .mockResolvedValueOnce(3) // draft
       .mockResolvedValueOnce(2); // archived
 
+    // Mock Credentials: total 25, active 20, needs rotation 5, 2FA protected 16 (80%)
+    vi.mocked(db.prisma.credential.count)
+      .mockResolvedValueOnce(25) // total
+      .mockResolvedValueOnce(20) // active
+      .mockResolvedValueOnce(5) // needsRotation
+      .mockResolvedValueOnce(16); // 2FA protected
+
     // Mock Audit Log
     vi.mocked(db.prisma.auditLog.findMany).mockResolvedValueOnce([
       {
@@ -147,6 +157,13 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
     expect(stats.documentStats.draftDocuments).toBe(3);
     expect(stats.documentStats.archivedDocuments).toBe(2);
 
+    // Verifikasi Credential Stats
+    expect(stats.credentialStats.totalCredentials).toBe(25);
+    expect(stats.credentialStats.activeCount).toBe(20);
+    expect(stats.credentialStats.needsRotationCount).toBe(5);
+    expect(stats.credentialStats.twoFactorProtectedCount).toBe(16);
+    expect(stats.credentialStats.twoFactorAdoptionRate).toBe(80);
+
     // Verifikasi Recent Audits
     expect(stats.recentAudits).toHaveLength(1);
     expect(stats.recentAudits[0]?.actorEmail).toBe("superadmin@pspk.id");
@@ -178,6 +195,7 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
       _min: {},
     });
     vi.mocked(db.prisma.document.count).mockResolvedValue(0);
+    vi.mocked(db.prisma.credential.count).mockResolvedValue(0);
     vi.mocked(db.prisma.auditLog.findMany).mockResolvedValue([]);
 
     const stats = await getSysmgmtDashboardStats();
@@ -189,6 +207,8 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
     expect(stats.licenseStats.totalSeats).toBe(0);
     expect(stats.licenseStats.usedSeats).toBe(0);
     expect(stats.licenseStats.utilizationPercent).toBe(0); // Harus 0, BUKAN NaN
+    expect(stats.credentialStats.totalCredentials).toBe(0);
+    expect(stats.credentialStats.twoFactorAdoptionRate).toBe(0);
     expect(stats.recentAudits).toHaveLength(0);
     expect(stats.systemHealth.isDatabaseConnected).toBe(true);
   });

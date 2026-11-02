@@ -113,6 +113,13 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
             <span>Lisensi Software</span>
           </Link>
           <Link
+            href="/kredensial"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
+          >
+            <Lock className="w-3.5 h-3.5 text-amber-700" />
+            <span>Brankas Kredensial</span>
+          </Link>
+          <Link
             href="/dokumen"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
           >
@@ -143,8 +150,8 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
         </div>
       </div>
 
-      {/* 2. Empat Kartu Metrik Utama (4-Column Grid) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 2. Lima Kartu Metrik Utama (Responsive Grid) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Card 1: Akun & Keamanan Pengguna */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
           <div>
@@ -279,7 +286,61 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
           </div>
         </div>
 
-        {/* Card 4: Dokumen & SOP */}
+        {/* Card 4: Brankas Kredensial & Akun */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                Akun & Kredensial
+              </span>
+              <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center">
+                <KeyRound className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-3xl font-extrabold text-[#102E50] tracking-tight">
+              {stats.credentialStats.totalCredentials}
+              <span className="text-xs font-medium text-slate-400 ml-1.5">akun</span>
+            </div>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">Proteksi 2FA:</span>
+                <span className="font-semibold text-emerald-600">
+                  {stats.credentialStats.twoFactorAdoptionRate}% Aktif
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-500">Perlu Rotasi:</span>
+                <span
+                  className={`font-semibold ${
+                    stats.credentialStats.needsRotationCount > 0
+                      ? "text-amber-700 font-bold"
+                      : "text-slate-600"
+                  }`}
+                >
+                  {stats.credentialStats.needsRotationCount > 0 ? (
+                    <span className="inline-flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0" />
+                      {stats.credentialStats.needsRotationCount} Akun
+                    </span>
+                  ) : (
+                    "Aman (0)"
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 pt-3 border-t border-slate-100">
+            <Link
+              href="/kredensial"
+              className="text-xs font-semibold text-amber-700 hover:text-amber-800 inline-flex items-center gap-1 group"
+            >
+              <span>Buka Brankas Sandi</span>
+              <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Card 5: Dokumen & SOP */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">

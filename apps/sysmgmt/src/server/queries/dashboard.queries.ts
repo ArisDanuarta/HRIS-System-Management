@@ -31,6 +31,13 @@ export interface SysmgmtDashboardStats {
     draftDocuments: number;
     archivedDocuments: number;
   };
+  credentialStats: {
+    totalCredentials: number;
+    activeCount: number;
+    needsRotationCount: number;
+    twoFactorProtectedCount: number;
+    twoFactorAdoptionRate: number;
+  };
   recentAudits: Array<{
     id: string;
     occurredAt: string;
@@ -86,10 +93,16 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
       draftDocuments,
       archivedDocuments,
 
-      // 5. Audit Log Terbaru
+      // 5. Kredensial
+      totalCredentials,
+      activeCredentials,
+      needsRotationCount,
+      twoFactorProtectedCount,
+
+      // 6. Audit Log Terbaru
       rawRecentAudits,
 
-      // 6. Tata Kelola Modul
+      // 7. Tata Kelola Modul
       moduleGovernance,
     ] = await Promise.all([
       // User & Sesi
@@ -134,6 +147,29 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
       prisma.document.count({ where: { status: "DRAFT" } }),
       prisma.document.count({ where: { status: "ARCHIVED" } }),
 
+      // Kredensial & Akun
+      prisma.credential.count(),
+      prisma.credential.count({ where: { isActive: true } }),
+      prisma.credential.count({
+        where: {
+          isActive: true,
+          OR: [
+            { lastRotatedAt: null },
+            {
+              lastRotatedAt: {
+                lte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
+              },
+            },
+          ],
+        },
+      }),
+      prisma.credential.count({
+        where: {
+          isActive: true,
+          twoFactorType: { not: "NONE" },
+        },
+      }),
+
       // Log Audit Terkini (Maksimal 8)
       prisma.auditLog.findMany({
         take: 8,
@@ -162,6 +198,10 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
       totalSeats > 0 ? Math.round((usedSeats / totalSeats) * 100) : 0;
 
     const inactiveUsers = Math.max(0, totalUsers - activeUsers);
+    const twoFactorAdoptionRate =
+      activeCredentials > 0
+        ? Math.round((twoFactorProtectedCount / activeCredentials) * 100)
+        : 0;
 
     const recentAudits = rawRecentAudits.map((a) => ({
       id: a.id,
@@ -205,6 +245,13 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
         draftDocuments,
         archivedDocuments,
       },
+      credentialStats: {
+        totalCredentials,
+        activeCount: activeCredentials,
+        needsRotationCount,
+        twoFactorProtectedCount,
+        twoFactorAdoptionRate,
+      },
       recentAudits,
       systemHealth: {
         isDatabaseConnected: true,
@@ -245,6 +292,13 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
         activeDocuments: 0,
         draftDocuments: 0,
         archivedDocuments: 0,
+      },
+      credentialStats: {
+        totalCredentials: 0,
+        activeCount: 0,
+        needsRotationCount: 0,
+        twoFactorProtectedCount: 0,
+        twoFactorAdoptionRate: 0,
       },
       recentAudits: [],
       systemHealth: {
