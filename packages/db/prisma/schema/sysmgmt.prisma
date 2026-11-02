@@ -229,6 +229,7 @@ model Credential {
   @@index([category])
   @@index([isActive])
   @@index([picEmployeeId])
+  @@index([lastRotatedAt])
   @@map("credentials")
   @@schema("sysmgmt")
 }

@@ -122,4 +122,39 @@ describe("credential.queries.ts", () => {
     expect(stats.twoFactorAdoptionRate).toBe(75); // (6/8)*100 = 75%
     expect(stats.needsRotationCount).toBe(2);
   });
+
+  it("harus menyatukan filter pencarian teks dan filter perlu rotasi menggunakan where.AND tanpa saling menimpa", async () => {
+    const { prisma } = await import("@pspk/db");
+
+    vi.mocked(prisma.credential.findMany).mockResolvedValue([]);
+    vi.mocked(prisma.credential.count).mockResolvedValue(0);
+    vi.mocked(prisma.credential.groupBy).mockResolvedValue([]);
+
+    await getCredentialsDirectory({
+      search: "instagram",
+      needsRotationOnly: true,
+      category: "SOCIAL_MEDIA",
+      status: "ACTIVE",
+    });
+
+    expect(prisma.credential.findMany).toHaveBeenCalled();
+    const callArgs = vi.mocked(prisma.credential.findMany).mock.calls[0]?.[0];
+    const where = callArgs?.where;
+
+    // Memastikan where menggunakan AND sehingga filter OR pencarian dan OR rotasi tidak saling menimpa
+    expect(where).toHaveProperty("AND");
+    const andArray = where?.AND as Array<Record<string, unknown>>;
+    expect(andArray).toBeDefined();
+
+    // Verifikasi ada filter OR untuk search dan filter OR untuk rotasi di dalam AND
+    const searchFilter = andArray.find((item) => "OR" in item && Array.isArray(item.OR) && (item.OR[0] as { title?: unknown })?.title);
+    const rotationFilter = andArray.find((item) => "OR" in item && Array.isArray(item.OR) && "lastRotatedAt" in (item.OR[0] as object));
+    const categoryFilter = andArray.find((item) => "category" in item);
+    const statusFilter = andArray.find((item) => "isActive" in item);
+
+    expect(searchFilter).toBeDefined();
+    expect(rotationFilter).toBeDefined();
+    expect(categoryFilter).toBeDefined();
+    expect(statusFilter).toBeDefined();
+  });
 });

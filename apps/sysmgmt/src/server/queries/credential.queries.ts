@@ -94,52 +94,59 @@ export async function getCredentialsDirectory(
     sortOrder = "asc",
   } = params;
 
-  const where: Prisma.CredentialWhereInput = {};
+  const andConditions: Prisma.CredentialWhereInput[] = [];
 
-  // 1. Text Search
+  // 1. Text Search (title, username, email, url, notes, nama PIC)
   if (search && search.trim()) {
     const q = search.trim();
-    where.OR = [
-      { title: { contains: q, mode: "insensitive" } },
-      { username: { contains: q, mode: "insensitive" } },
-      { email: { contains: q, mode: "insensitive" } },
-      { url: { contains: q, mode: "insensitive" } },
-      { notes: { contains: q, mode: "insensitive" } },
-      { picEmployee: { fullName: { contains: q, mode: "insensitive" } } },
-    ];
+    andConditions.push({
+      OR: [
+        { title: { contains: q, mode: "insensitive" } },
+        { username: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+        { url: { contains: q, mode: "insensitive" } },
+        { notes: { contains: q, mode: "insensitive" } },
+        { picEmployee: { fullName: { contains: q, mode: "insensitive" } } },
+      ],
+    });
   }
 
   // 2. Category Filter
   if (category && category !== "ALL") {
-    where.category = category;
+    andConditions.push({ category });
   }
 
   // 3. Two Factor Filter
   if (twoFactor && twoFactor !== "ALL") {
     if (twoFactor === "WITH_2FA") {
-      where.twoFactorType = { not: "NONE" };
+      andConditions.push({ twoFactorType: { not: "NONE" } });
     } else if (twoFactor === "WITHOUT_2FA") {
-      where.twoFactorType = "NONE";
+      andConditions.push({ twoFactorType: "NONE" });
     } else {
-      where.twoFactorType = twoFactor;
+      andConditions.push({ twoFactorType: twoFactor });
     }
   }
 
   // 4. Status Filter
   if (status === "ACTIVE") {
-    where.isActive = true;
+    andConditions.push({ isActive: true });
   } else if (status === "INACTIVE") {
-    where.isActive = false;
+    andConditions.push({ isActive: false });
   }
 
   // 5. Rotation filter (older than 90 days or null)
   if (needsRotationOnly) {
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    where.OR = [
-      { lastRotatedAt: null },
-      { lastRotatedAt: { lte: ninetyDaysAgo } },
-    ];
+    andConditions.push({
+      OR: [
+        { lastRotatedAt: null },
+        { lastRotatedAt: { lte: ninetyDaysAgo } },
+      ],
+    });
   }
+
+  const where: Prisma.CredentialWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {};
 
   // Ordering
   const orderBy: Prisma.CredentialOrderByWithRelationInput = {};
