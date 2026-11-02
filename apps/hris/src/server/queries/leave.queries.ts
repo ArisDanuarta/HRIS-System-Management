@@ -36,7 +36,7 @@ export async function getEmployeeLeaveBalances(employeeId: string, year?: number
 
   const balanceMap = new Map(existingBalances.map((b) => [b.leaveTypeId, b]));
 
-  return activeLeaveTypes.map((lt) => {
+  const mapped = activeLeaveTypes.map((lt) => {
     const existing = balanceMap.get(lt.id);
     const quota = existing ? existing.quotaDays : lt.defaultQuotaDays;
     const used = existing ? Number(existing.usedDays) : 0;
@@ -57,6 +57,23 @@ export async function getEmployeeLeaveBalances(employeeId: string, year?: number
         requiresAttachment: lt.requiresAttachment,
       },
     };
+  });
+
+  // Prioritize primary leaves: Cuti Tahunan first, followed by Cuti Sakit, then alphabetical
+  return mapped.sort((a, b) => {
+    const aName = a.leaveType.name.toLowerCase();
+    const bName = b.leaveType.name.toLowerCase();
+    const aIsAnnual = aName.includes("tahunan") || aName.includes("annual");
+    const bIsAnnual = bName.includes("tahunan") || bName.includes("annual");
+    if (aIsAnnual && !bIsAnnual) return -1;
+    if (!aIsAnnual && bIsAnnual) return 1;
+
+    const aIsSick = aName.includes("sakit") || aName.includes("sick");
+    const bIsSick = bName.includes("sakit") || bName.includes("sick");
+    if (aIsSick && !bIsSick) return -1;
+    if (!aIsSick && bIsSick) return 1;
+
+    return aName.localeCompare(bName);
   });
 }
 

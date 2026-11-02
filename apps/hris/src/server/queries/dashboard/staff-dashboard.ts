@@ -2,6 +2,7 @@ import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
 import { toDateString } from "@pspk/shared";
 import { getActiveWorkSchedule } from "../../services/work-schedule.service";
+import { getEmployeeLeaveBalances } from "../leave.queries";
 
 export interface StaffDashboardData {
   todayAttendance: {
@@ -121,16 +122,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
         date: todayDate,
       },
     }),
-    prisma.leaveBalance.findMany({
-      where: {
-        employeeId,
-        year: currentYear,
-      },
-      include: {
-        leaveType: true,
-      },
-      orderBy: { quotaDays: "desc" },
-    }),
+    getEmployeeLeaveBalances(employeeId, currentYear),
     prisma.leaveRequest.count({
       where: {
         employeeId,
