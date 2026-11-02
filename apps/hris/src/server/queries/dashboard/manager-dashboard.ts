@@ -187,16 +187,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     }),
 
     // Manager's own leave balances
-    prisma.leaveBalance.findMany({
-      where: {
-        employeeId: managerId,
-        year: currentYear,
-      },
-      include: {
-        leaveType: true,
-      },
-      orderBy: { quotaDays: "desc" },
-    }),
+    getEmployeeLeaveBalances(managerId, currentYear),
 
     getActiveWorkSchedule(),
   ]);
@@ -205,26 +196,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     ["PRESENT", "LATE", "WFH"].includes(a.status),
   ).length;
 
-  const formattedManagerBalances = managerBalances.map((b) => {
-    const quotaDays = b.quotaDays;
-    const usedDaysNumber = Number(b.usedDays);
-    const remainingDays = Math.max(0, quotaDays - usedDaysNumber);
-    const usagePercentage = quotaDays > 0 ? Math.round((usedDaysNumber / quotaDays) * 100) : 0;
-    return {
-      id: b.id,
-      leaveTypeId: b.leaveTypeId,
-      year: b.year,
-      quotaDays,
-      usedDaysNumber,
-      remainingDays,
-      usagePercentage,
-      leaveType: {
-        name: b.leaveType.name,
-        isPaid: b.leaveType.isPaid,
-        requiresAttachment: b.leaveType.requiresAttachment,
-      },
-    };
-  });
+  const formattedManagerBalances = managerBalances;
 
   // Antrean Timesheet Staf Freelance yang ditugaskan ke manajer ini
   const pendingTimesheetReviewsRaw = await prisma.timesheetReviewer.findMany({
