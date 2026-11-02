@@ -167,4 +167,39 @@ describe("RBAC can() & assertCan()", () => {
       }).toThrowError(ForbiddenError);
     });
   });
+
+  describe("System Management: Credentials & Account Vault", () => {
+    const itAdminCtx: AuthContext = {
+      userId: "u-it-1",
+      employeeId: "emp-it-1",
+      roles: ["admin_it"],
+      permissions: new Set([
+        "sysmgmt.credential.read:all",
+        "sysmgmt.credential.manage:all",
+        "sysmgmt.credential.reveal:all",
+      ]),
+    };
+
+    const staffCtx: AuthContext = {
+      userId: "u-staff-1",
+      employeeId: "emp-staff-1",
+      roles: ["staff"],
+      permissions: new Set(["sysmgmt.asset.read:own"]),
+    };
+
+    it("permits Admin IT to read, manage, and reveal credentials", () => {
+      expect(can(itAdminCtx, "sysmgmt.credential.read:all")).toBe(true);
+      expect(can(itAdminCtx, "sysmgmt.credential.manage:all")).toBe(true);
+      expect(can(itAdminCtx, "sysmgmt.credential.reveal:all")).toBe(true);
+    });
+
+    it("denies staff from accessing credential vault", () => {
+      expect(can(staffCtx, "sysmgmt.credential.read:all")).toBe(false);
+      expect(can(staffCtx, "sysmgmt.credential.manage:all")).toBe(false);
+      expect(can(staffCtx, "sysmgmt.credential.reveal:all")).toBe(false);
+      expect(() => assertCan(staffCtx, "sysmgmt.credential.read:all")).toThrowError(
+        ForbiddenError,
+      );
+    });
+  });
 });

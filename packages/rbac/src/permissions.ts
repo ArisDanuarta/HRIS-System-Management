@@ -263,6 +263,23 @@ export const PERMISSIONS = [
     description: "Mengelola lisensi software",
   },
 
+  // --- System Management: Credentials & Account Vault ---
+  {
+    key: "sysmgmt.credential.read:all",
+    module: "sysmgmt",
+    description: "Melihat daftar akun dan kredensial lembaga",
+  },
+  {
+    key: "sysmgmt.credential.manage:all",
+    module: "sysmgmt",
+    description: "Menambah, mengedit, dan menghapus akun kredensial",
+  },
+  {
+    key: "sysmgmt.credential.reveal:all",
+    module: "sysmgmt",
+    description: "Membuka dan mendekripsi password akun kredensial",
+  },
+
   // --- System Management: Documents & SOPs ---
   {
     key: "sysmgmt.document.read:own",
