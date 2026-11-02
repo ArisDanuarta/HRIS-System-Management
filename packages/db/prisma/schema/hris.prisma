@@ -244,6 +244,7 @@ model Employee {
   reviewsGiven      PerformanceReview[]        @relation("ManagerReviews")
   onboardingTasks     OnboardingTask[]
   assetAssignments    AssetAssignment[]
+  managedCredentials  Credential[]
   timesheetsSubmitted TimesheetSubmission[]
   timesheetsAssigned  TimesheetReviewer[]
   documents           EmployeeDocument[]

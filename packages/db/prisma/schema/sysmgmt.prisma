@@ -183,3 +183,54 @@ model AssetLocation {
   @@schema("sysmgmt")
 }
 
+enum CredentialCategory {
+  SOCIAL_MEDIA
+  WEBSITE_HOSTING
+  SAAS_TOOL
+  EMAIL_SERVICE
+  GOVERNMENT_PUBLIC
+  FINANCE_BANKING
+  OTHER
+
+  @@schema("sysmgmt")
+}
+
+enum TwoFactorType {
+  NONE
+  AUTHENTICATOR_APP
+  SMS_OTP
+  EMAIL_OTP
+  HARDWARE_KEY
+  OTHER
+
+  @@schema("sysmgmt")
+}
+
+model Credential {
+  id            String             @id @default(uuid())
+  title         String
+  category      CredentialCategory @default(OTHER)
+  url           String?
+  username      String?
+  email         String?
+  passwordEnc   String             @map("password_enc")
+  twoFactorType TwoFactorType      @default(NONE) @map("two_factor_type")
+  recoveryEmail String?            @map("recovery_email")
+  recoveryPhone String?            @map("recovery_phone")
+  picEmployeeId String?            @map("pic_employee_id")
+  notes         String?
+  isActive      Boolean            @default(true) @map("is_active")
+  lastRotatedAt DateTime?          @map("last_rotated_at") @db.Timestamptz(6)
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  picEmployee   Employee?          @relation(fields: [picEmployeeId], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([isActive])
+  @@index([picEmployeeId])
+  @@map("credentials")
+  @@schema("sysmgmt")
+}
+
+
