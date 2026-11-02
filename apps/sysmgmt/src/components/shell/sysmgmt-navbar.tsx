@@ -96,7 +96,10 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
   const isAssetEnabled = !moduleFlags || isModuleActive(moduleFlags, "asset_management");
 
   // Status keaktifan grup menu bertingkat
-  const isInventarisActive = pathname.startsWith("/aset") || pathname.startsWith("/lisensi");
+  const isInventarisActive =
+    pathname.startsWith("/aset") ||
+    pathname.startsWith("/lisensi") ||
+    pathname.startsWith("/kredensial");
   const isGovernanceActive = pathname.startsWith("/audit") || pathname.startsWith("/pengaturan");
 
   return (
@@ -249,6 +252,40 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
                           </div>
                           <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
                             Monitoring masa aktif langganan, kuota kursi, dan vendor
+                          </p>
+                        </div>
+                      </Link>
+
+                      <Link
+                        href="/kredensial"
+                        className={`flex items-start gap-3 p-2.5 rounded-xl transition-all cursor-pointer group ${
+                          pathname.startsWith("/kredensial")
+                            ? "bg-slate-50 border border-slate-200/80"
+                            : "hover:bg-slate-50 border border-transparent"
+                        }`}
+                      >
+                        <div
+                          className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all ${
+                            pathname.startsWith("/kredensial")
+                              ? "bg-[#102E50] text-[#F2AF3E] shadow-2xs"
+                              : "bg-slate-100 text-slate-600 group-hover:bg-[#102E50]/10 group-hover:text-[#102E50]"
+                          }`}
+                        >
+                          <KeyRound className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-900 group-hover:text-[#102E50]">
+                              Akun & Kredensial
+                            </span>
+                            {pathname.startsWith("/kredensial") && (
+                              <span className="text-[9px] font-bold text-[#102E50] bg-[#102E50]/10 px-1.5 py-0.5 rounded">
+                                Aktif
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                            Brankas sandi akun medsos, hosting, dan SaaS (AES-256)
                           </p>
                         </div>
                       </Link>
@@ -544,6 +581,17 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
             >
               <KeyRound className="w-4 h-4" />
               <span>Lisensi Software</span>
+            </Link>
+            <Link
+              href="/kredensial"
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold ${
+                pathname.startsWith("/kredensial")
+                  ? "bg-[#102E50]/10 text-[#102E50]"
+                  : "text-slate-700 hover:bg-slate-50"
+              }`}
+            >
+              <KeyRound className="w-4 h-4" />
+              <span>Akun & Kredensial</span>
             </Link>
           </div>
 
