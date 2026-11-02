@@ -80,6 +80,7 @@ export const updateCredentialSchema = z
 
 export const revealCredentialPasswordSchema = z.object({
   id: z.string().min(1, "ID kredensial wajib diisi"),
+  reason: z.string().trim().optional(),
 });
 
 export const deleteCredentialSchema = z.object({

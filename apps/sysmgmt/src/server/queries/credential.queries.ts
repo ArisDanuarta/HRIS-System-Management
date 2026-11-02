@@ -307,3 +307,4 @@ export async function getActiveEmployeesForPic(): Promise<ActiveEmployeePicOptio
     positionTitle: e.currentPosition?.title ?? null,
   }));
 }
+

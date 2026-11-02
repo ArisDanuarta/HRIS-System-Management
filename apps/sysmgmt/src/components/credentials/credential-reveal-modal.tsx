@@ -58,19 +58,18 @@ export function CredentialRevealModal({
 
   // Countdown timer saat password sudah terbuka
   useEffect(() => {
-    if (revealedPassword) {
-      setCountdown(COUNTDOWN_SECONDS);
-      timerRef.current = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearTimer();
-            setRevealedPassword(null);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
+    if (!revealedPassword) return;
+
+    timerRef.current = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearTimer();
+          setRevealedPassword(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     return () => clearTimer();
   }, [revealedPassword, clearTimer]);
@@ -96,6 +95,7 @@ export function CredentialRevealModal({
       }
 
       setRevealedPassword(res.data?.password || "");
+      setCountdown(COUNTDOWN_SECONDS);
     } catch (err: unknown) {
       setErrorMsg(
         err instanceof Error ? err.message : "Terjadi kesalahan sistem saat mendekripsi password.",

@@ -110,3 +110,4 @@ export default async function CredentialPage({ searchParams }: CredentialPagePro
     />
   );
 }
+

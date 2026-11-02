@@ -95,6 +95,8 @@ export {
   BroadcastScope,
   BroadcastStatus,
   BroadcastDeliveryStatus,
+  CredentialCategory,
+  TwoFactorType,
 } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./audit";

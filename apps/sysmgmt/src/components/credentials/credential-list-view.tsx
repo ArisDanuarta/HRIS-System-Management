@@ -7,9 +7,7 @@ import {
   CredentialStats,
   CredentialsDirectoryResult,
   ActiveEmployeePicOption,
-  CredentialFilterParams,
 } from "@/server/queries/credential.queries";
-import { CredentialCategory, TwoFactorType } from "@pspk/db";
 import { CredentialTable } from "./credential-table";
 import { CredentialFormModal } from "./credential-form-modal";
 import { CredentialRevealModal } from "./credential-reveal-modal";
@@ -24,7 +22,6 @@ import {
   Layers,
   Share2,
   Globe,
-  SlidersHorizontal,
   CheckCircle2,
 } from "lucide-react";
 import { CATEGORY_META } from "./credential-constants";
@@ -319,7 +316,7 @@ export function CredentialListView({
               <option value="SMS_OTP">SMS OTP</option>
               <option value="EMAIL_OTP">Email OTP</option>
               <option value="HARDWARE_KEY">Hardware Key</option>
-              <option value="BACKUP_CODES">Backup Codes</option>
+              <option value="OTHER">2FA Lainnya / Backup</option>
             </select>
 
             {/* Filter Status */}

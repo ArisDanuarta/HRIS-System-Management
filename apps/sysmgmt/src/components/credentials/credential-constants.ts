@@ -5,7 +5,6 @@ import {
   Layers,
   Mail,
   MessageSquare,
-  Terminal,
   CreditCard,
   Landmark,
   Folder,
@@ -57,23 +56,7 @@ export const CATEGORY_META: Record<CredentialCategory, CategoryMeta> = {
     icon: Mail,
     description: "Google Workspace Admin, Mailchimp, SendGrid",
   },
-  COMMUNICATION: {
-    label: "Komunikasi Internal",
-    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    iconBgClass: "bg-emerald-50",
-    iconTextClass: "text-emerald-600",
-    icon: MessageSquare,
-    description: "Slack Workspace, Discord, Telegram Bot",
-  },
-  DEVELOPER_INFRA: {
-    label: "Infrastruktur & Dev",
-    badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
-    iconBgClass: "bg-purple-50",
-    iconTextClass: "text-purple-600",
-    icon: Terminal,
-    description: "GitHub Organization, Docker Hub, AWS Console, GCP",
-  },
-  FINANCIAL_BANK: {
+  FINANCE_BANKING: {
     label: "Perbankan & Keuangan",
     badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-300",
     iconBgClass: "bg-emerald-50",
@@ -81,7 +64,7 @@ export const CATEGORY_META: Record<CredentialCategory, CategoryMeta> = {
     icon: CreditCard,
     description: "Internet Banking Bisnis, Midtrans, Xendit, PayPal",
   },
-  GOVERNMENT_PORTAL: {
+  GOVERNMENT_PUBLIC: {
     label: "Portal Instansi / Pajak",
     badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
     iconBgClass: "bg-blue-50",
@@ -137,9 +120,9 @@ export const TWO_FACTOR_META: Record<TwoFactorType, TwoFactorMeta> = {
     badgeClass: "bg-purple-50 text-purple-700 border-purple-200",
     icon: KeyRound,
   },
-  BACKUP_CODES: {
-    label: "Kode Cadangan (Recovery Codes)",
-    shortLabel: "Backup Codes",
+  OTHER: {
+    label: "Metode Lainnya (Kode Cadangan / Recovery)",
+    shortLabel: "2FA Lainnya",
     badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200",
     icon: FileText,
   },

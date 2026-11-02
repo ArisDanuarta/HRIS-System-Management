@@ -13,11 +13,9 @@ import {
   ExternalLink,
   Copy,
   Check,
-  AlertTriangle,
   ClockAlert,
   CheckCircle2,
   Lock,
-  User,
   ShieldAlert,
 } from "lucide-react";
 import { CATEGORY_META, TWO_FACTOR_META } from "./credential-constants";

@@ -20,9 +20,6 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  ShieldCheck,
-  UserCheck,
-  HelpCircle,
   Check,
 } from "lucide-react";
 import {

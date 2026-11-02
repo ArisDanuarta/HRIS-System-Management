@@ -269,6 +269,7 @@ export async function revealCredentialPasswordAction(rawInput: RevealCredentialP
         title: credential.title,
         category: credential.category,
         username: credential.username,
+        reason: parsed.reason || "Akses operasional akun kredensial",
         revealedAt: new Date().toISOString(),
       },
       ip: actor.ip,
