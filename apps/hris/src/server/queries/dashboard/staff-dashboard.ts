@@ -142,12 +142,16 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
     prisma.payslip.findFirst({
       where: {
         employeeId,
-        status: "PUBLISHED",
+        status: { in: ["PUBLISHED", "LOCKED"] },
       },
       include: {
         period: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [
+        { period: { year: "desc" } },
+        { period: { month: "desc" } },
+        { createdAt: "desc" },
+      ],
     }),
     getActiveWorkSchedule(),
     prisma.employee.findUnique({

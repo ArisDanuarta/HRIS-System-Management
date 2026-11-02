@@ -2,6 +2,58 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Dashboard & Penggajian] Sinkronisasi Kueri Slip Gaji Terbaru Dashboard Beranda — 2026-11-02
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Kartu metrik *"Slip gaji terbaru"* di Dashboard Beranda staf sebelumnya tidak menampilkan slip gaji periode terbaru (Oktober 2026 / Rp 5.070.000) dan masih menampilkan periode lama (September 2026 / Rp 10.500.000), padahal pada halaman `/slip-gaji` slip gaji Oktober sudah terbit.
+  - Penyebabnya: status slip gaji Oktober adalah `LOCKED` (karena periode payroll telah dikunci/final), sementara kueri dashboard hanya mencari `status: "PUBLISHED"`, dan pengurutan hanya memakai `createdAt: "desc"`.
+- **Hasil Pekerjaan & Implementasi:**
+  1. **Perbaikan Kueri `latestPayslip` (`apps/hris/src/server/queries/dashboard/staff-dashboard.ts`):**
+     - Memperbarui filter status menjadi `status: { in: ["PUBLISHED", "LOCKED"] }` selaras dengan kueri riwayat di `/slip-gaji`.
+     - Memperbaiki hierarki pengurutan periode resmi: `[{ period: { year: "desc" } }, { period: { month: "desc" } }, { createdAt: "desc" }]` sehingga selalu mengambil slip gaji dari tahun dan bulan kalender paling mutakhir.
+  2. **Pengujian & Verifikasi:**
+     - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket monorepo lolos verifikasi tipe).
+     - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+     - `pnpm test`: ✅ Lolos (40 test files, 272 tests passed).
+     - `pnpm build`: ✅ Lolos (kedua aplikasi Next.js berhasil di-build standalone).
+     - Verifikasi data lokal: Akun staf kini menampilkan slip gaji terbaru Oktober 2026 (Rp 5.070.000 • 169 jam).
+
+## [Dashboard & Cuti] Layout Kartu Hak Cuti Dinamis & Sinkronisasi Saldo Cuti Real-time — 2026-11-02
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Permasalahan:**
+  - Kartu pada bagian *"Hak cuti tahun berjalan"* di Dashboard HRIS sebelumnya menggunakan layout CSS statis `grid-cols-4`. Pada akun pegawai yang memiliki 2 jenis cuti aktif (seperti Cuti Tahunan dan Cuti Sakit), kartu hanya memenuhi 2 kolom pertama dan menyisakan ruang kosong 50% di sisi kanan kontainer utama dashboard.
+  - Query dashboard staf dan manajer sebelumnya mengambil data mentah dari tabel `leave_balances`, sehingga bila Admin HR menambahkan master jenis cuti baru, cuti tersebut tidak otomatis tampil sebelum di-generate secara manual.
+- **Hasil Pekerjaan & Implementasi:**
+  1. **Dynamic Grid Layout (`apps/hris/src/components/cuti/leave-balance-cards.tsx`):**
+     - Mengubah grid container menjadi adaptif dinamis (`getGridColsClass`) sesuai jumlah jatah cuti aktif (`balances.length`):
+       - 1 jenis cuti: `grid-cols-1`
+       - 2 jenis cuti: `grid-cols-1 sm:grid-cols-2` (kedua kartu melebar masing-masing 50% memenuhi lebar kontainer, menghilangkan ruang kosong canggung).
+       - 3 jenis cuti: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3` (masing-masing 33.3%).
+       - 4+ jenis cuti: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`.
+     - Mendukung opsional prop `columns` untuk fleksibilitas pemanggilan di masa depan.
+  2. **Pengayaan Tema & Ikon Brand PSPK (`getCategoryTheme`):**
+     - Menambahkan pemetaan ikon dan aksen visual khas PSPK untuk berbagai jenis cuti:
+       - Cuti Tahunan: Navy `#102e50` + `Calendar`
+       - Cuti Sakit: Maroon `#a8281c` + `HeartPulse`
+       - Cuti Melahirkan / Bersalin / Kehamilan: Berry `#8e2d3f` + `Baby`
+       - Cuti Menikah: Gold `#f2af3e` + `Sparkles`
+       - Cuti Ibadah / Haji / Umroh: Teal `#0874aa` + `Compass`
+       - Cuti Studi / Belajar / Pelatihan: Royal Purple `#4c1d95` + `GraduationCap`
+       - Cuti Khusus / Penting / Duka: Warm Orange `#df632f` + `Clock`
+     - Label footer cerdas: "Hak Tahunan" untuk Cuti Tahunan, dan "Total Kuota" untuk jenis cuti lainnya.
+  3. **Sinkronisasi Query Dashboard dengan `getEmployeeLeaveBalances`:**
+     - Menggantikan raw query di `staff-dashboard.ts` dan `manager-dashboard.ts` dengan helper `getEmployeeLeaveBalances(employeeId, currentYear)`.
+     - Menjamin jenis cuti aktif di sistem (sesuai gender pegawai) otomatis muncul secara dinamis dengan kuota default yang akurat.
+     - Mengurutkan jatah cuti dengan memprioritaskan Cuti Tahunan pertama kali, diikuti Cuti Sakit, lalu jenis cuti lainnya secara alfabetis.
+  4. **Pengujian & Verifikasi:**
+     - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lolos verifikasi tipe).
+     - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+     - `pnpm test`: ✅ Lolos (40 test files, 272 tests passed).
+     - `pnpm build`: ✅ Lolos (kedua aplikasi web berhasil di-build standalone).
+
+
 ## [Penggajian / Payroll] Ekspor Rekap Payroll & Transfer Bank Format Excel (.xlsx) Multi-Sheet — 2026-10-30
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
