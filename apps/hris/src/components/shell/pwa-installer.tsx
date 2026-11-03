@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { Download, X, WifiOff, CheckCircle2 } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -9,6 +10,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export function PwaInstaller() {
+  const pathname = usePathname();
+  const isLoginPage = pathname === "/login";
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [showOnlineAlert, setShowOnlineAlert] = useState(false);
@@ -127,8 +130,8 @@ export function PwaInstaller() {
         </aside>
       )}
 
-      {/* In-App Install Prompt Banner */}
-      {showInstallBanner && deferredPrompt && (
+      {/* In-App Install Prompt Banner (disembunyikan di halaman login) */}
+      {!isLoginPage && showInstallBanner && deferredPrompt && (
         <aside
           aria-label="Pemberitahuan Pemasangan Aplikasi"
           className="fixed bottom-18 md:bottom-6 right-4 left-4 sm:left-auto sm:max-w-md z-40 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
