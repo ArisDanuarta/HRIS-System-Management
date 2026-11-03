@@ -2,7 +2,7 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck, Menu } from "lucide-react";
 import { AppSwitcher } from "@pspk/ui";
 import { UserNav } from "./user-nav";
 import { NotificationBell } from "./notification-bell";
@@ -21,6 +21,7 @@ export interface AppTopbarProps {
   isSuperAdmin?: boolean;
   canAccessSysmgmt?: boolean;
   onRoleChange?: (role: RoleViewType) => void;
+  onToggleMobile?: () => void;
 }
 
 export function AppTopbar({
@@ -30,6 +31,7 @@ export function AppTopbar({
   isSuperAdmin = false,
   canAccessSysmgmt = false,
   onRoleChange,
+  onToggleMobile,
 }: AppTopbarProps) {
   const pathname = usePathname();
 
@@ -70,26 +72,38 @@ export function AppTopbar({
 
   return (
     <header
-      className={`fixed top-0 right-0 h-16 bg-white/95 backdrop-blur-md z-40 flex items-center justify-between px-4 sm:px-6 lg:px-8 border-b border-[#dee9fc] shadow-xs transition-all duration-300 ${
-        isCollapsed ? "left-20" : "left-[264px]"
+      className={`fixed top-0 right-0 h-16 bg-white/95 backdrop-blur-md z-40 flex items-center justify-between px-3 sm:px-6 lg:px-8 border-b border-[#dee9fc] shadow-xs transition-all duration-300 left-0 ${
+        isCollapsed ? "md:left-20" : "md:left-[264px]"
       }`}
     >
-      {/* Left: Breadcrumbs */}
-      <div className="flex items-center gap-3">
+      {/* Left: Hamburger Button & Breadcrumbs */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Hamburger Button for Mobile */}
+        <button
+          type="button"
+          onClick={onToggleMobile}
+          className="p-2 -ml-1 rounded-xl text-slate-600 hover:text-[#102e50] hover:bg-slate-100/80 md:hidden transition-colors cursor-pointer shrink-0"
+          aria-label="Buka menu navigasi"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         {/* Breadcrumb Path */}
-        <div className="flex items-center gap-1.5 text-xs text-[#5b6675]">
-          <span className="text-[#5b6675]/80 hover:text-[#102e50] transition-colors">
+        <div className="flex items-center gap-1.5 text-xs text-[#5b6675] min-w-0">
+          <span className="text-[#5b6675]/80 hover:text-[#102e50] transition-colors hidden sm:inline shrink-0">
             Portal HRIS
           </span>
-          <ChevronRight className="w-3.5 h-3.5 text-[#c4c6cf]" />
-          <span className="text-[#102e50] font-bold text-xs sm:text-sm">{getPageTitle()}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-[#c4c6cf] hidden sm:inline shrink-0" />
+          <span className="text-[#102e50] font-bold text-xs sm:text-sm truncate">
+            {getPageTitle()}
+          </span>
         </div>
       </div>
 
-      {/* Center: Super Admin Perspective Switcher (ONLY for Super Admin) */}
+      {/* Center: Super Admin Perspective Switcher (ONLY for Super Admin - disembunyikan di layar mobile) */}
       {isSuperAdmin && onRoleChange && (
-        <div className="flex items-center gap-1.5 bg-amber-50/90 border border-amber-300/80 px-2.5 py-1 rounded-lg shadow-xs">
-          <div className="flex items-center gap-1 text-[11px] font-bold text-amber-900 mr-1 hidden sm:flex">
+        <div className="hidden md:flex items-center gap-1.5 bg-amber-50/90 border border-amber-300/80 px-2.5 py-1 rounded-lg shadow-xs">
+          <div className="flex items-center gap-1 text-[11px] font-bold text-amber-900 mr-1 hidden lg:flex">
             <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
             <span>Mode Pratinjau:</span>
           </div>
