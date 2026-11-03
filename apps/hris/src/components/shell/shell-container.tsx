@@ -41,6 +41,14 @@ export function ShellContainer({
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const handleCloseMobile = useCallback(() => {
+    setMobileNavOpen(false);
+  }, []);
+
+  const handleToggleMobile = useCallback(() => {
+    setMobileNavOpen((prev) => !prev);
+  }, []);
   const [currentRole, setCurrentRole] = useState<RoleViewType>(() => {
     if (typeof window !== "undefined" && isSuperAdmin) {
       const saved = sessionStorage.getItem("pspk_superadmin_role_view");
@@ -75,7 +83,7 @@ export function ShellContainer({
         isHourlyEmployee={isHourlyEmployee}
         moduleFlags={moduleFlags}
         mobileOpen={mobileNavOpen}
-        onCloseMobile={() => setMobileNavOpen(false)}
+        onCloseMobile={handleCloseMobile}
       />
 
       {/* Top Header with Superadmin Switcher & Mobile Hamburger Toggle */}
@@ -86,7 +94,7 @@ export function ShellContainer({
         isSuperAdmin={isSuperAdmin}
         canAccessSysmgmt={canAccessSysmgmt}
         onRoleChange={isSuperAdmin ? handleRoleChange : undefined}
-        onToggleMobile={() => setMobileNavOpen((prev) => !prev)}
+        onToggleMobile={handleToggleMobile}
       />
 
       {/* Main Content Area - Adaptif Mobile pl-0, Desktop pl-20/pl-264 */}
