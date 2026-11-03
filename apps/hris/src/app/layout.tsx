@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lora, Rubik } from "next/font/google";
 import "./globals.css";
+import { PwaInstaller } from "@/components/shell/pwa-installer";
 
 const lora = Lora({
   variable: "--font-lora",
