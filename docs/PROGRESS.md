@@ -2,6 +2,33 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Mobile & PWA] Tahap 3: Service Worker, Caching Strategy & Offline Fallback — 2026-11-03
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Menerapkan Service Worker PWA (`public/sw.js`) untuk mempercepat pemuatan aset (*instant load*).
+  - Menyediakan strategi caching hibrida: *Network-First* untuk data dinamis dan *Cache-First* untuk aset statis.
+  - Membangun halaman *Offline Fallback* kustom ([`/offline`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/offline/page.tsx)) dan banner interaktif pemasangan aplikasi (*In-App Install Prompt*).
+- **Implementasi Pekerjaan:**
+  1. **Service Worker (`apps/hris/public/sw.js`):**
+     - Siklus hidup Service Worker: `install` (pra-cache `/offline`, `/favicon.png`, ikon 192/512, dan logo), `activate` (pembersihan cache lama), dan `fetch`.
+     - Strategi *Network-First* untuk navigasi halaman HTML: jika internet mati, browser otomatis menyajikan halaman `/offline`.
+     - Strategi *Cache-First / Stale-While-Revalidate* untuk aset statis (`/_next/static/`, `/icons/`, `/images/`, `.png`, `.jpg`, `.woff2`).
+     - Melewati (*bypass*) caching untuk panggilan API (`/api/`) dan Server Actions Next.js agar data real-time tidak pernah stale.
+  2. **Halaman Offline Fallback (`apps/hris/src/app/offline/page.tsx`):**
+     - Antarmuka elegan bertema brand PSPK dengan ikon `WifiOff`, penjelasan bahwa presensi dan cuti membutuhkan koneksi aktif, serta tombol "Coba Muat Ulang" dan "Ke Beranda".
+     - Terkompilasi sebagai rute statis `○ /offline`.
+  3. **Komponen Pengelola PWA (`PwaInstaller` di [`pwa-installer.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/pwa-installer.tsx)):**
+     - Registrasi otomatis `/sw.js` pada browser yang mendukung.
+     - Deteksi event `beforeinstallprompt` untuk menampilkan banner "Pasang Aplikasi HRIS PSPK di Layar Utama" dengan opsi "Pasang Sekarang" dan "Nanti Saja" (tersimpan 7 hari di `localStorage`).
+     - Deteksi status koneksi internet reaktif menggunakan `useSyncExternalStore` (bebas cascading renders React 19). Menampilkan bilah peringatan saat offline dan toast hijau saat koneksi pulih kembali.
+     - Terpasang secara global di root layout ([`apps/hris/src/app/layout.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/layout.tsx)).
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lolos verifikasi tipe tanpa error).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning di seluruh monorepo).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+  - `pnpm --filter @pspk/hris build`: ✅ Lolos (`/offline` dan `/manifest.webmanifest` berhasil digenerate statis).
+
 ## [HRIS Mobile & PWA] Tahap 2: Konfigurasi PWA Core & Aset Ikon — 2026-11-03
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

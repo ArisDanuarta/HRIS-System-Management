@@ -112,21 +112,27 @@ flowchart TD
 
 ---
 
-### Tahap 3: Service Worker, Caching Strategy & Offline Fallback
+### Tahap 3: Service Worker, Caching Strategy & Offline Fallback ✅ (Selesai)
+**Status:** **SELESAI (100% Terverifikasi)**  
 **Tujuan:** Memberikan performa pemuatan instan (*instant load*) dan ketahanan aplikasi saat internet lambat atau terputus.
 
-* **Pekerjaan Teknis:**
+* **Pekerjaan Teknis yang Telah Diterapkan:**
   1. **Service Worker (`apps/hris/public/sw.js`):**
-     * **Strategi Network-First:** Digunakan untuk semua kueri API, Server Actions, dan navigasi data kepegawaian (presensi, cuti, saldo) agar data selalu akurat dan tidak pernah menampilkan informasi kadaluwarsa (*stale*).
-     * **Strategi Cache-First / Stale-While-Revalidate:** Digunakan untuk aset statis (web fonts Lora & Rubik, logo resmi PSPK, ikon Lucide, stylesheet, dan bundle JavaScript).
-  2. **Registrasi Service Worker (`pwa-register.tsx`):**
-     * Komponen client-side ringan yang meregistrasikan `sw.js` saat aplikasi berjalan di browser pengguna.
-  3. **Halaman Offline Fallback (`apps/hris/src/app/offline/page.tsx`):**
-     * Tampilan ramah dan berwibawa bergaya brand PSPK saat pegawai membuka halaman tanpa koneksi internet sama sekali, dilengkapi indikator status koneksi dan tombol "Coba Lagi".
-  4. **Komponen Banner Pasang Aplikasi (*Install Prompt*):**
-     * Banner elegan yang dapat ditutup (*dismissible*) untuk mengajak pegawai menginstal HRIS ke layar utama ponsel mereka.
+     * **Strategi Network-First:** Digunakan untuk semua navigasi halaman HTML dengan fallback ke `/offline` jika jaringan mati.
+     * **Strategi Cache-First / Stale-While-Revalidate:** Digunakan untuk aset statis (`/_next/static/`, `/icons/`, `/images/`, fonts, CSS, JS).
+     * **Bypass Dynamic Data:** Permintaan non-GET, `/api/`, dan Server Actions Next.js dilewati tanpa caching agar data kepegawaian selalu real-time.
+  2. **Halaman Offline Fallback (`apps/hris/src/app/offline/page.tsx`):**
+     * Tampilan ramah dan berwibawa bergaya brand PSPK dengan tombol "Coba Muat Ulang" dan "Ke Beranda". Terkompilasi statis `○ /offline`.
+  3. **Komponen PwaInstaller (`apps/hris/src/components/shell/pwa-installer.tsx`):**
+     * Registrasi `/sw.js` otomatis.
+     * Event listener `beforeinstallprompt` dengan banner instalasi interaktif ("Pasang Sekarang" & "Nanti Saja").
+     * Deteksi online/offline reaktif via `useSyncExternalStore` dengan bilah peringatan saat koneksi terputus dan toast hijau saat online kembali.
+     * Terintegrasi secara global di `apps/hris/src/app/layout.tsx`.
 * **Kriteria Keberhasilan (DoD):**
-  * Uji simulasi *Offline* di tab Network browser tetap menampilkan halaman fallback elegan tanpa layar error browser bawaan ("No Internet").
+  * ✅ `pnpm typecheck` lolos (9/9 paket).
+  * ✅ `pnpm lint` lolos (0 error, 0 warning).
+  * ✅ `pnpm test` lolos (42 test suites, 284 test passed).
+  * ✅ `pnpm --filter @pspk/hris build` lolos (`/offline` dan `/manifest.webmanifest` digenerate statis).
 
 ---
 
