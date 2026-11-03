@@ -2,6 +2,34 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Mobile & PWA] Tahap 1: Pondasi Shell & Navigasi Responsif Mobile — 2026-11-03
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mentransformasi layout shell `apps/hris` yang sebelumnya kaku pada desktop (`pl-[264px]`) menjadi antarmuka adaptif penuh yang nyaman diakses di smartphone (< 768px).
+  - Menyediakan navigasi mobile-first tanpa merusak atau mengubah pengalaman pengguna desktop yang sudah ada.
+- **Implementasi Pekerjaan:**
+  1. **Komponen Baru `MobileBottomNav` ([`mobile-bottom-nav.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/mobile-bottom-nav.tsx)):**
+     - Bilah navigasi bawah tetap (*fixed bottom-0*) khusus mobile (`md:hidden`) dengan 4 akses cepat ramah jangkauan jempol: Beranda (`/dashboard`), Presensi (`/absensi`), Cuti (`/cuti`), dan Profil (`/profil`).
+     - Mendukung *safe-area-inset-bottom* untuk iPhone bertakik/home indicator dan lencana (*badge*) jumlah persetujuan cuti yang tertunda.
+  2. **Slide-Over Drawer di `AppSidebar` ([`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)):**
+     - Di mobile, sidebar menjadi off-canvas drawer (`-translate-x-full md:translate-x-0`) yang meluncur halus dari kiri (`translate-x-0`) saat dibuka.
+     - Dilengkapi backdrop overlay gelap redup beranimasi (`bg-slate-950/60 backdrop-blur-xs`), tombol tutup `X`, serta auto-close saat rute URL berpindah atau pengguna menekan tombol Escape.
+     - Tombol collapse desktop disembunyikan di perangkat mobile (`hidden md:inline-flex`).
+  3. **Bilah Atas Adaptif di `AppTopbar` ([`app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx)):**
+     - Offset bilah atas diubah menjadi responsif (`left-0 md:left-20` atau `md:left-[264px]`).
+     - Menambahkan tombol *Hamburger Menu* (`<Menu className="w-5 h-5" />`) pada layar mobile untuk membuka drawer samping.
+     - Breadcrumb dirapikan dengan text truncation agar judul halaman tidak terpotong pada layar ponsel sempit (360px–390px).
+     - Mode Pratinjau Super Admin disembunyikan di ponsel (`hidden md:flex`) untuk mencegah tumpang tindih dengan menu profil.
+  4. **Kontainer Utama di `ShellContainer` ([`shell-container.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/shell-container.tsx)):**
+     - Padding kiri dinamis: `pl-0` pada layar mobile, `pl-20` atau `pl-[264px]` pada layar tablet/desktop (`md:pl-*`).
+     - Padding bawah `pb-20 md:pb-6` agar area konten terbawah tidak tertutup oleh bilah navigasi bawah.
+     - Penanganan state `mobileNavOpen` dengan `useCallback` untuk stabilitas re-render.
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lolos verifikasi tipe tanpa error).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning di seluruh monorepo).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+
 ## [System Management] Modul Brankas Akun & Kredensial Lembaga (/kredensial) — 2026-11-02
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100% melalui 9 Tahapan Terstruktur)

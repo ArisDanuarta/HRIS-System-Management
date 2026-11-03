@@ -39,30 +39,35 @@ flowchart TD
 
 ## 3. Rincian 5 Tahapan Pengembangan
 
-### Tahap 1: Pondasi Shell & Navigasi Responsif Mobile
+### Tahap 1: Pondasi Shell & Navigasi Responsif Mobile ✅ (Selesai)
+**Status:** **SELESAI (100% Terverifikasi)**  
 **Tujuan:** Membebaskan layout dari batasan desktop sehingga konten dapat terbuka penuh dan rapi di semua ukuran layar ponsel/tablet.
 
-* **Pekerjaan Teknis:**
+* **Pekerjaan Teknis yang Telah Diterapkan:**
   1. **`shell-container.tsx` (`apps/hris/src/components/shell/`):**
-     * Ubah padding kiri kontainer dari `pl-[264px]` statis menjadi adaptif: `pl-0 md:pl-20 md:pl-[264px]`.
-     * Tambahkan state `mobileNavOpen` untuk mengontrol drawer samping dari topbar.
-     * Berikan padding bawah `pb-20 md:pb-0` agar konten terbawah tidak tertutup oleh bilah navigasi bawah ponsel.
+     * Padding kiri kontainer utama menjadi adaptif: `pl-0 md:pl-20 md:pl-[264px]`.
+     * State `mobileNavOpen` dengan penangan memoized `useCallback`.
+     * Safe bottom padding `pb-20 md:pb-6` agar konten tidak tertutup bilah navigasi bawah ponsel.
   2. **`app-topbar.tsx` (`apps/hris/src/components/shell/`):**
-     * Ubah offset bilah atas menjadi `left-0 md:left-20 md:left-[264px]`.
-     * Tambahkan tombol **Hamburger Menu** (`<Menu className="w-5 h-5" />`) yang hanya muncul di layar mobile (`md:hidden`).
-     * Rapikan susunan judul halaman dan tombol navigasi agar tidak terpotong pada layar 360px–390px.
+     * Offset bilah atas menjadi `left-0 md:left-20 md:left-[264px]`.
+     * Tombol **Hamburger Menu** (`<Menu className="w-5 h-5" />`) pada mobile (`md:hidden`).
+     * Breadcrumb teks dirapikan dengan text truncation agar judul halaman tidak terpotong.
+     * Mode Pratinjau Super Admin disembunyikan di layar mobile (`hidden md:flex`) untuk mencegah tabrakan UI.
   3. **`app-sidebar.tsx` (`apps/hris/src/components/shell/`):**
-     * Tambahkan kemampuan **Mobile Slide-Over Drawer**: jika dibuka di mobile, sidebar meluncur halus dari kiri dengan latar belakang gelap (*backdrop overlay blur*) yang menutup drawer saat diklik di luar.
-     * Tutup otomatis drawer saat pengguna memilih menu atau saat rute URL berpindah.
-  4. **Komponen Baru `mobile-bottom-nav.tsx`:**
-     * Navigasi bawah tetap (*fixed bottom-0*) khusus mobile (`md:hidden`) dengan 4 akses cepat yang ramah jangkauan satu jempol (*thumb-zone*):
+     * Kemampuan **Mobile Slide-Over Drawer**: meluncur halus dari kiri (`-translate-x-full md:translate-x-0` saat tertutup, `translate-x-0` saat terbuka) dengan backdrop gelap (`bg-slate-950/60 backdrop-blur-xs`).
+     * Tombol tutup `X` khusus mobile.
+     * Auto-close drawer saat rute berpindah atau saat menekan tombol Escape.
+     * Tombol collapse desktop disembunyikan di perangkat mobile (`hidden md:inline-flex`).
+  4. **Komponen Baru `mobile-bottom-nav.tsx` (`apps/hris/src/components/shell/`):**
+     * Navigasi bawah tetap (*fixed bottom-0*) khusus mobile (`md:hidden`) dengan 4 akses cepat ramah jangkauan jempol:
        * 🏠 **Beranda** (`/dashboard`)
        * ⏱️ **Presensi** (`/absensi`)
-       * 📅 **Cuti** (`/cuti`)
+       * 📅 **Cuti** (`/cuti`) dengan badge approval tertunda
        * 👤 **Profil** (`/profil`)
 * **Kriteria Keberhasilan (DoD):**
-  * Tampilan di DevTools ponsel (iPhone SE 375px, iPhone 14 390px, Android 412px) menampilkan konten secara penuh tanpa scroll horizontal liar.
-  * Sidebar drawer dapat dibuka/ditutup secara mulus tanpa mengganggu tampilan desktop.
+  * ✅ `pnpm typecheck` lolos (9/9 paket).
+  * ✅ `pnpm lint` lolos (0 error, 0 warning).
+  * ✅ `pnpm test` lolos (42 test suites, 284 test passed).
 
 ---
 

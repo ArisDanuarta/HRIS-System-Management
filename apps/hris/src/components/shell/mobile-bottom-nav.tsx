@@ -86,3 +86,4 @@ export function MobileBottomNav({ pendingLeavesCount = 0, currentRole }: MobileB
     </nav>
   );
 }
+
