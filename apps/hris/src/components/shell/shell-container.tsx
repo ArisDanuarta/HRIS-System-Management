@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ModuleFlags } from "@pspk/db";
 import { AppSidebar, RoleViewType } from "./app-sidebar";
 import { AppTopbar } from "./app-topbar";
+import { MobileBottomNav } from "./mobile-bottom-nav";
 
 export interface ShellContainerProps {
   user: {
@@ -39,6 +40,7 @@ export function ShellContainer({
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [currentRole, setCurrentRole] = useState<RoleViewType>(() => {
     if (typeof window !== "undefined" && isSuperAdmin) {
       const saved = sessionStorage.getItem("pspk_superadmin_role_view");
@@ -61,7 +63,7 @@ export function ShellContainer({
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#121c2a] flex flex-col antialiased">
-      {/* Dynamic Left Sidebar */}
+      {/* Dynamic Left Sidebar (Desktop Static & Mobile Slide-Over Drawer) */}
       <AppSidebar
         currentRole={currentRole}
         isCollapsed={isCollapsed}
@@ -72,9 +74,11 @@ export function ShellContainer({
         pendingTimesheetsCount={pendingTimesheetsCount}
         isHourlyEmployee={isHourlyEmployee}
         moduleFlags={moduleFlags}
+        mobileOpen={mobileNavOpen}
+        onCloseMobile={() => setMobileNavOpen(false)}
       />
 
-      {/* Top Header with Superadmin Switcher */}
+      {/* Top Header with Superadmin Switcher & Mobile Hamburger Toggle */}
       <AppTopbar
         user={user}
         currentRole={currentRole}
@@ -82,18 +86,22 @@ export function ShellContainer({
         isSuperAdmin={isSuperAdmin}
         canAccessSysmgmt={canAccessSysmgmt}
         onRoleChange={isSuperAdmin ? handleRoleChange : undefined}
+        onToggleMobile={() => setMobileNavOpen((prev) => !prev)}
       />
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Adaptif Mobile pl-0, Desktop pl-20/pl-264 */}
       <div
-        className={`flex-1 transition-all duration-300 pt-16 ${
-          isCollapsed ? "pl-20" : "pl-[264px]"
+        className={`flex-1 transition-all duration-300 pt-16 pb-20 md:pb-6 ${
+          isCollapsed ? "md:pl-20 pl-0" : "md:pl-[264px] pl-0"
         }`}
       >
-        <main className="p-4 sm:p-6 lg:p-8 max-w-[1440px] mx-auto min-h-[calc(100vh-64px)] flex flex-col">
+        <main className="p-3.5 sm:p-6 lg:p-8 max-w-[1440px] mx-auto min-h-[calc(100vh-64px)] flex flex-col">
           {children}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar (Khusus Layar Ponsel < 768px) */}
+      <MobileBottomNav pendingLeavesCount={pendingLeavesCount} currentRole={currentRole} />
     </div>
   );
 }
