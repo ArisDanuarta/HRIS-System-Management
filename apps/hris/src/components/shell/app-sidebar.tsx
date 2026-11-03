@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -23,6 +23,7 @@ import {
   CalendarRange,
   Mail,
   SlidersHorizontal,
+  X,
 } from "lucide-react";
 import { ModuleFlags, isModuleActive } from "@pspk/db";
 
@@ -38,6 +39,8 @@ export interface AppSidebarProps {
   pendingTimesheetsCount?: number;
   isHourlyEmployee?: boolean;
   moduleFlags?: ModuleFlags;
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export function AppSidebar({
@@ -50,8 +53,28 @@ export function AppSidebar({
   pendingTimesheetsCount = 0,
   isHourlyEmployee = false,
   moduleFlags,
+  mobileOpen = false,
+  onCloseMobile,
 }: AppSidebarProps) {
   const pathname = usePathname();
+
+  // Tutup sidebar mobile secara otomatis ketika rute halaman berpindah
+  useEffect(() => {
+    if (mobileOpen && onCloseMobile) {
+      onCloseMobile();
+    }
+  }, [pathname]);
+
+  // Tutup saat menekan tombol Escape di keyboard
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && mobileOpen && onCloseMobile) {
+        onCloseMobile();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileOpen, onCloseMobile]);
 
   // Visibilitas Modul Dinamis Berdasarkan Konfigurasi Sistem
   const showOrgChart = isModuleActive(moduleFlags || {}, "org_chart");
