@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { Download, X, WifiOff, CheckCircle2 } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -11,8 +11,34 @@ interface BeforeInstallPromptEvent extends Event {
 export function PwaInstaller() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
   const [showOnlineAlert, setShowOnlineAlert] = useState(false);
+
+  // Subscribing ke status konektivitas internet secara aman dengan useSyncExternalStore
+  const isOnline = useSyncExternalStore(
+    (callback) => {
+      if (typeof window === "undefined") return () => {};
+      window.addEventListener("online", callback);
+      window.addEventListener("offline", callback);
+      return () => {
+        window.removeEventListener("online", callback);
+        window.removeEventListener("offline", callback);
+      };
+    },
+    () => (typeof navigator !== "undefined" ? navigator.onLine : true),
+    () => true,
+  );
+
+  const prevOnlineRef = useRef(isOnline);
+
+  // Tampilkan toast "Terhubung kembali" hanya saat transisi dari offline ke online
+  useEffect(() => {
+    if (!prevOnlineRef.current && isOnline) {
+      setShowOnlineAlert(true);
+      const timer = setTimeout(() => setShowOnlineAlert(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    prevOnlineRef.current = isOnline;
+  }, [isOnline]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -22,7 +48,6 @@ export function PwaInstaller() {
       navigator.serviceWorker
         .register("/sw.js")
         .then((reg) => {
-          // Service worker terdaftar
           if (reg.installing) {
             console.log("[PWA] Service worker sedang dipasang...");
           }
@@ -50,32 +75,12 @@ export function PwaInstaller() {
       localStorage.removeItem("pspk_pwa_install_dismissed_until");
     };
 
-    // 3. Deteksi Status Konektivitas Internet
-    const handleOnline = () => {
-      setIsOnline(true);
-      setShowOnlineAlert(true);
-      const timer = setTimeout(() => setShowOnlineAlert(false), 3000);
-      return () => clearTimeout(timer);
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      setShowOnlineAlert(false);
-    };
-
-    // Set initial online status
-    setIsOnline(navigator.onLine);
-
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
 
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
       window.removeEventListener("appinstalled", handleAppInstalled);
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
