@@ -130,11 +130,13 @@ export function PwaInstaller() {
         </aside>
       )}
 
-      {/* In-App Install Prompt Banner (disembunyikan di halaman login) */}
-      {!isLoginPage && showInstallBanner && deferredPrompt && (
+      {/* In-App Install Prompt Banner (ditampilkan di sisi kiri agar tidak menutupi area konten utama) */}
+      {showInstallBanner && deferredPrompt && (
         <aside
           aria-label="Pemberitahuan Pemasangan Aplikasi"
-          className="fixed bottom-18 md:bottom-6 right-4 left-4 sm:left-auto sm:max-w-md z-40 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300"
+          className={`fixed bottom-18 md:bottom-6 right-4 sm:right-auto sm:max-w-md z-40 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+            isLoginPage ? "left-4 sm:left-6 md:left-8" : "left-4 md:left-[280px]"
+          }`}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#102e50] text-[#f2af3e] flex items-center justify-center shrink-0 shadow-xs">
