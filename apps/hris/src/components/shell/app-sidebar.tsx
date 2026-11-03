@@ -63,7 +63,7 @@ export function AppSidebar({
     if (mobileOpen && onCloseMobile) {
       onCloseMobile();
     }
-  }, [pathname]);
+  }, [pathname, mobileOpen, onCloseMobile]);
 
   // Tutup saat menekan tombol Escape di keyboard
   useEffect(() => {

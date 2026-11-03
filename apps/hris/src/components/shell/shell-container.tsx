@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { ModuleFlags } from "@pspk/db";
 import { AppSidebar, RoleViewType } from "./app-sidebar";
 import { AppTopbar } from "./app-topbar";
