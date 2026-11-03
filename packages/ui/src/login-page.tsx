@@ -194,7 +194,7 @@ export function LoginPage({
   };
 
   return (
-    <div className="flex min-h-dvh w-full flex-col bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#f2af3e]/30 lg:flex-row">
+    <div className="flex min-h-dvh w-full flex-col bg-[#f8f9ff] text-[#121c2a] antialiased selection:bg-[#f2af3e]/30 lg:h-dvh lg:overflow-hidden lg:flex-row">
       {/* Loading overlay animasi logo PSPK saat pengguna mengeklik tab perpindahan portal */}
       {isSwitching && (
         <PspkLoader
@@ -219,7 +219,7 @@ export function LoginPage({
 
       {/* PANEL KIRI: identitas PSPK (hanya layar besar). Navy polos + logogram pudar. */}
       <aside
-        className="relative hidden overflow-hidden bg-[#102e50] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-[46%] lg:flex-col lg:justify-between lg:p-12"
+        className="relative hidden overflow-hidden bg-[#102e50] text-white lg:flex lg:h-full lg:w-[46%] lg:flex-col lg:justify-between lg:p-8 xl:p-10 shrink-0"
         style={{ backgroundColor: "#102e50", color: "#ffffff" }}
       >
         {/* Logogram besar sebagai watermark. Merakit sekali saat halaman dibuka. */}
@@ -232,24 +232,24 @@ export function LoginPage({
         </div>
 
         <div className="relative z-10">
-          <PspkLockup variant="horizontal" tone="white" size={60} />
+          <PspkLockup variant="horizontal" tone="white" size={54} />
         </div>
 
         <div key={`copy-${activeTab}`} className="relative z-10 max-w-md animate-in fade-in duration-500">
           <p
-            className="mb-4 text-xs font-bold uppercase tracking-[0.18em]"
+            className="mb-3 text-xs font-bold uppercase tracking-[0.18em]"
             style={{ color: portal.onDark }}
           >
             {portal.kicker}
           </p>
           <h1
-            className="mb-4 text-[40px] font-bold leading-[1.15] text-white"
+            className="mb-3 text-3xl xl:text-[38px] font-bold leading-[1.15] text-white"
             style={{ fontFamily: HEADING_FONT }}
           >
             Equitable Education for{" "}
             <span style={{ color: "#f2af3e" }}>Every Child</span>
           </h1>
-          <p className="text-[15px] leading-relaxed text-[#d6e0f0]">{portal.blurb}</p>
+          <p className="text-xs sm:text-sm xl:text-[15px] leading-relaxed text-[#d6e0f0]">{portal.blurb}</p>
         </div>
 
         <div className="relative z-10 flex items-center justify-between text-xs text-[#aebdd6]">
@@ -266,9 +266,9 @@ export function LoginPage({
       </aside>
 
       {/* PANEL KANAN: area autentikasi */}
-      <main className="flex flex-1 flex-col bg-[#f8f9ff] p-6 sm:p-8 lg:p-10 xl:p-12">
+      <main className="flex flex-1 flex-col justify-between bg-[#f8f9ff] p-4 sm:p-6 lg:px-8 lg:py-4 xl:px-12 xl:py-5 lg:h-full lg:overflow-y-auto">
         {/* Header: pemilih portal + bantuan */}
-        <div className="flex w-full items-center justify-between gap-4 pb-2">
+        <div className="flex w-full items-center justify-between gap-4 pb-1 shrink-0">
           <div className="relative grid w-72 select-none grid-cols-2 rounded-xl border border-[#c8d8f0] bg-[#e6eeff]/90 p-1 sm:w-[330px]">
             {/* Penanda aktif yang bergeser */}
             <div
