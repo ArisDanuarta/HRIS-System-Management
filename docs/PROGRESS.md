@@ -2,6 +2,21 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [UI/UX Refinement] Penyesuaian Halaman Login 1 Halaman Tanpa Scrollbar — 2026-11-03
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengoptimasi antarmuka halaman login shared ([`packages/ui/src/login-page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/ui/src/login-page.tsx)) agar tampil pas 1 halaman penuh tanpa scrollbar vertikal di desktop/laptop (khususnya rasio layar 13"/14" dengan browser toolbar & macOS Dock).
+- **Implementasi Pekerjaan:**
+  1. **Proporsi Brand Mark:** Menyesuaikan ukuran mark vertikal dari `84` menjadi `54` dan margin bawah menjadi `mb-3` (menghemat ~60px ruang vertikal).
+  2. **Padding & Tipografi Kartu:** Menyesuaikan padding kartu dari `p-6 sm:p-8` menjadi `p-5 sm:p-6 rounded-2xl`, ukuran judul `text-xl sm:text-2xl`, dan deskripsi `text-xs sm:text-[13px] leading-snug`.
+  3. **Tinggi Komponen Input & Tombol:** Menstandarkan tinggi field email dan password ke `h-10` dengan ikon proporsional `h-4.5 w-4.5`, tombol submit `h-10 sm:h-10.5`, dan footer ringkas `pt-2 gap-2 text-[11px] sm:text-xs`.
+  4. **Keseimbangan Panel Kiri (Aside):** Menyesuaikan watermark (560px), padding (`lg:p-6 xl:p-8`), dan heading (`text-2xl xl:text-3xl`) agar tetap seimbang dan bebas pemotongan.
+- **Hasil Pengujian & Verifikasi:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lolos).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+  - `pnpm test`: ✅ Lolos (42 suites, 284 tests passed).
+
 ## [HRIS Mobile & PWA] Tahap 3: Service Worker, Caching Strategy & Offline Fallback — 2026-11-03
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
