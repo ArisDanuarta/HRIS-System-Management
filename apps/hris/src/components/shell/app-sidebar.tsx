@@ -217,9 +217,9 @@ export function AppSidebar({
               <Image
                 alt="Pusat Studi Pendidikan dan Kebijakan"
                 className="h-7 w-auto object-contain"
-                src="/images/logo_pspk_horizontal.jpg"
-                width={2752}
-                height={1536}
+                src="/images/logo_pspk_horizontal.png"
+                width={485}
+                height={80}
                 style={{ width: "auto" }}
                 priority
               />
