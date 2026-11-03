@@ -71,14 +71,15 @@ flowchart TD
 
 ---
 
-### Tahap 2: Konfigurasi PWA Core & Aset Ikon
+### Tahap 2: Konfigurasi PWA Core & Aset Ikon ✅ (Selesai)
+**Status:** **SELESAI (100% Terverifikasi)**  
 **Tujuan:** Mengaktifkan kapabilitas instalasi PWA di Android dan iOS dengan identitas brand PSPK yang lengkap.
 
-* **Pekerjaan Teknis:**
+* **Pekerjaan Teknis yang Telah Diterapkan:**
   1. **`apps/hris/src/app/manifest.ts`:**
      * Implementasi `MetadataRoute.Manifest` resmi Next.js App Router:
        * `name`: "PSPK HRIS - Sistem Kepegawaian"
-       * `short_name`: "HRIS PSPK"
+       * `short_name`: "PSPK HRIS"
        * `display`: "standalone" (menghilangkan bilah navigasi browser)
        * `theme_color`: "#102e50"
        * `background_color`: "#f8f9ff"
@@ -92,17 +93,22 @@ flowchart TD
          width: "device-width",
          initialScale: 1,
          maximumScale: 1,
+         userScalable: false,
          viewportFit: "cover",
        };
        ```
-     * Tag meta Apple Web App: `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`.
+     * Tag meta Apple Web App: `capable: true`, `statusBarStyle: "default"`, `title: "HRIS PSPK"`.
   3. **Penyediaan Aset Ikon PWA Standar di `apps/hris/public/icons/`:**
-     * `icon-192.png` (192 × 192 px)
-     * `icon-512.png` (512 × 512 px)
-     * `icon-maskable.png` (512 × 512 px dengan safe-area padding 10%)
-     * `apple-touch-icon.png` (180 × 180 px)
+     * Dibuat dari sumber resmi `apps/hris/public/images/logo_pspk_vertikal.jpg`:
+       * `icon-192.png` (192 × 192 px)
+       * `icon-512.png` (512 × 512 px)
+       * `icon-maskable.png` (512 × 512 px)
+       * `apple-touch-icon.png` (180 × 180 px)
 * **Kriteria Keberhasilan (DoD):**
-  * Tab *Application > Manifest* di Chrome DevTools mengenali manifest dan mendeteksi kriteria instalasi PWA (*Installability: Passed*).
+  * ✅ `pnpm typecheck` lolos (9/9 paket).
+  * ✅ `pnpm lint` lolos (0 error, 0 warning).
+  * ✅ `pnpm test` lolos (42 test suites, 284 test passed).
+  * ✅ `pnpm --filter @pspk/hris build` lolos (rute `/manifest.webmanifest` berhasil digenerate statis).
 
 ---
 

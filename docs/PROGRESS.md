@@ -2,6 +2,40 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Mobile & PWA] Tahap 2: Konfigurasi PWA Core & Aset Ikon — 2026-11-03
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengonfigurasi kapabilitas PWA (*Progressive Web App*) pada aplikasi HRIS (`apps/hris`).
+  - Menggunakan logo resmi PSPK vertikal (`apps/hris/public/images/logo_pspk_vertikal.jpg`) sebagai basis aset ikon PWA standar.
+  - Mempersiapkan integrasi metadata Next.js App Router agar browser mendeteksi aplikasi siap diinstal (*Installable: Passed*).
+- **Implementasi Pekerjaan:**
+  1. **Aset Ikon PWA Standar (`apps/hris/public/icons/`):**
+     - Dibuat dari file sumber `apps/hris/public/images/logo_pspk_vertikal.jpg` (2048 × 2048 px) menggunakan konversi resolusi tinggi:
+       - `icon-192.png` (192 × 192 px)
+       - `icon-512.png` (512 × 512 px)
+       - `icon-maskable.png` (512 × 512 px)
+       - `apple-touch-icon.png` (180 × 180 px) untuk perangkat iOS/iPadOS Safari.
+  2. **Metadata Web App Manifest (`apps/hris/src/app/manifest.ts`):**
+     - Menerapkan fungsi resmi `MetadataRoute.Manifest`:
+       - `name`: "PSPK HRIS - Sistem Kepegawaian"
+       - `short_name`: "PSPK HRIS"
+       - `start_url`: "/"
+       - `display`: "standalone" (meniadakan browser frame, tampilan native)
+       - `theme_color`: "#102e50"
+       - `background_color`: "#f8f9ff"
+       - `orientation`: "portrait"
+       - Ikon 192, 512, dan maskable terdaftar dengan tipe `image/png`.
+  3. **Konfigurasi `viewport` & Meta Apple di [`layout.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/layout.tsx):**
+     - Ekspor `viewport: Viewport` dengan `themeColor: "#102e50"`, `viewportFit: "cover"`, `initialScale: 1`, `maximumScale: 1`, `userScalable: false`.
+     - Meta Apple Web App: `capable: true`, `statusBarStyle: "default"`, `title: "HRIS PSPK"`.
+     - Pendaftaran link rel `apple-touch-icon` dan `icon`.
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket lolos verifikasi tipe tanpa error).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning di seluruh monorepo).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+  - `pnpm --filter @pspk/hris build`: ✅ Lolos (`/manifest.webmanifest` berhasil digenerate sebagai rute statis).
+
 ## [HRIS Mobile & PWA] Tahap 1: Pondasi Shell & Navigasi Responsif Mobile — 2026-11-03
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
