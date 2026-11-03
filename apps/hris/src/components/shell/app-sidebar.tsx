@@ -215,43 +215,65 @@ export function AppSidebar({
   );
 
   return (
-    <aside
-      className={`fixed left-0 top-0 h-full bg-[#102e50] text-white z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(16,46,80,0.15)] transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-[264px]"
-      }`}
-      style={{ backgroundColor: "#102e50" }}
-    >
-      <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-        {/* Brand Header */}
-        <div className="h-16 px-3.5 flex items-center justify-center bg-[#0c233d]/40 border-b border-white/10">
-          {isCollapsed ? (
-            <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm border border-white/20 flex items-center justify-center shrink-0">
-              <Image
-                alt="Logo PSPK"
-                className="w-full h-full object-contain"
-                src="/images/logo_pspk_circle.jpg"
-                width={2048}
-                height={2048}
-                priority
-              />
-            </div>
-          ) : (
-            <div className="h-11 px-3 py-1 bg-white rounded-xl shadow-xs border border-white/15 flex items-center justify-between w-full transition-all">
-              <Image
-                alt="Pusat Studi Pendidikan dan Kebijakan"
-                className="h-7 w-auto object-contain"
-                src="/images/logo_pspk_horizontal.png"
-                width={485}
-                height={80}
-                style={{ width: "auto" }}
-                priority
-              />
-              <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">
-                HRIS
-              </span>
-            </div>
-          )}
-        </div>
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 md:hidden animate-in fade-in duration-200"
+          onClick={onCloseMobile}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed left-0 top-0 h-full bg-[#102e50] text-white z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(16,46,80,0.15)] transition-all duration-300 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        } ${
+          isCollapsed ? "md:w-20 w-[272px]" : "w-[272px] md:w-[264px]"
+        }`}
+        style={{ backgroundColor: "#102e50" }}
+      >
+        <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+          {/* Brand Header */}
+          <div className="h-16 px-3.5 flex items-center justify-between bg-[#0c233d]/40 border-b border-white/10">
+            {isCollapsed ? (
+              <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm border border-white/20 flex items-center justify-center shrink-0">
+                <Image
+                  alt="Logo PSPK"
+                  className="w-full h-full object-contain"
+                  src="/images/logo_pspk_circle.jpg"
+                  width={2048}
+                  height={2048}
+                  priority
+                />
+              </div>
+            ) : (
+              <div className="h-11 px-3 py-1 bg-white rounded-xl shadow-xs border border-white/15 flex items-center justify-between flex-1 transition-all">
+                <Image
+                  alt="Pusat Studi Pendidikan dan Kebijakan"
+                  className="h-7 w-auto object-contain"
+                  src="/images/logo_pspk_horizontal.png"
+                  width={485}
+                  height={80}
+                  style={{ width: "auto" }}
+                  priority
+                />
+                <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">
+                  HRIS
+                </span>
+              </div>
+            )}
+
+            {/* Mobile Close Button */}
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="p-1.5 rounded-xl text-white/70 hover:text-white hover:bg-white/10 md:hidden ml-2 transition-colors cursor-pointer shrink-0"
+              aria-label="Tutup navigasi"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
         {/* ADMIN HR VIEW NAVIGATION */}
         {currentRole === "admin_hr" && (
@@ -524,7 +546,7 @@ export function AppSidebar({
           type="button"
           onClick={onToggleCollapse}
           aria-label={isCollapsed ? "Perluas Sidebar" : "Perkecil Sidebar"}
-          className="p-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors cursor-pointer ml-auto"
+          className="p-1.5 rounded-lg hover:bg-white/10 hover:text-white transition-colors cursor-pointer ml-auto hidden md:inline-flex"
           title={isCollapsed ? "Perluas Sidebar" : "Perkecil Sidebar"}
         >
           {isCollapsed ? (
@@ -535,6 +557,7 @@ export function AppSidebar({
         </button>
       </div>
     </aside>
+  </>
   );
 }
 
