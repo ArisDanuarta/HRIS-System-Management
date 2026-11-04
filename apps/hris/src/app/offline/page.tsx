@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+import { PspkLockup } from "@pspk/ui";
 import { WifiOff, RotateCcw, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -16,16 +16,8 @@ export default function OfflinePage() {
     <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center p-4 text-[#121c2a] selection:bg-[#f2af3e]/30">
       <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-200">
         {/* Brand Header */}
-        <div className="h-10 px-3 py-1 bg-white border border-slate-200 rounded-xl shadow-2xs flex items-center justify-center mb-6">
-          <Image
-            src="/images/logo_pspk_horizontal.png"
-            alt="Logo PSPK"
-            width={485}
-            height={80}
-            className="h-6 w-auto object-contain"
-            style={{ width: "auto" }}
-            priority
-          />
+        <div className="h-11 px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl shadow-2xs flex items-center justify-center mb-6">
+          <PspkLockup variant="horizontal" size={26} animate={false} />
         </div>
 
         {/* Offline Icon Illustration */}

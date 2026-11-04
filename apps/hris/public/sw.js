@@ -1,13 +1,15 @@
 // PSPK HRIS Progressive Web App Service Worker
-const CACHE_NAME = "pspk-hris-cache-v1";
+const CACHE_NAME = "pspk-hris-cache-v2";
 
 const PRECACHE_ASSETS = [
   "/offline",
   "/favicon.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/icons/icon-maskable.png",
   "/icons/apple-touch-icon.png",
   "/images/logo_pspk_horizontal.png",
+  "/images/logo_pspk_circle.jpg",
   "/images/logo_pspk_vertikal.jpg",
 ];
 
@@ -79,10 +81,12 @@ self.addEventListener("fetch", (event) => {
   // B. Aset Statis (CSS, JS Chunks, Gambar, Ikon, Web Fonts) -> Cache-First
   const isStaticAsset =
     url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/image") ||
     url.pathname.startsWith("/icons/") ||
     url.pathname.startsWith("/images/") ||
     url.pathname.endsWith(".png") ||
     url.pathname.endsWith(".jpg") ||
+    url.pathname.endsWith(".jpeg") ||
     url.pathname.endsWith(".svg") ||
     url.pathname.endsWith(".webp") ||
     url.pathname.endsWith(".woff2") ||
@@ -95,15 +99,20 @@ self.addEventListener("fetch", (event) => {
         if (cachedResponse) {
           return cachedResponse;
         }
-        return fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return networkResponse;
-        });
+        return fetch(request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const responseClone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
+            return networkResponse;
+          })
+          .catch(() => {
+            // Fallback jika fetch gagal saat koneksi terputus
+            return caches.match(request);
+          });
       }),
     );
     return;
