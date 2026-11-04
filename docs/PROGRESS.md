@@ -2,6 +2,31 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Mobile & PWA] Penyempurnaan Halaman Offline & Custom PSPK Loader — 2026-11-04
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Menghilangkan kondisi tombol "Coba Muat Ulang" yang seolah tidak merespons pada halaman offline (`apps/hris/src/app/offline/page.tsx`).
+  - Mengintegrasikan komponen custom loading resmi berlogo PSPK (`PspkLoader` dari `@pspk/ui`) dengan animasi loop dan latar tembus pandang elegan (*backdrop blur*).
+  - Mengimplementasikan probe status jaringan aktif via endpoint `/api/health` dengan cache-buster (`no-store`) dan timeout abort.
+  - Memberikan indikator status visual (banner sukses hijau saat koneksi pulih, banner peringatan kuning saat jaringan masih bermasalah, dan rotasi spinner pada tombol).
+- **Implementasi Pekerjaan:**
+  1. **Integrasi Custom Loader PSPK (`apps/hris/src/app/offline/page.tsx`):**
+     - Memakai `<PspkLoader fullScreen variant="loop" background="rgba(248, 249, 255, 0.92)" className="backdrop-blur-sm z-50 animate-in fade-in" label={...} />`.
+     - Karena aset logo PSPK berbasis vektor SVG murni, animasi loader tetap berjalan sempurna secara offline tanpa ketergantungan file gambar eksternal.
+  2. **Probe Jaringan Aktif & Penanganan Navigasi:**
+     - Menggunakan `fetch('/api/health?t=' + Date.now(), { cache: 'no-store', signal })` dengan timeout 3.5 detik.
+     - Panggilan ke `/api/` langsung melewati (*bypass*) Service Worker (`sw.js`), menjamin pengecekan jaringan yang akurat dan real-time.
+     - Navigasi pemulihan menggunakan navigasi dokumen penuh (`window.location.href = "/"`) setelah jeda transisi 600ms untuk menjamin browser me-refresh dokumen utama.
+  3. **Umpan Balik UI/UX:**
+     - Tombol "Coba Muat Ulang" menampilkan ikon berputar (`animate-spin`) dan teks *"Memeriksa Koneksi..."*.
+     - Tombol dinonaktifkan (`disabled`) selama proses pemeriksaan untuk mencegah duplikasi penekanan.
+     - Menampilkan banner status error ramah jika perangkat masih offline dan banner sukses hijau saat terhubung kembali.
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+
 ## [HRIS Mobile & PWA] Tahap 5: Audit Kueri Database, Bug, Performa & Skala Ribuan Data — 2026-11-04
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

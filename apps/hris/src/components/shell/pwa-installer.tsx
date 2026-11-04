@@ -46,18 +46,39 @@ export function PwaInstaller() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Registrasi Service Worker
+    // 1. Registrasi Service Worker (Hanya di Lingkungan Produksi)
+    // Di mode development atau saat mengakses localhost, unregister semua SW dan bersihkan cache agar tidak terjadi stale chunks / hydration mismatch
+    const isDev =
+      process.env.NODE_ENV === "development" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => {
-          if (reg.installing) {
-            console.log("[PWA] Service worker sedang dipasang...");
+      if (isDev) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister();
           }
-        })
-        .catch((err) => {
-          console.warn("[PWA] Registrasi service worker gagal:", err);
         });
+        if ("caches" in window) {
+          caches.keys().then((keys) => {
+            for (const key of keys) {
+              caches.delete(key);
+            }
+          });
+        }
+      } else {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => {
+            if (reg.installing) {
+              console.log("[PWA] Service worker sedang dipasang...");
+            }
+          })
+          .catch((err) => {
+            console.warn("[PWA] Registrasi service worker gagal:", err);
+          });
+      }
     }
 
     // 2. Deteksi Dukungan Instalasi PWA (beforeinstallprompt)

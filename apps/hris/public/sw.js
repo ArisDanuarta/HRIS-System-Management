@@ -1,5 +1,5 @@
 // PSPK HRIS Progressive Web App Service Worker
-const CACHE_NAME = "pspk-hris-cache-v2";
+const CACHE_NAME = "pspk-hris-cache-v3";
 
 const PRECACHE_ASSETS = [
   "/offline",
@@ -49,8 +49,14 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Jangan tangani permintaan non-GET, panggilan API, dan Server Actions
+  // Jangan tangani permintaan pada lingkungan development/localhost, non-GET, panggilan API, dan Server Actions
+  const isLocalhost =
+    self.location.hostname === "localhost" ||
+    self.location.hostname === "127.0.0.1" ||
+    self.location.hostname === "::1";
+
   if (
+    isLocalhost ||
     request.method !== "GET" ||
     url.pathname.startsWith("/api/") ||
     request.headers.get("x-action") ||

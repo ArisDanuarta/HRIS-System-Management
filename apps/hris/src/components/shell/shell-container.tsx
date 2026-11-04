@@ -49,15 +49,17 @@ export function ShellContainer({
   const handleToggleMobile = useCallback(() => {
     setMobileNavOpen((prev) => !prev);
   }, []);
-  const [currentRole, setCurrentRole] = useState<RoleViewType>(() => {
-    if (typeof window !== "undefined" && isSuperAdmin) {
+  // State awal selalu deterministik sesuai initialRole agar SSR dan Client menghasilkan markup identik
+  const [currentRole, setCurrentRole] = useState<RoleViewType>(initialRole);
+
+  React.useEffect(() => {
+    if (isSuperAdmin) {
       const saved = sessionStorage.getItem("pspk_superadmin_role_view");
       if (saved === "admin_hr" || saved === "manager" || saved === "staff") {
-        return saved;
+        setCurrentRole(saved);
       }
     }
-    return initialRole;
-  });
+  }, [isSuperAdmin]);
 
   const handleRoleChange = (newRole: RoleViewType) => {
     if (!isSuperAdmin) return;
