@@ -244,6 +244,7 @@ export function AppSidebar({
                   src="/images/logo_pspk_circle.jpg"
                   width={2048}
                   height={2048}
+                  unoptimized
                   priority
                 />
               </div>
@@ -256,6 +257,7 @@ export function AppSidebar({
                   width={485}
                   height={80}
                   style={{ width: "auto" }}
+                  unoptimized
                   priority
                 />
                 <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">

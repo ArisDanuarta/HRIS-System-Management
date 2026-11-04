@@ -22,6 +22,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { OrgChartNode, OrgChartData } from "@/server/queries/org-chart.queries";
+import { EmployeeAvatar } from "@/components/karyawan/employee-avatar";
 
 interface OrgChartViewProps {
   data: OrgChartData;
@@ -561,20 +562,13 @@ function TreeNode({
         <div className="flex items-start gap-3 pt-1">
           {/* Avatar */}
           <div className="relative shrink-0">
-            {node.avatarUrl ? (
-              <Image
-                src={node.avatarUrl}
-                alt={node.fullName}
-                width={48}
-                height={48}
-                unoptimized
-                className="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-2xs"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#102E50] to-[#1c4d82] text-white flex items-center justify-center font-bold text-lg font-heading shadow-xs">
-                {initial}
-              </div>
-            )}
+            <EmployeeAvatar
+              avatarUrl={node.avatarUrl}
+              name={node.fullName}
+              sizeClassName="w-12 h-12"
+              roundedClassName="rounded-xl"
+              textClassName="text-base"
+            />
             <span
               className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${
                 node.status === "ACTIVE" ? "bg-emerald-500" : "bg-amber-500"

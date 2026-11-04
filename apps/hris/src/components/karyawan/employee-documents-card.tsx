@@ -124,6 +124,7 @@ export function EmployeeDocumentsCard({
 
   // Preview Modal State
   const [previewDoc, setPreviewDoc] = useState<EmployeeDocumentItem | null>(null);
+  const [previewImgError, setPreviewImgError] = useState(false);
 
   // Delete Modal State
   const [deleteTarget, setDeleteTarget] = useState<EmployeeDocumentItem | null>(null);
@@ -455,7 +456,10 @@ export function EmployeeDocumentsCard({
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => setPreviewDoc(doc)}
+                      onClick={() => {
+                        setPreviewImgError(false);
+                        setPreviewDoc(doc);
+                      }}
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-[#102E50] text-[#102E50] font-semibold text-[11px] transition-colors cursor-pointer bg-slate-50/50 hover:bg-slate-100"
                     >
                       <Eye className="w-3 h-3 text-[#102E50]" />
@@ -686,12 +690,30 @@ export function EmployeeDocumentsCard({
             {/* Preview Frame */}
             <div className="flex-1 overflow-auto rounded-xl bg-slate-100 p-2 flex items-center justify-center min-h-[50vh]">
               {previewDoc.mimeType.startsWith("image/") ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`/api/documents/${previewDoc.fileKey}`}
-                  alt={previewDoc.title}
-                  className="max-h-[68vh] object-contain rounded-lg shadow-sm"
-                />
+                previewImgError ? (
+                  <div className="text-center p-8 flex flex-col items-center gap-3">
+                    <AlertCircle className="w-12 h-12 text-rose-400" />
+                    <p className="text-xs text-slate-600">
+                      Berkas gambar tidak dapat dimuat atau telah dipindahkan dari penyimpanan server.
+                    </p>
+                    <a
+                      href={`/api/documents/${previewDoc.fileKey}`}
+                      download={previewDoc.fileName}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102E50] text-white text-xs font-bold"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Coba Unduh Berkas</span>
+                    </a>
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={`/api/documents/${previewDoc.fileKey}`}
+                    alt={previewDoc.title}
+                    className="max-h-[68vh] object-contain rounded-lg shadow-sm"
+                    onError={() => setPreviewImgError(true)}
+                  />
+                )
               ) : previewDoc.mimeType.includes("pdf") ||
                 previewDoc.fileName.toLowerCase().endsWith(".pdf") ? (
                 <iframe
