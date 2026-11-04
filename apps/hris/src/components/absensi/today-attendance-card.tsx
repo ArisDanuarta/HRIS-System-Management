@@ -342,7 +342,7 @@ export function TodayAttendanceCard({
               </button>
 
               {showTzDropdown && (
-                <div className="absolute left-0 mt-1.5 w-64 bg-white rounded-xl shadow-lg border border-slate-200 p-1.5 z-50 text-xs font-normal normal-case animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute left-0 sm:left-0 mt-1.5 w-64 max-w-[calc(100vw-32px)] bg-white rounded-xl shadow-lg border border-slate-200 p-1.5 z-50 text-xs font-normal normal-case animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100">
                     Pilih Zona Waktu
                   </div>
@@ -596,14 +596,14 @@ export function TodayAttendanceCard({
                     <button
                       type="button"
                       onClick={() => setWorkMode("WFO")}
-                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 min-h-[44px] rounded-lg text-xs font-semibold transition-all cursor-pointer active:scale-[0.98] ${
                         workMode === "WFO"
                           ? "bg-white text-[#102e50] shadow-xs border border-slate-200/60"
                           : "text-slate-600 hover:text-[#102e50]"
                       }`}
                     >
                       <Building2
-                        className={`w-3.5 h-3.5 ${
+                        className={`w-4 h-4 ${
                           workMode === "WFO" ? "text-[#102e50]" : "text-slate-400"
                         }`}
                       />
@@ -613,14 +613,14 @@ export function TodayAttendanceCard({
                     <button
                       type="button"
                       onClick={() => setWorkMode("WFH")}
-                      className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 min-h-[44px] rounded-lg text-xs font-semibold transition-all cursor-pointer active:scale-[0.98] ${
                         workMode === "WFH"
                           ? "bg-white text-[#102e50] shadow-xs border border-slate-200/60"
                           : "text-slate-600 hover:text-[#102e50]"
                       }`}
                     >
                       <Home
-                        className={`w-3.5 h-3.5 ${
+                        className={`w-4 h-4 ${
                           workMode === "WFH" ? "text-[#0874aa]" : "text-slate-400"
                         }`}
                       />
@@ -637,26 +637,26 @@ export function TodayAttendanceCard({
                       placeholder="Catatan agenda atau lokasi tugas (opsional)..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full pl-3 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50]"
+                      className="w-full pl-3 pr-8 py-2.5 text-sm sm:text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50] min-h-[44px]"
                     />
                     {notes && (
                       <button
                         type="button"
                         onClick={() => setNotes("")}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 )}
 
                 {/* Check-In Buttons */}
-                <div className="flex items-center gap-2.5 pt-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={() => setShowNotesInput(!showNotesInput)}
-                    className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                    className={`inline-flex items-center justify-center gap-1.5 px-4 py-3 min-h-[48px] rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 active:scale-[0.98] ${
                       showNotesInput || notes
                         ? "bg-[#102e50]/5 text-[#102e50] border-[#102e50]/30"
                         : "bg-white text-slate-600 hover:text-[#102e50] border-slate-200 hover:bg-slate-50"
@@ -664,14 +664,14 @@ export function TodayAttendanceCard({
                     title="Tambah catatan lokasi atau aktivitas"
                   >
                     <FileText className="w-4 h-4 text-slate-500" />
-                    <span>{showNotesInput ? "Tutup" : notes ? "Catatan Terisi" : "+ Catatan"}</span>
+                    <span>{showNotesInput ? "Tutup Catatan" : notes ? "Catatan Terisi" : "+ Catatan Tugas"}</span>
                   </button>
 
                   <button
                     type="button"
                     disabled={isPending}
                     onClick={handleCheckIn}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
                   >
                     <LogIn className="w-4 h-4 text-[#f2af3e] shrink-0" />
                     <span>{isPending ? "Memproses..." : "Masuk Kerja (Check-In)"}</span>
@@ -696,39 +696,39 @@ export function TodayAttendanceCard({
                       placeholder="Catatan penyelesaian tugas hari ini (opsional)..."
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full pl-3 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50]"
+                      className="w-full pl-3 pr-8 py-2.5 text-sm sm:text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50] min-h-[44px]"
                     />
                     {notes && (
                       <button
                         type="button"
                         onClick={() => setNotes("")}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
                 )}
 
-                <div className="flex items-center gap-2.5 pt-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
                   <button
                     type="button"
                     onClick={() => setShowNotesInput(!showNotesInput)}
-                    className={`inline-flex items-center justify-center gap-1.5 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                    className={`inline-flex items-center justify-center gap-1.5 px-4 py-3 min-h-[48px] rounded-xl border text-xs font-semibold transition-all cursor-pointer shrink-0 active:scale-[0.98] ${
                       showNotesInput || notes
                         ? "bg-[#102e50]/5 text-[#102e50] border-[#102e50]/30"
                         : "bg-white text-slate-600 hover:text-[#102e50] border-slate-200 hover:bg-slate-50"
                     }`}
                   >
                     <FileText className="w-4 h-4 text-slate-500" />
-                    <span>{showNotesInput ? "Tutup" : notes ? "Catatan Terisi" : "+ Catatan"}</span>
+                    <span>{showNotesInput ? "Tutup Catatan" : notes ? "Catatan Terisi" : "+ Catatan Tugas"}</span>
                   </button>
 
                   <button
                     type="button"
                     disabled={isPending}
                     onClick={handleCheckOut}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 min-h-[48px] rounded-xl bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] text-sm font-bold shadow-xs hover:shadow-md transition-all cursor-pointer active:scale-[0.99] disabled:opacity-50"
                   >
                     <LogOut className="w-4 h-4 text-[#102e50] shrink-0" />
                     <span>{isPending ? "Memproses..." : "Pulang Kerja (Check-Out)"}</span>
