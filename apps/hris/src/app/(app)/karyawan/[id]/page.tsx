@@ -37,6 +37,7 @@ import { EmployeeContractsTable } from "@/components/karyawan/employee-contracts
 import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-role-card";
 import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
 import { EmployeeStatusActions } from "@/components/karyawan/employee-status-actions";
+import { EmployeeAvatar } from "@/components/karyawan/employee-avatar";
 import {
   EmployeeAssetsCard,
   SerializedEmployeeAssetAssignment,
@@ -248,20 +249,10 @@ export default async function EmployeeDetailPage({
             {/* Left: Avatar & Identity */}
             <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
               {/* Photo Avatar or Fallback Initials */}
-              {employee.photoKey ? (
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden ring-1 ring-slate-200 shadow-sm shrink-0 bg-slate-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={`/api/documents/${employee.photoKey}`}
-                    alt={employee.fullName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              ) : (
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-[#102E50]/10 text-[#102E50] font-bold text-2xl sm:text-3xl font-heading flex items-center justify-center border border-[#102E50]/20 shadow-xs shrink-0">
-                  {initial}
-                </div>
-              )}
+              <EmployeeAvatar
+                photoKey={employee.photoKey}
+                name={employee.fullName}
+              />
 
               {/* Name, Title, Badges */}
               <div className="flex flex-col">
