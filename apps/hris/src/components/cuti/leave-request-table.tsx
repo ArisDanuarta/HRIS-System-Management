@@ -216,8 +216,119 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border-collapse">
+        <>
+          {/* Mobile Card View (Khusus Layar Ponsel < 640px) */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {filteredRequests.map((r) => {
+              const isPendingStatus = r.status === "PENDING";
+              const isCancellingThis = cancellingId === r.id;
+
+              return (
+                <div key={r.id} className="p-4 flex flex-col gap-3">
+                  {/* Header: Jenis Cuti & Status Badge */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-bold text-sm text-[#102e50] block">
+                        {r.leaveType.name}
+                      </span>
+                      <span className="text-[10px] text-slate-400 font-medium">
+                        Diajukan {formatDate(r.createdAt)}
+                      </span>
+                    </div>
+                    {renderStatusBadge(r.status)}
+                  </div>
+
+                  {/* Rentang Tanggal & Durasi */}
+                  <div className="flex items-center justify-between gap-2 p-2.5 bg-slate-50/80 rounded-xl border border-slate-100 text-xs">
+                    <div className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+                      <Calendar className="w-3.5 h-3.5 text-[#0874aa] shrink-0" />
+                      <span>{formatDate(r.startDate)}</span>
+                      <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{formatDate(r.endDate)}</span>
+                    </div>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg bg-[#102e50]/5 text-[#102e50] font-bold tabular-nums text-xs shrink-0">
+                      {Number(r.days)} Hari
+                    </span>
+                  </div>
+
+                  {/* Alasan & Dokumen Lampiran */}
+                  {r.reason && (
+                    <p className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-100 leading-relaxed">
+                      {r.reason}
+                    </p>
+                  )}
+
+                  {r.attachmentKey && (
+                    <a
+                      href={`/api/documents/${r.attachmentKey}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold w-fit"
+                    >
+                      <Paperclip className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Buka Dokumen Lampiran</span>
+                    </a>
+                  )}
+
+                  {/* Catatan Pejabat Approval jika ada */}
+                  {r.decisionNote && (
+                    <div className="text-[11px] p-2 bg-amber-50/70 border border-amber-200/80 rounded-lg text-amber-900">
+                      <strong>Catatan Review:</strong> {r.decisionNote}
+                    </div>
+                  )}
+
+                  {/* Aksi Pembatalan Mobile */}
+                  {isPendingStatus && (
+                    <div className="pt-1">
+                      {isCancellingThis ? (
+                        <div className="flex flex-col gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                          <input
+                            type="text"
+                            placeholder="Alasan pembatalan..."
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            className="w-full px-3 py-2 text-sm sm:text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#102e50]"
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={isPending}
+                              onClick={() => handleCancel(r.id)}
+                              className="flex-1 py-2 bg-[#a8281c] hover:bg-[#8e2d3f] text-white rounded-lg font-bold text-xs transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                              {isPending ? "Memproses..." : "Konfirmasi Pembatalan"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCancellingId(null);
+                                setCancelReason("");
+                              }}
+                              className="px-3 py-2 text-slate-600 hover:bg-slate-200/70 rounded-lg font-semibold text-xs transition-colors cursor-pointer"
+                            >
+                              Batal
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setCancellingId(r.id)}
+                          className="w-full py-2.5 text-xs font-semibold text-[#a8281c] hover:bg-[#a8281c]/10 rounded-xl border border-[#a8281c]/25 transition-colors cursor-pointer text-center active:scale-[0.98]"
+                        >
+                          Batalkan Permohonan Cuti Ini
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Tabular View (Layar >= 640px) */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] uppercase tracking-wider font-bold text-[11px]">
                 <th className="py-3.5 px-5">Jenis Cuti</th>

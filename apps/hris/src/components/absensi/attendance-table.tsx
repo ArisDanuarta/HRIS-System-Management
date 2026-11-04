@@ -160,7 +160,96 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Mobile Card View (Khusus Layar Ponsel < 640px) */}
+      <div className="sm:hidden divide-y divide-slate-100">
+        {attendances.map((a) => {
+          const duration = calculateDurationInfo(a.checkInAt, a.checkOutAt);
+          const { mode, cleanText } = parseNotes(a.notes, a.status);
+
+          return (
+            <div key={a.id} className="p-4 flex flex-col gap-2.5">
+              {/* Header: Tanggal & Status Badge */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 font-bold text-[#102e50] text-xs">
+                  <Calendar className="w-3.5 h-3.5 text-[#f2af3e]" />
+                  <span>{formatDate(a.date)}</span>
+                </div>
+                {renderStatusBadge(a.status)}
+              </div>
+
+              {/* Waktu Masuk & Pulang */}
+              <div className="grid grid-cols-2 gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                    Masuk ({tzAbbr})
+                  </span>
+                  <span className="font-mono font-bold text-slate-800">
+                    {a.checkInAt ? formatTime(a.checkInAt) : "--:--"}
+                  </span>
+                  {tzAbbr !== "WIB" && a.checkInAt && (
+                    <span className="text-[10px] text-slate-400 block">
+                      {formatTimeInZone(a.checkInAt, "Asia/Jakarta")} WIB
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                    Pulang ({tzAbbr})
+                  </span>
+                  <span className="font-mono font-bold text-slate-800">
+                    {a.checkOutAt ? formatTime(a.checkOutAt) : "--:--"}
+                  </span>
+                  {tzAbbr !== "WIB" && a.checkOutAt && (
+                    <span className="text-[10px] text-slate-400 block">
+                      {formatTimeInZone(a.checkOutAt, "Asia/Jakarta")} WIB
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Durasi & Mode */}
+              <div className="flex items-center justify-between gap-2 text-xs pt-0.5">
+                {duration.hours > 0 ? (
+                  <div className="flex items-center gap-1.5 text-slate-700">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="font-semibold">{duration.label}</span>
+                  </div>
+                ) : (
+                  <span className="text-slate-400 italic text-[11px]">Durasi belum terekam</span>
+                )}
+
+                {mode && (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold border shrink-0 ${
+                      mode === "WFH"
+                        ? "bg-[#0874aa]/10 text-[#0874aa] border-[#0874aa]/20"
+                        : "bg-[#102e50]/5 text-[#102e50] border-[#102e50]/15"
+                    }`}
+                  >
+                    {mode === "WFH" ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
+                    {mode}
+                  </span>
+                )}
+              </div>
+
+              {/* Catatan / Koreksi HR */}
+              {a.source === "MANUAL_HR" ? (
+                <div className="text-[11px] text-[#8e2d3f] bg-rose-50/70 p-2 rounded-lg border border-rose-100 flex items-center gap-1.5">
+                  <ShieldAlert className="w-3.5 h-3.5 text-[#df632f] shrink-0" />
+                  <span>Koreksi HR: {a.correctionReason || "Disesuaikan"}</span>
+                </div>
+              ) : cleanText ? (
+                <p className="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  {cleanText}
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Tabular View (Layar >= 640px) */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] uppercase tracking-wider font-bold text-[11px]">
