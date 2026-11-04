@@ -945,20 +945,20 @@ export function LeaveRequestForm({
         )}
 
         {/* 3. Wizard Navigation Buttons */}
-        <div className="mt-8 pt-5 border-t border-slate-200 flex items-center justify-between gap-3">
+        <div className="mt-8 pt-5 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {currentStep > 1 ? (
             <button
               type="button"
               onClick={handlePrevStep}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 min-h-[46px] rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-semibold transition-colors cursor-pointer active:scale-[0.98]"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Sebelumnya</span>
+              <span>Kembali ke Langkah Sebelumnya</span>
             </button>
           ) : (
             <Link
               href="/cuti"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 min-h-[46px] rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition-colors text-center"
             >
               Batal
             </Link>
@@ -968,7 +968,7 @@ export function LeaveRequestForm({
             <button
               type="button"
               onClick={handleNextStep}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#102e50] hover:bg-[#0c233d] text-white text-xs font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 sm:py-2.5 min-h-[46px] rounded-xl bg-[#102e50] hover:bg-[#0c233d] text-white text-xs font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
             >
               <span>Lanjut ke Langkah {currentStep + 1}</span>
               <ArrowRight className="w-4 h-4 text-[#f2af3e]" />
@@ -978,7 +978,7 @@ export function LeaveRequestForm({
               type="button"
               disabled={isPending || isBalanceExceeded || calculatedDays <= 0}
               onClick={handleSubmit}
-              className="inline-flex items-center gap-2 px-7 py-2.5 rounded-xl bg-[#102e50] hover:bg-[#0c233d] text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-2 px-7 py-3 sm:py-2.5 min-h-[46px] rounded-xl bg-[#102e50] hover:bg-[#0c233d] text-white text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer active:scale-[0.98]"
             >
               {isPending ? (
                 <>
