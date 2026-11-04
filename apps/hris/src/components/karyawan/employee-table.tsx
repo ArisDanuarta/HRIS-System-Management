@@ -16,6 +16,7 @@ import {
   Clock,
 } from "lucide-react";
 import { StatusBadge, ContractTypeBadge } from "./status-badge";
+import { EmployeeAvatar } from "./employee-avatar";
 import {
   deleteEmployeeAction,
   reactivateEmployeeAction,
@@ -130,41 +131,160 @@ export function EmployeeTable({
 
       {/* Table Container */}
       <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto min-h-[300px]">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600 select-none">
-                <th className="py-3 px-4">Pegawai</th>
-                <th className="py-3 px-4">NIP & Mulai Kerja</th>
-                <th className="py-3 px-4">Posisi & Divisi</th>
-                <th className="py-3 px-4">Atasan Langsung</th>
-                <th className="py-3 px-4">Kontrak & Status</th>
-                <th className="py-3 px-4 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {items.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-16 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                        <Users className="w-6 h-6" />
-                      </div>
-                      <div className="flex flex-col gap-1 max-w-sm">
-                        <span className="font-semibold text-slate-800">Tidak Ada Data Pegawai</span>
-                        <span className="text-xs text-slate-500">
-                          Tidak ditemukan pegawai yang cocok dengan filter atau kata kunci pencarian
-                          Anda.
-                        </span>
+        {items.length === 0 ? (
+          <div className="py-16 text-center">
+            <div className="flex flex-col items-center justify-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <Users className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col gap-1 max-w-sm">
+                <span className="font-semibold text-slate-800">Tidak Ada Data Pegawai</span>
+                <span className="text-xs text-slate-500">
+                  Tidak ditemukan pegawai yang cocok dengan filter atau kata kunci pencarian
+                  Anda.
+                </span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Mobile Card View (Khusus Layar Ponsel < 640px) */}
+            <div className="sm:hidden divide-y divide-slate-100">
+              {items.map((emp) => (
+                <div key={emp.id} className="p-4 flex flex-col gap-3">
+                  {/* Top: Avatar, Nama, Status */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <EmployeeAvatar
+                        photoKey={emp.photoKey}
+                        name={emp.fullName}
+                        sizeClassName="w-10 h-10"
+                        roundedClassName="rounded-full"
+                        textClassName="text-xs"
+                      />
+                      <div className="flex flex-col min-w-0">
+                        <Link
+                          href={`/karyawan/${emp.id}`}
+                          className="font-bold text-slate-900 hover:text-[#102E50] transition-colors truncate text-sm"
+                        >
+                          {emp.fullName}
+                        </Link>
+                        <span className="text-[11px] text-slate-500 truncate">{emp.workEmail}</span>
                       </div>
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                items.map((emp) => {
-                  const initial = emp.fullName.charAt(0).toUpperCase();
+                    <StatusBadge status={emp.status} size="sm" />
+                  </div>
 
-                  return (
+                  {/* Info Ringkas: Jabatan, Divisi & NIP */}
+                  <div className="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        Jabatan & Divisi
+                      </span>
+                      <span className="font-semibold text-slate-800 block truncate">
+                        {emp.currentPosition?.title || "-"}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block truncate">
+                        {emp.currentDepartment?.name || "-"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] uppercase font-semibold text-slate-400 block">
+                        NIP & Masa Kerja
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 block">
+                        {emp.employeeNo}
+                      </span>
+                      <span className="text-[10px] text-slate-500 block">
+                        Mulai {formatDate(emp.joinDate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Badge Kontrak & Expiring Alert */}
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {emp.activeContract && (
+                        <ContractTypeBadge
+                          type={emp.activeContract.type}
+                          label={emp.activeContract.employmentTypeMaster?.name}
+                        />
+                      )}
+                      {emp.isExpiringSoon && (
+                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-[#805600] border border-amber-300">
+                          <Clock className="w-3 h-3 text-[#805600]" />
+                          <span>Sisa {emp.daysUntilExpiry} hari</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <span className="text-[11px] text-slate-400">
+                      Atasan: {emp.manager ? emp.manager.fullName : "Direksi"}
+                    </span>
+                  </div>
+
+                  {/* Actions Bar Mobile */}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <Link
+                      href={`/karyawan/${emp.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#102E50] bg-[#102E50]/5 hover:bg-[#102E50]/10 rounded-lg transition-colors"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Lihat Profil</span>
+                    </Link>
+
+                    {canManageEmployees && (
+                      <>
+                        <Link
+                          href={`/karyawan/${emp.id}/ubah`}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                        >
+                          <Edit className="w-3.5 h-3.5" />
+                          <span>Ubah</span>
+                        </Link>
+
+                        {emp.status === "TERMINATED" || emp.status === "RESIGNED" ? (
+                          <button
+                            type="button"
+                            onClick={() => handleReactivate(emp.id, emp.fullName)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                            <span>Aktifkan</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(emp.id, emp.fullName)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 text-xs font-semibold"
+                          >
+                            <UserX className="w-3.5 h-3.5" />
+                            <span>Nonaktifkan</span>
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Tabular View (Layar >= 640px) */}
+            <div className="hidden sm:block overflow-x-auto min-h-[300px]">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-600 select-none">
+                    <th className="py-3 px-4">Pegawai</th>
+                    <th className="py-3 px-4">NIP & Mulai Kerja</th>
+                    <th className="py-3 px-4">Posisi & Divisi</th>
+                    <th className="py-3 px-4">Atasan Langsung</th>
+                    <th className="py-3 px-4">Kontrak & Status</th>
+                    <th className="py-3 px-4 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm">
+                  {items.map((emp) => (
                     <tr
                       key={emp.id}
                       className="hover:bg-slate-50/70 transition-colors duration-150 group"
@@ -172,9 +292,13 @@ export function EmployeeTable({
                       {/* Name & Avatar */}
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-[#102E50]/10 text-[#102E50] font-bold flex items-center justify-center text-sm shrink-0 border border-[#102E50]/20">
-                            {initial}
-                          </div>
+                          <EmployeeAvatar
+                            photoKey={emp.photoKey}
+                            name={emp.fullName}
+                            sizeClassName="w-9 h-9"
+                            roundedClassName="rounded-full"
+                            textClassName="text-xs"
+                          />
                           <div className="flex flex-col min-w-0">
                             <Link
                               href={`/karyawan/${emp.id}`}
