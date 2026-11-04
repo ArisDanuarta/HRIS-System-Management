@@ -41,7 +41,7 @@ export interface EmployeeListItem {
     type: string;
     startDate: Date;
     endDate: Date | null;
-    baseSalary: number | null;
+    baseSalary?: number | null;
     employmentTypeMaster?: { id: string; name: string; code: string } | null;
   } | null;
   isExpiringSoon: boolean;

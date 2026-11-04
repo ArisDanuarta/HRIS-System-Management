@@ -130,7 +130,6 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
           employmentTypeMaster: { select: { id: true, name: true, code: true } },
           startDate: true,
           endDate: true,
-          baseSalary: true,
           status: true,
         },
       },
@@ -213,8 +212,13 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
       manager: emp.manager,
       activeContract: activeContract
         ? {
-            ...activeContract,
-            baseSalary: activeContract.baseSalary ? Number(activeContract.baseSalary) : null,
+            id: activeContract.id,
+            type: activeContract.type,
+            employmentTypeId: activeContract.employmentTypeId,
+            employmentTypeMaster: activeContract.employmentTypeMaster,
+            startDate: activeContract.startDate,
+            endDate: activeContract.endDate,
+            status: activeContract.status,
           }
         : null,
       isExpiringSoon,
