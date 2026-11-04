@@ -166,6 +166,9 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
                       src={settings.stampUrl}
                       alt="Stempel Lembaga"
                       className="w-10 h-10 object-contain drop-shadow-sm"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                      }}
                     />
                   </div>
                 )}
@@ -176,6 +179,9 @@ export function PayrollDocumentPreview({ settings }: PayrollDocumentPreviewProps
                     src={settings.signatureUrl}
                     alt="Tanda Tangan"
                     className="w-16 h-8 object-contain relative z-10"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLElement).style.display = "none";
+                    }}
                   />
                 ) : !settings.stampUrl ? (
                   <div className="w-16 h-8 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50">
