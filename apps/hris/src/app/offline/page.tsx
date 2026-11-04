@@ -34,6 +34,8 @@ export default function OfflinePage() {
         // Berikan jeda visual singkat agar animasi transisi terasa halus sebelum navigasi
         setTimeout(() => {
           if (typeof window !== "undefined") {
+            // Gunakan hard navigation untuk memastikan service worker dan browser me-refresh dokumen baru
+            // eslint-disable-next-line @next/next/no-location-assign-relative-destination
             window.location.href = "/";
           }
         }, 600);
@@ -54,6 +56,7 @@ export default function OfflinePage() {
 
   const handleGoHome = () => {
     if (typeof window !== "undefined") {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.href = "/";
     }
   };
