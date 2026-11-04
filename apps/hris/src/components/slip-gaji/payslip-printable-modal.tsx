@@ -162,7 +162,7 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
           {/* Printable Payslip Document Sheet */}
           <div
             id="printable-payslip-sheet"
-            className="p-6 sm:p-8 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)] bg-white text-slate-800 text-xs sm:text-sm"
+            className="p-4 sm:p-8 space-y-5 sm:space-y-6 overflow-y-auto max-h-[calc(90vh-120px)] bg-white text-slate-800 text-xs sm:text-sm"
           >
             {/* PSPK Letterhead / Kop Surat Dinamis */}
             {settings?.headerBannerUrl ? (
@@ -177,7 +177,7 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
               </div>
             ) : (
               <div
-                className={`payslip-header flex items-start justify-between ${getBorderClass(settings?.borderStyle)}`}
+                className={`payslip-header flex flex-col sm:flex-row items-start justify-between gap-3 ${getBorderClass(settings?.borderStyle)}`}
               >
                 <div className="flex items-center gap-3">
                   {settings?.logoUrl ? (
@@ -209,7 +209,7 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-left sm:text-right flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100">
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
                     <Lock className="w-3 h-3 text-rose-600" />
                     Rahasia / Confidential
