@@ -124,6 +124,7 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
                   height={80}
                   className="h-6 w-auto object-contain"
                   style={{ width: "auto" }}
+                  unoptimized
                   priority
                 />
               </div>

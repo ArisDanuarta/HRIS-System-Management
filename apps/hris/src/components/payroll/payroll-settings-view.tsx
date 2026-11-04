@@ -885,6 +885,9 @@ export function PayrollSettingsView({
                           src={signatureUrl}
                           alt="Tanda Tangan Pejabat"
                           className="max-h-12 max-w-full object-contain"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
                         />
                       </div>
                     ) : (
@@ -931,6 +934,9 @@ export function PayrollSettingsView({
                           src={stampUrl}
                           alt="Stempel Lembaga"
                           className="max-h-12 max-w-full object-contain"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
                         />
                       </div>
                     ) : (

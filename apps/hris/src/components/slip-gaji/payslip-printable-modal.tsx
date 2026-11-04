@@ -520,6 +520,9 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
                           src={settings.stampUrl}
                           alt="Stempel Lembaga"
                           className="w-14 h-14 object-contain drop-shadow-sm"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLElement).style.display = "none";
+                          }}
                         />
                       </div>
                     )}
@@ -530,6 +533,9 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
                         src={settings.signatureUrl}
                         alt="Tanda Tangan"
                         className="w-24 h-12 object-contain relative z-10"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLElement).style.display = "none";
+                        }}
                       />
                     ) : !settings.stampUrl ? (
                       <div className="w-20 h-10 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50/50">
