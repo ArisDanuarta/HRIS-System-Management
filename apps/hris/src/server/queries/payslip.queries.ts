@@ -1,4 +1,4 @@
-import { prisma, Prisma } from "@pspk/db";
+import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
 import { decryptField } from "@pspk/shared";
 import { getPayrollSettings } from "./payroll-settings.queries";

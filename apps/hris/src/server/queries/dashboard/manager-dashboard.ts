@@ -124,6 +124,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     managerAttendance,
     managerBalances,
     workSchedule,
+    pendingTimesheetReviewsRaw,
   ] = await Promise.all([
     // Today's attendance for team
     subordinateIds.length > 0
@@ -190,6 +191,29 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     getEmployeeLeaveBalances(managerId, currentYear),
 
     getActiveWorkSchedule(),
+
+    // Antrean Timesheet Staf Freelance yang ditugaskan ke manajer ini (dijalankan paralel dalam Promise.all)
+    prisma.timesheetReviewer.findMany({
+      where: {
+        reviewerId: managerId,
+        status: { in: ["PENDING", "IN_REVIEW"] },
+      },
+      include: {
+        submission: {
+          include: {
+            employee: {
+              select: {
+                fullName: true,
+                employeeNo: true,
+                currentPosition: { select: { title: true } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
   ]);
 
   const teamPresentCount = todayTeamAttendances.filter((a) =>
@@ -197,29 +221,6 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
   ).length;
 
   const formattedManagerBalances = managerBalances;
-
-  // Antrean Timesheet Staf Freelance yang ditugaskan ke manajer ini
-  const pendingTimesheetReviewsRaw = await prisma.timesheetReviewer.findMany({
-    where: {
-      reviewerId: managerId,
-      status: { in: ["PENDING", "IN_REVIEW"] },
-    },
-    include: {
-      submission: {
-        include: {
-          employee: {
-            select: {
-              fullName: true,
-              employeeNo: true,
-              currentPosition: { select: { title: true } },
-            },
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 5,
-  });
 
   const pendingTimesheetReviews = pendingTimesheetReviewsRaw.map((r) => ({
     id: r.id,
