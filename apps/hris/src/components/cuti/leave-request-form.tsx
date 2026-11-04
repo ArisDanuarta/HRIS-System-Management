@@ -339,21 +339,25 @@ export function LeaveRequestForm({
     }
 
     startTransition(async () => {
-      const res = await submitLeaveRequestAction({
-        leaveTypeId,
-        startDate,
-        endDate,
-        reason: reason.trim(),
-        attachmentKey: attachmentKey || undefined,
-      });
+      try {
+        const res = await submitLeaveRequestAction({
+          leaveTypeId,
+          startDate,
+          endDate,
+          reason: reason.trim(),
+          attachmentKey: attachmentKey || undefined,
+        });
 
-      if (res.success) {
-        setSuccess("Permohonan cuti berhasil diajukan! Anda akan dialihkan ke halaman cuti...");
-        setTimeout(() => {
-          router.push("/cuti");
-        }, 1200);
-      } else {
-        setError(res.message);
+        if (res.success) {
+          setSuccess("Permohonan cuti berhasil diajukan! Anda akan dialihkan ke halaman cuti...");
+          setTimeout(() => {
+            router.push("/cuti");
+          }, 1200);
+        } else {
+          setError(res.message);
+        }
+      } catch {
+        setError("Gagal terhubung ke server. Periksa koneksi internet Anda lalu coba lagi.");
       }
     });
   };

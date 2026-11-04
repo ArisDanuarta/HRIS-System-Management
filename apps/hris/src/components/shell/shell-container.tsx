@@ -99,7 +99,7 @@ export function ShellContainer({
 
       {/* Main Content Area - Adaptif Mobile pl-0, Desktop pl-20/pl-264 */}
       <div
-        className={`flex-1 transition-all duration-300 pt-16 pb-20 md:pb-6 ${
+        className={`flex-1 transition-all duration-300 pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
           isCollapsed ? "md:pl-20 pl-0" : "md:pl-[264px] pl-0"
         }`}
       >
