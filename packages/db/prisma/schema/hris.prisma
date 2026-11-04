@@ -452,6 +452,7 @@ model LeaveRequest {
   leaveType LeaveType @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId, status])
+  @@index([status])
   @@index([startDate, endDate])
   @@map("leave_requests")
   @@schema("hris")
@@ -507,6 +508,7 @@ model EmployeeSalaryComponent {
   employee  Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   component SalaryComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
 
+  @@index([employeeId])
   @@map("employee_salary_components")
   @@schema("hris")
 }
@@ -533,6 +535,7 @@ model Payslip {
   lines    PayslipLine[]
 
   @@unique([periodId, employeeId])
+  @@index([employeeId, status])
   @@map("payslips")
   @@schema("hris")
 }
@@ -548,6 +551,7 @@ model PayslipLine {
   payslip   Payslip          @relation(fields: [payslipId], references: [id], onDelete: Cascade)
   component SalaryComponent? @relation(fields: [componentId], references: [id], onDelete: SetNull)
 
+  @@index([payslipId])
   @@map("payslip_lines")
   @@schema("hris")
 }
