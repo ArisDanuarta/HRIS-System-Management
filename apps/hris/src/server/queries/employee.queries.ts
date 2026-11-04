@@ -320,8 +320,12 @@ export async function getEmployeeById(id: string) {
     console.error("Error decrypting for masking:", err);
   }
 
+  // Strip ciphertext fields from the returned object to prevent leaking sensitive blobs
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { nikEnc, npwpEnc, bankAccountEnc, ...sanitizedEmp } = emp;
+
   return {
-    ...emp,
+    ...sanitizedEmp,
     nikMasked,
     npwpMasked,
     bankAccountMasked,
