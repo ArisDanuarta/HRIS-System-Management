@@ -102,23 +102,7 @@ export async function getMyPayslips(
   const employeeId = ctx.employeeId;
   const currentYear = new Date().getFullYear();
 
-  const where: Prisma.PayslipWhereInput = {
-    employeeId,
-    status: { in: ["PUBLISHED", "LOCKED"] },
-  };
-
-  if (filter?.year && filter.year > 0) {
-    where.period = { year: filter.year };
-  }
-
-  if (filter?.kind && filter.kind !== "ALL") {
-    where.period = {
-      ...(where.period ? (where.period as Prisma.PayrollPeriodWhereInput) : {}),
-      kind: filter.kind as Prisma.EnumPayrollKindFilter,
-    };
-  }
-
-  // Ambil seluruh slip gaji terbit milik user
+  // Ambil seluruh slip gaji terbit milik user (dioptimasi menggunakan indeks komposit employeeId + status)
   const allPublishedPayslips = await prisma.payslip.findMany({
     where: {
       employeeId,
@@ -130,7 +114,7 @@ export async function getMyPayslips(
     orderBy: [{ period: { year: "desc" } }, { period: { month: "desc" } }, { createdAt: "desc" }],
   });
 
-  // Ekstrak daftar tahun unik untuk filter
+  // Ekstrak daftar tahun unik untuk opsi filter dropdown
   const yearSet = new Set<number>();
   allPublishedPayslips.forEach((p) => yearSet.add(p.period.year));
   if (!yearSet.has(currentYear)) {
@@ -138,13 +122,15 @@ export async function getMyPayslips(
   }
   const availableYears = Array.from(yearSet).sort((a, b) => b - a);
 
-  // Ambil slip hasil filter
-  const filteredPayslips = await prisma.payslip.findMany({
-    where,
-    include: {
-      period: true,
-    },
-    orderBy: [{ period: { year: "desc" } }, { period: { month: "desc" } }, { createdAt: "desc" }],
+  // Filter in-memory langsung dari dataset allPublishedPayslips untuk menghindari kueri database sekuensial ganda
+  const filteredPayslips = allPublishedPayslips.filter((p) => {
+    if (filter?.year && filter.year > 0 && p.period.year !== filter.year) {
+      return false;
+    }
+    if (filter?.kind && filter.kind !== "ALL" && p.period.kind !== filter.kind) {
+      return false;
+    }
+    return true;
   });
 
   const formattedPayslips: MyPayslipListItem[] = filteredPayslips.map((p) => ({

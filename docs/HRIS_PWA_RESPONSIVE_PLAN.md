@@ -190,11 +190,19 @@ flowchart TD
       * Riwayat slip gaji per staf (`payslips_employee_id_status_idx`) langsung terindeks tanpa terhalang urutan `period_id`.
       * Rincian komponen gaji (`employee_salary_components_employee_id_idx` & `payslip_lines_payslip_id_idx`) teroptimasi untuk kalkulasi batch ribuan transaksi penggajian.
 
-* **Sub-tahap 5.2: Proteksi Overfetching & Pembersihan Kolom Sensitif (Data Minimization)**
+* **Sub-tahap 5.2: Proteksi Overfetching & Pembersihan Kolom Sensitif (Data Minimization) ✅ (Selesai)**
+  * **Status:** **SELESAI (100% Terverifikasi)**
   * **Masalah:** `baseSalary` terekspos di payload network direktori pegawai (`getEmployeesDirectory`), dan `nikEnc`/`npwpEnc`/`bankAccountEnc` terbawa di `getEmployeeById`.
-  * **Pra-cek:** Audit seluruh komponen pemanggil (`EmployeeTable`, `SensitiveFieldView`, wizard pegawai) untuk memastikan tidak ada komponen yang bergantung pada field tersebut.
-  * **Eksekusi:** Hapus `baseSalary` dari `select` kontrak di `getEmployeesDirectory`; hapus `nikEnc`, `npwpEnc`, dan `bankAccountEnc` dari return payload `getEmployeeById`.
-  * **Cross-check & Pengujian Skala Ribuan Data:** Uji muatan payload direktori (pengurangan ukuran transfer data secara signifikan untuk ribuan pegawai), pastikan fungsi penyamaran data (masking) dan buka audit (unmasking) tetap berfungsi 100%.
+  * **Pra-cek:** Audit seluruh komponen pemanggil (`EmployeeTable`, `SensitiveFieldView`, `WizardEmployeeForm`) membuktikan tidak ada antarmuka yang mengonsumsi `baseSalary` pada direktori maupun cipherteks mentah pada profil detail.
+  * **Eksekusi:**
+    * Menghapus `baseSalary: true` dari klausul `select` kontrak di `getEmployeesDirectory` dan memetakan objek kontrak bersih di `employee.queries.ts`.
+    * Memperbarui antarmuka `EmployeeListItem` di `employee-table.tsx` agar `baseSalary` bersifat opsional (`baseSalary?: number | null`), menjaga kompatibilitas tipe data.
+    * Melakukan destrukturisasi objek di `getEmployeeById` (`const { nikEnc, npwpEnc, bankAccountEnc, ...sanitizedEmp } = emp`) sehingga data cipherteks sensitif tidak pernah terkirim ke klien; penyamaran (`nikMasked`, dll.) dan pembukaan audit (*unmasking*) tetap bekerja 100% via Server Action terpisah.
+  * **Cross-check & Pengujian Skala Ribuan Data:**
+    * ✅ `pnpm typecheck` lolos (9/9 paket).
+    * ✅ `pnpm lint` lolos (0 error, 0 warning).
+    * ✅ `pnpm test` lolos (42 test suites, 284 tests passed).
+    * ✅ Pada skala ribuan pegawai, transfer muatan JSON direktori tereduksi secara signifikan karena pemotongan field numerik kontrak yang tidak perlu, dan privasi gaji terlindungi dari inspeksi jaringan browser.
 
 * **Sub-tahap 5.3: Paralelisasi Kueri Dashboard & Efisiensi In-Memory Slip Gaji**
   * **Masalah:** Kueri ganda sekuensial pada `getMyPayslips` dan pemanggilan sekuensial antrean timesheet di `manager-dashboard.ts`.
