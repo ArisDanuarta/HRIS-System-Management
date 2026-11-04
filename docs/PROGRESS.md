@@ -2,6 +2,29 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Mobile & PWA] Perbaikan Hydration Mismatch & Isolasi Service Worker di Dev Mode — 2026-11-04
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Masalah:**
+  - Terjadi *Hydration Mismatch* (`Console Error` & `Recoverable Error`) di `/dashboard` pada `ShellContainer` dan `TodayAttendanceCard`.
+  - Akar masalah: Service Worker (`public/sw.js`) terpasang di mode development (`localhost:3001`) dan menerapkan *Cache-First* pada aset `/_next/static/`, sehingga browser client mengeksekusi chunk JavaScript lama dari cache storage sementara server Next.js (Turbopack) merender HTML baru.
+  - Terdapat potensi ketidaksinkronan peran pada `ShellContainer` akibat pembacaan `sessionStorage` yang tidak deterministik saat inisialisasi awal.
+- **Implementasi Pekerjaan:**
+  1. **Isolasi Service Worker di Mode Development (`apps/hris/src/components/shell/pwa-installer.tsx`):**
+     - Pada `NODE_ENV === "development"` atau host `localhost`/`127.0.0.1`, `PwaInstaller` secara otomatis membatalkan registrasi (*unregister*) Service Worker dan menghapus Cache Storage di browser.
+     - Registrasi Service Worker diisolasi hanya untuk lingkungan produksi (`production`).
+  2. **Bypass Fetch & Upgrade Cache Versi di Service Worker (`apps/hris/public/sw.js`):**
+     - Menambahkan proteksi `isLocalhost`: jika Service Worker dijalankan di host localhost/127.0.0.1, event `fetch` langsung di-bypass ke jaringan tanpa menyentuh cache.
+     - Meningkatkan versi cache ke `pspk-hris-cache-v3` untuk secara otomatis menghapus cache `v2` lama saat aktivasi.
+  3. **Deterministik State di Shell Layout (`apps/hris/src/components/shell/shell-container.tsx`):**
+     - `currentRole` diinisialisasi secara deterministik dari prop `initialRole` yang sudah dibaca oleh server dari cookie `pspk_role_view`.
+     - Menghapus pembacaan `sessionStorage` yang redundan dan memicu peringatan React Compiler `react-hooks/set-state-in-effect`.
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+  - `pnpm --filter @pspk/hris build`: ✅ Lolos sukses terkompilasi.
+
 ## [HRIS Mobile & PWA] Penyempurnaan Halaman Offline & Custom PSPK Loader — 2026-11-04
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)

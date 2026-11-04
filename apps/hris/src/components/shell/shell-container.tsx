@@ -49,23 +49,13 @@ export function ShellContainer({
   const handleToggleMobile = useCallback(() => {
     setMobileNavOpen((prev) => !prev);
   }, []);
-  // State awal selalu deterministik sesuai initialRole agar SSR dan Client menghasilkan markup identik
+  // State peran tampilan (ditentukan secara deterministik dari server cookie via initialRole)
   const [currentRole, setCurrentRole] = useState<RoleViewType>(initialRole);
-
-  React.useEffect(() => {
-    if (isSuperAdmin) {
-      const saved = sessionStorage.getItem("pspk_superadmin_role_view");
-      if (saved === "admin_hr" || saved === "manager" || saved === "staff") {
-        setCurrentRole(saved);
-      }
-    }
-  }, [isSuperAdmin]);
 
   const handleRoleChange = (newRole: RoleViewType) => {
     if (!isSuperAdmin) return;
     setCurrentRole(newRole);
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("pspk_superadmin_role_view", newRole);
       document.cookie = `pspk_role_view=${newRole}; path=/; max-age=86400; SameSite=Lax`;
       window.location.reload();
     }
