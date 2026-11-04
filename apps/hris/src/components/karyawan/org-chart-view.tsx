@@ -2,7 +2,6 @@
 
 import React, { useState, useMemo, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import {
   Users,
   Search,
@@ -525,8 +524,6 @@ function TreeNode({
   const isCollapsed = collapsedIds.has(node.id);
   const hasChildren = node.children && node.children.length > 0;
   const isHighlighted = highlightedId === node.id;
-
-  const initial = node.fullName.charAt(0).toUpperCase();
 
   return (
     <div className="flex flex-col items-center">

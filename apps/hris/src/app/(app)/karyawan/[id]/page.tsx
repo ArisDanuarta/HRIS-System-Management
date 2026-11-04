@@ -190,8 +190,6 @@ export default async function EmployeeDetailPage({
     effectiveTab = "biodata";
   }
 
-  const initial = employee.fullName.charAt(0).toUpperCase();
-
   const isTerminated = employee.status === "TERMINATED" || employee.status === "RESIGNED";
   const activeContract =
     employee.contracts.find((c) => c.status === "ACTIVE") ||
