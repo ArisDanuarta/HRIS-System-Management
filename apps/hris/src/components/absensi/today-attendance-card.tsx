@@ -275,13 +275,20 @@ export function TodayAttendanceCard({
       const cleanNote = notes.trim();
       const combinedNotes = cleanNote ? `${modeTag} ${cleanNote} ${tzTag}` : `${modeTag} ${tzTag}`;
 
-      const res = await checkInAction({ notes: combinedNotes });
-      if (res.success) {
-        setMessage({ type: "success", text: res.message });
-        setShowNotesInput(false);
-        setNotes("");
-      } else {
-        setMessage({ type: "error", text: res.message });
+      try {
+        const res = await checkInAction({ notes: combinedNotes });
+        if (res.success) {
+          setMessage({ type: "success", text: res.message });
+          setShowNotesInput(false);
+          setNotes("");
+        } else {
+          setMessage({ type: "error", text: res.message });
+        }
+      } catch {
+        setMessage({
+          type: "error",
+          text: "Gagal terhubung ke server. Periksa koneksi internet Anda lalu coba lagi.",
+        });
       }
     });
   };
@@ -293,13 +300,20 @@ export function TodayAttendanceCard({
       const cleanNote = notes.trim();
       const combinedNotes = cleanNote ? `${cleanNote} ${tzTag}` : tzTag;
 
-      const res = await checkOutAction({ notes: combinedNotes });
-      if (res.success) {
-        setMessage({ type: "success", text: res.message });
-        setShowNotesInput(false);
-        setNotes("");
-      } else {
-        setMessage({ type: "error", text: res.message });
+      try {
+        const res = await checkOutAction({ notes: combinedNotes });
+        if (res.success) {
+          setMessage({ type: "success", text: res.message });
+          setShowNotesInput(false);
+          setNotes("");
+        } else {
+          setMessage({ type: "error", text: res.message });
+        }
+      } catch {
+        setMessage({
+          type: "error",
+          text: "Gagal terhubung ke server. Periksa koneksi internet Anda lalu coba lagi.",
+        });
       }
     });
   };
