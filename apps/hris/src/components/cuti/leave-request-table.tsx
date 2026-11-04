@@ -457,7 +457,8 @@ export function LeaveRequestTable({ requests }: LeaveRequestTableProps) {
             </tbody>
           </table>
         </div>
-      )}
+      </>
+    )}
     </div>
   );
 }
