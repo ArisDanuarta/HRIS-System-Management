@@ -414,6 +414,15 @@ export function LeaveRequestForm({
             );
           })}
         </div>
+        {/* Mobile Active Step Indicator */}
+        <div className="sm:hidden text-center mt-3 pt-2 border-t border-slate-200/50">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            Langkah {currentStep} dari {stepsList.length}:
+          </span>{" "}
+          <span className="text-xs font-bold text-[#102e50]">
+            {stepsList[currentStep - 1]?.label}
+          </span>
+        </div>
       </div>
 
       {/* 2. Step Form Body */}
@@ -570,7 +579,7 @@ export function LeaveRequestForm({
                     setStartDate(e.target.value);
                     setStepError(null);
                   }}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 font-medium focus:ring-2 focus:ring-[#102e50] focus:border-transparent focus:outline-none"
+                  className="w-full px-3.5 py-3 sm:py-2.5 min-h-[44px] rounded-xl border border-slate-300 bg-white text-sm sm:text-xs text-slate-800 font-medium focus:ring-2 focus:ring-[#102e50] focus:border-transparent focus:outline-none"
                 />
               </div>
 
@@ -587,7 +596,7 @@ export function LeaveRequestForm({
                     setEndDate(e.target.value);
                     setStepError(null);
                   }}
-                  className="px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 font-medium focus:ring-2 focus:ring-[#102e50] focus:border-transparent focus:outline-none"
+                  className="w-full px-3.5 py-3 sm:py-2.5 min-h-[44px] rounded-xl border border-slate-300 bg-white text-sm sm:text-xs text-slate-800 font-medium focus:ring-2 focus:ring-[#102e50] focus:border-transparent focus:outline-none"
                 />
               </div>
             </div>
@@ -677,7 +686,7 @@ export function LeaveRequestForm({
                   setReason(e.target.value);
                   setStepError(null);
                 }}
-                className="p-3.5 rounded-xl border border-slate-300 bg-white text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#102e50] focus:border-transparent focus:outline-none leading-relaxed"
+                className="p-3.5 rounded-xl border border-slate-300 bg-white text-sm sm:text-xs text-slate-800 placeholder:text-slate-400 focus:ring-2 focus:ring-[#102e50] focus:border-transparent focus:outline-none leading-relaxed"
               />
               <span className="text-[10px] text-slate-400 text-right">
                 Minimal jelaskan secara ringkas keperluan izin kerja Anda.
