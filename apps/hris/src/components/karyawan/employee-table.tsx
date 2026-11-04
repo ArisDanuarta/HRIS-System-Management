@@ -247,8 +247,8 @@ export function EmployeeTable({
                         {emp.status === "TERMINATED" || emp.status === "RESIGNED" ? (
                           <button
                             type="button"
-                            onClick={() => handleReactivate(emp.id, emp.fullName)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold"
+                            onClick={() => setSelectedForReactivate(emp)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-xs font-semibold cursor-pointer"
                           >
                             <UserCheck className="w-3.5 h-3.5" />
                             <span>Aktifkan</span>
@@ -256,8 +256,8 @@ export function EmployeeTable({
                         ) : (
                           <button
                             type="button"
-                            onClick={() => handleDelete(emp.id, emp.fullName)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 text-xs font-semibold"
+                            onClick={() => setSelectedForDelete(emp)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-rose-600 bg-rose-50 hover:bg-rose-100 text-xs font-semibold cursor-pointer"
                           >
                             <UserX className="w-3.5 h-3.5" />
                             <span>Nonaktifkan</span>
@@ -412,12 +412,12 @@ export function EmployeeTable({
                         </div>
                       </td>
                     </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
 
         {/* Pagination Bar */}
         {total > 0 && (
