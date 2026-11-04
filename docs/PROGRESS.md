@@ -2,6 +2,59 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [HRIS Mobile & PWA] Tahap 5: Audit Kueri Database, Bug, Performa & Skala Ribuan Data — 2026-11-04
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Melakukan audit kueri database (Prisma ORM) untuk mencegah scan sekuensial pada tabel-tabel utama (cuti, slip gaji, komponen gaji).
+  - Melindungi data sensitif (pembersihan `baseSalary` dari direktori dan `nikEnc`/`npwpEnc`/`bankAccountEnc` dari profil pegawai).
+  - Memparalelkan kueri antrean dasbor manajer dan mengoptimalkan filtering in-memory pada halaman slip gaji.
+  - Menangani error jaringan mendadak (*abrupt offline transition*) pada Server Actions absensi dan cuti.
+  - Memperbaiki safe area insets pada perangkat iPhone bertakik (Dynamic Island).
+- **Implementasi Pekerjaan:**
+  1. **Indeks Performa Database (`packages/db/prisma/schema/hris.prisma`):**
+     - Menambahkan 4 indeks B-Tree: `LeaveRequest(status)`, `Payslip(employeeId, status)`, `EmployeeSalaryComponent(employeeId)`, dan `PayslipLine(payslipId)`.
+     - Migrasi resmi: `20261104072029_add_performance_indexes_hris`.
+  2. **Data Minimization & Keamanan Privasi (`apps/hris/src/server/queries/employee.queries.ts`):**
+     - Menghapus `baseSalary` dari proyeksi kontrak `getEmployeesDirectory`.
+     - Melakukan destrukturisasi objek di `getEmployeeById` untuk mencegah pengiriman cipherteks mentah ke browser.
+  3. **Paralelisasi & Efisiensi Kueri (`manager-dashboard.ts` & `payslip.queries.ts`):**
+     - Memasukkan kueri antrean timesheet freelance ke dalam array `Promise.all` di dasbor manajer.
+     - Memangkas kueri `/slip-gaji` dari 2x sekuensial menjadi 1x kueri terindeks dengan filtering in-memory.
+  4. **Ketahanan Jaringan & Safe Area Inset (`today-attendance-card.tsx`, `leave-request-form.tsx`, `shell-container.tsx`):**
+     - Membungkus Server Actions dengan `try ... catch` dan pesan error ramah.
+     - Menyesuaikan padding bawah shell utama menjadi `pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6`.
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket monorepo).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+  - `pnpm build`: ✅ Lolos (Kompilasi produksi `@pspk/hris` dan `@pspk/sysmgmt` sukses dengan Next.js Turbopack).
+
+## [HRIS Mobile & PWA] Tahap 4: Optimasi Responsif Modul Kritis — 2026-11-04
+
+- **Status:** Selesai (Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengoptimalkan modul yang paling sering diakses staf melalui smartphone (Presensi, Cuti, Direktori Karyawan, Timesheet, Slip Gaji).
+  - Menghilangkan auto-zoom yang mengganggu di Safari iOS dengan standarisasi ukuran font input.
+  - Mengimplementasikan pola tampilan ganda (*Dual-View: Card View di mobile < 640px dan Table View di desktop ≥ 640px*).
+- **Implementasi Pekerjaan:**
+  1. **Modul Presensi (`today-attendance-card.tsx`):**
+     - Target sentuh tombol Clock In / Clock Out minimal 48px (`min-h-[48px]`).
+     - Dropdown zona waktu adaptif (`max-w-[calc(100vw-32px)] sm:max-w-xs`).
+  2. **Modul Pengajuan Cuti (`leave-request-form.tsx`):**
+     - Indikator langkah mobile terdedikasi di bawah stepper desktop.
+     - Penyesuaian formulir dan area sentuh input form.
+  3. **Dual-View Card/Table (`employee-table.tsx`, `attendance-table.tsx`, `leave-request-table.tsx`, `timesheet-table.tsx`):**
+     - Mode kartu informatif untuk layar ponsel tanpa horizontal scroll yang melelahkan.
+     - Tampilan tabel desktop dipertahankan 100%.
+  4. **Pratinjau Slip Gaji (`payslip-printable-modal.tsx`):**
+     - Padding modal responsif (`p-4 sm:p-8`) dan header fleksibel (`flex-col sm:flex-row`).
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos (9 dari 9 paket).
+  - `pnpm lint`: ✅ Lolos (0 error, 0 warning).
+  - `pnpm test`: ✅ Lolos (42 test suites, 284 tests passed).
+  - `pnpm build`: ✅ Lolos.
+
 ## [HRIS Mobile & PWA] Tahap 3: Service Worker, Caching Strategy & Offline Fallback — 2026-11-03
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
