@@ -12,6 +12,8 @@ import {
   Check,
   Filter,
   FileSpreadsheet,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { formatDate } from "@pspk/shared";
 import { TimesheetApprovalItem, TimesheetApprovalModal } from "./timesheet-approval-modal";
@@ -48,6 +50,8 @@ export function TimesheetApprovalTable({
   const [filterTab, setFilterTab] = useState<"ALL" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED">(
     "NEEDS_REVIEW",
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [selectedSubmission, setSelectedSubmission] = useState<TimesheetApprovalItem | null>(() =>
     initialSubmissionId ? items.find((i) => i.id === initialSubmissionId) || null : null,
   );
@@ -97,6 +101,23 @@ export function TimesheetApprovalTable({
     return true;
   });
 
+  const totalItems = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedItems = filteredItems.slice(startIndex, endIndex);
+
+  const handleTabChange = (tab: "ALL" | "NEEDS_REVIEW" | "APPROVED" | "REJECTED") => {
+    setFilterTab(tab);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-4">
       {/* Controls Bar */}
@@ -105,7 +126,7 @@ export function TimesheetApprovalTable({
         <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl w-full sm:w-auto overflow-x-auto">
           <button
             type="button"
-            onClick={() => setFilterTab("NEEDS_REVIEW")}
+            onClick={() => handleTabChange("NEEDS_REVIEW")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === "NEEDS_REVIEW"
                 ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
@@ -116,7 +137,7 @@ export function TimesheetApprovalTable({
           </button>
           <button
             type="button"
-            onClick={() => setFilterTab("APPROVED")}
+            onClick={() => handleTabChange("APPROVED")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === "APPROVED"
                 ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
@@ -127,7 +148,7 @@ export function TimesheetApprovalTable({
           </button>
           <button
             type="button"
-            onClick={() => setFilterTab("REJECTED")}
+            onClick={() => handleTabChange("REJECTED")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === "REJECTED"
                 ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
@@ -138,7 +159,7 @@ export function TimesheetApprovalTable({
           </button>
           <button
             type="button"
-            onClick={() => setFilterTab("ALL")}
+            onClick={() => handleTabChange("ALL")}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
               filterTab === "ALL"
                 ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
@@ -155,7 +176,7 @@ export function TimesheetApprovalTable({
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Cari staf, NIP, judul..."
             className="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-[#102e50]/20 focus:border-[#102e50]"
           />
@@ -191,7 +212,7 @@ export function TimesheetApprovalTable({
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((sub) => {
+                paginatedItems.map((sub) => {
                   const myReview = sub.reviewers.find((r) => r.reviewerId === currentEmployeeId);
                   const myStatus = myReview?.status || "PENDING";
                   const otherReviewers = sub.reviewers.filter(

@@ -399,6 +399,42 @@ export function LeaveApprovalView({
             </tbody>
           </table>
         </div>
+
+        {/* Bilah Paginasi */}
+        {totalItems > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50/70 border-t border-[#dee9fc] text-xs text-slate-500">
+            <div>
+              Menampilkan{" "}
+              <span className="font-semibold text-slate-700">
+                {startIndex + 1} - {endIndex}
+              </span>{" "}
+              dari <span className="font-semibold text-slate-700">{totalItems}</span> permohonan
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safeCurrentPage <= 1}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Sebelumnya
+              </button>
+              <span className="px-2.5 py-1 text-slate-600 font-medium">
+                Hal {safeCurrentPage} dari {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safeCurrentPage >= totalPages}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                Berikutnya
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Confirmation Modal */}
