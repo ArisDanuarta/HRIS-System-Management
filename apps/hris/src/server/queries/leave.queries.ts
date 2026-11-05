@@ -79,13 +79,19 @@ export async function getEmployeeLeaveBalances(employeeId: string, year?: number
 
 /**
  * Retrieves personal leave requests for an employee.
+ * Membatasi riwayat pengambilan default ke 50 pengajuan terkini untuk efisiensi kueri.
  */
-export async function getPersonalLeaveRequests(employeeId: string, status?: LeaveStatus) {
+export async function getPersonalLeaveRequests(
+  employeeId: string,
+  status?: LeaveStatus,
+  options?: { limit?: number },
+) {
   const where: Record<string, unknown> = { employeeId };
   if (status) where.status = status;
 
   const requests = await prisma.leaveRequest.findMany({
     where,
+    take: options?.limit ?? 50,
     include: {
       leaveType: { select: { name: true, isPaid: true } },
     },
