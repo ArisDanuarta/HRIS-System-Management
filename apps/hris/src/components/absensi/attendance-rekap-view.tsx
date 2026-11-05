@@ -220,7 +220,7 @@ export function AttendanceRekapView({
         onTimeRate,
       },
     };
-  }, [employees, attendances]);
+  }, [employees, attendances, initialOrgStats]);
 
   const months = [
     { value: "1", label: "Januari" },

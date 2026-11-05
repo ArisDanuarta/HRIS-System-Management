@@ -2,6 +2,29 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Paginasi & Optimasi] Tahap 1: Rekapitulasi Presensi & Tata Kelola Pengguna — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengimplementasikan paginasi dan efisiensi kueri pada 2 fitur sesuai rencana bertahap:
+    1. **Rekapitulasi Presensi Organisasi (`/absensi/rekap` di HRIS):** Membatasi matriks 31 hari per pegawai menjadi 10 pegawai per halaman agar tidak merender ratusan baris matriks secara simultan di DOM, sembari mempertahankan ringkasan KPI kehadiran satu organisasi penuh.
+    2. **Tata Kelola Akun Pengguna (`/pengguna` di System Management):** Menambahkan paginasi 10 akun per halaman pada tabel pengguna dengan kontrol halaman dan reset otomatis saat melakukan pencarian atau filtering peran/status.
+- **Implementasi Pekerjaan:**
+  1. **Rekapitulasi Presensi Organisasi ([`attendance.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/attendance.queries.ts), [`page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/absensi/rekap/page.tsx), [`attendance-rekap-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/absensi/attendance-rekap-view.tsx)):**
+     - Memperbarui `getAttendanceRekap` untuk menerima parameter `page` dan `pageSize` (default: 10).
+     - Menghitung `totalEmployees` dan menerapkan `skip` serta `take` pada query pegawai.
+     - Mengoptimalkan perhitungan statistik agregat KPI bulanan satu organisasi (`orgOverallStats`: Hadir, Terlambat, Cuti, Alpa, Rate Tepat Waktu) via `prisma.attendance.findMany` dengan proyeksi ringan `select: { status: true }` sehingga angka KPI di kartu atas tetap 100% akurat untuk seluruh organisasi tanpa terdistorsi paginasi.
+     - Menyediakan bilah kontrol paginasi (`Sebelumnya`, `Hal X dari Y`, `Berikutnya`, `Menampilkan X - Y dari Z pegawai`) dan sinkronisasi query string URL `page`.
+  2. **Tata Kelola Akun Pengguna ([`user.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/user.queries.ts), [`user-management-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/users/user-management-table.tsx)):**
+     - Memperbarui `getAllUsers` untuk menerima opsi paginasi server `page` & `pageSize`.
+     - Menambahkan paginasi client (`pageSize = 10`, `currentPage`, `paginatedUsers`) pada `UserManagementTable`.
+     - Mengotomatiskan reset halaman ke hal 1 saat pencarian teks (`searchTerm`), filter peran (`selectedRoleFilter`), atau filter status akun (`selectedStatusFilter`) berubah.
+     - Menyisipkan bilah kontrol paginasi responsif di bagian bawah tabel data akun.
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.3s).
+
 ## [Testing & QA] Audit E2E Playwright & Pembersihan Kode Pengujian — 2026-11-05
 
 - **Status:** Selesai (Tuntas, 17/17 Skenario Lulus 100% & Kode Bersih Kembali)
