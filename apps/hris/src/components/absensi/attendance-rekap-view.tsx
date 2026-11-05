@@ -106,7 +106,18 @@ export function AttendanceRekapView({
     if (year) params.set("year", year);
     if (dept && dept !== "ALL") params.set("dept", dept);
     if (search.trim()) params.set("search", search.trim());
+    params.set("page", "1");
 
+    router.push(`/absensi/rekap?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams();
+    if (month) params.set("month", month);
+    if (year) params.set("year", year);
+    if (dept && dept !== "ALL") params.set("dept", dept);
+    if (search.trim()) params.set("search", search.trim());
+    params.set("page", String(newPage));
     router.push(`/absensi/rekap?${params.toString()}`);
   };
 
@@ -201,7 +212,7 @@ export function AttendanceRekapView({
     return {
       statsMap: sMap,
       dailyMap: dMap,
-      orgStats: {
+      orgStats: initialOrgStats || {
         totalPresent,
         totalLate,
         totalLeave,
