@@ -93,6 +93,8 @@ model SoftwareLicense {
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  @@index([expiresAt])
+  @@index([vendor])
   @@map("software_licenses")
   @@schema("sysmgmt")
 }
@@ -114,6 +116,8 @@ model Document {
   categoryRel DocumentCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([categoryId])
+  @@index([status, visibility])
+  @@index([category])
   @@map("documents")
   @@schema("sysmgmt")
 }
