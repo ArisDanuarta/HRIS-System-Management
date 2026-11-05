@@ -2,6 +2,26 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Paginasi & Optimasi] Tahap 3: Kalkulasi Periode Penggajian & Kueri Lisensi Software — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengimplementasikan paginasi dan efisiensi kueri pada 2 fitur terakhir sesuai rencana:
+    1. **Tabel Kalkulasi Rincian Periode Penggajian (`/payroll/[id]` di HRIS):** Membatasi tabel rincian slip gaji pegawai (yang berisi puluhan pegawai dengan rincian bruto, potongan BPJS/pajak, neto, dan aksi modal) menjadi 10 slip per halaman dengan filter divisi dan pencarian. Seluruh akumulasi metrik total bruto, potongan, dan neto di kartu atas tetap 100% konsisten merepresentasikan seluruh pegawai organisasi.
+    2. **Database Kueri & Tampilan Lisensi Software (`/lisensi` di System Management):** Menyeragamkan paginasi lisensi menjadi 10 item per halaman, memastikan bilah kontrol navigasi halaman selalu tampil informatif (*Menampilkan X - Y dari Z lisensi*), dan menjaga performa kueri basis data.
+- **Implementasi Pekerjaan:**
+  1. **Kalkulasi Periode Penggajian ([`payroll-detail-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/payroll-detail-view.tsx)):**
+     - Menambahkan state `currentPage` dan `pageSize = 10` untuk memotong `filteredPayslips` menjadi `paginatedPayslips`.
+     - Mengotomatiskan reset halaman ke hal 1 saat pencarian nama/NIP (`searchTerm`) atau filter divisi (`selectedDeptFilter`) diubah oleh Admin HR.
+     - Menyisipkan bilah kontrol navigasi paginasi (`Sebelumnya`, `Hal X dari Y`, `Berikutnya`, `Menampilkan X - Y dari Z slip gaji`) di bawah tabel slip gaji periode.
+  2. **Tampilan & Kueri Lisensi Software ([`page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/lisensi/page.tsx), [`license-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/components/licenses/license-table.tsx)):**
+     - Menyesuaikan limit pemuatan default dari 15 menjadi 10 item per halaman agar konsisten dengan standar antarmuka platform.
+     - Menyempurnakan kondisi rendering bilah paginasi tabel lisensi (`pagination.total > 0`) agar informasi jumlah dan status halaman selalu konsisten ditampilkan kepada pengguna.
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.4s).
+
 ## [Paginasi & Optimasi] Tahap 2: Riwayat Persetujuan Cuti & Persetujuan Timesheet Freelance — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)

@@ -77,7 +77,7 @@ export default async function LicensePage({ searchParams }: LicensePageProps) {
       status: statusParam,
       vendor: vendorParam,
       page: pageParam,
-      limit: 15,
+      limit: 10,
     }),
     getLicenseStats(),
   ]);

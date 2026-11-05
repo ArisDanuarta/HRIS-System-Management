@@ -17,6 +17,7 @@ import {
   Eye,
   RefreshCw,
   ChevronLeft,
+  ChevronRight,
   Clock,
   FileSpreadsheet,
   ExternalLink,
@@ -70,6 +71,8 @@ interface PayrollDetailViewProps {
 export function PayrollDetailView({ period }: PayrollDetailViewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDeptFilter, setSelectedDeptFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [selectedPayslip, setSelectedPayslip] = useState<PayslipDetailData | null>(null);
   const [timesheetPayslip, setTimesheetPayslip] = useState<PayslipDetailData | null>(null);
 
@@ -113,6 +116,13 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
 
     return matchSearch && matchDept;
   });
+
+  const totalItems = filteredPayslips.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedPayslips = filteredPayslips.slice(startIndex, endIndex);
 
   // Action Handlers
   const handleCalculate = () => {
@@ -580,7 +590,10 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
               type="text"
               placeholder="Cari nama pegawai atau NIP..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-lg focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
             />
           </div>
@@ -589,7 +602,10 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             <label className="text-xs font-medium text-slate-500 whitespace-nowrap">Divisi:</label>
             <select
               value={selectedDeptFilter}
-              onChange={(e) => setSelectedDeptFilter(e.target.value)}
+              onChange={(e) => {
+                setSelectedDeptFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
             >
               <option value="ALL">Semua Divisi</option>
@@ -636,7 +652,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                     </td>
                   </tr>
                 ) : (
-                  filteredPayslips.map((p) => (
+                  paginatedPayslips.map((p) => (
                     <tr key={p.id} className="hover:bg-slate-50/60 transition-colors group">
                       {/* Pegawai */}
                       <td className="py-3 px-4">
@@ -752,6 +768,42 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
               </tbody>
             </table>
           </div>
+
+          {/* Bilah Paginasi */}
+          {totalItems > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-500">
+              <div>
+                Menampilkan{" "}
+                <span className="font-semibold text-slate-700">
+                  {startIndex + 1} - {endIndex}
+                </span>{" "}
+                dari <span className="font-semibold text-slate-700">{totalItems}</span> slip gaji
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={safeCurrentPage <= 1}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  Sebelumnya
+                </button>
+                <span className="px-2.5 py-1 text-slate-600 font-medium">
+                  Hal {safeCurrentPage} dari {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={safeCurrentPage >= totalPages}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  Berikutnya
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
