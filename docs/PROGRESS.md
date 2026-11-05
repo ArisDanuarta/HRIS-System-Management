@@ -2,6 +2,28 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Optimasi Query] Tahap 3: Indeks Skema Database Sysmgmt & Batas Pemuatan Riwayat Cuti Mandiri — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Menuntaskan tahap akhir rencana optimasi kueri dengan penambahan indeks komposit database dan pembatasan pemuatan data pada 2 fitur:
+    1. **Indeks Komposit & Kolom Kritis Skema Database ([`sysmgmt.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/sysmgmt.prisma)):** Menambahkan indeks `expiresAt` & `vendor` pada model `SoftwareLicense`, serta indeks komposit `[status, visibility]` dan indeks `category` pada model `Document`. Dijalankan migrasi resmi `20261105085851_add_performance_indexes_sysmgmt` dan sinkronisasi `prisma generate`.
+    2. **Batas Pemuatan Riwayat Cuti Mandiri ([`leave.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/leave.queries.ts)):** Menambahkan batas pemuatan aman (`take: 50` pengajuan terbaru) pada fungsi `getPersonalLeaveRequests` untuk mencegah pemuatan ribuan baris riwayat masa lalu tanpa batas di portal cuti mandiri pegawai.
+- **Implementasi Pekerjaan:**
+  1. **Indeks Skema Database System Management ([`sysmgmt.prisma`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/schema/sysmgmt.prisma), [`migration.sql`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/migrations/20261105085851_add_performance_indexes_sysmgmt/migration.sql)):**
+     - Menambahkan `@@index([expiresAt])` dan `@@index([vendor])` pada tabel `sysmgmt.software_licenses` guna mempercepat pencarian dan pengecekan lisensi segera kedaluwarsa (<30 hari) di dashboard dan katalog lisensi.
+     - Menambahkan `@@index([status, visibility])` dan `@@index([category])` pada tabel `sysmgmt.documents` guna mempercepat filter dokumen berdasarkan hak akses staf, status terbit, dan kategori kebijakan/SOP.
+     - Menerapkan perubahan skema melalui migrasi database standar `prisma migrate dev`.
+  2. **Pembatasan Batas Riwayat Cuti Mandiri ([`leave.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/leave.queries.ts)):**
+     - Memperbarui `getPersonalLeaveRequests` untuk menerima opsi `limit` dengan nilai default `50` data terbaru (`orderBy: { createdAt: "desc" }`).
+     - Menjamin halaman [`/cuti`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/page.tsx) memuat riwayat pengajuan staf dengan cepat tanpa membebani browser atau mengorbankan akurasi kalkulasi sisa saldo cuti tahun berjalan.
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.26s).
+  - Skema database PostgreSQL di lingkungan lokal berada dalam status sinkron sempurna dengan Prisma.
+
+
 ## [Optimasi Query] Tahap 2: Konsolidasi Query Dashboard & Agregasi Statistik Aset Sysmgmt — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)
