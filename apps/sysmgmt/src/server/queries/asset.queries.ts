@@ -257,29 +257,41 @@ export async function getAssetById(id: string): Promise<SerializedAsset | null> 
 
 /**
  * Mengambil ringkasan metrik statistik inventaris aset.
+ * Memanfaatkan agregasi basis data groupBy untuk efisiensi kueri (2 kueri alih-alih 8 count).
  */
 export async function getAssetStats(): Promise<AssetStats> {
-  const [total, inStock, assigned, maintenance, retired, lost, itTotal, nonItTotal] =
-    await Promise.all([
-      prisma.asset.count(),
-      prisma.asset.count({ where: { status: "IN_STOCK" } }),
-      prisma.asset.count({ where: { status: "ASSIGNED" } }),
-      prisma.asset.count({ where: { status: "MAINTENANCE" } }),
-      prisma.asset.count({ where: { status: "RETIRED" } }),
-      prisma.asset.count({ where: { status: "LOST" } }),
-      prisma.asset.count({ where: { category: "IT" } }),
-      prisma.asset.count({ where: { category: "NON_IT" } }),
-    ]);
+  const [statusGroups, categoryGroups] = await Promise.all([
+    prisma.asset.groupBy({
+      by: ["status"],
+      _count: { id: true },
+    }),
+    prisma.asset.groupBy({
+      by: ["category"],
+      _count: { id: true },
+    }),
+  ]);
+
+  const statusMap = new Map<AssetStatus, number>();
+  let total = 0;
+  for (const group of statusGroups) {
+    statusMap.set(group.status, group._count.id);
+    total += group._count.id;
+  }
+
+  const categoryMap = new Map<AssetCategory, number>();
+  for (const group of categoryGroups) {
+    categoryMap.set(group.category, group._count.id);
+  }
 
   return {
     total,
-    inStock,
-    assigned,
-    maintenance,
-    retired,
-    lost,
-    itTotal,
-    nonItTotal,
+    inStock: statusMap.get("IN_STOCK") ?? 0,
+    assigned: statusMap.get("ASSIGNED") ?? 0,
+    maintenance: statusMap.get("MAINTENANCE") ?? 0,
+    retired: statusMap.get("RETIRED") ?? 0,
+    lost: statusMap.get("LOST") ?? 0,
+    itTotal: categoryMap.get("IT") ?? 0,
+    nonItTotal: categoryMap.get("NON_IT") ?? 0,
   };
 }
 

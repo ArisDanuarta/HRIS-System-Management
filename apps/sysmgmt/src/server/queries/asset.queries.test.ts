@@ -15,6 +15,7 @@ vi.mock("@pspk/db", async () => {
         findMany: vi.fn(),
         findUnique: vi.fn(),
         count: vi.fn(),
+        groupBy: vi.fn(),
       },
       employee: {
         findMany: vi.fn(),
@@ -86,15 +87,18 @@ describe("asset.queries.ts", () => {
   it("getAssetStats harus mengembalikan total hitungan kategori dan status", async () => {
     const db = await import("@pspk/db");
 
-    vi.mocked(db.prisma.asset.count)
-      .mockResolvedValueOnce(50) // total
-      .mockResolvedValueOnce(30) // inStock
-      .mockResolvedValueOnce(15) // assigned
-      .mockResolvedValueOnce(3) // maintenance
-      .mockResolvedValueOnce(2) // retired
-      .mockResolvedValueOnce(0) // lost
-      .mockResolvedValueOnce(35) // itTotal
-      .mockResolvedValueOnce(15); // nonItTotal
+    vi.mocked(db.prisma.asset.groupBy)
+      .mockResolvedValueOnce([
+        { status: "IN_STOCK", _count: { id: 30 } },
+        { status: "ASSIGNED", _count: { id: 15 } },
+        { status: "MAINTENANCE", _count: { id: 3 } },
+        { status: "RETIRED", _count: { id: 2 } },
+        { status: "LOST", _count: { id: 0 } },
+      ] as never)
+      .mockResolvedValueOnce([
+        { category: "IT", _count: { id: 35 } },
+        { category: "NON_IT", _count: { id: 15 } },
+      ] as never);
 
     const stats = await getAssetStats();
 

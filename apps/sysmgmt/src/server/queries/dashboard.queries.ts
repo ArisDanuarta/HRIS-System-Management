@@ -59,74 +59,71 @@ export interface SysmgmtDashboardStats {
 
 /**
  * Mengambil metrik agregat lengkap untuk Dashboard Utama System Management.
- * Seluruh query dijalankan secara paralel via Promise.all untuk performa maksimal.
+ * Seluruh query dioptimalkan dengan agregasi basis data (groupBy & aggregate)
+ * untuk menghindari ledakan subquery paralel berlebih.
  */
 export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats> {
   const now = new Date();
   const in30Days = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
 
   try {
     const [
       // 1. User & Sesi
-      totalUsers,
-      activeUsers,
+      userStatusGroups,
       activeSessions,
-      superAdminCount,
-      adminItCount,
+      adminRoles,
 
-      // 2. Aset
-      totalAssets,
-      assignedAssets,
-      inStockAssets,
-      maintenanceAssets,
-      itAssets,
-      nonItAssets,
+      // 2. Aset (Agregasi database per status dan kategori)
+      assetStatusGroups,
+      assetCategoryGroups,
 
-      // 3. Lisensi
-      totalLicenses,
-      seatsAgg,
+      // 3. Lisensi (Agregasi total dan pemakaian kursi + lisensi segera kedaluwarsa)
+      licenseAgg,
       expiringSoonCount,
 
-      // 4. Dokumen
-      totalDocuments,
-      activeDocuments,
-      draftDocuments,
-      archivedDocuments,
+      // 4. Dokumen (Agregasi database per status dokumen)
+      docStatusGroups,
 
-      // 5. Kredensial
+      // 5. Kredensial (Agregasi database kredensial dan akun aktif)
       totalCredentials,
-      activeCredentials,
-      needsRotationCount,
-      twoFactorProtectedCount,
+      activeCredentialsData,
 
-      // 6. Audit Log Terbaru
+      // 6. Log Audit Terbaru
       rawRecentAudits,
 
       // 7. Tata Kelola Modul
       moduleGovernance,
     ] = await Promise.all([
-      // User & Sesi
-      prisma.user.count(),
-      prisma.user.count({ where: { isActive: true } }),
+      // User: status aktif vs nonaktif
+      prisma.user.groupBy({
+        by: ["isActive"],
+        _count: { id: true },
+      }),
       prisma.session.count({ where: { expiresAt: { gt: now } } }),
-      prisma.userRole.count({
-        where: { role: { key: "super_admin" }, user: { isActive: true } },
-      }),
-      prisma.userRole.count({
-        where: { role: { key: "admin_it" }, user: { isActive: true } },
+      prisma.userRole.findMany({
+        where: {
+          role: { key: { in: ["super_admin", "admin_it"] } },
+          user: { isActive: true },
+        },
+        select: {
+          role: { select: { key: true } },
+        },
       }),
 
-      // Aset
-      prisma.asset.count(),
-      prisma.asset.count({ where: { status: "ASSIGNED" } }),
-      prisma.asset.count({ where: { status: "IN_STOCK" } }),
-      prisma.asset.count({ where: { status: "MAINTENANCE" } }),
-      prisma.asset.count({ where: { category: "IT" } }),
-      prisma.asset.count({ where: { category: "NON_IT" } }),
+      // Aset: groupBy status & category
+      prisma.asset.groupBy({
+        by: ["status"],
+        _count: { id: true },
+      }),
+      prisma.asset.groupBy({
+        by: ["category"],
+        _count: { id: true },
+      }),
 
-      // Lisensi Software
-      prisma.softwareLicense.count(),
+      // Lisensi Software: aggregate count + sum kursi dalam 1 kueri
       prisma.softwareLicense.aggregate({
+        _count: { id: true },
         _sum: {
           seatsTotal: true,
           seatsUsed: true,
@@ -141,32 +138,19 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
         },
       }),
 
-      // Dokumen & SOP
-      prisma.document.count(),
-      prisma.document.count({ where: { status: "ACTIVE" } }),
-      prisma.document.count({ where: { status: "DRAFT" } }),
-      prisma.document.count({ where: { status: "ARCHIVED" } }),
-
-      // Kredensial & Akun
-      prisma.credential.count(),
-      prisma.credential.count({ where: { isActive: true } }),
-      prisma.credential.count({
-        where: {
-          isActive: true,
-          OR: [
-            { lastRotatedAt: null },
-            {
-              lastRotatedAt: {
-                lte: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000),
-              },
-            },
-          ],
-        },
+      // Dokumen & SOP: groupBy status
+      prisma.document.groupBy({
+        by: ["status"],
+        _count: { id: true },
       }),
-      prisma.credential.count({
-        where: {
-          isActive: true,
-          twoFactorType: { not: "NONE" },
+
+      // Kredensial & Akun: total hitungan & data kredensial aktif
+      prisma.credential.count(),
+      prisma.credential.findMany({
+        where: { isActive: true },
+        select: {
+          lastRotatedAt: true,
+          twoFactorType: true,
         },
       }),
 
@@ -191,13 +175,78 @@ export async function getSysmgmtDashboardStats(): Promise<SysmgmtDashboardStats>
       getModuleGovernanceData(),
     ]);
 
+    // Kalkulasi User Stats
+    let totalUsers = 0;
+    let activeUsers = 0;
+    let inactiveUsers = 0;
+    for (const ug of userStatusGroups) {
+      const count = ug._count.id;
+      totalUsers += count;
+      if (ug.isActive) activeUsers = count;
+      else inactiveUsers = count;
+    }
+
+    let superAdminCount = 0;
+    let adminItCount = 0;
+    for (const ur of adminRoles) {
+      if (ur.role.key === "super_admin") superAdminCount++;
+      else if (ur.role.key === "admin_it") adminItCount++;
+    }
+
+    // Kalkulasi Asset Stats
+    let totalAssets = 0;
+    let assignedAssets = 0;
+    let inStockAssets = 0;
+    let maintenanceAssets = 0;
+    for (const ag of assetStatusGroups) {
+      const count = ag._count.id;
+      totalAssets += count;
+      if (ag.status === "ASSIGNED") assignedAssets = count;
+      else if (ag.status === "IN_STOCK") inStockAssets = count;
+      else if (ag.status === "MAINTENANCE") maintenanceAssets = count;
+    }
+
+    let itAssets = 0;
+    let nonItAssets = 0;
+    for (const cg of assetCategoryGroups) {
+      const count = cg._count.id;
+      if (cg.category === "IT") itAssets = count;
+      else if (cg.category === "NON_IT") nonItAssets = count;
+    }
+
     // Kalkulasi rasio kursi lisensi terpakai
-    const totalSeats = seatsAgg._sum?.seatsTotal ?? 0;
-    const usedSeats = seatsAgg._sum?.seatsUsed ?? 0;
+    const totalLicenses = licenseAgg._count?.id ?? 0;
+    const totalSeats = licenseAgg._sum?.seatsTotal ?? 0;
+    const usedSeats = licenseAgg._sum?.seatsUsed ?? 0;
     const utilizationPercent =
       totalSeats > 0 ? Math.round((usedSeats / totalSeats) * 100) : 0;
 
-    const inactiveUsers = Math.max(0, totalUsers - activeUsers);
+    // Kalkulasi Document Stats
+    let totalDocuments = 0;
+    let activeDocuments = 0;
+    let draftDocuments = 0;
+    let archivedDocuments = 0;
+    for (const dg of docStatusGroups) {
+      const count = dg._count.id;
+      totalDocuments += count;
+      if (dg.status === "ACTIVE") activeDocuments = count;
+      else if (dg.status === "DRAFT") draftDocuments = count;
+      else if (dg.status === "ARCHIVED") archivedDocuments = count;
+    }
+
+    // Kalkulasi Credential Stats
+    const activeCredentials = activeCredentialsData.length;
+    let needsRotationCount = 0;
+    let twoFactorProtectedCount = 0;
+    for (const cred of activeCredentialsData) {
+      if (!cred.lastRotatedAt || cred.lastRotatedAt <= ninetyDaysAgo) {
+        needsRotationCount++;
+      }
+      if (cred.twoFactorType !== "NONE") {
+        twoFactorProtectedCount++;
+      }
+    }
+
     const twoFactorAdoptionRate =
       activeCredentials > 0
         ? Math.round((twoFactorProtectedCount / activeCredentials) * 100)
