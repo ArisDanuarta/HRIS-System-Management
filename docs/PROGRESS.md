@@ -2,6 +2,35 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Data Seeding] Penyuntikan Data Dummy Komprehensif Lintas Modul (~250+ Entitas) — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Idempotent & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengisi basis data HRIS dan System Management dengan data dummy realistis yang terdistribusi secara merata di seluruh modul dan fitur sesuai **Opsi A**.
+  - Menyediakan data uji yang cukup padat untuk menguji ketahanan antarmuka, tata letak tabel & kartu (*responsive dual-view*), antrean approval manajer, paginasi, dan performa kueri.
+- **Implementasi Pekerjaan:**
+  1. **Pemulihan & Penyempurnaan Skrip Seeder ([`packages/db/prisma/seed.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed.ts) & [`packages/db/prisma/seed-dummy.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/packages/db/prisma/seed-dummy.ts)):**
+     - Mengembalikan skrip inisialisasi baseline sistem (`seed.ts`) dan membuat seeder data dummy komprehensif (`seed-dummy.ts`).
+     - Menyelesaikan ketidaksesuaian skema terkini (menghapus referensi `trainingRecord` yang telah didrop, menyesuaikan relasi kontrak, cuti, slip gaji, dan periode penggajian).
+     - Menjamin idempotensi penuh (*safe to re-run*) menggunakan `upsert` dan verifikasi keberadaan data unik.
+  2. **Distribusi Data Lintas Modul (Hasil Akhir Database):**
+     - **Pegawai & Akun (`User` & `Employee`):** Meningkat dari 12 menjadi **26 pegawai** (+14 pegawai baru lintas inisiatif, KATALIS, LDB, LSKP, PEMANTIK) dengan akun Better Auth, kontrak kerja, NIK/NPWP/Rekening terenkripsi AES-256-GCM.
+     - **Presensi & Absensi (`Attendance`):** Meningkat dari 118 menjadi **326 entri presensi** (+208 log presensi) mencakup 35 hari kerja terakhir dengan variasi status *Present*, *Late*, *WFH*, dan *Leave*.
+     - **Cuti & Saldo (`LeaveBalance` & `LeaveRequest`):** Meningkat menjadi **63 saldo cuti** dan **27 permohonan cuti** (+21 permohonan) dengan berbagai status (*Pending*, *Approved*, *Rejected*, *Cancelled*) untuk menguji antrean persetujuan atasan.
+     - **Payroll & Slip Gaji (`Payslip` & `PayslipLine`):** Meningkat menjadi **29 slip gaji** dan **179 rincian komponen gaji** (+84 baris komponen) untuk periode aktif.
+     - **Timesheet Freelance (`TimesheetSubmission` & `Reviewer`):** Meningkat menjadi **12 pengajuan timesheet** dan **13 penugasan reviewer** untuk staf berbasis upah per jam (hourly).
+     - **Manajemen Kinerja (`PerformanceGoal` & `Review`):** Meningkat menjadi **20 sasaran KPI** dan **6 ulasan review kinerja** semesteran.
+     - **Aset & Inventaris (`Asset` & `Assignment`):** Meningkat dari 13 menjadi **29 unit aset** (+16 aset IT & Non-IT) serta **14 riwayat penugasan** ke staf.
+     - **Lisensi Perangkat Lunak (`SoftwareLicense`):** Meningkat dari 7 menjadi **16 lisensi software** dengan kunci terenkripsi.
+     - **Dokumen SOP & Regulasi (`Document` & `Version`):** Meningkat menjadi **11 dokumen SOP** resmi dengan berkas PDF fisik di storage `.data/uploads/sysmgmt/documents/`.
+     - **Brankas Kredensial (`Credential`):** Meningkat dari 1 menjadi **17 akun brankas** (+16 kredensial baru) mencakup kategori medsos, hosting, SaaS, instansi pemerintah, dan perbankan korporat dengan kata sandi terenkripsi AES-256-GCM.
+     - **Notifikasi & Audit Log (`Notification` & `AuditLog`):** Meningkat menjadi **51 notifikasi** dan **170 entri audit log**.
+- **Hasil Pengujian & Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ Lolos 100% (9 dari 9 paket monorepo).
+  - `pnpm lint`: ✅ Lolos 100% (0 error, 0 warning).
+  - `pnpm test`: ✅ Lolos 100% (42 test suites, 284 unit tests passed).
+  - Eksekusi Ganda (Idempotency Test): ✅ Lolos tanpa kendala duplikasi maupun pelanggaran constraint.
+
 ## [HRIS Mobile & PWA] Perbaikan Hydration Mismatch & Isolasi Service Worker di Dev Mode — 2026-11-04
 
 - **Status:** Selesai (Tuntas & Terverifikasi 100%)
