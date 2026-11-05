@@ -2,6 +2,30 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Optimasi Query] Tahap 2: Konsolidasi Query Dashboard & Agregasi Statistik Aset Sysmgmt — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengurangi ledakan subquery paralel berlebih (24 kueri menjadi 12 kueri) dan mengoptimalkan statistik inventaris aset pada modul System Management:
+    1. **Dashboard Utama System Management ([`dashboard.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/dashboard.queries.ts)):** Mengganti rentetan query individual `prisma.count()` dengan agregasi database `groupBy` (pada User, Aset, dan Dokumen) serta kombinasi `aggregate()` untuk lisensi software dan kueri kredensial aktif yang lebih ramping.
+    2. **Statistik Inventaris Aset ([`asset.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/asset.queries.ts)):** Mengganti 8 pemanggilan `count()` individual dengan 2 kueri agregasi `groupBy` (`status` dan `category`) di level PostgreSQL.
+- **Implementasi Pekerjaan:**
+  1. **Dashboard System Management ([`dashboard.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/dashboard.queries.ts), [`dashboard.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/dashboard.queries.test.ts)):**
+     - Memadatkan kalkulasi status pengguna aktif/nonaktif via `prisma.user.groupBy({ by: ['isActive'] })`.
+     - Mengelompokkan status aset (`ASSIGNED`, `IN_STOCK`, `MAINTENANCE`) dan kategori (`IT`, `NON_IT`) melalui 2 kueri `groupBy` alih-alih 6 kueri `count()`.
+     - Menggabungkan perhitungan total lisensi dan akumulasi kursi (`seatsTotal`, `seatsUsed`) ke dalam 1 kueri `prisma.softwareLicense.aggregate()`.
+     - Mengelompokkan status dokumen (`ACTIVE`, `DRAFT`, `ARCHIVED`) ke dalam 1 kueri `prisma.document.groupBy()`.
+     - Mengurangi kueri kredensial dengan memuat data akun aktif sekaligus menghitung kebutuhan rotasi password (>90 hari) dan adopsi 2FA dalam memori server dengan cepat.
+  2. **Statistik Inventaris Aset ([`asset.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/asset.queries.ts), [`asset.queries.test.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/server/queries/asset.queries.test.ts)):**
+     - Mengganti 8 query `count()` di `getAssetStats` menjadi 2 query `groupBy`: satu untuk seluruh status (`IN_STOCK`, `ASSIGNED`, `MAINTENANCE`, `RETIRED`, `LOST`) dan satu untuk kategori (`IT`, `NON_IT`).
+     - Memetakan hasil kelompok status & kategori secara instan menggunakan `Map`, menjaga 100% kompatibilitas data dengan antarmuka [`/aset`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/aset/page.tsx).
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.27s).
+  - Tampilan halaman [`/dashboard`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/dashboard/page.tsx) dan [`/aset`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/sysmgmt/src/app/(app)/aset/page.tsx) di System Management beroperasi normal dengan waktu respons yang lebih cepat dan bebas risiko kejenuhan *connection pool*.
+
+
 ## [Optimasi Query] Tahap 1: Agregasi Presensi Bulanan & Ringkasan Periode Penggajian — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)

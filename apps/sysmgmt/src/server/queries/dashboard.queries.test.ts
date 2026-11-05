@@ -19,15 +19,18 @@ vi.mock("@pspk/db", async () => {
     prisma: {
       user: {
         count: vi.fn(),
+        groupBy: vi.fn(),
       },
       session: {
         count: vi.fn(),
       },
       userRole: {
         count: vi.fn(),
+        findMany: vi.fn(),
       },
       asset: {
         count: vi.fn(),
+        groupBy: vi.fn(),
       },
       softwareLicense: {
         count: vi.fn(),
@@ -35,9 +38,11 @@ vi.mock("@pspk/db", async () => {
       },
       document: {
         count: vi.fn(),
+        groupBy: vi.fn(),
       },
       credential: {
         count: vi.fn(),
+        findMany: vi.fn(),
       },
       auditLog: {
         findMany: vi.fn(),
@@ -55,57 +60,68 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
     const db = await import("@pspk/db");
     const now = new Date("2026-10-08T12:00:00Z");
 
-    // Mock User counts: total 15, active 12
-    vi.mocked(db.prisma.user.count)
-      .mockResolvedValueOnce(15) // totalUsers
-      .mockResolvedValueOnce(12); // activeUsers
+    // Mock User groupBy: total 15, active 12, inactive 3
+    vi.mocked(db.prisma.user.groupBy).mockResolvedValueOnce([
+      { isActive: true, _count: { id: 12 } },
+      { isActive: false, _count: { id: 3 } },
+    ] as never);
 
     // Mock Sessions: 8 active sessions
     vi.mocked(db.prisma.session.count).mockResolvedValueOnce(8);
 
     // Mock UserRoles: 2 super admin, 3 admin it
-    vi.mocked(db.prisma.userRole.count)
-      .mockResolvedValueOnce(2) // super_admin
-      .mockResolvedValueOnce(3); // admin_it
+    vi.mocked(db.prisma.userRole.findMany).mockResolvedValueOnce([
+      { role: { key: "super_admin" } },
+      { role: { key: "super_admin" } },
+      { role: { key: "admin_it" } },
+      { role: { key: "admin_it" } },
+      { role: { key: "admin_it" } },
+    ] as never);
 
     // Mock Assets: total 50, assigned 35, in_stock 10, maintenance 5, IT 40, non-IT 10
-    vi.mocked(db.prisma.asset.count)
-      .mockResolvedValueOnce(50) // totalAssets
-      .mockResolvedValueOnce(35) // assigned
-      .mockResolvedValueOnce(10) // in_stock
-      .mockResolvedValueOnce(5) // maintenance
-      .mockResolvedValueOnce(40) // it
-      .mockResolvedValueOnce(10); // non-it
+    vi.mocked(db.prisma.asset.groupBy)
+      .mockResolvedValueOnce([
+        { status: "ASSIGNED", _count: { id: 35 } },
+        { status: "IN_STOCK", _count: { id: 10 } },
+        { status: "MAINTENANCE", _count: { id: 5 } },
+      ] as never)
+      .mockResolvedValueOnce([
+        { category: "IT", _count: { id: 40 } },
+        { category: "NON_IT", _count: { id: 10 } },
+      ] as never);
 
     // Mock Licenses: total 10, seats total 100, used 75 (75%), expiring 2
-    vi.mocked(db.prisma.softwareLicense.count)
-      .mockResolvedValueOnce(10) // totalLicenses
-      .mockResolvedValueOnce(2); // expiringSoon
-
     vi.mocked(db.prisma.softwareLicense.aggregate).mockResolvedValueOnce({
+      _count: { id: 10 },
       _sum: {
         seatsTotal: 100,
         seatsUsed: 75,
       },
       _avg: {},
-      _count: {},
       _max: {},
       _min: {},
     });
 
+    vi.mocked(db.prisma.softwareLicense.count).mockResolvedValueOnce(2); // expiringSoon
+
     // Mock Documents: total 20, active 15, draft 3, archived 2
-    vi.mocked(db.prisma.document.count)
-      .mockResolvedValueOnce(20) // total
-      .mockResolvedValueOnce(15) // active
-      .mockResolvedValueOnce(3) // draft
-      .mockResolvedValueOnce(2); // archived
+    vi.mocked(db.prisma.document.groupBy).mockResolvedValueOnce([
+      { status: "ACTIVE", _count: { id: 15 } },
+      { status: "DRAFT", _count: { id: 3 } },
+      { status: "ARCHIVED", _count: { id: 2 } },
+    ] as never);
 
     // Mock Credentials: total 25, active 20, needs rotation 5, 2FA protected 16 (80%)
-    vi.mocked(db.prisma.credential.count)
-      .mockResolvedValueOnce(25) // total
-      .mockResolvedValueOnce(20) // active
-      .mockResolvedValueOnce(5) // needsRotation
-      .mockResolvedValueOnce(16); // 2FA protected
+    vi.mocked(db.prisma.credential.count).mockResolvedValueOnce(25); // total
+
+    const credItems = [];
+    for (let i = 0; i < 20; i++) {
+      credItems.push({
+        lastRotatedAt: i < 5 ? null : new Date("2026-10-01"), // 5 need rotation
+        twoFactorType: i < 16 ? "AUTHENTICATOR_APP" : "NONE", // 16 protected
+      });
+    }
+    vi.mocked(db.prisma.credential.findMany).mockResolvedValueOnce(credItems as never);
 
     // Mock Audit Log
     vi.mocked(db.prisma.auditLog.findMany).mockResolvedValueOnce([
@@ -178,11 +194,11 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
   it("harus menangani kondisi clean slate (data nol) tanpa menghasilkan pembagian dengan nol (NaN)", async () => {
     const db = await import("@pspk/db");
 
-    // All counts return 0
-    vi.mocked(db.prisma.user.count).mockResolvedValue(0);
+    // All aggregations return empty/0
+    vi.mocked(db.prisma.user.groupBy).mockResolvedValue([]);
     vi.mocked(db.prisma.session.count).mockResolvedValue(0);
-    vi.mocked(db.prisma.userRole.count).mockResolvedValue(0);
-    vi.mocked(db.prisma.asset.count).mockResolvedValue(0);
+    vi.mocked(db.prisma.userRole.findMany).mockResolvedValue([]);
+    vi.mocked(db.prisma.asset.groupBy).mockResolvedValue([]);
     vi.mocked(db.prisma.softwareLicense.count).mockResolvedValue(0);
     vi.mocked(db.prisma.softwareLicense.aggregate).mockResolvedValue({
       _sum: {
@@ -190,12 +206,13 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
         seatsUsed: null,
       },
       _avg: {},
-      _count: {},
+      _count: { id: 0 },
       _max: {},
       _min: {},
     });
-    vi.mocked(db.prisma.document.count).mockResolvedValue(0);
+    vi.mocked(db.prisma.document.groupBy).mockResolvedValue([]);
     vi.mocked(db.prisma.credential.count).mockResolvedValue(0);
+    vi.mocked(db.prisma.credential.findMany).mockResolvedValue([]);
     vi.mocked(db.prisma.auditLog.findMany).mockResolvedValue([]);
 
     const stats = await getSysmgmtDashboardStats();
@@ -217,7 +234,7 @@ describe("dashboard.queries.ts - getSysmgmtDashboardStats", () => {
     const db = await import("@pspk/db");
 
     // Simulasikan database melempar error
-    vi.mocked(db.prisma.user.count).mockRejectedValueOnce(
+    vi.mocked(db.prisma.user.groupBy).mockRejectedValueOnce(
       new Error("Koneksi database PostgreSQL terputus"),
     );
 
