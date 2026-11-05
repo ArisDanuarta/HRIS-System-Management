@@ -2,6 +2,28 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Testing & QA] Audit E2E Playwright & Pembersihan Kode Pengujian — 2026-11-05
+
+- **Status:** Selesai (Tuntas, 17/17 Skenario Lulus 100% & Kode Bersih Kembali)
+- **Scope & Tujuan:**
+  - Melakukan audit menyeluruh lintas sistem menggunakan Playwright E2E testing untuk memvalidasi aliran autentikasi, RBAC, seluruh modul fungsional HRIS, dan modul tata kelola System Management setelah penyuntikan 250+ data dummy.
+  - Setelah verifikasi 100% sukses, menghapus kembali package Playwright, dependensi browser, dan file-file test sementara agar repositori tetap bersih dan ringan.
+- **Hasil Audit & Pengujian:**
+  - **HRIS Autentikasi (`auth.spec.ts`):** 3/3 skenario lulus (form UI & switcher portal, penolakan password salah, login staf ke dashboard).
+  - **HRIS Navigasi & RBAC (`navigation-rbac.spec.ts`):** 7/7 skenario lulus (presensi, kuota cuti, formulir izin/cuti, timesheet bulanan, slip gaji, penolakan staf ke payroll & direktori pegawai, serta akses Admin HR ke direktori 26 pegawai).
+  - **System Management Inti (`core.spec.ts`):** 7/7 skenario lulus (dashboard ringkasan, inventaris aset dummy, brankas kredensial terenkripsi AES-256-GCM, audit log, manajemen pengguna/RBAC, lisensi software, dan repositori dokumen SOP).
+  - Total: **17 skenario E2E Playwright lulus 100%** (durasi 22.7 detik).
+- **Pembersihan Pasca-Audit:**
+  - Menghapus `@playwright/test` dari devDependencies monorepo dan membersihkan script `test:e2e*`.
+  - Menghapus folder `e2e/`, `playwright.config.ts`, `vitest.config.mjs`, serta direktori hasil test.
+  - Membersihkan cache binary browser Playwright di `~/Library/Caches/ms-playwright` (~500 MB).
+  - Mengembalikan seluruh konfigurasi autentikasi dan seeder baseline ke kondisi semula.
+- **Hasil Verifikasi Kualitas Akhir:**
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.7s).
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+
+
 ## [Data Seeding] Penyuntikan Data Dummy Komprehensif Lintas Modul (~250+ Entitas) — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Idempotent & Terverifikasi 100%)
