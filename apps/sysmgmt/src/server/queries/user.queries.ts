@@ -4,10 +4,12 @@ export interface GetUsersFilter {
   search?: string;
   roleKey?: string;
   status?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 export async function getAllUsers(filter?: GetUsersFilter) {
-  const { search, roleKey, status } = filter || {};
+  const { search, roleKey, status, page, pageSize } = filter || {};
 
   const where: Prisma.UserWhereInput = {};
 
@@ -37,8 +39,16 @@ export async function getAllUsers(filter?: GetUsersFilter) {
     };
   }
 
+  const isPaginated = typeof page === "number" || typeof pageSize === "number";
+  const currentPage = page ? Math.max(1, page) : 1;
+  const limit = pageSize ? Math.max(1, pageSize) : 10;
+  const skip = isPaginated ? (currentPage - 1) * limit : undefined;
+  const take = isPaginated ? limit : undefined;
+
   const users = await prisma.user.findMany({
     where,
+    skip,
+    take,
     include: {
       roles: {
         include: {

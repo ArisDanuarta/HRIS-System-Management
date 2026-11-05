@@ -561,7 +561,7 @@ export function AttendanceRekapView({
                 : `Tabel Ringkasan Kehadiran — ${activeMonthLabel} ${currentYear}`}
             </span>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#102e50]/5 text-[#102e50] border border-[#102e50]/15">
-              {employees.length} Pegawai
+              {pagination ? `${pagination.total} Pegawai` : `${employees.length} Pegawai`}
             </span>
           </div>
 
@@ -841,6 +841,46 @@ export function AttendanceRekapView({
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-3.5 border-t border-slate-200 bg-slate-50/50">
+            <div className="text-xs text-slate-500">
+              Menampilkan{" "}
+              <span className="font-semibold text-slate-800">
+                {(pagination.page - 1) * pagination.limit + 1}
+              </span>{" "}
+              -{" "}
+              <span className="font-semibold text-slate-800">
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
+              </span>{" "}
+              dari <span className="font-semibold text-slate-800">{pagination.total}</span> pegawai
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Sebelumnya</span>
+              </button>
+              <div className="px-3 py-1 text-xs font-bold text-[#102e50]">
+                Hal {pagination.page} dari {pagination.totalPages}
+              </div>
+              <button
+                type="button"
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.totalPages}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shadow-2xs"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         )}
       </div>
