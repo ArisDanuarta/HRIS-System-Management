@@ -157,45 +157,27 @@ export async function getAttendanceRekap(options: {
 
   const employeeWhere: Prisma.EmployeeWhereInput = { AND: andConditions };
 
-  const totalEmployees = await prisma.employee.count({ where: employeeWhere });
-
   // Paginasi: default 10 pegawai per halaman jika ditentukan atau saat pagination aktif
   const isPaginated = typeof page === "number" || typeof pageSize === "number";
   const currentPage = page ? Math.max(1, page) : 1;
   const limit = pageSize ? Math.max(1, pageSize) : 10;
   const skip = isPaginated ? (currentPage - 1) * limit : undefined;
   const take = isPaginated ? limit : undefined;
-  const totalPages = isPaginated ? Math.ceil(totalEmployees / limit) || 1 : 1;
 
-  // Hitung metrik keseluruhan organisasi secara efisien untuk kartu ringkasan
-  const allPeriodAttendances = await prisma.attendance.findMany({
-    where: {
-      employee: employeeWhere,
-      date: {
-        gte: startDate,
-        lte: endDate,
+  // Eksekusi kueri secara paralel: total pegawai, ringkasan agregasi presensi di level database, dan daftar pegawai
+  const [totalEmployees, attendanceStatusGroups, employees, departments] = await Promise.all([
+    prisma.employee.count({ where: employeeWhere }),
+    prisma.attendance.groupBy({
+      by: ["status"],
+      where: {
+        employee: employeeWhere,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
       },
-    },
-    select: { status: true },
-  });
-
-  let totalPresent = 0;
-  let totalLate = 0;
-  let totalLeave = 0;
-  let totalAbsent = 0;
-
-  for (const a of allPeriodAttendances) {
-    if (a.status === "PRESENT") totalPresent++;
-    else if (a.status === "LATE") totalLate++;
-    else if (a.status === "LEAVE") totalLeave++;
-    else if (a.status === "ABSENT") totalAbsent++;
-    else if (a.status === "WFH") totalPresent++;
-  }
-
-  const totalAttended = totalPresent + totalLate;
-  const onTimeRate = totalAttended > 0 ? Math.round((totalPresent / totalAttended) * 100) : 0;
-
-  const [employees, departments] = await Promise.all([
+      _count: { id: true },
+    }),
     prisma.employee.findMany({
       where: employeeWhere,
       skip,
@@ -215,6 +197,26 @@ export async function getAttendanceRekap(options: {
       orderBy: { name: "asc" },
     }),
   ]);
+
+  const totalPages = isPaginated ? Math.ceil(totalEmployees / limit) || 1 : 1;
+
+  // Hitung metrik KPI organisasi dari hasil agregasi database tanpa memuat ribuan baris log
+  let totalPresent = 0;
+  let totalLate = 0;
+  let totalLeave = 0;
+  let totalAbsent = 0;
+
+  for (const group of attendanceStatusGroups) {
+    const count = group._count.id;
+    if (group.status === "PRESENT") totalPresent += count;
+    else if (group.status === "LATE") totalLate += count;
+    else if (group.status === "LEAVE") totalLeave += count;
+    else if (group.status === "ABSENT") totalAbsent += count;
+    else if (group.status === "WFH") totalPresent += count;
+  }
+
+  const totalAttended = totalPresent + totalLate;
+  const onTimeRate = totalAttended > 0 ? Math.round((totalPresent / totalAttended) * 100) : 0;
 
   const employeeIds = employees.map((e) => e.id);
 
