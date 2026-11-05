@@ -2,6 +2,28 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Optimasi Query] Tahap 1: Agregasi Presensi Bulanan & Ringkasan Periode Penggajian — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengeliminasi bottleneck transfer data dan perulangan JavaScript dalam memori pada 2 fitur kueri utama HRIS:
+    1. **Agregasi Rekap Presensi Organisasi (`/absensi/rekap` di HRIS):** Mengganti pengambilan ribuan baris log presensi ke memori Node.js dengan agregasi langsung di database PostgreSQL (`prisma.attendance.groupBy({ by: ['status'] })`). Eksekusi diparalelkan bersama query pegawai dan departemen lewat `Promise.all`.
+    2. **Agregasi Periode Payroll & KPI Beban Gaji (`/payroll` di HRIS):** Menghilangkan `include: { payslips: true }` yang sebelumnya memuat ribuan baris data slip gaji hanya untuk melakukan kalkulasi `.reduce()` di JavaScript. Menggantinya dengan `prisma.payslip.groupBy({ by: ['periodId'], _sum: { ... }, _count: { id: true } })` dengan O(1) map pada `getPayrollPeriods`, serta `prisma.payslip.aggregate()` pada `getPayrollStats`.
+- **Implementasi Pekerjaan:**
+  1. **Rekapitulasi Presensi Organisasi ([`attendance.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/attendance.queries.ts)):**
+     - Menerapkan agregasi basis data `prisma.attendance.groupBy` berdasarkan kolom `status` dengan rentang tanggal dan filter organisasi.
+     - Mengakumulasikan metrik hadir, terlambat, cuti, absen, dan WFH langsung dari hasil ringkasan status PostgreSQL (hanya ~4-5 baris data agregat alih-alih ribuan rekaman presensi).
+     - Membatasi kueri log presensi detail hanya untuk ID pegawai yang aktif di halaman paginasi saat ini (`where: { employeeId: { in: employeeIds } }`).
+  2. **Ringkasan Periode & Statistik Payroll ([`payroll.queries.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/server/queries/payroll.queries.ts)):**
+     - Pada `getPayrollPeriods`, kueri periode dan ringkasan slip gaji dijalankan secara paralel via `Promise.all`. Agregasi slip per periode dikelompokkan dengan `groupBy` di level SQL, kemudian dipetakan secara instan (O(1) Map) ke setiap periode.
+     - Pada `getPayrollStats`, beban gaji bersih (`netAmount`) dan jumlah slip gaji aktif dihitung via agregasi SQL `prisma.payslip.aggregate({ _count: true, _sum: { netAmount: true } })` tanpa transfer objek slip gaji utuh.
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.24s).
+  - Tampilan halaman `/absensi/rekap` dan `/payroll` tetap menyajikan data 100% akurat tanpa perubahan bentuk respons ke antarmuka pengguna.
+
+
 ## [Paginasi & Optimasi] Tahap 3: Kalkulasi Periode Penggajian & Kueri Lisensi Software — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)

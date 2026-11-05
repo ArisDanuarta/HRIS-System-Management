@@ -27,27 +27,51 @@ export async function getPayrollPeriods(filter?: GetPayrollPeriodsFilter) {
     where.kind = kind as Prisma.EnumPayrollKindFilter;
   }
 
-  const periods = await prisma.payrollPeriod.findMany({
-    where,
-    include: {
-      payslips: {
-        select: {
-          id: true,
-          grossAmount: true,
-          totalDeduction: true,
-          netAmount: true,
-          status: true,
-        },
+  // Eksekusi kueri periode dan agregasi kalkulasi slip gaji secara paralel di level database
+  const [periods, payslipAggregates] = await Promise.all([
+    prisma.payrollPeriod.findMany({
+      where,
+      orderBy: [{ year: "desc" }, { month: "desc" }],
+    }),
+    prisma.payslip.groupBy({
+      by: ["periodId"],
+      where: Object.keys(where).length > 0 ? { period: where } : undefined,
+      _count: { id: true },
+      _sum: {
+        grossAmount: true,
+        totalDeduction: true,
+        netAmount: true,
       },
-    },
-    orderBy: [{ year: "desc" }, { month: "desc" }],
-  });
+    }),
+  ]);
+
+  // Siapkan map agregasi O(1) berdasarkan periodId
+  const aggMap = new Map<
+    string,
+    {
+      totalEmployees: number;
+      totalGross: number;
+      totalDeduction: number;
+      totalNet: number;
+    }
+  >();
+
+  for (const agg of payslipAggregates) {
+    aggMap.set(agg.periodId, {
+      totalEmployees: agg._count.id,
+      totalGross: Number(agg._sum.grossAmount || 0),
+      totalDeduction: Number(agg._sum.totalDeduction || 0),
+      totalNet: Number(agg._sum.netAmount || 0),
+    });
+  }
 
   return periods.map((p) => {
-    const totalEmployees = p.payslips.length;
-    const totalGross = p.payslips.reduce((acc, curr) => acc + Number(curr.grossAmount), 0);
-    const totalDeduction = p.payslips.reduce((acc, curr) => acc + Number(curr.totalDeduction), 0);
-    const totalNet = p.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
+    const agg = aggMap.get(p.id) || {
+      totalEmployees: 0,
+      totalGross: 0,
+      totalDeduction: 0,
+      totalNet: 0,
+    };
 
     return {
       id: p.id,
@@ -59,10 +83,10 @@ export async function getPayrollPeriods(filter?: GetPayrollPeriodsFilter) {
       lockedAt: p.lockedAt ? p.lockedAt.toISOString() : null,
       createdAt: p.createdAt.toISOString(),
       updatedAt: p.updatedAt.toISOString(),
-      totalEmployees,
-      totalGross,
-      totalDeduction,
-      totalNet,
+      totalEmployees: agg.totalEmployees,
+      totalGross: agg.totalGross,
+      totalDeduction: agg.totalDeduction,
+      totalNet: agg.totalNet,
     };
   });
 }
@@ -240,8 +264,12 @@ export async function getPayrollStats() {
         month: currentMonth,
         kind: "REGULAR",
       },
-      include: {
-        payslips: true,
+      select: {
+        id: true,
+        year: true,
+        month: true,
+        kind: true,
+        status: true,
       },
     }),
     prisma.salaryComponent.count({ where: { isActive: true } }),
@@ -252,8 +280,13 @@ export async function getPayrollStats() {
   let currentPeriodEmployeesProcessed = 0;
 
   if (activePeriod) {
-    currentPeriodEmployeesProcessed = activePeriod.payslips.length;
-    currentPeriodNet = activePeriod.payslips.reduce((acc, curr) => acc + Number(curr.netAmount), 0);
+    const activePeriodAgg = await prisma.payslip.aggregate({
+      where: { periodId: activePeriod.id },
+      _count: { id: true },
+      _sum: { netAmount: true },
+    });
+    currentPeriodEmployeesProcessed = activePeriodAgg._count.id || 0;
+    currentPeriodNet = Number(activePeriodAgg._sum.netAmount || 0);
   }
 
   return {
