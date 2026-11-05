@@ -12,6 +12,8 @@ import {
   ShieldAlert,
   RotateCcw,
   Info,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   approveLeaveRequestAction,
@@ -59,6 +61,8 @@ export function LeaveApprovalView({
   const [activeTab, setActiveTab] = useState<"PENDING" | "APPROVED" | "REJECTED" | "ALL">(
     "PENDING",
   );
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
   const [selectedAction, setSelectedAction] = useState<{
     type: "approve" | "reject";
     request: LeaveApprovalItem;
@@ -92,6 +96,18 @@ export function LeaveApprovalView({
       : activeTab === "PENDING"
         ? pendingRequests
         : allRequests.filter((r) => r.status === activeTab);
+
+  const totalItems = filteredRequests.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedRequests = filteredRequests.slice(startIndex, endIndex);
+
+  const handleTabChange = (tab: "PENDING" | "APPROVED" | "REJECTED" | "ALL") => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
 
   const handleConfirmAction = (e: React.FormEvent) => {
     e.preventDefault();
@@ -193,7 +209,7 @@ export function LeaveApprovalView({
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
         <button
           type="button"
-          onClick={() => setActiveTab("PENDING")}
+          onClick={() => handleTabChange("PENDING")}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
             activeTab === "PENDING"
               ? "bg-[#102e50] text-white shadow-xs"
@@ -208,7 +224,7 @@ export function LeaveApprovalView({
 
         <button
           type="button"
-          onClick={() => setActiveTab("APPROVED")}
+          onClick={() => handleTabChange("APPROVED")}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             activeTab === "APPROVED"
               ? "bg-[#102e50] text-white shadow-xs"
@@ -220,7 +236,7 @@ export function LeaveApprovalView({
 
         <button
           type="button"
-          onClick={() => setActiveTab("REJECTED")}
+          onClick={() => handleTabChange("REJECTED")}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             activeTab === "REJECTED"
               ? "bg-[#102e50] text-white shadow-xs"
@@ -232,7 +248,7 @@ export function LeaveApprovalView({
 
         <button
           type="button"
-          onClick={() => setActiveTab("ALL")}
+          onClick={() => handleTabChange("ALL")}
           className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
             activeTab === "ALL"
               ? "bg-[#102e50] text-white shadow-xs"
@@ -266,7 +282,7 @@ export function LeaveApprovalView({
                   </td>
                 </tr>
               ) : (
-                filteredRequests.map((r) => {
+                paginatedRequests.map((r) => {
                   const isPendingStatus = r.status === "PENDING";
 
                   return (
