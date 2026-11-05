@@ -17,6 +17,8 @@ import {
   Table2,
   RotateCcw,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { AttendanceCorrectionModal } from "./attendance-correction-modal";
 import { exportAttendanceRekapXlsx } from "@/lib/attendance-export";
@@ -46,6 +48,19 @@ interface AttendanceRekapViewProps {
   employees: EmployeeRekapItem[];
   attendances: AttendanceRecordItem[];
   departments: { id: string; name: string }[];
+  pagination?: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  initialOrgStats?: {
+    totalPresent: number;
+    totalLate: number;
+    totalLeave: number;
+    totalAbsent: number;
+    onTimeRate: number;
+  };
   currentYear: number;
   currentMonth: number;
   selectedDeptId?: string;
@@ -59,6 +74,8 @@ export function AttendanceRekapView({
   employees,
   attendances,
   departments,
+  pagination,
+  initialOrgStats,
   currentYear,
   currentMonth,
   selectedDeptId = "ALL",

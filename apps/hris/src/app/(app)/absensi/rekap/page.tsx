@@ -23,6 +23,7 @@ interface RekapPageProps {
     dept?: string;
     q?: string;
     search?: string;
+    page?: string;
   }>;
 }
 
@@ -57,6 +58,8 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
   const now = new Date();
   const rawYear = resolvedParams.year ? parseInt(resolvedParams.year, 10) : now.getFullYear();
   const rawMonth = resolvedParams.month ? parseInt(resolvedParams.month, 10) : now.getMonth() + 1;
+  const rawPage = resolvedParams.page ? parseInt(resolvedParams.page, 10) : 1;
+  const currentPage = Number.isNaN(rawPage) ? 1 : Math.max(1, rawPage);
 
   const currentYear = Number.isNaN(rawYear) ? now.getFullYear() : rawYear;
   const currentMonth =
@@ -78,6 +81,8 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
           ? managerTeamInfo.currentDepartmentId
           : undefined,
       excludeEmployeeId: isTeamView && currentEmployee ? currentEmployee.id : undefined,
+      page: currentPage,
+      pageSize: 10,
     }),
     prisma.leaveRequest.count({
       where:
@@ -184,6 +189,8 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
         employees={rekapData.employees}
         attendances={rekapData.attendances}
         departments={rekapData.departments}
+        pagination={rekapData.pagination}
+        initialOrgStats={rekapData.orgOverallStats}
         currentYear={currentYear}
         currentMonth={currentMonth}
         selectedDeptId={selectedDeptId}

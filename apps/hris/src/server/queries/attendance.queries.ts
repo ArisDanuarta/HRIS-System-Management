@@ -92,7 +92,7 @@ export async function getPersonalMonthlyAttendance(
 }
 
 /**
- * Retrieves attendance summary and records for HR / Team Rekap view.
+ * Retrieves attendance summary and records for HR / Team Rekap view with pagination.
  */
 export async function getAttendanceRekap(options: {
   year: number;
@@ -102,6 +102,8 @@ export async function getAttendanceRekap(options: {
   teamManagerId?: string;
   managerDepartmentId?: string;
   excludeEmployeeId?: string;
+  page?: number;
+  pageSize?: number;
 }) {
   const {
     year,
@@ -111,6 +113,8 @@ export async function getAttendanceRekap(options: {
     teamManagerId,
     managerDepartmentId,
     excludeEmployeeId,
+    page,
+    pageSize,
   } = options;
   const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
   const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
@@ -153,41 +157,58 @@ export async function getAttendanceRekap(options: {
 
   const employeeWhere: Prisma.EmployeeWhereInput = { AND: andConditions };
 
-  const employees = await prisma.employee.findMany({
-    where: employeeWhere,
-    select: {
-      id: true,
-      employeeNo: true,
-      fullName: true,
-      status: true,
-      currentPosition: { select: { title: true } },
-      currentDepartment: { select: { id: true, name: true } },
+  const totalEmployees = await prisma.employee.count({ where: employeeWhere });
+
+  // Paginasi: default 10 pegawai per halaman jika ditentukan atau saat pagination aktif
+  const isPaginated = typeof page === "number" || typeof pageSize === "number";
+  const currentPage = page ? Math.max(1, page) : 1;
+  const limit = pageSize ? Math.max(1, pageSize) : 10;
+  const skip = isPaginated ? (currentPage - 1) * limit : undefined;
+  const take = isPaginated ? limit : undefined;
+  const totalPages = isPaginated ? Math.ceil(totalEmployees / limit) || 1 : 1;
+
+  // Hitung metrik keseluruhan organisasi secara efisien untuk kartu ringkasan
+  const allPeriodAttendances = await prisma.attendance.findMany({
+    where: {
+      employee: employeeWhere,
+      date: {
+        gte: startDate,
+        lte: endDate,
+      },
     },
-    orderBy: { fullName: "asc" },
+    select: { status: true },
   });
 
-  const employeeIds = employees.map((e) => e.id);
+  let totalPresent = 0;
+  let totalLate = 0;
+  let totalLeave = 0;
+  let totalAbsent = 0;
 
-  const [attendances, departments] = await Promise.all([
-    prisma.attendance.findMany({
-      where: {
-        employeeId: { in: employeeIds },
-        date: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
+  for (const a of allPeriodAttendances) {
+    if (a.status === "PRESENT") totalPresent++;
+    else if (a.status === "LATE") totalLate++;
+    else if (a.status === "LEAVE") totalLeave++;
+    else if (a.status === "ABSENT") totalAbsent++;
+    else if (a.status === "WFH") totalPresent++;
+  }
+
+  const totalAttended = totalPresent + totalLate;
+  const onTimeRate = totalAttended > 0 ? Math.round((totalPresent / totalAttended) * 100) : 0;
+
+  const [employees, departments] = await Promise.all([
+    prisma.employee.findMany({
+      where: employeeWhere,
+      skip,
+      take,
       select: {
         id: true,
-        employeeId: true,
-        date: true,
-        checkInAt: true,
-        checkOutAt: true,
+        employeeNo: true,
+        fullName: true,
         status: true,
-        source: true,
-        correctionReason: true,
+        currentPosition: { select: { title: true } },
+        currentDepartment: { select: { id: true, name: true } },
       },
-      orderBy: { date: "desc" },
+      orderBy: { fullName: "asc" },
     }),
     prisma.department.findMany({
       select: { id: true, name: true },
@@ -195,10 +216,50 @@ export async function getAttendanceRekap(options: {
     }),
   ]);
 
+  const employeeIds = employees.map((e) => e.id);
+
+  // Ambil hanya presensi pegawai yang tampil di halaman aktif
+  const attendances =
+    employeeIds.length > 0
+      ? await prisma.attendance.findMany({
+          where: {
+            employeeId: { in: employeeIds },
+            date: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            id: true,
+            employeeId: true,
+            date: true,
+            checkInAt: true,
+            checkOutAt: true,
+            status: true,
+            source: true,
+            correctionReason: true,
+          },
+          orderBy: { date: "desc" },
+        })
+      : [];
+
   return {
     employees,
     attendances,
     departments,
+    pagination: {
+      total: totalEmployees,
+      page: currentPage,
+      limit,
+      totalPages,
+    },
+    orgOverallStats: {
+      totalPresent,
+      totalLate,
+      totalLeave,
+      totalAbsent,
+      onTimeRate,
+    },
     period: {
       year,
       month,
@@ -206,4 +267,5 @@ export async function getAttendanceRekap(options: {
       endDate,
     },
   };
+}
 }
