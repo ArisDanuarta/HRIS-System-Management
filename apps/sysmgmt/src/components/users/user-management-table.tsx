@@ -18,6 +18,8 @@ import {
   Building2,
   Briefcase,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   updateUserRolesSysAction,
@@ -82,6 +84,8 @@ export function UserManagementTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRoleFilter, setSelectedRoleFilter] = useState("ALL");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Modal State: Kelola Peran
   const [roleModalUser, setRoleModalUser] = useState<UserItem | null>(null);
@@ -124,6 +128,14 @@ export function UserManagementTable({
 
     return matchSearch && matchRole && matchStatus;
   });
+
+  // Paginasi Pengguna
+  const totalItems = filteredUsers.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const safeCurrentPage = Math.min(Math.max(currentPage, 1), totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalItems);
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   // Handler Open Modal Role
   const handleOpenRoleModal = (user: UserItem) => {
@@ -340,7 +352,10 @@ export function UserManagementTable({
             type="text"
             placeholder="Cari nama akun, surel login, nama pegawai, atau NIP..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-colors"
           />
         </div>
@@ -351,7 +366,10 @@ export function UserManagementTable({
             <label className="text-xs font-medium text-slate-500 whitespace-nowrap">Peran:</label>
             <select
               value={selectedRoleFilter}
-              onChange={(e) => setSelectedRoleFilter(e.target.value)}
+              onChange={(e) => {
+                setSelectedRoleFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
             >
               <option value="ALL">Semua Peran</option>
@@ -368,7 +386,10 @@ export function UserManagementTable({
             <label className="text-xs font-medium text-slate-500 whitespace-nowrap">Status:</label>
             <select
               value={selectedStatusFilter}
-              onChange={(e) => setSelectedStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setSelectedStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
             >
               <option value="ALL">Semua Status</option>
@@ -401,7 +422,7 @@ export function UserManagementTable({
                   </td>
                 </tr>
               ) : (
-                filteredUsers.map((u) => {
+                paginatedUsers.map((u) => {
                   const isCurrentActor = u.id === currentUserId;
                   const isTargetSuperAdmin = u.roles.some((r) => r.role.key === "super_admin");
                   const canManageThisUser = isSuperAdmin || (isAdminIt && !isTargetSuperAdmin);
@@ -563,6 +584,42 @@ export function UserManagementTable({
             </tbody>
           </table>
         </div>
+
+        {/* Paginasi Bar */}
+        {totalItems > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-slate-50/70 border-t border-slate-200 text-xs text-slate-500">
+            <div>
+              Menampilkan{" "}
+              <span className="font-semibold text-slate-700">
+                {startIndex + 1} - {endIndex}
+              </span>{" "}
+              dari <span className="font-semibold text-slate-700">{totalItems}</span> akun pengguna
+            </div>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={safeCurrentPage <= 1}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center gap-1 transition-colors"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                Sebelumnya
+              </button>
+              <span className="px-2.5 py-1 text-slate-600 font-medium">
+                Hal {safeCurrentPage} dari {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={safeCurrentPage >= totalPages}
+                className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs flex items-center gap-1 transition-colors"
+              >
+                Berikutnya
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ========================================================================= */}
