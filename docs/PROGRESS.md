@@ -2,6 +2,27 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+## [Paginasi & Optimasi] Tahap 2: Riwayat Persetujuan Cuti & Persetujuan Timesheet Freelance — 2026-11-05
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  - Mengimplementasikan paginasi dan efisiensi antarmuka pada 2 fitur berikutnya sesuai rencana bertahap:
+    1. **Riwayat Persetujuan Cuti Manajer (`/cuti/persetujuan` di HRIS):** Membatasi riwayat daftar permohonan cuti (`PENDING`, `APPROVED`, `REJECTED`, `ALL`) menjadi 10 item per halaman agar tidak membebani browser saat data riwayat cuti organisasi bertambah banyak.
+    2. **Persetujuan Timesheet Freelance (`/timesheet/persetujuan` di HRIS):** Membatasi tabel antrean verifikasi jam kerja freelance (`NEEDS_REVIEW`, `APPROVED`, `REJECTED`, `ALL`) menjadi 10 item per halaman dengan navigasi halaman dan reset otomatis saat filtering/pencarian.
+- **Implementasi Pekerjaan:**
+  1. **Riwayat Persetujuan Cuti Manajer ([`leave-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-approval-view.tsx)):**
+     - Menambahkan state `currentPage` dan `pageSize = 10` untuk memotong `filteredRequests` menjadi `paginatedRequests`.
+     - Mengimplementasikan `handleTabChange` yang mengotomatiskan reset halaman ke hal 1 saat berpindah kategori tab persetujuan (*Menunggu*, *Disetujui*, *Ditolak*, atau *Seluruh Riwayat*).
+     - Menyisipkan bilah kontrol paginasi (`Sebelumnya`, `Hal X dari Y`, `Berikutnya`, `Menampilkan X - Y dari Z permohonan`) di bawah tabel riwayat persetujuan cuti.
+  2. **Persetujuan Timesheet Freelance ([`timesheet-approval-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/timesheet/approval/timesheet-approval-table.tsx)):**
+     - Menambahkan state `currentPage` dan `pageSize = 10` untuk memotong `filteredItems` menjadi `paginatedItems`.
+     - Mengimplementasikan `handleTabChange` dan `handleSearchChange` yang mengotomatiskan reset ke halaman 1 saat pencarian nama/NIP/judul atau filter status review berubah.
+     - Menyisipkan bilah kontrol paginasi responsif di bagian bawah tabel antrean timesheet.
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm typecheck`: ✅ 9 paket monorepo lulus 100%.
+  - `pnpm lint`: ✅ 0 error, 0 warning.
+  - `pnpm test`: ✅ 42 test suites, 284 unit tests lulus 100% (1.4s).
+
 ## [Paginasi & Optimasi] Tahap 1: Rekapitulasi Presensi & Tata Kelola Pengguna — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)
