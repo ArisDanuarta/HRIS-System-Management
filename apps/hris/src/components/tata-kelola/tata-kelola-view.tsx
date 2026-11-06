@@ -114,9 +114,9 @@ export function TataKelolaView({
   };
 
   return (
-    <div className="space-y-6 max-w-[1440px] mx-auto pb-16 animate-in fade-in duration-200">
+    <div className="space-y-6 max-w-[1440px] w-full min-w-0 mx-auto pb-16 animate-in fade-in duration-200">
       {/* Navigation Breadcrumb */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors"
@@ -125,7 +125,7 @@ export function TataKelolaView({
           <span>Kembali ke Beranda</span>
         </Link>
 
-        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 self-start sm:self-auto">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
           <span>{canManage ? "Mode Pengelola Master Penuh" : "Akses Hanya Baca"}</span>
         </div>
@@ -152,11 +152,11 @@ export function TataKelolaView({
       </div>
 
       {/* 4 Kartu Metrik Ringkasan Tata Kelola */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full min-w-0">
         {/* Card 1: Struktur & Jabatan */}
         <div
           onClick={() => handleTabChange("organisasi")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 ${
+          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
             activeTab === "organisasi" ? "border-[#102E50] ring-1 ring-[#102E50]/20" : "border-slate-200"
           }`}
         >
@@ -182,7 +182,7 @@ export function TataKelolaView({
         {/* Card 2: Tipe Ikatan Kerja */}
         <div
           onClick={() => handleTabChange("ikatan-kerja")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 ${
+          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
             activeTab === "ikatan-kerja" ? "border-[#102E50] ring-1 ring-[#102E50]/20" : "border-slate-200"
           }`}
         >
@@ -210,7 +210,7 @@ export function TataKelolaView({
         {/* Card 3: Kebijakan Cuti & Jam Kerja */}
         <div
           onClick={() => handleTabChange("jadwal-cuti")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 ${
+          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
             activeTab === "jadwal-cuti" ? "border-[#102E50] ring-1 ring-[#102E50]/20" : "border-slate-200"
           }`}
         >
@@ -236,7 +236,7 @@ export function TataKelolaView({
         {/* Card 4: Komponen Payroll & Bank */}
         <div
           onClick={() => handleTabChange("payroll-komponen")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 ${
+          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
             activeTab === "payroll-komponen" || activeTab === "dokumen-bank"
               ? "border-[#102E50] ring-1 ring-[#102E50]/20"
               : "border-slate-200"
@@ -265,83 +265,85 @@ export function TataKelolaView({
       </div>
 
       {/* Navigasi 5 Tab Terpusat */}
-      <div className="flex border-b border-slate-200 overflow-x-auto scrollbar-none">
-        <button
-          type="button"
-          onClick={() => handleTabChange("organisasi")}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap ${
-            activeTab === "organisasi"
-              ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          <Building2 className="w-4 h-4 shrink-0" />
-          <span>Struktur Divisi & Jabatan</span>
-          <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-mono">
-            {orgStats.totalDepartments}
-          </span>
-        </button>
+      <div className="w-full min-w-0 max-w-full overflow-hidden border-b border-slate-200">
+        <div className="flex overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full min-w-0 gap-0">
+          <button
+            type="button"
+            onClick={() => handleTabChange("organisasi")}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
+              activeTab === "organisasi"
+                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            <Building2 className="w-4 h-4 shrink-0" />
+            <span>Struktur Divisi & Jabatan</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-mono">
+              {orgStats.totalDepartments}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => handleTabChange("ikatan-kerja")}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap ${
-            activeTab === "ikatan-kerja"
-              ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          <Briefcase className="w-4 h-4 shrink-0" />
-          <span>Tipe Ikatan Kerja</span>
-          <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-mono font-bold">
-            {employmentTypes.length}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("ikatan-kerja")}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
+              activeTab === "ikatan-kerja"
+                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            <Briefcase className="w-4 h-4 shrink-0" />
+            <span>Tipe Ikatan Kerja</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-mono font-bold">
+              {employmentTypes.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => handleTabChange("jadwal-cuti")}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap ${
-            activeTab === "jadwal-cuti"
-              ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          <CalendarClock className="w-4 h-4 shrink-0" />
-          <span>Jam Kerja, Cuti & Libur</span>
-          <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono">
-            {leaveTypes.length}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("jadwal-cuti")}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
+              activeTab === "jadwal-cuti"
+                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            <CalendarClock className="w-4 h-4 shrink-0" />
+            <span>Jam Kerja, Cuti & Libur</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono">
+              {leaveTypes.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => handleTabChange("payroll-komponen")}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap ${
-            activeTab === "payroll-komponen"
-              ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          <Receipt className="w-4 h-4 shrink-0" />
-          <span>Komponen Gaji & Tunjangan</span>
-          <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 text-purple-800 font-mono">
-            {salaryComponents.length}
-          </span>
-        </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("payroll-komponen")}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
+              activeTab === "payroll-komponen"
+                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            <Receipt className="w-4 h-4 shrink-0" />
+            <span>Komponen Gaji & Tunjangan</span>
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 text-purple-800 font-mono">
+              {salaryComponents.length}
+            </span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => handleTabChange("dokumen-bank")}
-          className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap ${
-            activeTab === "dokumen-bank"
-              ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-              : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-          }`}
-        >
-          <Landmark className="w-4 h-4 shrink-0" />
-          <span>Kop Dokumen & Rekening Bank</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("dokumen-bank")}
+            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
+              activeTab === "dokumen-bank"
+                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
+                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+            }`}
+          >
+            <Landmark className="w-4 h-4 shrink-0" />
+            <span>Kop Dokumen & Rekening Bank</span>
+          </button>
+        </div>
       </div>
 
       {/* Kontainer Isi Tab Terpilih */}

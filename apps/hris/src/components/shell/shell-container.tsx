@@ -91,11 +91,11 @@ export function ShellContainer({
 
       {/* Main Content Area - Adaptif Mobile pl-0, Desktop pl-20/pl-264 */}
       <div
-        className={`flex-1 transition-all duration-300 pt-[calc(4rem+env(safe-area-inset-top,0px))] md:pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
+        className={`flex-1 w-full min-w-0 max-w-full overflow-x-hidden transition-all duration-300 pt-[calc(4rem+env(safe-area-inset-top,0px))] md:pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
           isCollapsed ? "md:pl-20 pl-0" : "md:pl-[264px] pl-0"
         }`}
       >
-        <main className="p-3.5 sm:p-6 lg:p-8 max-w-[1440px] mx-auto min-h-[calc(100vh-4rem-env(safe-area-inset-top,0px))] md:min-h-[calc(100vh-64px)] flex flex-col">
+        <main className="p-3.5 sm:p-6 lg:p-8 max-w-[1440px] w-full min-w-0 mx-auto min-h-[calc(100vh-4rem-env(safe-area-inset-top,0px))] md:min-h-[calc(100vh-64px)] flex flex-col">
           {children}
         </main>
       </div>
