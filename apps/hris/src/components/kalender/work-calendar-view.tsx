@@ -504,21 +504,28 @@ export function WorkCalendarView({
           </div>
         )}
 
-        {/* === Grid Kalender === */}
-        <div className="p-4 md:p-6">
-          {/* Header hari */}
-          <div className="grid grid-cols-7 gap-1.5 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-[#5b6675]">
-            <span className="text-[#a8281c]">Min</span>
-            <span>Sen</span>
-            <span>Sel</span>
-            <span>Rab</span>
-            <span>Kam</span>
-            <span>Jum</span>
-            <span className="text-[#a8281c]">Sab</span>
-          </div>
+        {/* Hint gulir mobile */}
+        <div className="sm:hidden px-4 pt-3 pb-0 text-[11px] text-slate-500 flex items-center justify-between">
+          <span className="font-medium">Kalender Bulanan</span>
+          <span className="italic text-slate-400">Geser horizontal ↔</span>
+        </div>
 
-          {/* Grid hari */}
-          <div className="grid grid-cols-7 gap-1.5">
+        {/* === Grid Kalender === */}
+        <div className="p-4 md:p-6 overflow-x-auto">
+          <div className="min-w-[680px] sm:min-w-0">
+            {/* Header hari */}
+            <div className="grid grid-cols-7 gap-1.5 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-[#5b6675]">
+              <span className="text-[#a8281c]">Min</span>
+              <span>Sen</span>
+              <span>Sel</span>
+              <span>Rab</span>
+              <span>Kam</span>
+              <span>Jum</span>
+              <span className="text-[#a8281c]">Sab</span>
+            </div>
+
+            {/* Grid hari */}
+            <div className="grid grid-cols-7 gap-1.5">
             {daysArray.map((day, idx) => {
               if (day === null) {
                 return (
@@ -707,8 +714,9 @@ export function WorkCalendarView({
               );
             })}
           </div>
+        </div>
 
-          {/* === Legenda === */}
+        {/* === Legenda === */}
           <div className="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center flex-wrap gap-3 md:gap-4">
               <div className="flex items-center gap-1.5">
