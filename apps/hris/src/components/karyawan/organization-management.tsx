@@ -15,6 +15,7 @@ import {
   X,
   ChevronRight,
   Crown,
+  ArrowLeft,
 } from "lucide-react";
 import {
   createDepartmentAction,
@@ -93,6 +94,7 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
   const [deptSearch, setDeptSearch] = useState("");
   const [posSearch, setPosSearch] = useState("");
   const [deptTypeFilter, setDeptTypeFilter] = useState<DepartmentType | "ALL">("ALL");
+  const [mobileTab, setMobileTab] = useState<"departments" | "positions">("departments");
 
   // Modal States
   const [deptModal, setDeptModal] = useState<{
@@ -395,10 +397,44 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
         </div>
       )}
 
+      {/* Mobile Navigation Tabs Switcher (< lg) */}
+      <div className="lg:hidden flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+        <button
+          type="button"
+          onClick={() => setMobileTab("departments")}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+            mobileTab === "departments"
+              ? "bg-white text-[#102E50] shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          <span>Divisi ({departments.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("positions")}
+          className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 truncate px-2 ${
+            mobileTab === "positions"
+              ? "bg-white text-[#102E50] shadow-xs"
+              : "text-slate-600 hover:text-slate-900"
+          }`}
+        >
+          <Briefcase className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">
+            {selectedDepartment ? selectedDepartment.name : "Jabatan"}
+          </span>
+        </button>
+      </div>
+
       {/* Main 2-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* KOLOM KIRI: DAFTAR DIVISI (5 Cols) */}
-        <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
+        <div
+          className={`lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden ${
+            mobileTab === "departments" ? "flex" : "hidden lg:flex"
+          }`}
+        >
           <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/50">
             <div className="flex items-center gap-2 min-w-0">
               <Building2 className="w-4 h-4 text-[#102E50] shrink-0" />
@@ -459,7 +495,10 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
                 return (
                   <div
                     key={dept.id}
-                    onClick={() => setSelectedDeptId(dept.id)}
+                    onClick={() => {
+                      setSelectedDeptId(dept.id);
+                      setMobileTab("positions");
+                    }}
                     className={`p-3.5 flex items-center justify-between gap-3 transition-colors cursor-pointer group ${
                       isSelected
                         ? "bg-blue-50/70 border-l-4 border-l-[#102E50] text-slate-900"
@@ -524,12 +563,26 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
         </div>
 
         {/* KOLOM KANAN: DAFTAR JABATAN PADA DIVISI TERPILIH (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden">
+        <div
+          className={`lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden ${
+            mobileTab === "positions" ? "flex" : "hidden lg:flex"
+          }`}
+        >
           {selectedDepartment ? (
             <>
               {/* Header Kolom Kanan */}
               <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
                 <div className="flex flex-col min-w-0 flex-1">
+                  {/* Tombol Back di Mobile (< lg) */}
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("departments")}
+                    className="lg:hidden inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-[#102E50] mb-2 w-fit cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Kembali ke Daftar Divisi</span>
+                  </button>
+
                   <div className="flex items-start sm:items-center gap-2 min-w-0 flex-wrap">
                     <Briefcase className="w-4 h-4 text-[#102E50] shrink-0 mt-0.5 sm:mt-0" />
                     <h2
