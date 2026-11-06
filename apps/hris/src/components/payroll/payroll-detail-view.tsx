@@ -408,7 +408,35 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
 
       {/* Stepper Status Alur Siklus */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
-        <div className="flex items-center justify-between">
+        {/* Mobile Compact Stepper (< sm) */}
+        <div className="sm:hidden flex flex-col gap-2">
+          <div className="flex items-center justify-between text-xs font-semibold">
+            <span className="text-slate-500">Tahap {stepIndex + 1} dari {steps.length}</span>
+            <span className="text-[#102E50] font-bold">{steps[stepIndex]?.label}</span>
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
+            {steps.map((step, idx) => {
+              const isCompleted = idx < stepIndex;
+              const isCurrent = idx === stepIndex;
+              return (
+                <div
+                  key={`mobile-${step.key}`}
+                  className={`h-2 rounded-full transition-all ${
+                    isCompleted
+                      ? "bg-emerald-600"
+                      : isCurrent
+                        ? "bg-[#102E50]"
+                        : "bg-slate-200"
+                  }`}
+                  title={step.label}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop Full Stepper (>= sm) */}
+        <div className="hidden sm:flex items-center justify-between">
           {steps.map((step, idx) => {
             const isCompleted = idx < stepIndex;
             const isCurrent = idx === stepIndex;
@@ -537,13 +565,13 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
       )}
 
       {/* Metrik Rekapitulasi Periode */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
           <div className="flex items-center gap-2 text-slate-500 mb-1">
             <Users className="w-4 h-4 text-slate-400" />
             <span className="text-xs font-medium">Pegawai Diproses</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900">{period.totalEmployees} Orang</div>
+          <div className="text-xl sm:text-2xl font-bold text-slate-900">{period.totalEmployees} Orang</div>
           <div className="text-[11px] text-slate-400 mt-1">Status kepegawaian aktif</div>
         </div>
 
@@ -552,7 +580,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             <TrendingUp className="w-4 h-4 text-emerald-600" />
             <span className="text-xs font-medium">Total Bruto (Gross)</span>
           </div>
-          <div className="text-xl font-bold text-emerald-900 font-mono">
+          <div className="text-lg sm:text-xl font-bold text-emerald-900 font-mono truncate">
             {formatRupiah(period.totalGross)}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">Gaji pokok + tunjangan</div>
@@ -563,7 +591,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             <CreditCard className="w-4 h-4 text-rose-600" />
             <span className="text-xs font-medium">Total Potongan</span>
           </div>
-          <div className="text-xl font-bold text-rose-900 font-mono">
+          <div className="text-lg sm:text-xl font-bold text-rose-900 font-mono truncate">
             {formatRupiah(period.totalDeduction)}
           </div>
           <div className="text-[11px] text-slate-400 mt-1">BPJS & estimasi PPh 21</div>
@@ -574,14 +602,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             <CreditCard className="w-4 h-4 text-[#F2AF3E]" />
             <span className="text-xs font-semibold">Total Netto Dibayarkan</span>
           </div>
-          <div className="text-xl font-bold text-[#F2AF3E] font-mono">
+          <div className="text-lg sm:text-xl font-bold text-[#F2AF3E] font-mono truncate">
             {formatRupiah(period.totalNet)}
           </div>
           <div className="text-[11px] text-slate-300 mt-1">Total beban transfer lembaga</div>
         </div>
       </div>
 
-      {/* Tabel Daftar Slip Pegawai */}
+      {/* Tabel & Mobile Card Daftar Slip Pegawai */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="relative flex-1 max-w-sm">
@@ -619,7 +647,142 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile Card View (< sm) */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {filteredPayslips.length === 0 ? (
+              <div className="py-12 px-4 text-center text-slate-400">
+                {period.status === "DRAFT" ? (
+                  <div>
+                    <Play className="w-8 h-8 mx-auto mb-2 text-slate-300 stroke-1" />
+                    <p className="font-semibold text-slate-600 text-xs">
+                      Periode masih dalam status Draf Awal.
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Klik tombol &quot;Kalkulasi Payroll Massal&quot; di atas untuk menghitung slip seluruh pegawai aktif.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs">Tidak ada slip gaji yang sesuai dengan pencarian.</p>
+                )}
+              </div>
+            ) : (
+              paginatedPayslips.map((p) => (
+                <div
+                  key={`mobile-${p.id}`}
+                  className="p-4 flex flex-col gap-3 hover:bg-slate-50/50 transition-colors"
+                >
+                  {/* Header: Nama, NIP, Jenis Upah */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-slate-900 text-sm">
+                          {p.employee.fullName}
+                        </span>
+                        {p.wageType === "HOURLY" ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200/80 px-1.5 py-0.5 rounded">
+                            <Clock className="w-2.5 h-2.5 text-amber-600" />
+                            Per Jam
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-medium bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                            Bulanan
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">
+                        {p.employee.employeeNo} • {p.employee.currentDepartment?.name || "PSPK"}
+                      </div>
+                      {p.employee.currentPosition?.title && (
+                        <div className="text-[10px] text-slate-400 mt-0.5">
+                          {p.employee.currentPosition.title}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Info Freelance jika HOURLY */}
+                  {p.wageType === "HOURLY" && (
+                    <div className="bg-amber-50/70 p-2.5 rounded-lg border border-amber-200/70 text-xs flex flex-col gap-1">
+                      <div className="flex items-center justify-between text-amber-900 font-medium">
+                        <span>Jam Kerja: {p.totalHours || 0} Jam</span>
+                        <span>@ {formatRupiah(p.hourlyRate || p.contract?.hourlyRate || 30000)}</span>
+                      </div>
+                      {p.timesheetKey && (
+                        <div className="pt-1 border-t border-amber-200/50 flex items-center gap-2">
+                          {p.timesheetKey.startsWith("http://") || p.timesheetKey.startsWith("https://") ? (
+                            <a
+                              href={p.timesheetKey}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-emerald-800 font-semibold underline text-[11px]"
+                            >
+                              <FileSpreadsheet className="w-3 h-3 text-emerald-700" />
+                              <span>Buka Google Sheet Timesheet</span>
+                            </a>
+                          ) : (
+                            <a
+                              href={`/api/documents/${p.timesheetKey}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-800 font-semibold underline text-[11px]"
+                            >
+                              <Download className="w-3 h-3" />
+                              <span>Unduh File Timesheet</span>
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Rincian Finansial: Bruto, Potongan, Netto */}
+                  <div className="bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 flex flex-col gap-1.5 text-xs">
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span>Gaji Bruto</span>
+                      <span className="font-mono text-emerald-800 font-medium">{formatRupiah(p.grossAmount)}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-rose-700">
+                      <span>Potongan</span>
+                      <span className="font-mono font-medium">-{formatRupiah(p.totalDeduction)}</span>
+                    </div>
+                    <div className="pt-1.5 border-t border-slate-200/80 flex items-center justify-between">
+                      <span className="font-bold text-slate-900 text-xs">Gaji Bersih (Netto)</span>
+                      <span className="font-bold text-[#102E50] font-mono text-sm">
+                        {formatRupiah(p.netAmount)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tombol Aksi */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {p.wageType === "HOURLY" && period.status !== "LOCKED" && (
+                      <button
+                        type="button"
+                        onClick={() => setTimesheetPayslip(p)}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-50 border border-amber-200 text-amber-900 hover:bg-amber-100 rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <span>
+                          {p.totalHours && p.totalHours > 0 ? "Ubah Timesheet" : "Input Timesheet"}
+                        </span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPayslip(p)}
+                      className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 hover:text-[#102E50] hover:bg-slate-50 rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Lihat Rincian Slip</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View (>= sm) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
