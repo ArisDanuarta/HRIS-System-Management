@@ -602,74 +602,81 @@ export function AttendanceRekapView({
 
         {/* View Mode 1: 1-31 Day Calendar Matrix */}
         {viewMode === "matrix" ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] font-bold text-[10px]">
-                  <th className="py-3 px-4 sticky left-0 z-20 bg-slate-50 border-r border-slate-200/80 min-w-[200px] uppercase tracking-wider">
-                    Nama Pegawai
-                  </th>
-                  {daysInMonth.map((d) => (
-                    <th
-                      key={d.dayNumber}
-                      className={`py-2 px-1 text-center min-w-[32px] border-r border-slate-100 ${
-                        d.isWeekend ? "bg-slate-100/80 text-slate-400" : "text-[#102e50]"
-                      }`}
-                    >
-                      <div className="flex flex-col items-center leading-tight">
-                        <span className="text-[9px] font-normal uppercase">{d.dayShort}</span>
-                        <span className="text-[11px] font-bold">{d.dayNumber}</span>
-                      </div>
-                    </th>
-                  ))}
-                  <th className="py-3 px-3 text-center bg-emerald-50/50 text-emerald-800 border-l border-slate-200/80">
-                    H
-                  </th>
-                  <th className="py-3 px-3 text-center bg-[#df632f]/5 text-[#df632f]">T</th>
-                  <th className="py-3 px-3 text-center bg-[#f2af3e]/10 text-[#8e2d3f]">C</th>
-                  <th className="py-3 px-3 text-center bg-[#a8281c]/5 text-[#a8281c]">A</th>
-                  {isHrOrAdmin && (
-                    <th className="py-3 px-4 text-right border-l border-slate-200/80 uppercase tracking-wider">
-                      Aksi
-                    </th>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {employees.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={daysInMonth.length + (isHrOrAdmin ? 6 : 5)}
-                      className="py-12 text-center text-slate-500"
-                    >
-                      Tidak ada data pegawai yang sesuai dengan filter pencarian.
-                    </td>
-                  </tr>
-                ) : (
-                  employees.map((emp) => {
-                    const empDays = dailyMap.get(emp.id);
-                    const stat = statsMap.get(emp.id) || {
-                      present: 0,
-                      late: 0,
-                      leave: 0,
-                      absent: 0,
-                      wfh: 0,
-                      totalDays: 0,
-                    };
+          <>
+            {/* Mobile Swipe Hint */}
+            <div className="sm:hidden px-4 py-2 bg-slate-50 border-b border-slate-200/80 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Matriks Kalender Presensi</span>
+              <span className="italic text-slate-400">Geser horizontal ↔</span>
+            </div>
 
-                    return (
-                      <tr key={emp.id} className="hover:bg-slate-50/70 transition-colors">
-                        {/* Sticky Employee Name Cell */}
-                        <td className="py-3 px-4 sticky left-0 z-10 bg-white border-r border-slate-200/80">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-[#102e50] truncate max-w-[180px]">
-                              {emp.fullName}
-                            </span>
-                            <span className="text-[10px] text-slate-400 truncate max-w-[180px]">
-                              {emp.currentDepartment?.name || "PSPK"} • {emp.employeeNo}
-                            </span>
-                          </div>
-                        </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] font-bold text-[10px]">
+                    <th className="py-3 px-3 sm:px-4 sticky left-0 z-20 bg-slate-50 border-r border-slate-200/80 min-w-[130px] sm:min-w-[200px] uppercase tracking-wider">
+                      Nama Pegawai
+                    </th>
+                    {daysInMonth.map((d) => (
+                      <th
+                        key={d.dayNumber}
+                        className={`py-2 px-1 text-center min-w-[32px] border-r border-slate-100 ${
+                          d.isWeekend ? "bg-slate-100/80 text-slate-400" : "text-[#102e50]"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center leading-tight">
+                          <span className="text-[9px] font-normal uppercase">{d.dayShort}</span>
+                          <span className="text-[11px] font-bold">{d.dayNumber}</span>
+                        </div>
+                      </th>
+                    ))}
+                    <th className="py-3 px-3 text-center bg-emerald-50/50 text-emerald-800 border-l border-slate-200/80">
+                      H
+                    </th>
+                    <th className="py-3 px-3 text-center bg-[#df632f]/5 text-[#df632f]">T</th>
+                    <th className="py-3 px-3 text-center bg-[#f2af3e]/10 text-[#8e2d3f]">C</th>
+                    <th className="py-3 px-3 text-center bg-[#a8281c]/5 text-[#a8281c]">A</th>
+                    {isHrOrAdmin && (
+                      <th className="py-3 px-4 text-right border-l border-slate-200/80 uppercase tracking-wider">
+                        Aksi
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {employees.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={daysInMonth.length + (isHrOrAdmin ? 6 : 5)}
+                        className="py-12 text-center text-slate-500"
+                      >
+                        Tidak ada data pegawai yang sesuai dengan filter pencarian.
+                      </td>
+                    </tr>
+                  ) : (
+                    employees.map((emp) => {
+                      const empDays = dailyMap.get(emp.id);
+                      const stat = statsMap.get(emp.id) || {
+                        present: 0,
+                        late: 0,
+                        leave: 0,
+                        absent: 0,
+                        wfh: 0,
+                        totalDays: 0,
+                      };
+
+                      return (
+                        <tr key={emp.id} className="hover:bg-slate-50/70 transition-colors">
+                          {/* Sticky Employee Name Cell */}
+                          <td className="py-3 px-3 sm:px-4 sticky left-0 z-10 bg-white border-r border-slate-200/80 min-w-[130px] sm:min-w-[200px]">
+                            <div className="flex flex-col">
+                              <span className="font-bold text-[#102e50] truncate max-w-[115px] sm:max-w-[180px]">
+                                {emp.fullName}
+                              </span>
+                              <span className="text-[10px] text-slate-400 truncate max-w-[115px] sm:max-w-[180px]">
+                                {emp.currentDepartment?.name || "PSPK"} • {emp.employeeNo}
+                              </span>
+                            </div>
+                          </td>
 
                         {/* Day 1..31 Cells */}
                         {daysInMonth.map((d) => {
@@ -740,9 +747,103 @@ export function AttendanceRekapView({
               </tbody>
             </table>
           </div>
+        </>
         ) : (
-          /* View Mode 2: Clean Summary Table */
-          <div className="overflow-x-auto">
+          /* View Mode 2: Clean Summary Table with Mobile Cards */
+          <>
+            {/* Mobile Card View (< sm) */}
+            <div className="sm:hidden divide-y divide-slate-100">
+              {employees.length === 0 ? (
+                <div className="py-12 px-4 text-center text-slate-500 text-xs">
+                  Tidak ada data pegawai yang sesuai dengan filter pencarian.
+                </div>
+              ) : (
+                employees.map((emp) => {
+                  const stat = statsMap.get(emp.id) || {
+                    present: 0,
+                    late: 0,
+                    leave: 0,
+                    absent: 0,
+                    wfh: 0,
+                    totalDays: 0,
+                  };
+
+                  return (
+                    <div
+                      key={`mobile-summary-${emp.id}`}
+                      className="p-4 flex flex-col gap-3 hover:bg-slate-50/50 transition-colors"
+                    >
+                      {/* Header Pegawai */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#102e50] text-sm">{emp.fullName}</span>
+                          <span className="text-[11px] text-slate-500">
+                            {emp.currentDepartment?.name || "PSPK"} • {emp.employeeNo}
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {emp.currentPosition?.title || "Staf"}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold shrink-0">
+                          {stat.totalDays} Hari
+                        </span>
+                      </div>
+
+                      {/* Stat Grid 4 Kolom: Hadir, Terlambat, Cuti, Alpa */}
+                      <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                        <div className="p-2 rounded-xl bg-emerald-50/60 border border-emerald-100 flex flex-col">
+                          <span className="text-[10px] text-emerald-800 font-semibold">Hadir</span>
+                          <span className="text-sm font-bold text-emerald-700 tabular-nums">
+                            {stat.present}
+                          </span>
+                        </div>
+                        <div className="p-2 rounded-xl bg-[#df632f]/10 border border-[#df632f]/20 flex flex-col">
+                          <span className="text-[10px] text-[#df632f] font-semibold">Telat</span>
+                          <span className="text-sm font-bold text-[#df632f] tabular-nums">
+                            {stat.late}
+                          </span>
+                        </div>
+                        <div className="p-2 rounded-xl bg-[#f2af3e]/15 border border-[#f2af3e]/30 flex flex-col">
+                          <span className="text-[10px] text-[#8e2d3f] font-semibold">Cuti</span>
+                          <span className="text-sm font-bold text-[#8e2d3f] tabular-nums">
+                            {stat.leave}
+                          </span>
+                        </div>
+                        <div className="p-2 rounded-xl bg-[#a8281c]/10 border border-[#a8281c]/20 flex flex-col">
+                          <span className="text-[10px] text-[#a8281c] font-semibold">Alpa</span>
+                          <span className="text-sm font-bold text-[#a8281c] tabular-nums">
+                            {stat.absent}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Tombol Koreksi jika HR */}
+                      {isHrOrAdmin && (
+                        <div className="pt-1 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedForCorrection({
+                                id: emp.id,
+                                fullName: emp.fullName,
+                                employeeNo: emp.employeeNo,
+                              })
+                            }
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 hover:border-[#102e50] hover:bg-[#102e50]/5 text-[#102e50] text-xs font-semibold transition-all cursor-pointer active:scale-[0.98]"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 text-[#f2af3e]" />
+                            <span>Koreksi Presensi Pegawai</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Desktop Table View (>= sm) */}
+            <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] uppercase tracking-wider font-bold text-[11px]">
@@ -842,6 +943,7 @@ export function AttendanceRekapView({
               </tbody>
             </table>
           </div>
+        </>
         )}
 
         {/* Pagination Controls */}
