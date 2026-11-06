@@ -257,7 +257,7 @@ export function AppSidebar({
       >
         <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           {/* Brand Header */}
-          <div className="h-16 px-3.5 flex items-center justify-between bg-[#0c233d]/40 border-b border-white/10">
+          <div className="h-[calc(4rem+env(safe-area-inset-top,0px))] md:h-16 pt-[env(safe-area-inset-top,0px)] md:pt-0 px-3.5 flex items-center justify-between bg-[#0c233d]/40 border-b border-white/10 shrink-0">
             {isCollapsed ? (
               <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm border border-white/20 flex items-center justify-center shrink-0">
                 <Image
@@ -562,7 +562,7 @@ export function AppSidebar({
       </div>
 
       {/* Sidebar Footer */}
-      <div className="p-3 bg-[#0c233d]/60 border-t border-white/10 flex items-center justify-between text-[#adc8f2] text-xs">
+      <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:pb-3 bg-[#0c233d]/60 border-t border-white/10 flex items-center justify-between text-[#adc8f2] text-xs shrink-0">
         {!isCollapsed && (
           <span className="text-[11px] opacity-80 truncate">v1.0.0 • PSPK Internal</span>
         )}
