@@ -120,9 +120,12 @@ export function NotificationBell() {
         )}
       </button>
 
-      {/* Popover Dropdown Panel */}
+      {/* Popover Dropdown Panel
+          Lebar dibatasi agar tidak menyebabkan horizontal overflow pada viewport <= 360px.
+          w-[calc(100vw-1.5rem)] memastikan panel pas di dalam layar ponsel sempit mana pun.
+      */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-88 rounded-2xl bg-white shadow-2xl border border-slate-200/90 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-1.5rem)] max-w-sm sm:w-88 rounded-2xl bg-white shadow-2xl border border-slate-200/90 z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-slate-50/90 border-b border-slate-100">
             <div className="flex items-center gap-2">
