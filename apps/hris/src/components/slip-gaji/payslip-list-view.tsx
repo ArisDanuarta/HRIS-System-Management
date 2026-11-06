@@ -282,7 +282,96 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
         </div>
 
         {filteredPayslips.length > 0 ? (
-          <div className="overflow-x-auto">
+          <>
+            {/* Mobile Card View (< sm) */}
+            <div className="sm:hidden divide-y divide-slate-100">
+              {filteredPayslips.map((p) => {
+                const monthName = MONTH_NAMES[p.month] || `Bulan ${p.month}`;
+                const isLoading = loadingPayslipId === p.id;
+
+                return (
+                  <div
+                    key={`mobile-${p.id}`}
+                    className="p-4 flex flex-col gap-3.5 hover:bg-slate-50/50 transition-colors"
+                  >
+                    {/* Header: Periode, ID, dan Jenis Badge */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-[#102E50] text-sm">
+                          {monthName} {p.year}
+                        </div>
+                        <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                          ID: #{p.id.slice(0, 8).toUpperCase()}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {p.kind === "THR" ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            THR
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                            Gaji Reguler
+                          </span>
+                        )}
+                        {p.wageType === "HOURLY" && p.totalHours && (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-amber-50 text-amber-800 border border-amber-200"
+                            title={`Tarif Kontrak: ${p.hourlyRate ? formatRupiah(p.hourlyRate) : "-"} / jam`}
+                          >
+                            <Clock className="w-2.5 h-2.5 text-amber-600" />
+                            {p.totalHours} Jam
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Body Finansial: Bruto, Potongan, & THP */}
+                    <div className="bg-slate-50/70 p-3 rounded-xl border border-slate-100 flex flex-col gap-2 text-xs">
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Penerimaan Bruto</span>
+                        <span className="font-mono">{formatRupiah(p.grossAmount)}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-rose-600">
+                        <span>Total Potongan</span>
+                        <span className="font-mono">-{formatRupiah(p.totalDeduction)}</span>
+                      </div>
+                      <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-slate-800 block text-xs">
+                            Gaji Bersih (THP)
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {p.publishedAt ? `Terbit: ${formatDate(p.publishedAt)}` : "-"}
+                          </span>
+                        </div>
+                        <span className="text-base font-extrabold font-mono text-[#102E50]">
+                          {formatRupiah(p.netAmount)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tombol Aksi */}
+                    <button
+                      type="button"
+                      disabled={isLoading || isPending}
+                      onClick={() => handleOpenPayslip(p.id)}
+                      className="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-[#102E50] text-white hover:bg-[#0c233d] transition-all text-xs font-semibold shadow-xs cursor-pointer active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {isLoading ? (
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Eye className="w-3.5 h-3.5 text-[#ffddb0]" />
+                      )}
+                      <span>Buka & Cetak Slip Gaji</span>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View (>= sm) */}
+            <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px] tracking-wider">
                 <tr>
@@ -380,6 +469,7 @@ export function PayslipListView({ summary, employeeName }: PayslipListViewProps)
               </tbody>
             </table>
           </div>
+        </>
         ) : (
           /* Empty State */
           <div className="py-16 px-6 text-center flex flex-col items-center justify-center">
