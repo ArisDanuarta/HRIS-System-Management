@@ -14,6 +14,11 @@ const config: NextConfig = {
     "@pspk/storage",
   ],
   serverExternalPackages: ["@prisma/client"],
+  // Pindahkan Dev Indicator ke pojok kanan bawah agar tidak menutupi tab "Beranda"
+  // pada MobileBottomNav saat pengujian tampilan mobile / mode PWA di development.
+  devIndicators: {
+    position: "bottom-right",
+  },
   async redirects() {
     return [
       {

@@ -165,11 +165,14 @@ export function PwaInstaller() {
         </aside>
       )}
 
-      {/* In-App Install Prompt Banner (ditampilkan di sisi kiri agar tidak menutupi area konten utama) */}
-      {showInstallBanner && deferredPrompt && (
+      {/* In-App Install Prompt Banner
+          - Posisi bawah disesuaikan agar tidak menimpa MobileBottomNav (~90px) + safe-area home bar
+          - Tidak ditampilkan jika sudah dalam mode PWA standalone (sudah terpasang)
+      */}
+      {showInstallBanner && deferredPrompt && !isStandalone && (
         <aside
           aria-label="Pemberitahuan Pemasangan Aplikasi"
-          className={`fixed bottom-18 md:bottom-6 right-4 sm:right-auto sm:max-w-md z-40 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 ${
+          className={`fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 right-4 sm:right-auto sm:max-w-md z-40 bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-2xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300 ${
             isLoginPage ? "left-4 sm:left-6 md:left-8" : "left-4 md:left-[280px]"
           }`}
         >
