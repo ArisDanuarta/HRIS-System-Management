@@ -2,6 +2,66 @@
 
 Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
+---
+
+## [Perbaikan PWA & Mobile UX] Mode Tampilan Standalone — 2026-11-06
+
+- **Status:** Selesai (Tuntas, Terverifikasi 100%)
+- **Scope & Tujuan:**
+  Menuntaskan 6 bug dan kekurangan komponen mode PWA / tampilan mobile pada aplikasi HRIS PSPK yang ditemukan saat pengujian di perangkat nyata (mode PWA Standalone di Android/iOS). Perbaikan dibagi 5 tahap terstruktur (1 tahap per sesi) tanpa modifikasi logika bisnis.
+
+- **Implementasi Perbaikan:**
+
+  ### Tahap 1 — Bug Tombol Garis 3 (Hamburger Menu) Sidebar Mobile
+  - **File:** [`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)
+  - **Root Cause:** `mobileOpen` berada di dalam *dependency array* `useEffect` yang bertanggung jawab menutup sidebar. Saat hamburger button diklik dan state menjadi `true`, React langsung mengeksekusi `useEffect` dan memanggil `onCloseMobile()`, membuat sidebar muncul dan menghilang dalam 1 frame (efek glitch).
+  - **Perbaikan:**
+    1. Menggunakan `useRef(pathname)` (`prevPathnameRef`) untuk membedakan perubahan rute *sesungguhnya* vs perubahan state `mobileOpen`. Sidebar kini hanya menutup otomatis jika pathname benar-benar berubah.
+    2. Menambahkan event delegation pada `<aside>` agar sidebar menutup otomatis setelah tautan menu diklik (menggantikan logic yang rusak sebelumnya).
+    3. Menambahkan *body scroll-lock* (`overflow: hidden`) saat drawer mobile terbuka agar konten halaman di belakang backdrop tidak ikut bergeser.
+
+  ### Tahap 2 — Safe Area Insets (Notch & Home Indicator) Mode PWA Standalone
+  - **File:** [`app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx), [`shell-container.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/shell-container.tsx), [`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)
+  - **Perbaikan:**
+    1. Header topbar: `h-[calc(4rem+env(safe-area-inset-top,0px))] pt-[env(safe-area-inset-top,0px)]` — tombol hamburger, judul, dan ikon tidak lagi terpotong notch/status bar iPhone dan Android.
+    2. Container konten: `pt-[calc(4rem+env(safe-area-inset-top,0px))]` — konten dashboard tidak lagi tersembunyi di balik topbar yang melebar.
+    3. Header drawer sidebar: sama dengan topbar, ditambahkan `shrink-0`.
+    4. Footer sidebar: `pb-[max(0.75rem,env(safe-area-inset-bottom,0px))]` — tombol collapse tidak tertutup home indicator bar.
+
+  ### Tahap 3 — PWA Install Banner & Relokasi Next.js Dev Indicator
+  - **File:** [`pwa-installer.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/pwa-installer.tsx), [`next.config.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/next.config.ts)
+  - **Perbaikan:**
+    1. Menambahkan deteksi `isStandalone` via `useSyncExternalStore + window.matchMedia("(display-mode: standalone)")`. Banner instalasi tidak pernah muncul jika aplikasi sudah dipasang di home screen.
+    2. Guard tambahan di `handleBeforeInstallPrompt`: langsung `return` jika browser mengirim event tapi aplikasi sudah berjalan dalam mode standalone.
+    3. Posisi banner install: `bottom-18` → `bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))]` agar tidak menimpa `MobileBottomNav`.
+    4. `devIndicators: { position: "bottom-right" }` di `next.config.ts` — tombol lingkaran "N" Next.js tidak lagi menutupi tab "Beranda" selama pengujian mobile.
+
+  ### Tahap 4 — Popover Notifikasi Responsif & PWA Manifest App Shortcuts
+  - **File:** [`notification-bell.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/notification-bell.tsx), [`manifest.ts`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/manifest.ts)
+  - **Perbaikan:**
+    1. Popover notifikasi kini menggunakan `fixed` positioning di mobile (`< sm`): `fixed inset-x-2 top-[calc(4rem+env(safe-area-inset-top,0px)+0.5rem)] z-[60]`. Di desktop kembali ke `absolute right-0`. Root cause: `absolute right-0` dihitung relatif terhadap div kecil bel notifikasi (bukan viewport), membuat panel melebar ke luar batas kiri layar ponsel.
+    2. Menambahkan `shortcuts` pada PWA manifest untuk pintasan cepat dari home screen: **Presensi Hari Ini** (`/absensi`), **Ajukan Cuti** (`/cuti/ajukan`), dan **Beranda Dashboard** (`/dashboard`).
+
+- **Hasil Verifikasi Kualitas:**
+  - `pnpm turbo typecheck lint`: ✅ **11 task, 11 successful** (semua package monorepo).
+  - `pnpm --filter @pspk/hris typecheck`: ✅ 0 error.
+  - `pnpm --filter @pspk/hris lint`: ✅ 0 error, 0 warning.
+  - `pnpm --filter @pspk/hris test`: ✅ Lulus.
+  - **Tidak ada perubahan logika bisnis, skema database, atau server action.**
+
+- **File yang Diubah (6 file):**
+  | File | Perubahan |
+  |---|---|
+  | `apps/hris/src/components/shell/app-sidebar.tsx` | Fix hamburger glitch, scroll-lock, event delegation |
+  | `apps/hris/src/components/shell/app-topbar.tsx` | Safe area inset topbar |
+  | `apps/hris/src/components/shell/shell-container.tsx` | Padding konten sesuai topbar baru |
+  | `apps/hris/src/components/shell/pwa-installer.tsx` | Standalone detection, posisi banner |
+  | `apps/hris/src/components/shell/notification-bell.tsx` | Fixed positioning mobile popover |
+  | `apps/hris/src/app/manifest.ts` | PWA shortcuts |
+  | `apps/hris/next.config.ts` | devIndicators position |
+
+---
+
 ## [Optimasi Query] Tahap 3: Indeks Skema Database Sysmgmt & Batas Pemuatan Riwayat Cuti Mandiri — 2026-11-05
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)
