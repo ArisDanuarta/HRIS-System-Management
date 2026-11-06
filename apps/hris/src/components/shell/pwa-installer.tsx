@@ -16,6 +16,16 @@ export function PwaInstaller() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [showOnlineAlert, setShowOnlineAlert] = useState(false);
 
+  // Deteksi apakah aplikasi sudah berjalan dalam mode PWA standalone.
+  // Jika sudah terpasang, banner instalasi tidak perlu ditampilkan sama sekali.
+  const isStandalone = useSyncExternalStore(
+    () => () => {},
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(display-mode: standalone)").matches,
+    () => false,
+  );
+
   // Subscribing ke status konektivitas internet secara aman dengan useSyncExternalStore
   const isOnline = useSyncExternalStore(
     (callback) => {
@@ -82,9 +92,13 @@ export function PwaInstaller() {
     }
 
     // 2. Deteksi Dukungan Instalasi PWA (beforeinstallprompt)
+    // Tidak perlu menampilkan banner jika aplikasi sudah berjalan dalam mode standalone
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+
+      // Jika sudah dalam mode standalone, abaikan prompt instalasi
+      if (window.matchMedia("(display-mode: standalone)").matches) return;
 
       // Cek apakah pengguna sebelumnya memilih "Nanti Saja" dalam 7 hari terakhir
       const dismissedUntil = localStorage.getItem("pspk_pwa_install_dismissed_until");
