@@ -150,34 +150,36 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
           </div>
 
           {/* Month Period Switcher */}
-          <div className="flex items-center gap-2 self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl p-1.5">
-            <Link
-              href={`/absensi?year=${prevYear}&month=${prevMonth}`}
-              className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
-              title="Bulan Sebelumnya"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Link>
+          <div className="flex items-center gap-2 self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl p-1.5 flex-wrap sm:flex-nowrap">
+            <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
+              <Link
+                href={`/absensi?year=${prevYear}&month=${prevMonth}`}
+                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
+                title="Bulan Sebelumnya"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Link>
 
-            <div className="px-3 py-1 text-center min-w-[135px]">
-              <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
-                Periode Riwayat
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-white">{activeMonthLabel}</span>
+              <div className="px-2.5 sm:px-3 py-1 text-center min-w-[115px] sm:min-w-[135px]">
+                <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
+                  Periode Riwayat
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-white">{activeMonthLabel}</span>
+              </div>
+
+              <Link
+                href={`/absensi?year=${nextYear}&month=${nextMonth}`}
+                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
+                title="Bulan Berikutnya"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
-
-            <Link
-              href={`/absensi?year=${nextYear}&month=${nextMonth}`}
-              className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
-              title="Bulan Berikutnya"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Link>
 
             {!isCurrentPeriod && (
               <Link
                 href="/absensi"
-                className="px-2.5 py-1.5 mr-1 rounded-lg bg-[#f2af3e] text-[#102e50] hover:bg-[#f4b867] text-xs font-bold transition-colors"
+                className="px-2.5 py-1.5 rounded-lg bg-[#f2af3e] text-[#102e50] hover:bg-[#f4b867] text-xs font-bold transition-colors w-full sm:w-auto text-center"
               >
                 Bulan Ini
               </Link>
