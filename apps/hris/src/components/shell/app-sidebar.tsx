@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -58,10 +58,15 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
 
-  // Tutup sidebar mobile secara otomatis ketika rute halaman berpindah
+  const prevPathnameRef = useRef(pathname);
+
+  // Tutup sidebar mobile secara otomatis HANYA ketika rute halaman benar-benar berpindah
   useEffect(() => {
-    if (mobileOpen && onCloseMobile) {
-      onCloseMobile();
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      if (mobileOpen && onCloseMobile) {
+        onCloseMobile();
+      }
     }
   }, [pathname, mobileOpen, onCloseMobile]);
 
@@ -75,6 +80,17 @@ export function AppSidebar({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [mobileOpen, onCloseMobile]);
+
+  // Kunci scroll body saat drawer sidebar mobile terbuka
+  useEffect(() => {
+    if (mobileOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [mobileOpen]);
 
   // Visibilitas Modul Dinamis Berdasarkan Konfigurasi Sistem
   const showOrgChart = isModuleActive(moduleFlags || {}, "org_chart");
@@ -226,6 +242,12 @@ export function AppSidebar({
       )}
 
       <aside
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest("a") && mobileOpen && onCloseMobile) {
+            onCloseMobile();
+          }
+        }}
         className={`fixed left-0 top-0 h-full bg-[#102e50] text-white z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(16,46,80,0.15)] transition-all duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${
@@ -570,12 +592,14 @@ interface NavItemProps {
   isActive: boolean;
   isCollapsed: boolean;
   badge?: React.ReactNode;
+  onClick?: () => void;
 }
 
-function NavItem({ href, label, icon, isActive, isCollapsed, badge }: NavItemProps) {
+function NavItem({ href, label, icon, isActive, isCollapsed, badge, onClick }: NavItemProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors text-xs sm:text-[13px] group ${
         isActive
           ? "bg-[#feba48]/20 text-white border-l-4 border-[#f2af3e] font-semibold"
