@@ -501,22 +501,22 @@ export default async function EmployeeDetailPage({
 
       {/* TAB 1: BIODATA & KONTAK */}
       {effectiveTab === "biodata" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full min-w-0">
           {/* Card 1: Data Pribadi */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col gap-4 w-full min-w-0">
             <h3 className="font-bold text-sm text-[#102E50] font-heading pb-2 border-b border-slate-100">
               Identitas Pribadi
             </h3>
 
-            <div className="grid grid-cols-2 gap-y-3.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3.5 gap-x-3 text-xs w-full min-w-0">
               <div>
                 <span className="text-slate-400 block mb-0.5">Nama Lengkap</span>
-                <span className="font-semibold text-slate-800">{employee.fullName}</span>
+                <span className="font-semibold text-slate-800 break-words">{employee.fullName}</span>
               </div>
 
               <div>
                 <span className="text-slate-400 block mb-0.5">Nama Panggilan</span>
-                <span className="font-semibold text-slate-800">{employee.nickname || "-"}</span>
+                <span className="font-semibold text-slate-800 break-words">{employee.nickname || "-"}</span>
               </div>
 
               <div>
@@ -543,7 +543,7 @@ export default async function EmployeeDetailPage({
 
               <div>
                 <span className="text-slate-400 block mb-0.5">Tempat, Tanggal Lahir</span>
-                <span className="font-semibold text-slate-800">
+                <span className="font-semibold text-slate-800 break-words">
                   {employee.birthPlace || "-"},{" "}
                   {employee.birthDate ? formatDate(employee.birthDate) : "-"}
                 </span>
@@ -556,10 +556,10 @@ export default async function EmployeeDetailPage({
                 </span>
               </div>
 
-              <div className="col-span-2">
+              <div className="col-span-1 sm:col-span-2">
                 <span className="text-slate-400 block mb-0.5">Alamat Domisili</span>
                 {employee.address ? (
-                  <span className="font-medium text-slate-700 leading-relaxed">
+                  <span className="font-medium text-slate-700 leading-relaxed break-words">
                     {employee.address}
                   </span>
                 ) : (
@@ -570,15 +570,15 @@ export default async function EmployeeDetailPage({
           </div>
 
           {/* Card 2: Kontak & Darurat */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col gap-4 w-full min-w-0">
             <h3 className="font-bold text-sm text-[#102E50] font-heading pb-2 border-b border-slate-100">
               Informasi Kontak & Darurat
             </h3>
 
-            <div className="flex flex-col gap-3 text-xs">
-              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3">
+            <div className="flex flex-col gap-3 text-xs w-full min-w-0">
+              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3 w-full min-w-0">
                 <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-[11px] text-slate-400">Email Kantor (Resmi)</span>
                   <span className="font-semibold text-slate-800 truncate">
                     {employee.workEmail}
@@ -586,9 +586,9 @@ export default async function EmployeeDetailPage({
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3">
+              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3 w-full min-w-0">
                 <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-[11px] text-slate-400">Email Pribadi</span>
                   <span className="font-semibold text-slate-800 truncate">
                     {employee.personalEmail || "-"}
@@ -596,25 +596,25 @@ export default async function EmployeeDetailPage({
                 </div>
               </div>
 
-              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3">
+              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3 w-full min-w-0">
                 <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                <div className="flex flex-col min-w-0">
+                <div className="flex flex-col min-w-0 flex-1">
                   <span className="text-[11px] text-slate-400">Nomor Telepon / WhatsApp</span>
-                  <span className="font-semibold text-slate-800">{employee.phone || "-"}</span>
+                  <span className="font-semibold text-slate-800 truncate">{employee.phone || "-"}</span>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-amber-50/50 border border-amber-200/60 rounded-xl flex flex-col gap-1.5">
+              <div className="p-3.5 bg-amber-50/50 border border-amber-200/60 rounded-xl flex flex-col gap-1.5 w-full min-w-0">
                 <div className="flex items-center gap-1.5 text-[#805600] font-bold text-xs">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                   <span>Kontak Darurat</span>
                 </div>
                 {employee.emergencyContactName || employee.emergencyContactPhone ? (
-                  <div className="flex justify-between items-center text-xs mt-0.5">
-                    <span className="text-slate-700 font-medium">
+                  <div className="flex justify-between items-center text-xs mt-0.5 flex-wrap gap-2 min-w-0">
+                    <span className="text-slate-700 font-medium truncate">
                       {employee.emergencyContactName || "Nama tidak dicatat"}
                     </span>
-                    <span className="font-mono font-bold text-slate-800">
+                    <span className="font-mono font-bold text-slate-800 shrink-0">
                       {employee.emergencyContactPhone || "-"}
                     </span>
                   </div>
@@ -631,19 +631,19 @@ export default async function EmployeeDetailPage({
 
       {/* TAB 2: DATA SENSITIF & BANK */}
       {isHrOrAdmin && effectiveTab === "sensitif" && (
-        <div className="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col gap-5">
-          <div className="flex flex-col">
-            <h3 className="font-bold text-base text-[#102E50] font-heading">
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-6 shadow-xs flex flex-col gap-5 w-full min-w-0">
+          <div className="flex flex-col min-w-0">
+            <h3 className="font-bold text-base text-[#102E50] font-heading break-words">
               Data Pribadi Sensitif & Payroll Perbankan
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 break-words">
               Nilai di bawah ini dilindungi enkripsi AES-256-GCM. Pembukaan data akan tercatat di
               sistem audit trail.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-2 w-full min-w-0">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Nomor Induk Kependudukan (NIK)
               </span>
@@ -656,7 +656,7 @@ export default async function EmployeeDetailPage({
               />
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Nomor Pokok Wajib Pajak (NPWP)
               </span>
@@ -669,19 +669,19 @@ export default async function EmployeeDetailPage({
               />
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Bank Payroll Lembaga
               </span>
-              <span className="font-semibold text-sm text-slate-900">
+              <span className="font-semibold text-sm text-slate-900 truncate">
                 {employee.bankName || "Bank Mandiri"}
               </span>
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-slate-500 truncate">
                 Pemilik: {employee.bankAccountName || employee.fullName}
               </span>
             </div>
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Nomor Rekening Bank
               </span>
@@ -721,9 +721,9 @@ export default async function EmployeeDetailPage({
 
       {/* TAB 4: JABATAN & TIM */}
       {effectiveTab === "jabatan" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full min-w-0">
           {/* Card Atasan & Bawahan */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
+          <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col gap-4 w-full min-w-0">
             <h3 className="font-bold text-sm text-[#102E50] font-heading pb-2 border-b border-slate-100">
               Hierarki Tim & Laporan Kerja
             </h3>
