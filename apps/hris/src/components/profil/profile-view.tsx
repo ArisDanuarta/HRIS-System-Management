@@ -117,11 +117,11 @@ export function ProfileView({ profile }: ProfileViewProps) {
   const isHrOrAdmin = profile.roles.some((r) => r.key === "super_admin" || r.key === "admin_hr");
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-12">
+    <div className="space-y-6 w-full min-w-0 max-w-full lg:max-w-6xl mx-auto pb-12">
       {/* 1. HEADER PROFILE BANNER */}
-      <div className="bg-white rounded-3xl border border-[#dee9fc] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-3xl border border-[#dee9fc] shadow-sm overflow-hidden w-full min-w-0">
         {/* Banner Background */}
-        <div className="h-36 md:h-44 bg-gradient-to-r from-[#f4f7fb] via-[#f8fafd] to-[#eef4fc] border-b border-[#dee9fc] relative overflow-hidden flex items-center justify-center px-6">
+        <div className="h-36 md:h-44 bg-gradient-to-r from-[#f4f7fb] via-[#f8fafd] to-[#eef4fc] border-b border-[#dee9fc] relative overflow-hidden flex items-center justify-center px-4 sm:px-6">
           {/* Subtle decorative dot pattern */}
           <div className="absolute inset-0 bg-[radial-gradient(#102e50_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.035] pointer-events-none" />
 
@@ -149,7 +149,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
               style={{ width: "auto" }}
               priority
             />
-            <span className="text-[11px] font-semibold text-[#74777f] tracking-wider uppercase">
+            <span className="text-[11px] font-semibold text-[#74777f] tracking-wider uppercase text-center">
               Pusat Studi Pendidikan dan Kebijakan
             </span>
           </div>
@@ -162,10 +162,10 @@ export function ProfileView({ profile }: ProfileViewProps) {
         </div>
 
         {/* User Card Content */}
-        <div className="px-6 md:px-8 pb-6 pt-0 relative">
+        <div className="px-4 sm:px-6 md:px-8 pb-6 pt-0 relative">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
             {/* Avatar & Basic Info */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left min-w-0">
               {/* Avatar Container with Upload trigger: ONLY this element has negative margin */}
               <div className="relative group shrink-0 -mt-14 md:-mt-16 z-10">
                 <div className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-[#102e50] border-4 border-white shadow-md overflow-hidden flex items-center justify-center text-white text-3xl font-bold font-heading">
@@ -207,15 +207,15 @@ export function ProfileView({ profile }: ProfileViewProps) {
               </div>
 
               {/* Title & Subtitle: Perfectly positioned on the white background */}
-              <div className="space-y-1.5 pt-2 sm:pt-3">
+              <div className="space-y-1.5 pt-2 sm:pt-3 min-w-0">
                 <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
-                  <h1 className="text-2xl md:text-3xl font-bold text-[#102e50] font-heading tracking-tight">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#102e50] font-heading tracking-tight break-words">
                     {displayName}
                   </h1>
                 </div>
 
                 <div className="flex items-center justify-center sm:justify-start gap-2 text-xs md:text-sm text-[#475467] flex-wrap">
-                  <span className="font-medium text-[#121c2a]">
+                  <span className="font-medium text-[#121c2a] break-all sm:break-normal">
                     {profile.employee?.workEmail || profile.email}
                   </span>
                   {(department || position) && (
@@ -285,7 +285,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
         </div>
 
         {/* Navigation Tabs Bar */}
-        <div className="px-6 md:px-8 border-t border-[#dee9fc] bg-[#f8fafd] flex items-center gap-2 overflow-x-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="px-4 sm:px-6 md:px-8 border-t border-[#dee9fc] bg-[#f8fafd] flex items-center gap-2 overflow-x-auto scrollbar-none no-scrollbar [overscroll-behavior-x:contain] touch-pan-x w-full min-w-0 max-w-full">
           {/* Tab 1: Identitas */}
           <button
             type="button"

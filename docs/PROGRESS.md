@@ -6,7 +6,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## [Inisiatif Multi-Device Responsif] Optimasi HP (PWA), Tablet (iPad), dan Desktop Web — 2026-11-09
 
-- **Status:** In Progress (Tahap 1 & Tahap 2 Selesai & Terverifikasi 100%)
+- **Status:** In Progress (Tahap 1, Tahap 2, & Tahap 3 Selesai & Terverifikasi 100%)
 - **Scope & Tujuan:**
   Melakukan standarisasi layout responsif multi-device pada seluruh rute HRIS PSPK agar nyaman digunakan pada 3 perangkat utama: Ponsel (PWA 393px), Tablet (iPad 768px), dan Komputer Desktop (1440px).
 
@@ -27,6 +27,18 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Tablet (768px): `/absensi` dan `/absensi/rekap` mencatat `isOverflowing: false` (bodyScrollWidth: 768px).
     - Desktop (1440px): mencatat `isOverflowing: false` (bodyScrollWidth: 1440px).
     - Pengujian horizontal scroll tabel: terverifikasi `isPinnedAtZero: true` (kolom nama tetap terkunci di posisi `left: 15px` saat digeser 250 px).
+  - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
+
+  ### Tahap 3 — Pusat Notifikasi & Profil Pegawai Mandiri (Selesai & Terverifikasi)
+  - **File:** [`notifikasi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/notifikasi/page.tsx), [`notification-center-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/notifications/notification-center-view.tsx), [`profil/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/profil/page.tsx), [`profile-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/profil/profile-view.tsx)
+  - **Perbaikan:**
+    1. **Eliminasi Double Padding:** Menghilangkan pembungkus `p-4 sm:p-6 lg:p-8` dan `p-4 md:p-8` pada file `page.tsx` yang saling bertumpuk dengan padding layout utama (`shell-container.tsx`), mengembalikan ruang lebar bersih 100% pada layar ponsel.
+    2. **Swipe Row Kategori Notifikasi:** 7 pill kategori notifikasi (*Semua, Cuti, Presensi, Payroll, Kinerja, Kontrak, Sistem*) kini dapat digeser horizontal dengan jempol secara mulus menggunakan `overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none`.
+    3. **Sub-Tab Profil Mandiri Multi-Screen:** Mengunci baris 4 tab profil (*Identitas, Dokumen, Keamanan, Sesi*) dengan proteksi geser horizontal dan mengamankan pemecahan teks panjang (email, nama) dengan `break-words` & `break-all`.
+  - **Hasil Pengujian Headless Chrome:**
+    - Mobile (393px): `/notifikasi` dan `/profil` (seluruh 4 sub-tab: identitas, dokumen, keamanan, sesi) mencatat `isOverflowing: false` (bodyScrollWidth: 393px).
+    - Tablet (768px): mencatat `isOverflowing: false` (bodyScrollWidth: 768px).
+    - Desktop (1440px): mencatat `isOverflowing: false` (bodyScrollWidth: 1440px).
   - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
 
 ---
