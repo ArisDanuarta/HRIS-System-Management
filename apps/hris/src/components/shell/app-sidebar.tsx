@@ -168,7 +168,7 @@ export function AppSidebar({
       <div className="my-3 mx-4 border-t border-white/10" />
 
       {!isCollapsed && (
-        <div className="px-5 pb-1">
+        <div className="px-5 pb-1 md:max-lg:hidden">
           <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
             Layanan Mandiri
           </span>
@@ -536,7 +536,7 @@ export function AppSidebar({
         {currentRole === "staff" && (
           <div className="py-3">
             {!isCollapsed && (
-              <div className="px-5 py-2 flex items-center justify-between">
+              <div className="px-5 py-2 flex md:max-lg:hidden items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
                   Ringkasan
                 </span>
@@ -579,7 +579,7 @@ export function AppSidebar({
       {/* Sidebar Footer */}
       <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:pb-3 bg-[#0c233d]/60 border-t border-white/10 flex items-center justify-between text-[#adc8f2] text-xs shrink-0">
         {!isCollapsed && (
-          <span className="text-[11px] opacity-80 truncate">v1.0.0 • PSPK Internal</span>
+          <span className="text-[11px] opacity-80 truncate md:max-lg:hidden">v1.0.0 • PSPK Internal</span>
         )}
         <button
           type="button"
@@ -620,19 +620,19 @@ function NavItem({ href, label, icon, isActive, isCollapsed, badge, onClick }: N
           ? "bg-[#feba48]/20 text-white border-l-4 border-[#f2af3e] font-semibold"
           : "text-[#adc8f2] hover:bg-white/10 hover:text-white font-medium"
       }`}
-      title={isCollapsed ? label : undefined}
+      title={label}
     >
       <div className="flex items-center gap-3 overflow-hidden">
         <span
-          className={`transition-colors ${
+          className={`transition-colors shrink-0 ${
             isActive ? "text-[#feba48]" : "text-[#adc8f2] group-hover:text-white"
           }`}
         >
           {icon}
         </span>
-        {!isCollapsed && <span className="truncate">{label}</span>}
+        {!isCollapsed && <span className="truncate md:max-lg:hidden">{label}</span>}
       </div>
-      {!isCollapsed && badge && <div className="shrink-0">{badge}</div>}
+      {!isCollapsed && badge && <div className="shrink-0 md:max-lg:hidden">{badge}</div>}
     </Link>
   );
 }
