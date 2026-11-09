@@ -6,7 +6,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## [Inisiatif Multi-Device Responsif] Optimasi HP (PWA), Tablet (iPad), dan Desktop Web — 2026-11-09
 
-- **Status:** In Progress (Tahap 1, Tahap 2, Tahap 3, & Tahap 4 Selesai & Terverifikasi 100%)
+- **Status:** Selesai (Seluruh 6 Tahap Tuntas & Terverifikasi 100%)
 - **Scope & Tujuan:**
   Melakukan standarisasi layout responsif multi-device pada seluruh rute HRIS PSPK agar nyaman digunakan pada 3 perangkat utama: Ponsel (PWA 393px), Tablet (iPad 768px), dan Komputer Desktop (1440px).
 
@@ -53,6 +53,58 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Mobile (393px): `/payroll` dan `/payroll/3ee6a845-25f4-486b-9106-9c93b9a06d65` mencatat `isOverflowing: false` (bodyScrollWidth: 393px, windowWidth: 393px).
     - Tablet (768px): `/payroll` dan `/payroll/3ee6a845-25f4-486b-9106-9c93b9a06d65` mencatat `isOverflowing: false` (bodyScrollWidth: 768px, windowWidth: 768px).
     - Desktop (1440px): `/payroll` dan `/payroll/3ee6a845-25f4-486b-9106-9c93b9a06d65` mencatat `isOverflowing: false` (bodyScrollWidth: 1440px, windowWidth: 1440px).
+  - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
+
+  ### Tahap 5 — Kalender Lembaga & Kalender Cuti PSPK (Selesai & Terverifikasi)
+  - **File:** [`kalender/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/kalender/page.tsx), [`work-calendar-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/kalender/work-calendar-view.tsx), [`cuti/persetujuan/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/cuti/persetujuan/page.tsx), [`leave-approval-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/cuti/leave-approval-view.tsx)
+  - **Perbaikan:**
+    1. **Tampilan Agenda Vertikal (*Mobile Agenda List View*):** Menambahkan toggle mode tampilan (`viewMode: "grid" | "agenda"`) pada header kalender. Di layar ponsel, pengguna dapat beralih ke tampilan Agenda Vertikal yang menyajikan seluruh agenda cuti, hari libur nasional, hari peringatan, dan meeting Google Meet secara kronologis dengan lencana tanggal besar di sisi kiri tanpa perlu menggeser horizontal.
+    2. **Swipeable Filter Pill Bar:** Mengubah baris 5 filter kalender (*Semua, Cuti Tim, Hari Libur, Peringatan, Meeting*) menjadi baris geser satu jari halus (`overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none`) sehingga hemat ruang vertikal di layar ponsel.
+    3. **Swipeable Tabs Persetujuan Cuti:** Mengamankan baris 4 tab persetujuan (*Menunggu Persetujuan, Telah Disetujui, Ditolak, Seluruh Riwayat*) dengan proteksi geser horizontal dan `whitespace-nowrap shrink-0` agar tidak bertumpuk atau meluap dari lebar layar ponsel 393px.
+    4. **Scroll Containment & Modal Dialog:** Kontainer tabel riwayat permohonan cuti dan grid kalender diberi isolasi sentuh geser. Seluruh 6 modal dialog pada rute kalender dan cuti (*Detail Hari, Detail Cuti, Detail Meeting, Detail Peringatan, Konfirmasi Persetujuan, dan HR Override*) diberi pengaman tinggi dan scroll internal `max-h-[90vh] overflow-y-auto`.
+  - **Hasil Pengujian Headless Chrome:**
+    - Mobile (393px): `/kalender` (Grid View: `isOverflowing: false`), `/kalender` (Agenda View: `isOverflowing: false`), `/cuti/persetujuan` (`isOverflowing: false`).
+    - Tablet (768px): `/kalender` (Grid: `isOverflowing: false`, Agenda: `isOverflowing: false`), `/cuti/persetujuan` (`isOverflowing: false`).
+    - Desktop (1440px): `/kalender` (Grid: `isOverflowing: false`, Agenda: `isOverflowing: false`), `/cuti/persetujuan` (`isOverflowing: false`).
+  - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
+
+  ### Tahap 6 — Pengujian Penuh Multi-Device & Verifikasi Performa Lintas Layar (Selesai & Terverifikasi)
+  - **Lingkup Audit:** Menjalankan audit otomatis Chrome Headless via Chrome DevTools Protocol (CDP) pada 30 rute utama aplikasi HRIS PSPK di 3 resolusi layar standar (Ponsel PWA 393 × 852 px, Tablet iPad 768 × 1024 px, dan Desktop Web 1440 × 900 px), dengan total 90 titik pengujian mandiri.
+  - **Daftar 30 Rute Teruji:**
+    1. `/dashboard`
+    2. `/absensi`
+    3. `/absensi/rekap`
+    4. `/cuti`
+    5. `/cuti/ajukan`
+    6. `/cuti/persetujuan`
+    7. `/cuti/pengaturan`
+    8. `/kalender`
+    9. `/karyawan`
+    10. `/karyawan/baru`
+    11. `/karyawan/[id]`
+    12. `/karyawan/[id]/ubah`
+    13. `/karyawan/ikatan-kerja`
+    14. `/karyawan/impor`
+    15. `/karyawan/organisasi`
+    16. `/karyawan/struktur`
+    17. `/kinerja`
+    18. `/komunikasi`
+    19. `/komunikasi/baru`
+    20. `/komunikasi/riwayat`
+    21. `/notifikasi`
+    22. `/payroll`
+    23. `/payroll/[id]`
+    24. `/payroll/komponen`
+    25. `/payroll/pengaturan`
+    26. `/profil`
+    27. `/slip-gaji`
+    28. `/tata-kelola`
+    29. `/timesheet`
+    30. `/timesheet/persetujuan`
+  - **Hasil Evaluasi 90 Titik Uji:**
+    - **Total Checks:** 90
+    - **Passed (No Overflow / Bebas Geser Samping):** 90 (100% Lulus)
+    - **Failed (Overflow):** 0
   - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
 
 ---

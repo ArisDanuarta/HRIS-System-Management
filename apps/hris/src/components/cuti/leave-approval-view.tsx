@@ -410,7 +410,7 @@ export function LeaveApprovalView({
         </div>
 
         {/* Desktop Table View (>= sm) */}
-        <div className="hidden sm:block overflow-x-auto">
+        <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#eff4ff]/60 border-b border-[#dee9fc] text-[#5b6675] uppercase tracking-wider font-semibold">
@@ -588,8 +588,8 @@ export function LeaveApprovalView({
 
       {/* Confirmation Modal */}
       {selectedAction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full border border-[#dee9fc] shadow-2xl p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-md w-full border border-[#dee9fc] shadow-2xl p-5 sm:p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex items-center gap-2.5">
               <div
                 className={`w-9 h-9 rounded-xl flex items-center justify-center ${
@@ -715,8 +715,8 @@ export function LeaveApprovalView({
 
       {/* Admin HR Override Modal */}
       {overrideTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-lg w-full border border-amber-200 shadow-2xl p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl max-w-lg w-full border border-amber-200 shadow-2xl p-5 sm:p-6 flex flex-col gap-4 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto my-auto">
             {/* Modal Header */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">

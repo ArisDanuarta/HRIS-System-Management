@@ -17,6 +17,8 @@ import {
   Unlink,
   Clock,
   Flag,
+  LayoutGrid,
+  List,
 } from "lucide-react";
 import { toDateString } from "@pspk/shared";
 import type {
@@ -71,6 +73,7 @@ export function WorkCalendarView({
   const [currentYear, setCurrentYear] = useState(year);
   const [currentMonth, setCurrentMonth] = useState(month);
   const [activeFilter, setActiveFilter] = useState<CalendarFilter>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "agenda">("grid");
   const [selectedDayData, setSelectedDayData] = useState<{
     day: number;
     dateStr: string;
@@ -285,6 +288,37 @@ export function WorkCalendarView({
     });
   };
 
+  // --- Daftar Agenda Bulanan (Untuk Tampilan Agenda Vertikal) ---
+  const agendaDays = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    const holiday = holidayMap.get(dateStr);
+    const dayObservances = observanceMap.get(dateStr) || [];
+    const dayLeaves = getLeavesForDate(dateStr);
+    const dayMeetings = getMeetingsForDate(dateStr);
+
+    const showHoliday = (activeFilter === "all" || activeFilter === "holiday") && !!holiday;
+    const showObservances = activeFilter === "all" || activeFilter === "observance" ? dayObservances : [];
+    const filteredLeaves = activeFilter === "all" || activeFilter === "leave" ? dayLeaves : [];
+    const filteredMeetings = activeFilter === "all" || activeFilter === "meeting" ? dayMeetings : [];
+
+    if (showHoliday || showObservances.length > 0 || filteredLeaves.length > 0 || filteredMeetings.length > 0) {
+      const dayDate = new Date(currentYear, currentMonth - 1, d);
+      const dayNames = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+      agendaDays.push({
+        day: d,
+        dateStr,
+        dayName: dayNames[dayDate.getDay()] || "",
+        isWeekend: dayDate.getDay() === 0 || dayDate.getDay() === 6,
+        isToday: currentYear === todayYear && currentMonth === todayMonth && d === todayDay,
+        holiday: showHoliday ? holiday : null,
+        observances: showObservances,
+        leaves: filteredLeaves,
+        meetings: filteredMeetings,
+      });
+    }
+  }
+
   // --- Filter ---
   const filterItems = [
     { id: "all" as CalendarFilter, label: "Semua Event" },
@@ -374,8 +408,38 @@ export function WorkCalendarView({
             </div>
           </div>
 
-          {/* Kontrol navigasi bulan & sinkronisasi Google */}
+          {/* Kontrol navigasi bulan, mode tampilan, & sinkronisasi Google */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            {/* View Mode Toggle: Grid vs Agenda */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "grid"
+                    ? "bg-white text-[#102e50] shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Tampilan Grid Kalender"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("agenda")}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === "agenda"
+                    ? "bg-white text-[#102e50] shadow-2xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Tampilan Daftar Agenda Vertikal"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Agenda</span>
+              </button>
+            </div>
+
             {googleConnected && (
               <>
                 <button
@@ -438,13 +502,13 @@ export function WorkCalendarView({
         </div>
 
         {/* === Filter Bar === */}
-        <div className="px-5 md:px-6 py-3 border-b border-slate-100 flex items-center gap-2 flex-wrap">
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center gap-2 overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none w-full min-w-0 max-w-full">
           {filterItems.map((f) => (
             <button
               key={f.id}
               type="button"
               onClick={() => setActiveFilter(f.id)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer active:scale-95 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer active:scale-95 whitespace-nowrap shrink-0 ${
                 activeFilter === f.id
                   ? "bg-[#102e50] text-white border-[#102e50] shadow-xs"
                   : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:text-slate-800"
@@ -459,7 +523,7 @@ export function WorkCalendarView({
               type="button"
               onClick={handleSyncHolidays}
               disabled={isSyncingHolidays}
-              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-60 active:scale-95"
+              className="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold shadow-2xs transition-all cursor-pointer disabled:opacity-60 active:scale-95 whitespace-nowrap shrink-0"
               title={`Sinkronkan libur nasional ${currentYear} dari Google Calendar`}
             >
               <RefreshCw
@@ -470,7 +534,7 @@ export function WorkCalendarView({
           )}
 
           {!canSyncHolidays && (
-            <span className="ml-auto text-[11px] text-slate-400 italic hidden sm:block">
+            <span className="ml-auto text-[11px] text-slate-400 italic hidden sm:block whitespace-nowrap shrink-0">
               Klik tanggal untuk detail
             </span>
           )}
@@ -504,28 +568,143 @@ export function WorkCalendarView({
           </div>
         )}
 
-        {/* Hint gulir mobile */}
-        <div className="sm:hidden px-4 pt-3 pb-0 text-[11px] text-slate-500 flex items-center justify-between">
-          <span className="font-medium">Kalender Bulanan</span>
-          <span className="italic text-slate-400">Geser horizontal ↔</span>
-        </div>
+        {viewMode === "agenda" ? (
+          /* === Tampilan Agenda Vertikal (Mobile Agenda List View) === */
+          <div className="p-4 md:p-6 divide-y divide-slate-100">
+            {agendaDays.length === 0 ? (
+              <div className="py-12 text-center text-slate-400">
+                <CalendarRange className="w-10 h-10 mx-auto mb-2 text-slate-300 stroke-1" />
+                <p className="text-xs font-semibold text-slate-600">
+                  Tidak ada agenda atau cuti tim pada bulan ini.
+                </p>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Bulan {MONTHS[currentMonth - 1]} {currentYear} tidak memiliki hari libur nasional, rapat terdaftar, atau cuti pegawai yang sesuai dengan filter aktif.
+                </p>
+              </div>
+            ) : (
+              agendaDays.map((ad) => (
+                <div key={`agenda-${ad.dateStr}`} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3 sm:gap-4">
+                  {/* Left: Date Badge */}
+                  <div
+                    className={`w-12 sm:w-14 shrink-0 p-2 rounded-xl text-center border ${
+                      ad.isToday
+                        ? "bg-[#102e50] text-[#f2af3e] border-[#102e50] shadow-xs"
+                        : ad.holiday || ad.isWeekend
+                          ? "bg-red-50 text-[#a8281c] border-red-200"
+                          : "bg-slate-50 text-slate-700 border-slate-200"
+                    }`}
+                  >
+                    <div className="text-base sm:text-lg font-bold font-mono leading-none">{ad.day}</div>
+                    <div className="text-[10px] uppercase font-bold mt-1 tracking-tight truncate">{ad.dayName.slice(0, 3)}</div>
+                  </div>
 
-        {/* === Grid Kalender === */}
-        <div className="p-4 md:p-6 overflow-x-auto">
-          <div className="min-w-[680px] sm:min-w-0">
-            {/* Header hari */}
-            <div className="grid grid-cols-7 gap-1.5 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-[#5b6675]">
-              <span className="text-[#a8281c]">Min</span>
-              <span>Sen</span>
-              <span>Sel</span>
-              <span>Rab</span>
-              <span>Kam</span>
-              <span>Jum</span>
-              <span className="text-[#a8281c]">Sab</span>
+                  {/* Right: Event Items */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Libur Nasional */}
+                    {ad.holiday && (
+                      <div className="p-2.5 rounded-xl bg-red-50 border border-red-200 text-red-950 flex items-start gap-2 text-xs">
+                        <span className="font-bold px-1.5 py-0.5 rounded text-[10px] bg-[#a8281c] text-white shrink-0 mt-0.5">
+                          {ad.holiday.isCollectiveLeave ? "Cuti Bersama" : "Libur Nasional"}
+                        </span>
+                        <div className="font-semibold leading-tight">{ad.holiday.name}</div>
+                      </div>
+                    )}
+
+                    {/* Hari Peringatan */}
+                    {ad.observances.map((obs) => (
+                      <div
+                        key={obs.id}
+                        onClick={() => setSelectedObservanceDetail(obs)}
+                        className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-950 text-xs flex items-center justify-between gap-2 cursor-pointer hover:bg-amber-100 transition-colors"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Flag className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                          <span className="font-semibold truncate">{obs.name}</span>
+                        </div>
+                        <span className="text-[10px] font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded shrink-0">
+                          Peringatan
+                        </span>
+                      </div>
+                    ))}
+
+                    {/* Meeting Google Meet */}
+                    {ad.meetings.map((m) => (
+                      <div
+                        key={m.id}
+                        onClick={() => setSelectedMeetingDetail(m)}
+                        className="p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-950 text-xs flex items-center justify-between gap-2 cursor-pointer hover:bg-indigo-100 transition-colors"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <Video className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                          <span className="font-semibold truncate">{m.title}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[11px] font-mono text-indigo-700 shrink-0">
+                          <Clock className="w-3 h-3 text-indigo-500" />
+                          <span>{m.isAllDay ? "Sepanjang hari" : `${formatMeetingTime(m.startAt)} - ${formatMeetingTime(m.endAt)}`}</span>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Cuti Rekan Kerja */}
+                    {ad.leaves.map((l) => {
+                      const conf = getLeavePillConfig(l.leaveType.name);
+                      return (
+                        <div
+                          key={l.id}
+                          onClick={() => setSelectedLeaveDetail(l)}
+                          className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-xs flex items-center justify-between gap-2 cursor-pointer hover:bg-slate-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Users className="w-3.5 h-3.5 text-[#102e50] shrink-0" />
+                            <div className="truncate">
+                              <span className="font-bold text-slate-900">{l.employee.fullName}</span>
+                              <span className="text-slate-500 text-[11px] ml-1.5 font-mono">
+                                ({l.employee.department || "PSPK"})
+                              </span>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${conf.bg}`}>
+                            {l.leaveType.name}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          /* === Tampilan Grid Kalender === */
+          <>
+            {/* Hint gulir mobile */}
+            <div className="sm:hidden px-4 pt-3 pb-0 text-[11px] text-slate-500 flex items-center justify-between">
+              <span className="font-medium">Kalender Bulanan</span>
+              <button
+                type="button"
+                onClick={() => setViewMode("agenda")}
+                className="text-[#102e50] font-semibold underline cursor-pointer"
+              >
+                Lihat Daftar Agenda ↓
+              </button>
             </div>
 
-            {/* Grid hari */}
-            <div className="grid grid-cols-7 gap-1.5">
+            {/* Grid Container */}
+            <div className="p-4 md:p-6 w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none">
+              <div className="min-w-[680px] sm:min-w-0">
+                {/* Header hari */}
+                <div className="grid grid-cols-7 gap-1.5 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-[#5b6675]">
+                  <span className="text-[#a8281c]">Min</span>
+                  <span>Sen</span>
+                  <span>Sel</span>
+                  <span>Rab</span>
+                  <span>Kam</span>
+                  <span>Jum</span>
+                  <span className="text-[#a8281c]">Sab</span>
+                </div>
+
+                {/* Grid hari */}
+                <div className="grid grid-cols-7 gap-1.5">
             {daysArray.map((day, idx) => {
               if (day === null) {
                 return (
@@ -713,51 +892,53 @@ export function WorkCalendarView({
                 </div>
               );
             })}
-          </div>
-        </div>
-
-        {/* === Legenda === */}
-          <div className="mt-5 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-            <div className="flex items-center flex-wrap gap-3 md:gap-4">
-              <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-3.5 rounded-full bg-[#102e50] flex items-center justify-center text-[#f2af3e] text-[8px] font-bold">
-                  ★
-                </span>
-                <span className="text-slate-600">Hari Ini</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-red-100 border border-red-300" />
-                <span className="text-slate-600">Libur / Cuti Bersama</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-amber-100 border border-amber-300" />
-                <span className="text-slate-600">Peringatan Nasional (Hari Kerja)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-indigo-100 border border-indigo-300" />
-                <span className="text-slate-600">Google Meet (Pribadi)</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-[#eff4ff] border border-[#dee9fc]" />
-                <span className="text-slate-600">Cuti Tahunan</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded bg-rose-50 border border-rose-200" />
-                <span className="text-slate-600">Izin Sakit</span>
+                </div>
               </div>
             </div>
-            <span className="text-slate-400 text-[11px] italic hidden md:block">
-              * Klik tanggal untuk detail agenda
-            </span>
+          </>
+        )}
+
+        {/* === Legenda === */}
+        <div className="px-5 md:px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-50/50">
+          <div className="flex items-center flex-wrap gap-3 md:gap-4">
+            <div className="flex items-center gap-1.5">
+              <span className="w-3.5 h-3.5 rounded-full bg-[#102e50] flex items-center justify-center text-[#f2af3e] text-[8px] font-bold">
+                ★
+              </span>
+              <span className="text-slate-600">Hari Ini</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-red-100 border border-red-300" />
+              <span className="text-slate-600">Libur / Cuti Bersama</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-amber-100 border border-amber-300" />
+              <span className="text-slate-600">Peringatan Nasional (Hari Kerja)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-indigo-100 border border-indigo-300" />
+              <span className="text-slate-600">Google Meet (Pribadi)</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-[#eff4ff] border border-[#dee9fc]" />
+              <span className="text-slate-600">Cuti Tahunan</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded bg-rose-50 border border-rose-200" />
+              <span className="text-slate-600">Izin Sakit</span>
+            </div>
           </div>
+          <span className="text-slate-400 text-[11px] italic hidden md:block">
+            * Klik tanggal untuk detail agenda
+          </span>
         </div>
       </div>
 
       {/* === Modal Detail Hari === */}
       {selectedDayData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="fixed inset-0" onClick={() => setSelectedDayData(null)} />
-          <div className="relative bg-white rounded-2xl max-w-md w-full border border-[#dee9fc] shadow-2xl overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-2xl max-w-md w-full border border-[#dee9fc] shadow-2xl overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] my-auto">
             {/* Header modal */}
             <div className="px-5 py-4 bg-gradient-to-r from-[#eff4ff] to-white border-b border-[#dee9fc] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -952,9 +1133,9 @@ export function WorkCalendarView({
 
       {/* === Modal Detail Hari Peringatan Nasional (Klik Langsung Chip) === */}
       {selectedObservanceDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="fixed inset-0" onClick={() => setSelectedObservanceDetail(null)} />
-          <div className="relative bg-white rounded-2xl max-w-md w-full border border-amber-200 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-2xl max-w-md w-full border border-amber-200 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] my-auto">
             <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50/50 border-b border-amber-200 flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-[#102e50] text-[#f2af3e] flex items-center justify-center shrink-0">
@@ -1017,9 +1198,9 @@ export function WorkCalendarView({
 
       {/* === Modal Detail Meeting Google Meet === */}
       {selectedMeetingDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="fixed inset-0" onClick={() => setSelectedMeetingDetail(null)} />
-          <div className="relative bg-white rounded-2xl max-w-sm w-full border border-indigo-200 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-2xl max-w-sm w-full border border-indigo-200 shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] my-auto">
             <div className="px-5 py-4 bg-gradient-to-r from-indigo-50 to-white border-b border-indigo-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-[#102e50] text-[#f2af3e] flex items-center justify-center">
@@ -1099,9 +1280,9 @@ export function WorkCalendarView({
 
       {/* === Modal Detail Cuti Karyawan === */}
       {selectedLeaveDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="fixed inset-0" onClick={() => setSelectedLeaveDetail(null)} />
-          <div className="relative bg-white rounded-2xl max-w-sm w-full border border-[#dee9fc] shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150">
+          <div className="relative bg-white rounded-2xl max-w-sm w-full border border-[#dee9fc] shadow-2xl overflow-hidden z-10 animate-in zoom-in-95 duration-150 max-h-[90vh] my-auto">
             <div className="px-5 py-4 bg-gradient-to-r from-[#eff4ff] to-white border-b border-[#dee9fc] flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#102e50] font-heading">Rincian Cuti</h3>
               <button
