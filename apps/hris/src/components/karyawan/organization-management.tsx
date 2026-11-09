@@ -623,7 +623,7 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
               </div>
 
               {/* List Jabatan */}
-              <div className="divide-y divide-slate-100 min-h-[300px] max-h-[580px] overflow-y-auto">
+              <div className="divide-y divide-slate-100 min-h-0 lg:min-h-[300px] max-h-none overflow-y-visible lg:max-h-[580px] lg:overflow-y-auto">
                 {filteredPositions.length === 0 ? (
                   <div className="py-16 text-center text-xs text-slate-400 italic flex flex-col items-center gap-2">
                     <Briefcase className="w-8 h-8 text-slate-300" />
