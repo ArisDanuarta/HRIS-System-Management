@@ -168,7 +168,7 @@ export function AppSidebar({
       <div className="my-3 mx-4 border-t border-white/10" />
 
       {!isCollapsed && (
-        <div className="px-5 pb-1 md:max-lg:hidden">
+        <div className="px-5 pb-1">
           <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
             Layanan Mandiri
           </span>
@@ -251,7 +251,7 @@ export function AppSidebar({
         className={`fixed left-0 top-0 h-full bg-[#102e50] text-white z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(16,46,80,0.15)] transition-all duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${
-          isCollapsed ? "md:w-20 w-[272px]" : "w-[272px] md:w-20 lg:w-[264px]"
+          isCollapsed ? "w-[272px] md:w-20" : "w-[272px] md:w-[264px]"
         }`}
         style={{ backgroundColor: "#102e50" }}
       >
@@ -271,36 +271,21 @@ export function AppSidebar({
                 />
               </div>
             ) : (
-              <>
-                {/* Mini Circle Logo for Tablet Rail mode */}
-                <div className="w-10 h-10 rounded-xl bg-white p-1.5 shadow-sm border border-white/20 hidden md:max-lg:flex items-center justify-center shrink-0">
-                  <Image
-                    alt="Logo PSPK"
-                    className="w-full h-full object-contain"
-                    src="/images/logo_pspk_circle.jpg"
-                    width={2048}
-                    height={2048}
-                    unoptimized
-                    priority
-                  />
-                </div>
-                {/* Full Horizontal Logo for Mobile Drawer & Desktop */}
-                <div className="h-11 px-3 py-1 bg-white rounded-xl shadow-xs border border-white/15 flex md:max-lg:hidden items-center justify-between flex-1 transition-all">
-                  <Image
-                    alt="Pusat Studi Pendidikan dan Kebijakan"
-                    className="h-7 w-auto object-contain"
-                    src="/images/logo_pspk_horizontal.png"
-                    width={485}
-                    height={80}
-                    style={{ width: "auto" }}
-                    unoptimized
-                    priority
-                  />
-                  <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">
-                    HRIS
-                  </span>
-                </div>
-              </>
+              <div className="h-11 px-3 py-1 bg-white rounded-xl shadow-xs border border-white/15 flex items-center justify-between flex-1 transition-all">
+                <Image
+                  alt="Pusat Studi Pendidikan dan Kebijakan"
+                  className="h-7 w-auto object-contain"
+                  src="/images/logo_pspk_horizontal.png"
+                  width={485}
+                  height={80}
+                  style={{ width: "auto" }}
+                  unoptimized
+                  priority
+                />
+                <span className="text-[9px] font-bold tracking-wider text-[#805600] bg-[#feba48]/25 px-1.5 py-0.5 rounded uppercase">
+                  HRIS
+                </span>
+              </div>
             )}
 
             {/* Mobile Close Button */}
@@ -318,7 +303,7 @@ export function AppSidebar({
         {currentRole === "admin_hr" && (
           <div className="py-3">
             {!isCollapsed && (
-              <div className="px-5 py-2 flex md:max-lg:hidden items-center justify-between">
+              <div className="px-5 py-2 flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
                   Manajemen Organisasi
                 </span>
@@ -536,7 +521,7 @@ export function AppSidebar({
         {currentRole === "staff" && (
           <div className="py-3">
             {!isCollapsed && (
-              <div className="px-5 py-2 flex md:max-lg:hidden items-center justify-between">
+              <div className="px-5 py-2 flex items-center justify-between">
                 <span className="text-[11px] uppercase tracking-wider text-[#adc8f2]/80 font-bold">
                   Ringkasan
                 </span>
@@ -579,7 +564,7 @@ export function AppSidebar({
       {/* Sidebar Footer */}
       <div className="p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] md:pb-3 bg-[#0c233d]/60 border-t border-white/10 flex items-center justify-between text-[#adc8f2] text-xs shrink-0">
         {!isCollapsed && (
-          <span className="text-[11px] opacity-80 truncate md:max-lg:hidden">v1.0.0 • PSPK Internal</span>
+          <span className="text-[11px] opacity-80 truncate">v1.0.0 • PSPK Internal</span>
         )}
         <button
           type="button"
@@ -630,9 +615,9 @@ function NavItem({ href, label, icon, isActive, isCollapsed, badge, onClick }: N
         >
           {icon}
         </span>
-        {!isCollapsed && <span className="truncate md:max-lg:hidden">{label}</span>}
+        {!isCollapsed && <span className="truncate">{label}</span>}
       </div>
-      {!isCollapsed && badge && <div className="shrink-0 md:max-lg:hidden">{badge}</div>}
+      {!isCollapsed && badge && <div className="shrink-0">{badge}</div>}
     </Link>
   );
 }

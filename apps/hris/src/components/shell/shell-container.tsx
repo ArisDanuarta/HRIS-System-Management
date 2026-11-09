@@ -42,18 +42,26 @@ export function ShellContainer({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  // Responsivitas Tablet: Deteksi otomatis lebar tablet (768px - 1023px) agar sidebar beralih ke mode Rail (80px)
+  // Responsivitas Tablet: Default mode Rail (80px) pada tablet (768px - 1023px) dan adaptif terhadap perubahan ukuran layar
   React.useEffect(() => {
-    const handleAutoCollapseForTablet = () => {
+    let lastWidth = window.innerWidth;
+    if (lastWidth >= 768 && lastWidth < 1024) {
+      setIsCollapsed(true);
+    }
+
+    const handleResize = () => {
       const width = window.innerWidth;
-      if (width >= 768 && width < 1024) {
+      // Auto collapse hanya ketika bertransisi masuk ke ukuran tablet dari desktop (>1024 ke <1024)
+      if (width >= 768 && width < 1024 && lastWidth >= 1024) {
         setIsCollapsed(true);
+      } else if (width >= 1024 && lastWidth < 1024) {
+        setIsCollapsed(false);
       }
+      lastWidth = width;
     };
 
-    handleAutoCollapseForTablet();
-    window.addEventListener("resize", handleAutoCollapseForTablet);
-    return () => window.removeEventListener("resize", handleAutoCollapseForTablet);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleCloseMobile = useCallback(() => {
@@ -103,10 +111,10 @@ export function ShellContainer({
         onToggleMobile={handleToggleMobile}
       />
 
-      {/* Main Content Area - Adaptif Mobile pl-0, Tablet pl-20, Desktop pl-20/pl-264 */}
+      {/* Main Content Area - Adaptif Mobile pl-0, Tablet & Desktop adaptif pl-20 / pl-264 */}
       <div
         className={`flex-1 w-full min-w-0 max-w-full overflow-x-hidden transition-all duration-300 pt-[calc(4rem+env(safe-area-inset-top,0px))] md:pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
-          isCollapsed ? "md:pl-20 pl-0" : "pl-0 md:pl-20 lg:pl-[264px]"
+          isCollapsed ? "md:pl-20 pl-0" : "pl-0 md:pl-[264px]"
         }`}
       >
         <main className="p-3.5 sm:p-6 lg:p-8 max-w-[1440px] w-full min-w-0 mx-auto min-h-[calc(100vh-4rem-env(safe-area-inset-top,0px))] md:min-h-[calc(100vh-64px)] flex flex-col">

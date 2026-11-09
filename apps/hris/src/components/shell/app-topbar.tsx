@@ -73,7 +73,7 @@ export function AppTopbar({
   return (
     <header
       className={`fixed top-0 right-0 h-[calc(4rem+env(safe-area-inset-top,0px))] md:h-16 pt-[env(safe-area-inset-top,0px)] md:pt-0 bg-white/95 backdrop-blur-md z-40 flex items-center justify-between px-3 sm:px-6 lg:px-8 border-b border-[#dee9fc] shadow-xs transition-all duration-300 left-0 ${
-        isCollapsed ? "md:left-20" : "left-0 md:left-20 lg:left-[264px]"
+        isCollapsed ? "md:left-20" : "left-0 md:left-[264px]"
       }`}
     >
       {/* Left: Hamburger Button & Breadcrumbs */}
