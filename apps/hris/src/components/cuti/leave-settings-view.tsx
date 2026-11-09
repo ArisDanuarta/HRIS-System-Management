@@ -385,7 +385,92 @@ export function LeaveSettingsView({
       {/* TAB 1: JENIS CUTI */}
       {activeTab === "types" && (
         <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* 1. Mobile Card View (< sm) */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {leaveTypes.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                Belum ada jenis cuti yang terdaftar.
+              </div>
+            ) : (
+              leaveTypes.map((lt) => (
+                <div key={lt.id} className="p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-[#102e50] text-sm">
+                        {lt.name}
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-0.5">
+                        Kuota Bawaan: <span className="font-bold text-[#102e50]">{lt.defaultQuotaDays} Hari / tahun</span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                        lt.isActive
+                          ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : "bg-slate-100 text-slate-500 border border-slate-200"
+                      }`}
+                    >
+                      {lt.isActive ? "Aktif" : "Nonaktif"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block uppercase">Kriteria Pegawai</span>
+                      <div className="mt-0.5">{renderGenderBadge(lt.applicableGender)}</div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block uppercase">Tipe Gaji</span>
+                      <div className="mt-0.5">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold inline-block ${
+                            lt.isPaid
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-amber-50 text-amber-800 border border-amber-200"
+                          }`}
+                        >
+                          {lt.isPaid ? "Berbayar" : "Unpaid"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                    <div>
+                      <span className="text-[10px] font-semibold text-slate-400 block uppercase">Lampiran Berkas</span>
+                      <span className={`text-[11px] font-medium ${lt.requiresAttachment ? "text-amber-800 font-semibold" : "text-slate-400"}`}>
+                        {lt.requiresAttachment ? "Wajib Lampiran" : "Tidak Wajib"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleStartEdit(lt)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-[#102e50] hover:bg-[#eff4ff] text-[#102e50] text-xs font-semibold transition-colors"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeletingType(lt)}
+                        className="p-1.5 rounded-lg border border-red-200 hover:border-red-500 hover:bg-red-50 text-red-600 transition-colors"
+                        title="Hapus Jenis Cuti"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* 2. Desktop Table View (>= sm) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#eff4ff]/60 border-b border-[#dee9fc] text-[#5b6675] uppercase tracking-wider font-semibold">
@@ -471,7 +556,40 @@ export function LeaveSettingsView({
       {/* TAB 2: HARI LIBUR NASIONAL */}
       {activeTab === "holidays" && (
         <div className="bg-white rounded-xl border border-[#dee9fc] shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* 1. Mobile Card View (< sm) */}
+          <div className="sm:hidden divide-y divide-slate-100">
+            {holidays.length === 0 ? (
+              <div className="py-12 text-center text-slate-400 text-xs">
+                Belum ada hari libur yang terdaftar.
+              </div>
+            ) : (
+              holidays.map((h) => (
+                <div key={h.id} className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-[#102e50] font-mono">
+                      {formatDate(h.date)}
+                    </div>
+                    <div className="text-xs font-semibold text-slate-800 mt-0.5">
+                      {h.name}
+                    </div>
+                  </div>
+
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
+                      h.isCollectiveLeave
+                        ? "bg-amber-50 text-amber-900 border border-amber-200"
+                        : "bg-red-50 text-[#a8281c] border border-red-200"
+                    }`}
+                  >
+                    {h.isCollectiveLeave ? "Cuti Bersama" : "Libur Nasional"}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* 2. Desktop Table View (>= sm) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-[#eff4ff]/60 border-b border-[#dee9fc] text-[#5b6675] uppercase tracking-wider font-semibold">
