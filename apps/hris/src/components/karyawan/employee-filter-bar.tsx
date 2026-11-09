@@ -79,10 +79,10 @@ export function EmployeeFilterBar({
     Boolean(searchParams.get("expiring"));
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col gap-3">
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+    <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col gap-3 w-full min-w-0 max-w-full">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 w-full min-w-0">
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full min-w-0">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -105,23 +105,23 @@ export function EmployeeFilterBar({
         </form>
 
         {/* Filter Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold pl-1 pr-1">
+        <div className="flex flex-wrap items-center gap-2 w-full min-w-0">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold pl-1 pr-1 shrink-0">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <span>Filter:</span>
           </div>
 
           {/* Department Filter: Tampilkan badge terkunci pada mode tim */}
           {isTeamView ? (
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-[#102E50]/5 border border-[#102E50]/15 text-xs text-[#102E50] font-semibold">
-              <Building2 className="w-3.5 h-3.5 text-[#F2AF3E]" />
-              <span>{departmentName || "Divisi Saya"}</span>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-2 rounded-lg bg-[#102E50]/5 border border-[#102E50]/15 text-xs text-[#102E50] font-semibold max-w-full min-w-0">
+              <Building2 className="w-3.5 h-3.5 text-[#F2AF3E] shrink-0" />
+              <span className="truncate">{departmentName || "Divisi Saya"}</span>
             </div>
           ) : (
             <select
               value={currentDepartmentId || "ALL"}
               onChange={(e) => applyFilters({ dept: e.target.value })}
-              className="text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+              className="w-full sm:w-auto sm:max-w-[260px] text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium max-w-full truncate cursor-pointer"
             >
               <option value="ALL">Semua Divisi / Departemen</option>
               {departments.map((dept) => (
@@ -136,7 +136,7 @@ export function EmployeeFilterBar({
           <select
             value={currentStatus || "ALL"}
             onChange={(e) => applyFilters({ status: e.target.value })}
-            className="text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+            className="flex-1 sm:flex-none text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium max-w-full truncate cursor-pointer"
           >
             <option value="ALL">Semua Status</option>
             <option value="ACTIVE">Aktif</option>
@@ -150,7 +150,7 @@ export function EmployeeFilterBar({
           <select
             value={currentType || "ALL"}
             onChange={(e) => applyFilters({ type: e.target.value })}
-            className="text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+            className="flex-1 sm:flex-none text-xs bg-slate-50/70 border border-slate-200 rounded-lg px-2.5 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium max-w-full truncate cursor-pointer"
           >
             <option value="ALL">Semua Tipe Kontrak</option>
             <option value="PERMANENT">Pegawai Tetap</option>
@@ -163,7 +163,7 @@ export function EmployeeFilterBar({
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-[#A8281C] hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 px-2.5 py-2 text-xs font-semibold text-[#A8281C] hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
               title="Reset semua filter"
             >
               <RotateCcw className="w-3.5 h-3.5" />
