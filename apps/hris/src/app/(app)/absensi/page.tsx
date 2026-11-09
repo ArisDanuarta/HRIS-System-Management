@@ -119,7 +119,7 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
   const activeMonthLabel = `${monthNames[currentMonth - 1]} ${currentYear}`;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-w-0 max-w-full">
       {/* Unified Subnavigation Tabs */}
       <AttendanceLeaveSubnav
         activeTab="absensi"
@@ -129,47 +129,47 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
       />
 
       {/* Navy Hero Section (PSPK Brand Identity) */}
-      <div className="bg-[#102e50] rounded-2xl p-6 sm:p-7 text-white relative overflow-hidden shadow-xs">
+      <div className="bg-[#102e50] rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden shadow-xs w-full min-w-0">
         {/* Subtle decorative bookmark/dialog accent */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#f2af3e]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#f2af3e] via-[#df632f] to-[#0874aa]" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[#f2af3e] text-[11px] font-semibold tracking-wide uppercase">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Portal Kehadiran Pegawai PSPK</span>
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">Portal Kehadiran Pegawai PSPK</span>
             </div>
-            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
+            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight break-words">
               Presensi & Kehadiran Saya
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed break-words">
               Pencatatan jam kerja real-time, pemantauan ketepatan waktu, dan rekapitulasi
               kehadiran bulanan yang terintegrasi.
             </p>
           </div>
 
           {/* Month Period Switcher */}
-          <div className="flex items-center gap-2 self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl p-1.5 flex-wrap sm:flex-nowrap">
-            <div className="flex items-center gap-1 w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-2 self-stretch sm:self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl p-1.5 flex-wrap sm:flex-nowrap justify-between w-full sm:w-auto">
+            <div className="flex items-center justify-between gap-1 w-full sm:w-auto flex-1 sm:flex-initial">
               <Link
                 href={`/absensi?year=${prevYear}&month=${prevMonth}`}
-                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                 title="Bulan Sebelumnya"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Link>
 
-              <div className="px-2.5 sm:px-3 py-1 text-center min-w-[115px] sm:min-w-[135px]">
+              <div className="px-2 sm:px-3 py-1 text-center min-w-[105px] sm:min-w-[135px] flex-1 sm:flex-initial">
                 <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
                   Periode Riwayat
                 </span>
-                <span className="text-xs sm:text-sm font-bold text-white">{activeMonthLabel}</span>
+                <span className="text-xs sm:text-sm font-bold text-white whitespace-nowrap">{activeMonthLabel}</span>
               </div>
 
               <Link
                 href={`/absensi?year=${nextYear}&month=${nextMonth}`}
-                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg text-slate-200 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                 title="Bulan Berikutnya"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -214,97 +214,97 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
           </div>
 
           {/* 6-Card KPI Grid using PSPK Primary & Secondary Palette */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 my-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 sm:gap-3.5 my-5">
             {/* 1. Tepat Waktu */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-4 relative overflow-hidden">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 bottom-0 w-1 bg-emerald-600" />
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-semibold text-[#102e50]">Tepat Waktu</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#102e50] truncate">Tepat Waktu</span>
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 shrink-0" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold text-[#102e50] tabular-nums">
+                <span className="text-xl sm:text-2xl font-bold text-[#102e50] tabular-nums">
                   {monthlyData.stats.presentCount}
                 </span>
-                <span className="text-xs text-slate-500">Hari</span>
+                <span className="text-[11px] sm:text-xs text-slate-500">Hari</span>
               </div>
             </div>
 
             {/* 2. Terlambat */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-4 relative overflow-hidden">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#df632f]" />
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-semibold text-[#102e50]">Terlambat</span>
-                <AlertTriangle className="w-4 h-4 text-[#df632f]" />
+              <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#102e50] truncate">Terlambat</span>
+                <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#df632f] shrink-0" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold text-[#df632f] tabular-nums">
+                <span className="text-xl sm:text-2xl font-bold text-[#df632f] tabular-nums">
                   {monthlyData.stats.lateCount}
                 </span>
-                <span className="text-xs text-slate-500">Hari</span>
+                <span className="text-[11px] sm:text-xs text-slate-500">Hari</span>
               </div>
             </div>
 
             {/* 3. WFH / Remote */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-4 relative overflow-hidden">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#0874aa]" />
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-semibold text-[#102e50]">WFH / Remote</span>
-                <Home className="w-4 h-4 text-[#0874aa]" />
+              <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#102e50] truncate">WFH / Remote</span>
+                <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0874aa] shrink-0" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold text-[#0874aa] tabular-nums">{wfhCount}</span>
-                <span className="text-xs text-slate-500">Hari</span>
+                <span className="text-xl sm:text-2xl font-bold text-[#0874aa] tabular-nums">{wfhCount}</span>
+                <span className="text-[11px] sm:text-xs text-slate-500">Hari</span>
               </div>
             </div>
 
             {/* 4. Izin / Cuti */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-4 relative overflow-hidden">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#f2af3e]" />
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-semibold text-[#102e50]">Izin / Cuti</span>
-                <Calendar className="w-4 h-4 text-[#f2af3e]" />
+              <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#102e50] truncate">Izin / Cuti</span>
+                <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#f2af3e] shrink-0" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold text-[#102e50] tabular-nums">
+                <span className="text-xl sm:text-2xl font-bold text-[#102e50] tabular-nums">
                   {monthlyData.stats.leaveCount}
                 </span>
-                <span className="text-xs text-slate-500">Hari</span>
+                <span className="text-[11px] sm:text-xs text-slate-500">Hari</span>
               </div>
             </div>
 
             {/* 5. Alpa / Tanpa Keterangan */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-4 relative overflow-hidden">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#a8281c]" />
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-semibold text-[#102e50]">Alpa</span>
-                <XCircle className="w-4 h-4 text-[#a8281c]" />
+              <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#102e50] truncate">Alpa</span>
+                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#a8281c] shrink-0" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold text-[#a8281c] tabular-nums">
+                <span className="text-xl sm:text-2xl font-bold text-[#a8281c] tabular-nums">
                   {monthlyData.stats.absentCount}
                 </span>
-                <span className="text-xs text-slate-500">Hari</span>
+                <span className="text-[11px] sm:text-xs text-slate-500">Hari</span>
               </div>
             </div>
 
             {/* 6. Total Jam Kerja */}
-            <div className="bg-white border border-slate-200/80 rounded-xl p-4 relative overflow-hidden">
+            <div className="bg-white border border-slate-200/80 rounded-xl p-3 sm:p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#8e2d3f]" />
-              <div className="flex items-center justify-between text-slate-500 mb-2">
-                <span className="text-xs font-semibold text-[#102e50]">Total Durasi</span>
-                <Clock className="w-4 h-4 text-[#8e2d3f]" />
+              <div className="flex items-center justify-between text-slate-500 mb-1.5 sm:mb-2">
+                <span className="text-[11px] sm:text-xs font-semibold text-[#102e50] truncate">Total Durasi</span>
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#8e2d3f] shrink-0" />
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-2xl font-bold text-[#102e50] tabular-nums">
+                <span className="text-xl sm:text-2xl font-bold text-[#102e50] tabular-nums">
                   {monthlyData.stats.totalWorkHours}
                 </span>
-                <span className="text-xs text-slate-500">Jam</span>
+                <span className="text-[11px] sm:text-xs text-slate-500">Jam</span>
               </div>
             </div>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2 break-words">
             <span>
               Jam operasional standar:{" "}
               <strong className="text-[#102e50]">

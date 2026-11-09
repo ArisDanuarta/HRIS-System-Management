@@ -119,7 +119,7 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-w-0 max-w-full">
       {/* Unified Subnavigation Tabs */}
       <AttendanceLeaveSubnav
         activeTab="rekap"
@@ -129,39 +129,39 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
       />
 
       {/* Navy Hero Section (PSPK Brand Identity) */}
-      <div className="bg-[#102e50] rounded-2xl p-6 sm:p-7 text-white relative overflow-hidden shadow-xs">
+      <div className="bg-[#102e50] rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden shadow-xs w-full min-w-0">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#f2af3e]/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/3" />
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#f2af3e] via-[#df632f] to-[#0874aa]" />
 
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/10 border border-white/15 text-[#f2af3e] text-[11px] font-semibold tracking-wide uppercase">
                 {isTeamView ? (
                   <>
-                    <Users className="w-3.5 h-3.5" />
-                    <span>Monitoring Presensi Tim</span>
+                    <Users className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Monitoring Presensi Tim</span>
                   </>
                 ) : (
                   <>
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>Manajemen Presensi Lembaga (HR)</span>
+                    <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Manajemen Presensi Lembaga (HR)</span>
                   </>
                 )}
               </span>
 
               {isTeamView && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#0874aa]/30 border border-[#0874aa]/50 text-white text-[11px] font-semibold">
-                  <Building2 className="w-3 h-3 text-[#f2af3e]" />
-                  <span>{managerTeamInfo?.currentDepartment?.name || "Divisi Saya"}</span>
+                  <Building2 className="w-3 h-3 text-[#f2af3e] shrink-0" />
+                  <span className="truncate">{managerTeamInfo?.currentDepartment?.name || "Divisi Saya"}</span>
                 </span>
               )}
             </div>
 
-            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight">
+            <h1 className="font-heading font-bold text-2xl sm:text-3xl text-white tracking-tight break-words">
               {isTeamView ? "Rekapitulasi Kehadiran Tim" : "Rekapitulasi Kehadiran Pegawai"}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed break-words">
               {isTeamView
                 ? `Pemantauan matriks harian dan ringkasan kehadiran anggota tim ${
                     managerTeamInfo?.currentDepartment?.name
@@ -173,11 +173,11 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
           </div>
 
           {/* Active Period Summary Box */}
-          <div className="self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-4 py-2.5 text-left md:text-right shrink-0">
+          <div className="self-stretch sm:self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-4 py-2.5 text-left md:text-right shrink-0 w-full sm:w-auto">
             <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
               Periode Laporan Aktif
             </span>
-            <span className="text-sm sm:text-base font-bold text-white">
+            <span className="text-sm sm:text-base font-bold text-white whitespace-nowrap">
               {monthNames[currentMonth - 1]} {currentYear}
             </span>
           </div>
