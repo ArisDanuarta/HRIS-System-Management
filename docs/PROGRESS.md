@@ -6,7 +6,7 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ## [Inisiatif Multi-Device Responsif] Optimasi HP (PWA), Tablet (iPad), dan Desktop Web — 2026-11-09
 
-- **Status:** In Progress (Tahap 1, Tahap 2, & Tahap 3 Selesai & Terverifikasi 100%)
+- **Status:** In Progress (Tahap 1, Tahap 2, Tahap 3, & Tahap 4 Selesai & Terverifikasi 100%)
 - **Scope & Tujuan:**
   Melakukan standarisasi layout responsif multi-device pada seluruh rute HRIS PSPK agar nyaman digunakan pada 3 perangkat utama: Ponsel (PWA 393px), Tablet (iPad 768px), dan Komputer Desktop (1440px).
 
@@ -39,6 +39,20 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
     - Mobile (393px): `/notifikasi` dan `/profil` (seluruh 4 sub-tab: identitas, dokumen, keamanan, sesi) mencatat `isOverflowing: false` (bodyScrollWidth: 393px).
     - Tablet (768px): mencatat `isOverflowing: false` (bodyScrollWidth: 768px).
     - Desktop (1440px): mencatat `isOverflowing: false` (bodyScrollWidth: 1440px).
+  - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
+
+  ### Tahap 4 — Modul Penggajian & Detail Payroll Periode (Selesai & Terverifikasi)
+  - **File:** [`payroll/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/payroll/page.tsx), [`payroll/[id]/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/payroll/[id]/page.tsx), [`payroll-period-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/payroll-period-table.tsx), [`payroll-detail-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/payroll-detail-view.tsx), [`payslip-detail-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/payslip-detail-modal.tsx), [`timesheet-input-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/timesheet-input-modal.tsx), [`create-period-modal.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/payroll/create-period-modal.tsx)
+  - **Perbaikan:**
+    1. **Layout & Root Container Standar:** Menetapkan `w-full min-w-0 max-w-full` pada kontainer root halaman daftar periode dan detail payroll, memastikan tidak ada elemen yang memaksa pergeseran horizontal.
+    2. **Header & Tombol Aksi Adaptif:** Tombol navigasi master (*Master Komponen Gaji*, *Kop Dokumen & Rekening Bank*) dan tombol aksi siklus periode (*Kalkulasi*, *Approve*, *Publish*, *Lock*, *Ekspor Excel*, *Kembalikan ke Draf*) kini otomatis menyesuaikan menjadi tombol penuh (`w-full sm:w-auto inline-flex justify-center`) di layar ponsel sempit agar mudah disentuh jempol pengguna.
+    3. **Grid Metrik KPI Terukur:** Mengamankan 4 kartu metrik beban payroll dengan `grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4` serta menambahkan pelindung angka `truncate` pada nilai mata uang bernilai besar (ratusan juta).
+    4. **Scroll Containment Tabel Desktop Payroll:** Menambahkan proteksi gestur geser horizontal `w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x` pada kontainer tabel periode dan detail slip gaji di tablet/desktop.
+    5. **Optimasi Modal Dialog Mobile:** Menambahkan pembatas ketinggian dan scroll mandiri `max-h-[90vh] overflow-y-auto` serta padding responsif `p-4 sm:p-6` pada 3 modal dialog penggajian (*Rincian Slip Gaji Karyawan*, *Rekonsiliasi Timesheet Jam Kerja*, dan *Buat Periode Baru*).
+  - **Hasil Pengujian Headless Chrome:**
+    - Mobile (393px): `/payroll` dan `/payroll/3ee6a845-25f4-486b-9106-9c93b9a06d65` mencatat `isOverflowing: false` (bodyScrollWidth: 393px, windowWidth: 393px).
+    - Tablet (768px): `/payroll` dan `/payroll/3ee6a845-25f4-486b-9106-9c93b9a06d65` mencatat `isOverflowing: false` (bodyScrollWidth: 768px, windowWidth: 768px).
+    - Desktop (1440px): `/payroll` dan `/payroll/3ee6a845-25f4-486b-9106-9c93b9a06d65` mencatat `isOverflowing: false` (bodyScrollWidth: 1440px, windowWidth: 1440px).
   - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
 
 ---

@@ -80,7 +80,7 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 my-auto">
         {/* Header Modal */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0 bg-white">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#102E50] text-[#F2AF3E] flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
               <FileText className="w-5 h-5" />
@@ -102,7 +102,7 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
         </div>
 
         {/* Scrollable Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
           {/* Profil Karyawan & Rekening */}
           <div className="bg-slate-50 p-4 rounded-xl border border-slate-200/80">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -278,7 +278,7 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
         </div>
 
         {/* Ringkasan Take-Home Pay */}
-        <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center justify-between shadow-md">
+        <div className="bg-slate-900 text-white p-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-md">
           <div>
             <span className="text-[11px] text-slate-400 block uppercase tracking-wider font-semibold">
               Gaji Bersih Diterima (Take-Home Pay)
@@ -287,7 +287,7 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
               Total bruto dikurangi seluruh potongan resmi
             </span>
           </div>
-          <div className="text-right">
+          <div className="text-left sm:text-right">
             <span className="text-xl font-bold font-mono text-[#F2AF3E]">
               {formatRupiah(payslip.netAmount)}
             </span>
@@ -296,7 +296,7 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
       </div>
 
       {/* Tombol Tutup - Fixed at bottom */}
-      <div className="flex justify-end px-6 py-3.5 border-t border-slate-100 shrink-0 bg-slate-50/70">
+      <div className="flex justify-end px-4 sm:px-6 py-3.5 border-t border-slate-100 shrink-0 bg-slate-50/70">
         <button
           type="button"
           onClick={onClose}

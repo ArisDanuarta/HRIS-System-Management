@@ -227,7 +227,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
   const stepIndex = steps.findIndex((s) => s.key === period.status);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-w-0 max-w-full">
       {/* Tombol Kembali & Header Periode */}
       <div>
         <Link
@@ -239,16 +239,16 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
         </Link>
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-slate-900 font-serif leading-tight">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-serif leading-tight break-words">
                 {periodTitle}
               </h1>
-              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-mono">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-mono shrink-0">
                 {period.kind}
               </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
+            <p className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
               <span>
                 Cut-Off: {period.cutoffDate ? formatDate(period.cutoffDate) : "Akhir Bulan"}
               </span>
@@ -258,14 +258,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
           </div>
 
           {/* Tombol Aksi Siklus */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
             {/* Tombol Ekspor Rekap Payroll (Excel) */}
             {period.status !== "DRAFT" && (
               <button
                 type="button"
                 disabled={isPending}
                 onClick={handleExportExcel}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100/80 text-emerald-800 text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 border border-emerald-300 hover:bg-emerald-100/80 text-emerald-800 text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
                 title="Unduh rekap data transfer perbankan & rincian komponen payroll resmi (.xlsx)"
               >
                 {isPending ? (
@@ -290,7 +290,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                       ? "Kalkulasi Payroll Massal"
                       : "Hitung Ulang"
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] hover:bg-[#1a4473] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-[#102E50] hover:bg-[#1a4473] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isPending ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" />
@@ -316,7 +316,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                     ? "Persetujuan ditahan: Seluruh timesheet freelance wajib di-ACC terlebih dahulu"
                     : "Setujui Payroll (Approve)"
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Setujui Payroll (Approve)</span>
@@ -334,7 +334,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                     ? "Publikasi ditahan: Seluruh timesheet freelance wajib di-ACC terlebih dahulu"
                     : "Publikasikan Slip Gaji (Publish)"
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <TrendingUp className="w-3.5 h-3.5" />
                 <span>Publikasikan Slip Gaji (Publish)</span>
@@ -352,7 +352,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                     ? "Penguncian ditahan: Seluruh timesheet freelance wajib di-ACC terlebih dahulu"
                     : "Kunci Periode Permanen (Lock)"
                 }
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <Lock className="w-3.5 h-3.5" />
                 <span>Kunci Periode Permanen (Lock)</span>
@@ -365,7 +365,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                 type="button"
                 disabled={isPending}
                 onClick={() => setShowRevertConfirm(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                 title="Kembalikan status periode ke Draf Awal untuk perbaikan atau menunggu kelengkapan timesheet"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-rose-600" />
@@ -375,14 +375,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
 
             {/* Badge Peringatan Alur Ditahan */}
             {isTimesheetBlocked && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold shadow-2xs">
+              <span className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold shadow-2xs">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0" />
                 <span>Alur Ditahan (Menunggu ACC Timesheet)</span>
               </span>
             )}
 
             {period.status === "LOCKED" && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold">
+              <span className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold">
                 <Lock className="w-3.5 h-3.5" />
                 Terkunci Permanen
               </span>
@@ -612,7 +612,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
       {/* Tabel & Mobile Card Daftar Slip Pegawai */}
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-sm">
+          <div className="relative flex-1 max-w-full sm:max-w-sm">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -626,7 +626,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <label className="text-xs font-medium text-slate-500 whitespace-nowrap">Divisi:</label>
             <select
               value={selectedDeptFilter}
@@ -634,7 +634,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                 setSelectedDeptFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50]"
+              className="flex-1 sm:flex-none text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-800 font-medium focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] max-w-full truncate"
             >
               <option value="ALL">Semua Divisi</option>
               {departments.map((d) => (
@@ -782,7 +782,7 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
           </div>
 
           {/* Desktop Table View (>= sm) */}
-          <div className="hidden sm:block overflow-x-auto">
+          <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">
             <table className="w-full text-left border-collapse text-sm">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">

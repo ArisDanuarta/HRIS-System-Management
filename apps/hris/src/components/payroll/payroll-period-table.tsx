@@ -104,7 +104,7 @@ export function PayrollPeriodTable({ periods, onOpenCreateModal }: PayrollPeriod
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full min-w-0 max-w-full">
       {/* Filter Bar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
@@ -266,7 +266,7 @@ export function PayrollPeriodTable({ periods, onOpenCreateModal }: PayrollPeriod
         </div>
 
         {/* Desktop Table View (>= sm) */}
-        <div className="hidden sm:block overflow-x-auto">
+        <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">

@@ -124,7 +124,7 @@ export function TimesheetInputModal({
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl max-w-xl w-full border border-slate-200 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden relative animate-in fade-in zoom-in-95 duration-150 my-auto">
         {/* Header Modal */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0 bg-white">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-100 shrink-0 bg-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
               <Clock className="w-5 h-5 text-white" />
@@ -149,7 +149,7 @@ export function TimesheetInputModal({
         {/* Form Container */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden min-h-0">
           {/* Scrollable Body */}
-          <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          <div className="p-4 sm:p-6 overflow-y-auto flex-1 space-y-4">
             {/* Profil Karyawan */}
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -387,7 +387,7 @@ export function TimesheetInputModal({
           </div>
 
           {/* Tombol Aksi */}
-          <div className="flex items-center justify-end gap-2.5 px-6 py-3.5 border-t border-slate-100 shrink-0 bg-slate-50/70">
+          <div className="flex items-center justify-end gap-2.5 px-4 sm:px-6 py-3 sm:py-3.5 border-t border-slate-100 shrink-0 bg-slate-50/70">
             <button
               type="button"
               onClick={onClose}

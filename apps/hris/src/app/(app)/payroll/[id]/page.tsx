@@ -65,8 +65,10 @@ export default async function PayrollDetailPage({ params }: PageProps) {
   }
 
   return (
-    <PayrollDetailView
-      period={period as unknown as Parameters<typeof PayrollDetailView>[0]["period"]}
-    />
+    <div className="w-full min-w-0 max-w-full">
+      <PayrollDetailView
+        period={period as unknown as Parameters<typeof PayrollDetailView>[0]["period"]}
+      />
+    </div>
   );
 }
