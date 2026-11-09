@@ -196,7 +196,7 @@ export default async function EmployeeDetailPage({
     (isTerminated ? employee.contracts[0] : null);
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-16">
+    <div className="flex flex-col gap-6 w-full min-w-0 max-w-5xl mx-auto pb-16">
       {/* Back Link */}
       <Link
         href={isManager && !isHrOrAdmin ? "/karyawan?view=team" : "/karyawan"}
@@ -210,16 +210,16 @@ export default async function EmployeeDetailPage({
 
       {/* Alert Banner jika Pegawai Nonaktif / Berhenti */}
       {isTerminated && (
-        <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs animate-in fade-in duration-200">
-          <div className="flex items-center gap-3">
+        <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-amber-900 shadow-xs animate-in fade-in duration-200 w-full min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 shrink-0">
               <UserX className="w-5 h-5" />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
                 Status: Nonaktif / Berhenti ({employee.status})
               </span>
-              <span className="text-xs text-amber-700 mt-0.5">
+              <span className="text-xs text-amber-700 mt-0.5 break-words">
                 Pegawai ini saat ini berstatus nonaktif dan akses login akun pengguna terkait telah dinonaktifkan. Seluruh riwayat tetap tersimpan.
               </span>
             </div>
@@ -237,35 +237,37 @@ export default async function EmployeeDetailPage({
       )}
 
       {/* Modern Profile Header Card */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col w-full min-w-0 max-w-full">
         {/* Subtle Brand Accent Top Bar */}
         <div className="h-2 bg-gradient-to-r from-[#102E50] via-[#102E50]/90 to-[#F2AF3E]" />
 
-        <div className="p-5 sm:p-6 flex flex-col gap-4">
+        <div className="p-4 sm:p-6 flex flex-col gap-4 w-full min-w-0">
           {/* Main Top Row: Avatar, Identity & Actions */}
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-5">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 sm:gap-5 w-full min-w-0">
             {/* Left: Avatar & Identity */}
-            <div className="flex flex-col sm:flex-row items-start gap-4 sm:gap-5">
+            <div className="flex flex-col sm:flex-row items-start gap-3.5 sm:gap-5 w-full min-w-0">
               {/* Photo Avatar or Fallback Initials */}
-              <EmployeeAvatar
-                photoKey={employee.photoKey}
-                name={employee.fullName}
-              />
+              <div className="shrink-0">
+                <EmployeeAvatar
+                  photoKey={employee.photoKey}
+                  name={employee.fullName}
+                />
+              </div>
 
               {/* Name, Title, Badges */}
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl sm:text-2xl font-bold text-[#102E50] font-heading tracking-tight">
+              <div className="flex flex-col min-w-0 w-full">
+                <div className="flex items-center gap-2 flex-wrap min-w-0">
+                  <h1 className="text-xl sm:text-2xl font-bold text-[#102E50] font-heading tracking-tight break-words">
                     {employee.fullName}
                   </h1>
                   {employee.nickname && (
-                    <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">
+                    <span className="text-xs text-slate-500 font-medium px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 shrink-0">
                       &ldquo;{employee.nickname}&rdquo;
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-xs text-slate-600 mt-1.5 flex-wrap">
+                <div className="flex items-center gap-2 text-xs text-slate-600 mt-1.5 flex-wrap min-w-0">
                   <span className="font-semibold text-slate-800">
                     {employee.currentPosition?.title || "Belum ada jabatan"}
                   </span>
@@ -276,8 +278,8 @@ export default async function EmployeeDetailPage({
                 </div>
 
                 {/* Badges Row */}
-                <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                <div className="flex items-center gap-2 mt-3 flex-wrap min-w-0">
+                  <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
                     NIP: {employee.employeeNo}
                   </span>
                   <StatusBadge status={employee.status} size="sm" />
@@ -288,7 +290,7 @@ export default async function EmployeeDetailPage({
                     />
                   )}
                   {employee.user?.roles && employee.user.roles.length > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#102E50]/10 text-[#102E50] border border-[#102E50]/20 shrink-0">
                       <KeyRound className="w-3 h-3 text-[#F2AF3E]" />
                       <span>{employee.user.roles.map((r) => r.role.name).join(", ")}</span>
                     </span>
@@ -299,7 +301,7 @@ export default async function EmployeeDetailPage({
 
             {/* Right: Action Buttons */}
             {isHrOrAdmin && (
-              <div className="flex items-center gap-2 shrink-0 flex-wrap self-start">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 justify-start sm:justify-end">
                 <EmployeeStatusActions
                   employeeId={employee.id}
                   employeeName={employee.fullName}
@@ -319,40 +321,40 @@ export default async function EmployeeDetailPage({
           </div>
 
           {/* Quick Contact & Metadata Strip */}
-          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-slate-600">
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-y-2 gap-x-5 text-xs text-slate-600 w-full min-w-0">
             <a
               href={`mailto:${employee.workEmail}`}
-              className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors"
+              className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors max-w-full min-w-0 truncate"
               title="Kirim email kerja"
             >
               <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-              <span className="font-medium text-slate-700">{employee.workEmail}</span>
+              <span className="font-medium text-slate-700 truncate">{employee.workEmail}</span>
             </a>
 
             {employee.phone && (
               <a
                 href={`tel:${employee.phone}`}
-                className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors max-w-full min-w-0 truncate"
                 title="Nomor telepon pegawai"
               >
                 <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="font-medium text-slate-700">{employee.phone}</span>
+                <span className="font-medium text-slate-700 truncate">{employee.phone}</span>
               </a>
             )}
 
             {employee.manager && (
               <Link
                 href={`/karyawan/${employee.manager.id}`}
-                className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors"
+                className="inline-flex items-center gap-1.5 hover:text-[#102E50] hover:underline transition-colors max-w-full min-w-0 truncate"
                 title="Lihat profil atasan langsung"
               >
                 <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span className="text-slate-500">Atasan:</span>
-                <span className="font-semibold text-slate-800">{employee.manager.fullName}</span>
+                <span className="text-slate-500 shrink-0">Atasan:</span>
+                <span className="font-semibold text-slate-800 truncate">{employee.manager.fullName}</span>
               </Link>
             )}
 
-            <div className="inline-flex items-center gap-1.5 text-slate-500">
+            <div className="inline-flex items-center gap-1.5 text-slate-500 shrink-0">
               <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <span>Mulai Bergabung:</span>
               <span className="font-medium text-slate-700">{formatDate(employee.joinDate)}</span>
@@ -361,11 +363,11 @@ export default async function EmployeeDetailPage({
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 sm:gap-1.5 border-b border-slate-200 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {/* Tabs Navigation (Responsive Horizontal Swipe dengan Proteksi Scroll) */}
+      <div className="flex items-center gap-1 sm:gap-1.5 border-b border-slate-200 overflow-x-auto scrollbar-none w-full min-w-0 max-w-full [overscroll-behavior-x:contain] py-0.5">
         <Link
           href={`/karyawan/${employee.id}?tab=biodata`}
-          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
             effectiveTab === "biodata"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -378,7 +380,7 @@ export default async function EmployeeDetailPage({
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=sensitif`}
-            className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+            className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
               effectiveTab === "sensitif"
                 ? "border-[#102E50] text-[#102E50]"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -391,7 +393,7 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=kontrak`}
-          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
             effectiveTab === "kontrak"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -412,7 +414,7 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=jabatan`}
-          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
             effectiveTab === "jabatan"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -435,7 +437,7 @@ export default async function EmployeeDetailPage({
 
         <Link
           href={`/karyawan/${employee.id}?tab=dokumen`}
-          className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+          className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
             effectiveTab === "dokumen"
               ? "border-[#102E50] text-[#102E50]"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -457,7 +459,7 @@ export default async function EmployeeDetailPage({
         {isAssetAssignmentActive && (
           <Link
             href={`/karyawan/${employee.id}?tab=aset`}
-            className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+            className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
               effectiveTab === "aset"
                 ? "border-[#102E50] text-[#102E50]"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
@@ -480,7 +482,7 @@ export default async function EmployeeDetailPage({
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=akun`}
-            className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer shrink-0 ${
+            className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
               effectiveTab === "akun"
                 ? "border-[#102E50] text-[#102E50]"
                 : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
