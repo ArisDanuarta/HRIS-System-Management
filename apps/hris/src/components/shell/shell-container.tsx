@@ -42,6 +42,20 @@ export function ShellContainer({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+  // Responsivitas Tablet: Deteksi otomatis lebar tablet (768px - 1023px) agar sidebar beralih ke mode Rail (80px)
+  React.useEffect(() => {
+    const handleAutoCollapseForTablet = () => {
+      const width = window.innerWidth;
+      if (width >= 768 && width < 1024) {
+        setIsCollapsed(true);
+      }
+    };
+
+    handleAutoCollapseForTablet();
+    window.addEventListener("resize", handleAutoCollapseForTablet);
+    return () => window.removeEventListener("resize", handleAutoCollapseForTablet);
+  }, []);
+
   const handleCloseMobile = useCallback(() => {
     setMobileNavOpen(false);
   }, []);
@@ -89,10 +103,10 @@ export function ShellContainer({
         onToggleMobile={handleToggleMobile}
       />
 
-      {/* Main Content Area - Adaptif Mobile pl-0, Desktop pl-20/pl-264 */}
+      {/* Main Content Area - Adaptif Mobile pl-0, Tablet pl-20, Desktop pl-20/pl-264 */}
       <div
         className={`flex-1 w-full min-w-0 max-w-full overflow-x-hidden transition-all duration-300 pt-[calc(4rem+env(safe-area-inset-top,0px))] md:pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
-          isCollapsed ? "md:pl-20 pl-0" : "md:pl-[264px] pl-0"
+          isCollapsed ? "md:pl-20 pl-0" : "pl-0 md:pl-20 lg:pl-[264px]"
         }`}
       >
         <main className="p-3.5 sm:p-6 lg:p-8 max-w-[1440px] w-full min-w-0 mx-auto min-h-[calc(100vh-4rem-env(safe-area-inset-top,0px))] md:min-h-[calc(100vh-64px)] flex flex-col">
