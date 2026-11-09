@@ -331,8 +331,8 @@ export function AttendanceRekapView({
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* 1. Aggregate KPI Cards (PSPK Brand Palette) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs relative overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#102e50]" />
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
             <span>{isTeamView ? "Total Anggota Tim" : "Total Pegawai Terdata"}</span>
@@ -346,7 +346,7 @@ export function AttendanceRekapView({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-emerald-600" />
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
             <span>Hadir Tepat Waktu</span>
@@ -365,7 +365,7 @@ export function AttendanceRekapView({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#df632f]" />
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
             <span>Akumulasi Terlambat</span>
@@ -379,7 +379,7 @@ export function AttendanceRekapView({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs relative overflow-hidden">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
           <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#f2af3e]" />
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
             <span>Izin / Cuti & Alpa</span>
@@ -404,11 +404,11 @@ export function AttendanceRekapView({
       </div>
 
       {/* 2. Interactive Filter & Mode Switcher Toolbar */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4 text-xs">
+      <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3.5 sm:gap-4 text-xs w-full min-w-0">
         {/* Left: Search & Filters */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 flex-1">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
           {/* Search Input */}
-          <div className="relative flex-1 min-w-[220px]">
+          <div className="relative flex-1 min-w-0 sm:min-w-[200px] w-full sm:w-auto">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -423,13 +423,13 @@ export function AttendanceRekapView({
           </div>
 
           {/* Month & Year Selectors */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex items-center">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+            <div className="relative flex items-center flex-1 sm:flex-initial">
               <Calendar className="w-3.5 h-3.5 text-[#f2af3e] absolute left-3 pointer-events-none" />
               <select
                 value={month}
                 onChange={(e) => setMonth(e.target.value)}
-                className="pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
+                className="w-full sm:w-auto pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
               >
                 {months.map((m) => (
                   <option key={m.value} value={m.value}>
@@ -442,7 +442,7 @@ export function AttendanceRekapView({
             <select
               value={year}
               onChange={(e) => setYear(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
+              className="flex-1 sm:flex-initial px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
             >
               <option value="2026">2026</option>
               <option value="2025">2025</option>
@@ -452,17 +452,17 @@ export function AttendanceRekapView({
 
           {/* Department Selector */}
           {isTeamView ? (
-            <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#102e50]/5 border border-[#102e50]/15 text-xs text-[#102e50] font-semibold">
-              <Building className="w-3.5 h-3.5 text-[#f2af3e]" />
-              <span>{departmentName || "Divisi Saya"}</span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#102e50]/5 border border-[#102e50]/15 text-xs text-[#102e50] font-semibold w-full sm:w-auto">
+              <Building className="w-3.5 h-3.5 text-[#f2af3e] shrink-0" />
+              <span className="truncate">{departmentName || "Divisi Saya"}</span>
             </div>
           ) : (
-            <div className="relative flex items-center">
-              <Building className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+            <div className="relative flex items-center w-full sm:w-auto">
+              <Building className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none shrink-0" />
               <select
                 value={dept}
                 onChange={(e) => setDept(e.target.value)}
-                className="pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer max-w-[200px] truncate"
+                className="w-full sm:w-auto pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer max-w-full sm:max-w-[200px] truncate"
               >
                 <option value="ALL">Semua Divisi</option>
                 {departments.map((d) => (
@@ -475,11 +475,11 @@ export function AttendanceRekapView({
           )}
 
           {/* Filter Action Buttons */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
             <button
               type="button"
               onClick={handleFilter}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
             >
               <Filter className="w-3.5 h-3.5 text-[#f2af3e]" />
               <span>Terapkan</span>
@@ -499,12 +499,12 @@ export function AttendanceRekapView({
         </div>
 
         {/* Right: View Switcher (Matrix vs Summary) & Export XLSX */}
-        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2.5 pt-3 xl:pt-0 border-t xl:border-t-0 border-slate-100">
-          <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-2.5 pt-3 xl:pt-0 border-t xl:border-t-0 border-slate-100 w-full xl:w-auto">
+          <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 w-full sm:w-auto justify-between sm:justify-start">
             <button
               type="button"
               onClick={() => setViewMode("matrix")}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === "matrix"
                   ? "bg-white text-[#102e50] shadow-xs"
                   : "text-slate-600 hover:text-[#102e50]"
@@ -517,7 +517,7 @@ export function AttendanceRekapView({
             <button
               type="button"
               onClick={() => setViewMode("summary")}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === "summary"
                   ? "bg-white text-[#102e50] shadow-xs"
                   : "text-slate-600 hover:text-[#102e50]"
@@ -532,7 +532,7 @@ export function AttendanceRekapView({
             type="button"
             onClick={handleExportXlsx}
             disabled={employees.length === 0 || isExporting}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-[0.98]"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-[0.98]"
             title="Unduh rekapitulasi presensi dalam format Excel (.xlsx)"
           >
             {isExporting ? (
@@ -609,17 +609,17 @@ export function AttendanceRekapView({
               <span className="italic text-slate-400">Geser horizontal ↔</span>
             </div>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto w-full min-w-0 [overscroll-behavior-x:contain] touch-pan-x">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] font-bold text-[10px]">
-                    <th className="py-3 px-3 sm:px-4 sticky left-0 z-20 bg-slate-50 border-r border-slate-200/80 min-w-[130px] sm:min-w-[200px] uppercase tracking-wider">
+                    <th className="py-3 px-3 sm:px-4 sticky left-0 z-20 bg-slate-50 border-r border-slate-200/80 min-w-[130px] sm:min-w-[190px] uppercase tracking-wider shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
                       Nama Pegawai
                     </th>
                     {daysInMonth.map((d) => (
                       <th
                         key={d.dayNumber}
-                        className={`py-2 px-1 text-center min-w-[32px] border-r border-slate-100 ${
+                        className={`py-2 px-1 text-center min-w-[30px] sm:min-w-[32px] border-r border-slate-100 ${
                           d.isWeekend ? "bg-slate-100/80 text-slate-400" : "text-[#102e50]"
                         }`}
                       >
@@ -665,14 +665,17 @@ export function AttendanceRekapView({
                       };
 
                       return (
-                        <tr key={emp.id} className="hover:bg-slate-50/70 transition-colors">
-                          {/* Sticky Employee Name Cell */}
-                          <td className="py-3 px-3 sm:px-4 sticky left-0 z-10 bg-white border-r border-slate-200/80 min-w-[130px] sm:min-w-[200px]">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-[#102e50] truncate max-w-[115px] sm:max-w-[180px]">
+                        <tr key={emp.id} className="hover:bg-slate-50/70 transition-colors group">
+                          {/* Sticky Employee Name Cell with Shadow Divider */}
+                          <td className="py-3 px-3 sm:px-4 sticky left-0 z-10 bg-white group-hover:bg-slate-50 border-r border-slate-200/80 min-w-[130px] sm:min-w-[190px] shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                            <div className="flex flex-col min-w-0">
+                              <span
+                                className="font-bold text-[#102e50] truncate max-w-[110px] sm:max-w-[170px]"
+                                title={emp.fullName}
+                              >
                                 {emp.fullName}
                               </span>
-                              <span className="text-[10px] text-slate-400 truncate max-w-[115px] sm:max-w-[180px]">
+                              <span className="text-[10px] text-slate-400 truncate max-w-[110px] sm:max-w-[170px]">
                                 {emp.currentDepartment?.name || "PSPK"} • {emp.employeeNo}
                               </span>
                             </div>
@@ -843,7 +846,7 @@ export function AttendanceRekapView({
             </div>
 
             {/* Desktop Table View (>= sm) */}
-            <div className="hidden sm:block overflow-x-auto">
+            <div className="hidden sm:block overflow-x-auto w-full min-w-0 max-w-full [overscroll-behavior-x:contain] touch-pan-x">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] uppercase tracking-wider font-bold text-[11px]">
