@@ -228,42 +228,42 @@ export function NotificationCenterView({
   }, [notifications]);
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-16">
+    <div className="space-y-6 w-full min-w-0 max-w-full lg:max-w-6xl mx-auto pb-16">
       {/* Header Section */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs relative overflow-hidden">
+      <div className="bg-white rounded-2xl p-5 sm:p-7 border border-slate-200/80 shadow-xs relative overflow-hidden w-full min-w-0">
         <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-blue-50/60 to-indigo-50/40 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1.5">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+          <div className="space-y-1.5 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="p-2 rounded-xl bg-[#102e50] text-white shadow-xs">
+              <span className="p-2 rounded-xl bg-[#102e50] text-white shadow-xs shrink-0">
                 <Bell className="w-5 h-5" />
               </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#102e50]/70">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#102e50]/70 truncate">
                 Pemberitahuan & Operasional
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#102e50] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold font-serif text-[#102e50] tracking-tight break-words">
               Pusat Notifikasi
             </h1>
-            <p className="text-sm text-slate-600 max-w-2xl">
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl break-words leading-relaxed">
               Pantau seluruh pengajuan persetujuan, pembaruan status cuti, penerbitan gaji, serta
               pengingat kontrak dan evaluasi kinerja secara terpadu.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full md:w-auto">
             <button
               type="button"
               onClick={handleMarkAllAsRead}
               disabled={unreadCount === 0 || isPending}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all shadow-xs cursor-pointer ${
+              className={`w-full md:w-auto flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all shadow-xs cursor-pointer ${
                 unreadCount === 0
                   ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
                   : "bg-white border border-[#102e50]/20 text-[#102e50] hover:bg-[#102e50] hover:text-white"
               }`}
             >
-              <CheckCheck className="w-4 h-4" />
+              <CheckCheck className="w-4 h-4 shrink-0" />
               <span>Tandai Semua Dibaca</span>
               {unreadCount > 0 && (
                 <span className="ml-1 px-2 py-0.5 rounded-full text-xs font-bold bg-[#f2af3e] text-[#102e50]">
@@ -275,37 +275,37 @@ export function NotificationCenterView({
         </div>
 
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6 pt-6 border-t border-slate-100">
-          <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/60">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mt-5 sm:mt-6 pt-5 sm:pt-6 border-t border-slate-100">
+          <div className="bg-slate-50/80 rounded-xl p-3 sm:p-3.5 border border-slate-200/60">
             <div className="text-xs font-medium text-slate-500">Total Notifikasi</div>
-            <div className="text-xl sm:text-2xl font-bold text-[#102e50] mt-1">
+            <div className="text-xl sm:text-2xl font-bold text-[#102e50] mt-1 tabular-nums">
               {notifications.length}
             </div>
           </div>
           <div
-            className={`rounded-xl p-3.5 border ${
+            className={`rounded-xl p-3 sm:p-3.5 border ${
               unreadCount > 0
                 ? "bg-amber-50/80 border-amber-200 text-amber-900"
                 : "bg-slate-50/80 border-slate-200/60 text-slate-700"
             }`}
           >
             <div className="text-xs font-medium">Belum Dibaca</div>
-            <div className="text-xl sm:text-2xl font-bold mt-1 flex items-center gap-2">
+            <div className="text-xl sm:text-2xl font-bold mt-1 flex items-center gap-2 tabular-nums">
               <span>{unreadCount}</span>
               {unreadCount > 0 && (
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
               )}
             </div>
           </div>
-          <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/60">
+          <div className="bg-slate-50/80 rounded-xl p-3 sm:p-3.5 border border-slate-200/60">
             <div className="text-xs font-medium text-slate-500">Cuti & Presensi</div>
-            <div className="text-xl sm:text-2xl font-bold text-[#102e50] mt-1">
+            <div className="text-xl sm:text-2xl font-bold text-[#102e50] mt-1 tabular-nums">
               {categoryCounts.LEAVE + categoryCounts.ATTENDANCE}
             </div>
           </div>
-          <div className="bg-slate-50/80 rounded-xl p-3.5 border border-slate-200/60">
+          <div className="bg-slate-50/80 rounded-xl p-3 sm:p-3.5 border border-slate-200/60">
             <div className="text-xs font-medium text-slate-500">Payroll & Kinerja</div>
-            <div className="text-xl sm:text-2xl font-bold text-[#102e50] mt-1">
+            <div className="text-xl sm:text-2xl font-bold text-[#102e50] mt-1 tabular-nums">
               {categoryCounts.PAYROLL + categoryCounts.PERFORMANCE}
             </div>
           </div>
@@ -313,10 +313,10 @@ export function NotificationCenterView({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs space-y-4">
+      <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs space-y-3.5 w-full min-w-0">
         <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
           {/* Search Box */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 min-w-0 max-w-full sm:max-w-md w-full">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -337,11 +337,11 @@ export function NotificationCenterView({
           </div>
 
           {/* Status Tab (Semua vs Belum Dibaca) */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60 self-start sm:self-auto">
+          <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200/60 w-full sm:w-auto justify-between sm:justify-start">
             <button
               type="button"
               onClick={() => setActiveTab("ALL")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial text-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 activeTab === "ALL"
                   ? "bg-white text-[#102e50] shadow-xs"
                   : "text-slate-600 hover:text-[#102e50]"
@@ -352,7 +352,7 @@ export function NotificationCenterView({
             <button
               type="button"
               onClick={() => setActiveTab("UNREAD")}
-              className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`flex-1 sm:flex-initial text-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "UNREAD"
                   ? "bg-[#102e50] text-white shadow-xs"
                   : "text-slate-600 hover:text-[#102e50]"
@@ -375,7 +375,7 @@ export function NotificationCenterView({
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none text-xs">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 scrollbar-none [overscroll-behavior-x:contain] touch-pan-x text-xs w-full min-w-0 max-w-full">
           <span className="text-slate-400 flex items-center gap-1 mr-1 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
             <Filter className="w-3.5 h-3.5" />
             Kategori:

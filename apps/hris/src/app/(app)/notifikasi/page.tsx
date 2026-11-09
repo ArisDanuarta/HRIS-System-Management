@@ -31,7 +31,7 @@ export default async function NotifikasiPage() {
   ]);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
+    <div className="w-full min-w-0 max-w-full">
       <NotificationCenterView
         initialNotifications={notifications}
         initialUnreadCount={unreadCount}

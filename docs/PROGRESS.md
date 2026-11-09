@@ -4,6 +4,33 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Inisiatif Multi-Device Responsif] Optimasi HP (PWA), Tablet (iPad), dan Desktop Web — 2026-11-09
+
+- **Status:** In Progress (Tahap 1 & Tahap 2 Selesai & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  Melakukan standarisasi layout responsif multi-device pada seluruh rute HRIS PSPK agar nyaman digunakan pada 3 perangkat utama: Ponsel (PWA 393px), Tablet (iPad 768px), dan Komputer Desktop (1440px).
+
+- **Pekerjaan yang Telah Selesai:**
+  ### Tahap 1 — Arsitektur Shell Tablet & Layout Global (Selesai & Terverifikasi)
+  - **File:** [`shell-container.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/shell-container.tsx), [`app-topbar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-topbar.tsx), [`app-sidebar.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/app-sidebar.tsx)
+  - **Perbaikan:** Menyesuaikan breakpoint tablet (`md:` 768px – 1023px) menjadi auto-collapsed rail mode (80 px). Ruang bersih konten tablet bertambah dari 454 px menjadi 640 px+ (+40% lebih lega).
+
+  ### Tahap 2 — Presensi Mandiri & Rekapitulasi Kehadiran HR (Selesai & Terverifikasi)
+  - **File:** [`absensi/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/absensi/page.tsx), [`absensi/rekap/page.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/app/(app)/absensi/rekap/page.tsx), [`attendance-rekap-view.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/absensi/attendance-rekap-view.tsx), [`attendance-table.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/absensi/attendance-table.tsx), [`attendance-leave-subnav.tsx`](file:///Users/imadearisdanuarta/Documents/KERJAAN/system_hris-system_management/hris_system_management/apps/hris/src/components/shell/attendance-leave-subnav.tsx)
+  - **Perbaikan:**
+    1. **Banner Navy PSPK Adaptif:** Mengganti padding kaku `p-6 sm:p-7` menjadi `p-5 sm:p-7 w-full min-w-0`, serta teks judul/deskripsi diberi `break-words`.
+    2. **Month Period Switcher Fleksibel:** Switcher bulan kini responsif di layar ponsel sempit tanpa mendorong kontainer.
+    3. **Freeze Column (Sticky) Tabel Rekap Presensi:** Kolom *Nama Pegawai & NIP* dikunci (`sticky left-0 bg-white z-10 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]`). Saat tabel 31 hari digeser horizontal di ponsel atau tablet, nama pegawai tetap terlihat rapi di sisi kiri.
+    4. **Subnav Swipe Row:** Menambahkan `overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none` agar bar navigasi presensi-cuti dapat di-swipe mulus tanpa efek regresi scroll halaman.
+  - **Hasil Pengujian Headless Chrome:**
+    - Mobile (393px): `/absensi` dan `/absensi/rekap` mencatat `isOverflowing: false` (bodyScrollWidth: 393px).
+    - Tablet (768px): `/absensi` dan `/absensi/rekap` mencatat `isOverflowing: false` (bodyScrollWidth: 768px).
+    - Desktop (1440px): mencatat `isOverflowing: false` (bodyScrollWidth: 1440px).
+    - Pengujian horizontal scroll tabel: terverifikasi `isPinnedAtZero: true` (kolom nama tetap terkunci di posisi `left: 15px` saat digeser 250 px).
+  - **Verifikasi Kualitas:** `pnpm --filter @pspk/hris typecheck` dan `lint` lulus 100% (0 error, 0 warning).
+
+---
+
 ## [Perbaikan PWA & Mobile UX] Mode Tampilan Standalone — 2026-11-06
 
 - **Status:** Selesai (Tuntas, Terverifikasi 100%)

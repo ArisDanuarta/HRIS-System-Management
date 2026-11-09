@@ -36,7 +36,7 @@ export default async function ProfilPage() {
   }
 
   return (
-    <div className="p-4 md:p-8">
+    <div className="w-full min-w-0 max-w-full">
       <ProfileView profile={profile} />
     </div>
   );
