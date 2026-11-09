@@ -45,9 +45,13 @@ export function ShellContainer({
   // Responsivitas Tablet: Default mode Rail (80px) pada tablet (768px - 1023px) dan adaptif terhadap perubahan ukuran layar
   React.useEffect(() => {
     let lastWidth = window.innerWidth;
-    if (lastWidth >= 768 && lastWidth < 1024) {
-      setIsCollapsed(true);
-    }
+
+    // Set awal mode rail jika di tablet (asinkron agar tidak memicu cascading render)
+    const initialTimer = setTimeout(() => {
+      if (window.innerWidth >= 768 && window.innerWidth < 1024) {
+        setIsCollapsed(true);
+      }
+    }, 0);
 
     const handleResize = () => {
       const width = window.innerWidth;
@@ -61,7 +65,10 @@ export function ShellContainer({
     };
 
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(initialTimer);
+      window.removeEventListener("resize", handleResize);
+    };
   }, []);
 
   const handleCloseMobile = useCallback(() => {
