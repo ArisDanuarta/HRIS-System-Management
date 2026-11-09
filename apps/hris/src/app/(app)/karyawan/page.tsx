@@ -119,7 +119,7 @@ export default async function KaryawanPage({ searchParams }: KaryawanPageProps) 
 
         {/* Action Buttons: Responsif Mobile & Desktop */}
         {/* 1. Mobile Action Section (Khusus Layar Ponsel < 640px) */}
-        <div className="flex flex-col gap-2.5 w-full sm:hidden">
+        <div className="flex flex-col gap-2.5 w-full min-w-0 max-w-full sm:hidden">
           {/* Tombol Utama Tambah Pegawai (Full Width, Ramah Sentuhan Jempol) */}
           {isSuperOrHr && !isTeamView && (
             <Link
@@ -132,7 +132,7 @@ export default async function KaryawanPage({ searchParams }: KaryawanPageProps) 
           )}
 
           {/* Deretan Tombol Navigasi Sekunder Horizontal Scroll (Anti Terpotong) */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full [overscroll-behavior-x:contain]">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full min-w-0 max-w-full [overscroll-behavior-x:contain]">
             {isModuleActive(moduleFlags, "org_chart") && (
               <Link
                 href="/karyawan/struktur"
