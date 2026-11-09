@@ -67,7 +67,7 @@ export default async function ImporKaryawanPage() {
   }));
 
   return (
-    <div className="flex flex-col gap-6 max-w-5xl mx-auto pb-16">
+    <div className="flex flex-col gap-6 w-full min-w-0 max-w-5xl mx-auto pb-16">
       {/* Back Link */}
       <Link
         href="/karyawan"
@@ -78,28 +78,28 @@ export default async function ImporKaryawanPage() {
       </Link>
 
       {/* Page Title & Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 w-full min-w-0">
+        <div className="flex items-start sm:items-center gap-3 w-full min-w-0">
           <div className="w-11 h-11 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center shrink-0">
             <FileSpreadsheet className="w-6 h-6" />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#102E50] font-heading tracking-tight">
+          <div className="flex flex-col min-w-0 w-full">
+            <div className="flex items-center gap-2 flex-wrap min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#102E50] font-heading tracking-tight break-words">
                 Impor Massal Data Pegawai
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#feba48]/20 text-[#805600] border border-[#feba48]/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#feba48]/20 text-[#805600] border border-[#feba48]/30 shrink-0">
                 Excel .xlsx
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 break-words">
               Gunakan berkas format resmi Microsoft Excel (.xlsx) untuk mendaftarkan banyak pegawai
               secara otomatis ke dalam database HRIS PSPK.
             </p>
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium self-start sm:self-center">
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium self-start sm:self-center shrink-0">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>Validasi Otomatis Sebelum Simpan</span>
         </div>
