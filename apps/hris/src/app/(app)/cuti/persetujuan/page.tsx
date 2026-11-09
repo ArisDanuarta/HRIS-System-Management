@@ -50,7 +50,7 @@ export default async function PersetujuanCutiPage() {
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-w-0 max-w-full">
       {/* Header */}
       <div>
         <h1 className="font-heading font-bold text-2xl md:text-3xl text-[#102e50] tracking-tight">

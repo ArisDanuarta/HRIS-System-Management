@@ -77,9 +77,9 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
   const monthLabel = MONTHS[month - 1];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full min-w-0 max-w-full">
       {/* ===== Hero Section ===== */}
-      <div className="relative bg-[#102e50] rounded-2xl overflow-hidden shadow-lg">
+      <div className="relative bg-[#102e50] rounded-2xl overflow-hidden shadow-lg w-full min-w-0 max-w-full">
         {/* Background decorative blobs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-16 -right-16 w-72 h-72 rounded-full bg-[#f2af3e]/10 blur-3xl" />
@@ -87,7 +87,7 @@ export default async function KalenderPage({ searchParams }: KalenderPageProps) 
           <div className="absolute top-1/2 right-1/4 w-40 h-40 rounded-full bg-blue-400/8 blur-2xl" />
         </div>
 
-        <div className="relative z-10 p-6 md:p-8">
+        <div className="relative z-10 p-4 sm:p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             {/* Left: Title & Description */}
             <div className="flex items-start gap-4">

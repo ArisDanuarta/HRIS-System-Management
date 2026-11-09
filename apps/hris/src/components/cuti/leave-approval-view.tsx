@@ -186,7 +186,7 @@ export function LeaveApprovalView({
   };
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <div className="flex flex-col gap-6 w-full min-w-0 max-w-full">
       {/* Feedback Alert */}
       {feedback && (
         <div
@@ -205,12 +205,12 @@ export function LeaveApprovalView({
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+      {/* Tabs Swipeable Row */}
+      <div className="w-full min-w-0 max-w-full flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none">
         <button
           type="button"
           onClick={() => handleTabChange("PENDING")}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
             activeTab === "PENDING"
               ? "bg-[#102e50] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
@@ -225,7 +225,7 @@ export function LeaveApprovalView({
         <button
           type="button"
           onClick={() => handleTabChange("APPROVED")}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === "APPROVED"
               ? "bg-[#102e50] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
@@ -237,7 +237,7 @@ export function LeaveApprovalView({
         <button
           type="button"
           onClick={() => handleTabChange("REJECTED")}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === "REJECTED"
               ? "bg-[#102e50] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
@@ -249,7 +249,7 @@ export function LeaveApprovalView({
         <button
           type="button"
           onClick={() => handleTabChange("ALL")}
-          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === "ALL"
               ? "bg-[#102e50] text-white shadow-xs"
               : "text-slate-600 hover:bg-slate-100"
