@@ -431,8 +431,8 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* KOLOM KIRI: DAFTAR DIVISI (5 Cols) */}
         <div
-          className={`lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden ${
-            mobileTab === "departments" ? "flex" : "hidden lg:flex"
+          className={`lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden ${
+            mobileTab === "departments" ? "flex flex-col" : "hidden lg:flex lg:flex-col"
           }`}
         >
           <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/50">
@@ -484,7 +484,7 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
           </div>
 
           {/* List Divisi */}
-          <div className="divide-y divide-slate-100 max-h-[580px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 max-h-none overflow-y-visible lg:max-h-[580px] lg:overflow-y-auto">
             {filteredDepartments.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400 italic">
                 {deptSearch ? "Tidak ada divisi yang cocok." : "Belum ada divisi yang dibuat."}
@@ -564,8 +564,8 @@ export function OrganizationManagement({ initialDepartments }: OrganizationManag
 
         {/* KOLOM KANAN: DAFTAR JABATAN PADA DIVISI TERPILIH (7 Cols) */}
         <div
-          className={`lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs flex flex-col overflow-hidden ${
-            mobileTab === "positions" ? "flex" : "hidden lg:flex"
+          className={`lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden ${
+            mobileTab === "positions" ? "flex flex-col" : "hidden lg:flex lg:flex-col"
           }`}
         >
           {selectedDepartment ? (
