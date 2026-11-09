@@ -49,7 +49,7 @@ Setiap kali menerima tugas, menangani error, atau mengembangkan fitur, agent WAJ
 
 ### 0.2 Aturan Pokok Agent
 
-1. **Bahasa.** Teks yang dilihat pengguna (UI, pesan error, email) memakai **Bahasa Indonesia**. Kode, nama variabel/tabel/kolom, komentar teknis, dan commit message memakai **Bahasa Inggris** (Conventional Commits: `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`).
+1. **Bahasa.** Teks yang dilihat pengguna (UI, pesan error, email) dan **commit message** memakai **Bahasa Indonesia** (Conventional Commits: `feat:`, `fix:`, `style:`, `refactor:`, `chore:`, `docs:`, `test:` dengan deskripsi dalam Bahasa Indonesia). Kode, nama variabel/tabel/kolom, dan komentar teknis memakai **Bahasa Inggris**.
 2. **Tanpa Vercel dan Supabase.** Jangan memakai Supabase client/auth/storage/RLS-sebagai-auth, Vercel-specific API (`@vercel/*`, Edge Config, Vercel Blob, dsb.), atau layanan cloud berbayar lain. Semua komponen harus berjalan di Docker pada VPS biasa.
 3. **Verifikasi terhadap dokumentasi resmi.** Versi library bergerak cepat (Next.js, Prisma, Better Auth, Tailwind, Turborepo). Sebelum menulis konfigurasi, cek dokumentasi versi yang terpasang atau jalankan `<cli> --help`. Jangan mengarang sintaks, flag, atau nama API. Snippet di dokumen ini adalah titik awal, bukan kebenaran mutlak: jika berbeda dari dokumentasi versi terpasang, ikuti dokumentasi dan catat perbedaannya di `docs/DECISIONS.md`.
 4. **Jangan commit secret.** Hanya `.env.example` yang boleh masuk Git. `.env`, `.env.production`, dump database, dan folder upload harus ada di `.gitignore`.

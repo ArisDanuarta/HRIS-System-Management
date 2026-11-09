@@ -1,0 +1,8 @@
+{
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Selalu buat pesan commit dalam Bahasa Indonesia yang singkat, padat, jelas, dan mengikuti format Conventional Commits (contoh: feat: ..., fix: ..., style: ..., refactor: ..., chore: ...)."
+    }
+  ]
+}
+

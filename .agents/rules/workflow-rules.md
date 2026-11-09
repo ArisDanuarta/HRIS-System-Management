@@ -10,6 +10,7 @@ File ini mendefinisikan alur kerja baku yang **WAJIB** diikuti oleh agent coding
    - **MUTLAK**: Agent dilarang menjalankan `git commit` maupun `git push` secara otomatis.
    - Semua pembuatan commit dan push harus menunggu instruksi atau persetujuan eksplisit dari pengguna.
    - Jangan pernah menyertakan `git commit` atau `git push` dalam rangkaian perbaikan otomatis.
+   - Jika pengguna meminta rekomendasi pesan commit atau saat pesan commit dibuat, selalu gunakan format Conventional Commits dalam **Bahasa Indonesia** (contoh: `feat: ...`, `fix: ...`, `style: ...`, `refactor: ...`, `chore: ...`).
 
 2. **Prinsip "Cek Dulu, Perbaiki Nanti" (Perintah Pemeriksaan vs Perbaikan)**
    - **MUTLAK**: Jika pengguna memberikan perintah dengan kata kunci pengecekan/pemeriksaan (seperti: *"cek"*, *"periksa"*, *"audit"*, *"tinjau"*, *"review"*, *"analisis"*):
