@@ -281,9 +281,125 @@ export function EmploymentTypeManagement({ initialTypes }: EmploymentTypeManagem
         </button>
       </div>
 
-      {/* Tabel Master Tipe Ikatan Kerja */}
+      {/* Daftar Tipe Ikatan Kerja */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* 1. Mobile Card View (< sm) */}
+        <div className="sm:hidden divide-y divide-slate-100">
+          {filteredTypes.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs">
+              Tidak ada tipe ikatan kerja yang sesuai dengan pencarian.
+            </div>
+          ) : (
+            filteredTypes.map((t) => (
+              <div key={t.id} className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                      <Briefcase className="w-4 h-4 text-slate-400 shrink-0" />
+                      <span className="truncate">{t.name}</span>
+                    </div>
+                    <div className="text-[11px] font-mono text-slate-400 mt-0.5">
+                      Kode: {t.code}
+                    </div>
+                    {t.description && (
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {t.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleToggleStatus(t)}
+                    disabled={isPending}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold transition-colors shrink-0 ${
+                      t.isActive
+                        ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    }`}
+                  >
+                    {t.isActive ? "Aktif" : "Nonaktif"}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+                  <div>
+                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Kategori</span>
+                    <div className="mt-0.5">
+                      {t.category === "PERMANENT" && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          Pegawai Tetap
+                        </span>
+                      )}
+                      {t.category === "FIXED_TERM" && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                          PKWT Berjangka
+                        </span>
+                      )}
+                      {t.category === "PART_TIME_PROJECT" && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-800 border border-purple-200">
+                          Paruh Waktu / Ad-Hoc
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] font-semibold text-slate-400 block uppercase">Skema Upah</span>
+                    <div className="mt-0.5">
+                      {t.wageType === "HOURLY" ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
+                          <Clock className="w-2.5 h-2.5 text-amber-600" />
+                          Per Jam
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                          Gaji Bulanan
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 border border-slate-200 text-slate-800 rounded-full font-mono text-[11px] font-semibold">
+                      <Users className="w-3 h-3 text-slate-400" />
+                      {t._count.contracts} Pegawai
+                    </span>
+                    {t.wageType === "HOURLY" && t.defaultHourlyRate && (
+                      <span className="text-[11px] font-mono text-slate-600">
+                        {formatRupiah(t.defaultHourlyRate)}/jam
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(t)}
+                      className="p-1.5 text-slate-500 hover:text-[#102E50] hover:bg-slate-100 rounded-lg transition-colors"
+                      title="Ubah Ikatan Kerja"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(t)}
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                      title="Hapus / Nonaktifkan"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* 2. Desktop Table View (>= sm) */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">

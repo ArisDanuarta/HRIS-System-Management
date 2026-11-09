@@ -270,7 +270,26 @@ export function LeaveSettingsView({
 
       {/* Tabs Controller */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+        {/* Mobile Dropdown (< sm) */}
+        <div className="sm:hidden w-full min-w-0">
+          <label htmlFor="leave-settings-subtab" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+            Kategori Kebijakan Cuti
+          </label>
+          <select
+            id="leave-settings-subtab"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value as "schedule" | "types" | "holidays" | "balances")}
+            className="w-full appearance-none bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] cursor-pointer"
+          >
+            <option value="schedule">🕒 Jadwal Kerja & Jam Masuk</option>
+            <option value="types">📋 Jenis & Kuota Cuti ({leaveTypes.length})</option>
+            <option value="holidays">📅 Kalender Libur & Cuti Bersama ({holidays.length})</option>
+            <option value="balances">👥 Saldo Cuti Pegawai ({employeeBalances.length})</option>
+          </select>
+        </div>
+
+        {/* Desktop Buttons (>= sm) */}
+        <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
           <button
             type="button"
             onClick={() => setActiveTab("schedule")}
