@@ -265,8 +265,33 @@ export function TataKelolaView({
       </div>
 
       {/* Navigasi 5 Tab Terpusat */}
-      <div className="w-full min-w-0 max-w-full overflow-hidden border-b border-slate-200">
-        <div className="flex overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full min-w-0 gap-0">
+      {/* 1. Mobile Tab Selector (< sm): Dropdown sentuh satu ketukan, bebas scroll trap vertikal */}
+      <div className="sm:hidden w-full min-w-0">
+        <label htmlFor="tata-kelola-mobile-tab" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+          Pilih Kategori Pengaturan
+        </label>
+        <div className="relative">
+          <select
+            id="tata-kelola-mobile-tab"
+            value={activeTab}
+            onChange={(e) => handleTabChange(e.target.value as TataKelolaTab)}
+            className="w-full appearance-none bg-white border border-slate-300 rounded-xl px-4 py-3 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] pr-10 cursor-pointer"
+          >
+            <option value="organisasi">🏢 Struktur Divisi & Jabatan ({orgStats.totalDepartments} Divisi)</option>
+            <option value="ikatan-kerja">💼 Tipe Ikatan Kerja ({employmentTypes.length} Tipe)</option>
+            <option value="jadwal-cuti">📅 Jam Kerja, Cuti & Libur ({leaveTypes.length} Jenis Cuti)</option>
+            <option value="payroll-komponen">🧾 Komponen Gaji & Tunjangan ({salaryComponents.length} Komponen)</option>
+            <option value="dokumen-bank">🏛️ Kop Dokumen & Rekening Bank</option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
+            <SlidersHorizontal className="w-4 h-4 text-[#102E50]" />
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Desktop Tab Bar (>= sm): Navigasi Tab Horizontal Lengkap */}
+      <div className="hidden sm:block w-full min-w-0 max-w-full overflow-hidden border-b border-slate-200">
+        <div className="flex overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full min-w-0 gap-0 [overscroll-behavior-x:contain]">
           <button
             type="button"
             onClick={() => handleTabChange("organisasi")}
