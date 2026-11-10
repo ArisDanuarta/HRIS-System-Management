@@ -93,6 +93,7 @@ export function AttendanceRekapView({
   const [year, setYear] = useState(String(currentYear));
   const [viewMode, setViewMode] = useState<"matrix" | "summary">("matrix");
   const [isExporting, setIsExporting] = useState(false);
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   // Selected employee & optional target date for correction modal
   const [selectedForCorrection, setSelectedForCorrection] = useState<{
@@ -529,6 +530,18 @@ export function AttendanceRekapView({
               <span>Ringkasan Angka</span>
             </button>
           </div>
+
+          {isHrOrAdmin && (
+            <button
+              type="button"
+              onClick={() => setIsBulkModalOpen(true)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-[#102e50] border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+              title="Lengkapi data check-out yang kosong secara massal untuk periode ini"
+            >
+              <Clock className="w-4 h-4 text-[#0874aa]" />
+              <span>Lengkapi Check-Out</span>
+            </button>
+          )}
 
           <button
             type="button"
