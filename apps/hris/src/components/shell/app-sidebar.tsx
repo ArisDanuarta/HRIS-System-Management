@@ -41,6 +41,7 @@ export interface AppSidebarProps {
   moduleFlags?: ModuleFlags;
   mobileOpen?: boolean;
   onCloseMobile?: () => void;
+  isMounted?: boolean;
 }
 
 export function AppSidebar({
@@ -55,6 +56,7 @@ export function AppSidebar({
   moduleFlags,
   mobileOpen = false,
   onCloseMobile,
+  isMounted = true,
 }: AppSidebarProps) {
   const pathname = usePathname();
 
@@ -248,7 +250,9 @@ export function AppSidebar({
             onCloseMobile();
           }
         }}
-        className={`fixed left-0 top-0 h-full bg-[#102e50] text-white z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(16,46,80,0.15)] transition-all duration-300 ${
+        className={`fixed left-0 top-0 h-full bg-[#102e50] text-white z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(16,46,80,0.15)] ${
+          isMounted ? "transition-all duration-300" : ""
+        } ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${
           isCollapsed ? "w-[272px] md:w-20" : "w-[272px] md:w-[264px]"
