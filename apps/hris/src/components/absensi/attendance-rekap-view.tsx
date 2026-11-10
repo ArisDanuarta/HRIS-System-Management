@@ -1014,6 +1014,28 @@ export function AttendanceRekapView({
           initialDate={selectedForCorrection.initialDate}
         />
       )}
+
+      {/* Render Bulk Checkout Modal */}
+      {isBulkModalOpen && (
+        <BulkCheckoutModal
+          isOpen={isBulkModalOpen}
+          onClose={() => setIsBulkModalOpen(false)}
+          year={currentYear}
+          month={currentMonth}
+          monthLabel={activeMonthLabel}
+          departmentId={dept}
+          departmentName={
+            isTeamView
+              ? departmentName || "Divisi Tim"
+              : dept === "ALL"
+                ? "Semua Divisi"
+                : departments.find((d) => d.id === dept)?.name
+          }
+          onSuccess={() => {
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
