@@ -88,18 +88,16 @@ describe("attendance.actions - Bulk Missed Check-Out", () => {
 
   const mockHrAuthCtx: MockAuthContext = {
     userId: "admin-123",
-    email: "hr@pspk.id",
+    employeeId: "emp-admin",
     roles: ["HR_ADMIN"],
-    permissions: ["hris.attendance.correct:all"],
-    isActive: true,
+    permissions: new Set(["hris.attendance.correct:all"]),
   };
 
   const mockStaffAuthCtx: MockAuthContext = {
     userId: "staff-123",
-    email: "staff@pspk.id",
+    employeeId: "emp-staff",
     roles: ["STAFF"],
-    permissions: ["hris.attendance.read:own", "hris.attendance.checkin:own"],
-    isActive: true,
+    permissions: new Set(["hris.attendance.read:own", "hris.attendance.checkin:own"]),
   };
 
   describe("getMissedCheckOutCountAction", () => {
