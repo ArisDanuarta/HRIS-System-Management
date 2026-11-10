@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useSyncExternalStore } from "react";
 import { ModuleFlags } from "@pspk/db";
 import { AppSidebar, RoleViewType } from "./app-sidebar";
 import { AppTopbar } from "./app-topbar";
@@ -48,6 +48,22 @@ function isTabletViewport(width?: number): boolean {
   return currentWidth >= 768 && currentWidth < 1280;
 }
 
+function subscribeResize(callback: () => void) {
+  window.addEventListener("resize", callback);
+  window.addEventListener("orientationchange", callback);
+  return () => {
+    window.removeEventListener("resize", callback);
+    window.removeEventListener("orientationchange", callback);
+  };
+}
+
+const getTabletSnapshot = () => isTabletViewport();
+const getServerTabletSnapshot = () => false;
+
+const emptySubscribe = () => () => {};
+const getMountedSnapshot = () => true;
+const getServerMountedSnapshot = () => false;
+
 export function ShellContainer({
   user,
   initialRole = "admin_hr",
@@ -61,41 +77,32 @@ export function ShellContainer({
   moduleFlags,
   children,
 }: ShellContainerProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+  const isTablet = useSyncExternalStore(subscribeResize, getTabletSnapshot, getServerTabletSnapshot);
+  const isMounted = useSyncExternalStore(emptySubscribe, getMountedSnapshot, getServerMountedSnapshot);
+
+  const [userOverride, setUserOverride] = useState<boolean | null>(null);
+  const [prevIsTablet, setPrevIsTablet] = useState(isTablet);
+
+  // Jika bertransisi antar mode (tablet <-> desktop), reset override agar default responsif aktif
+  if (prevIsTablet !== isTablet) {
+    setPrevIsTablet(isTablet);
+    setUserOverride(null);
+  }
+
+  // State akhir isCollapsed:
+  // - Jika pengguna melakukan interaksi toggle manual, gunakan userOverride
+  // - Default mode tablet (semua ukuran): minimal / rail (true)
+  // - Default mode desktop: extended (false)
+  const isCollapsed = userOverride !== null ? userOverride : isTablet;
+
+  const handleToggleCollapse = useCallback(() => {
+    setUserOverride((current) => {
+      const effectiveCurrent = current !== null ? current : isTablet;
+      return !effectiveCurrent;
+    });
+  }, [isTablet]);
+
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
-  // Responsivitas Tablet: Default mode minimal / Rail (80px) pada tablet semua ukuran (768px - 1279px, dan touch tablet hingga 1366px)
-  React.useEffect(() => {
-    setIsMounted(true);
-
-    const initialIsTablet = isTabletViewport();
-    if (initialIsTablet) {
-      setIsCollapsed(true);
-    }
-
-    let prevWasTablet = initialIsTablet;
-
-    const handleResize = () => {
-      const width = window.innerWidth;
-      const currentIsTablet = isTabletViewport(width);
-
-      // Transisi otomatis hanya saat berpindah mode antara tablet dan desktop:
-      // Dari desktop ke tablet -> otomatis default minimal (collapsed = true)
-      if (currentIsTablet && !prevWasTablet) {
-        setIsCollapsed(true);
-      }
-      // Dari tablet ke desktop monitor besar (>= 1280px tanpa touch) -> otomatis extended (collapsed = false)
-      else if (!currentIsTablet && width >= 1280 && prevWasTablet) {
-        setIsCollapsed(false);
-      }
-
-      prevWasTablet = currentIsTablet;
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   const handleCloseMobile = useCallback(() => {
     setMobileNavOpen(false);
@@ -104,6 +111,7 @@ export function ShellContainer({
   const handleToggleMobile = useCallback(() => {
     setMobileNavOpen((prev) => !prev);
   }, []);
+
   // State peran tampilan (ditentukan secara deterministik dari server cookie via initialRole)
   const [currentRole, setCurrentRole] = useState<RoleViewType>(initialRole);
 
@@ -123,7 +131,7 @@ export function ShellContainer({
         currentRole={currentRole}
         isCollapsed={isCollapsed}
         isMounted={isMounted}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        onToggleCollapse={handleToggleCollapse}
         employeeCount={employeeCount}
         pendingLeavesCount={pendingLeavesCount}
         remainingLeaveDays={remainingLeaveDays}
