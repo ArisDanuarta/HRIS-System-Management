@@ -10,11 +10,19 @@ import {
   checkInSchema,
   checkOutSchema,
   correctAttendanceSchema,
+  bulkFillCheckOutSchema,
   CheckInInput,
   CheckOutInput,
   CorrectAttendanceInput,
+  BulkFillCheckOutInput,
 } from "../schemas/attendance.schema";
-import { recordCheckIn, recordCheckOut, correctAttendance } from "../services/attendance.service";
+import {
+  recordCheckIn,
+  recordCheckOut,
+  correctAttendance,
+  getMissedCheckOutCount,
+  bulkFillMissedCheckOut,
+} from "../services/attendance.service";
 
 function formatErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof z.ZodError) {
@@ -23,10 +31,10 @@ function formatErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
-async function getAuthenticatedUser(): Promise<{
+async function getAuthenticatedUser(requireEmployee = true): Promise<{
   userId: string;
   userEmail: string;
-  employeeId: string;
+  employeeId: string | null;
   authCtx: AuthContext;
 }> {
   const reqHeaders = await headers();
@@ -72,7 +80,7 @@ async function getAuthenticatedUser(): Promise<{
     }
   }
 
-  if (!employeeId) {
+  if (requireEmployee && !employeeId) {
     throw new Error("Akun Anda belum terhubung dengan data profil pegawai. Hubungi HR untuk menautkan akun.");
   }
 
