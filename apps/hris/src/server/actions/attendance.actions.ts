@@ -215,3 +215,58 @@ export async function logAttendanceExportAction(params: {
     return { success: false };
   }
 }
+
+/**
+ * Server Action: Get count of uncompleted check-outs for a given period.
+ */
+export async function getMissedCheckOutCountAction(params: {
+  year: number;
+  month: number;
+  departmentId?: string;
+}) {
+  try {
+    const { authCtx } = await getAuthenticatedUser(false);
+    assertCan(authCtx, "hris.attendance.correct:all");
+
+    const count = await getMissedCheckOutCount(params);
+    return {
+      success: true,
+      count,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      count: 0,
+      message: formatErrorMessage(err, "Gagal mengambil data presensi tanpa check-out."),
+    };
+  }
+}
+
+/**
+ * Server Action: Bulk fill uncompleted check-outs for past dates.
+ */
+export async function bulkFillMissedCheckOutAction(input: BulkFillCheckOutInput) {
+  try {
+    const { userId, userEmail, authCtx } = await getAuthenticatedUser(false);
+    assertCan(authCtx, "hris.attendance.correct:all");
+
+    const validated = bulkFillCheckOutSchema.parse(input);
+    const result = await bulkFillMissedCheckOut(validated, userId, userEmail);
+
+    revalidatePath("/absensi");
+    revalidatePath("/absensi/rekap");
+    revalidatePath("/dashboard");
+
+    return {
+      success: true,
+      message: result.message,
+      count: result.count,
+      skipped: result.skipped,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: formatErrorMessage(err, "Gagal melengkapi check-out massal."),
+    };
+  }
+}
