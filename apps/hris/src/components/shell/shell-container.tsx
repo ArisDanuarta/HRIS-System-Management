@@ -26,6 +26,28 @@ export interface ShellContainerProps {
   children: React.ReactNode;
 }
 
+/**
+ * Memeriksa apakah viewport saat ini berada dalam rentang tablet semua ukuran:
+ * - Layar standar via breakpoint CSS/DevTools (lebar 768px hingga < 1280px)
+ * - Tablet fisik/touch devices (iPad Mini 768px hingga iPad Pro 12.9" landscape 1366px)
+ */
+function isTabletViewport(width?: number): boolean {
+  if (typeof window === "undefined") return false;
+  const currentWidth = width ?? window.innerWidth;
+
+  const isTouchDevice =
+    window.matchMedia("(pointer: coarse)").matches ||
+    (typeof navigator !== "undefined" && navigator.maxTouchPoints > 0);
+
+  // Tablet touch devices (iPad Mini 768px hingga iPad Pro 12.9" landscape 1366px)
+  if (isTouchDevice && currentWidth >= 768 && currentWidth <= 1366) {
+    return true;
+  }
+
+  // Tablet standar via breakpoint CSS/DevTools (768px hingga < 1280px)
+  return currentWidth >= 768 && currentWidth < 1280;
+}
+
 export function ShellContainer({
   user,
   initialRole = "admin_hr",
@@ -40,35 +62,39 @@ export function ShellContainer({
   children,
 }: ShellContainerProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  // Responsivitas Tablet: Default mode Rail (80px) pada tablet (768px - 1023px) dan adaptif terhadap perubahan ukuran layar
+  // Responsivitas Tablet: Default mode minimal / Rail (80px) pada tablet semua ukuran (768px - 1279px, dan touch tablet hingga 1366px)
   React.useEffect(() => {
-    let lastWidth = window.innerWidth;
+    setIsMounted(true);
 
-    // Set awal mode rail jika di tablet (asinkron agar tidak memicu cascading render)
-    const initialTimer = setTimeout(() => {
-      if (window.innerWidth >= 768 && window.innerWidth < 1024) {
-        setIsCollapsed(true);
-      }
-    }, 0);
+    const initialIsTablet = isTabletViewport();
+    if (initialIsTablet) {
+      setIsCollapsed(true);
+    }
+
+    let prevWasTablet = initialIsTablet;
 
     const handleResize = () => {
       const width = window.innerWidth;
-      // Auto collapse hanya ketika bertransisi masuk ke ukuran tablet dari desktop (>1024 ke <1024)
-      if (width >= 768 && width < 1024 && lastWidth >= 1024) {
+      const currentIsTablet = isTabletViewport(width);
+
+      // Transisi otomatis hanya saat berpindah mode antara tablet dan desktop:
+      // Dari desktop ke tablet -> otomatis default minimal (collapsed = true)
+      if (currentIsTablet && !prevWasTablet) {
         setIsCollapsed(true);
-      } else if (width >= 1024 && lastWidth < 1024) {
+      }
+      // Dari tablet ke desktop monitor besar (>= 1280px tanpa touch) -> otomatis extended (collapsed = false)
+      else if (!currentIsTablet && width >= 1280 && prevWasTablet) {
         setIsCollapsed(false);
       }
-      lastWidth = width;
+
+      prevWasTablet = currentIsTablet;
     };
 
     window.addEventListener("resize", handleResize);
-    return () => {
-      clearTimeout(initialTimer);
-      window.removeEventListener("resize", handleResize);
-    };
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleCloseMobile = useCallback(() => {
@@ -96,6 +122,7 @@ export function ShellContainer({
       <AppSidebar
         currentRole={currentRole}
         isCollapsed={isCollapsed}
+        isMounted={isMounted}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
         employeeCount={employeeCount}
         pendingLeavesCount={pendingLeavesCount}
@@ -112,6 +139,7 @@ export function ShellContainer({
         user={user}
         currentRole={currentRole}
         isCollapsed={isCollapsed}
+        isMounted={isMounted}
         isSuperAdmin={isSuperAdmin}
         canAccessSysmgmt={canAccessSysmgmt}
         onRoleChange={isSuperAdmin ? handleRoleChange : undefined}
@@ -120,7 +148,9 @@ export function ShellContainer({
 
       {/* Main Content Area - Adaptif Mobile pl-0, Tablet & Desktop adaptif pl-20 / pl-264 */}
       <div
-        className={`flex-1 w-full min-w-0 max-w-full overflow-x-hidden transition-all duration-300 pt-[calc(4rem+env(safe-area-inset-top,0px))] md:pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
+        className={`flex-1 w-full min-w-0 max-w-full overflow-x-hidden ${
+          isMounted ? "transition-all duration-300" : ""
+        } pt-[calc(4rem+env(safe-area-inset-top,0px))] md:pt-16 pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-6 ${
           isCollapsed ? "md:pl-20 pl-0" : "pl-0 md:pl-[264px]"
         }`}
       >
