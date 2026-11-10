@@ -31,6 +31,18 @@ function formatErrorMessage(err: unknown, fallback: string): string {
   return err instanceof Error ? err.message : fallback;
 }
 
+async function getAuthenticatedUser(requireEmployee?: true): Promise<{
+  userId: string;
+  userEmail: string;
+  employeeId: string;
+  authCtx: AuthContext;
+}>;
+async function getAuthenticatedUser(requireEmployee: false): Promise<{
+  userId: string;
+  userEmail: string;
+  employeeId: string | null;
+  authCtx: AuthContext;
+}>;
 async function getAuthenticatedUser(requireEmployee = true): Promise<{
   userId: string;
   userEmail: string;

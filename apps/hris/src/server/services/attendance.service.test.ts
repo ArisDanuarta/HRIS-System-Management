@@ -68,7 +68,7 @@ describe("attendance.service - Missed Check-Out Bulk Operations", () => {
       expect(count).toBe(5);
       expect(mockAttendanceCount).toHaveBeenCalledTimes(1);
 
-      const queryArgs = mockAttendanceCount.mock.calls[0][0];
+      const queryArgs = mockAttendanceCount.mock.calls[0]![0];
       expect(queryArgs.where.checkInAt).toEqual({ not: null });
       expect(queryArgs.where.checkOutAt).toBeNull();
       expect(queryArgs.where.date.lt).toBeInstanceOf(Date);
@@ -87,7 +87,7 @@ describe("attendance.service - Missed Check-Out Bulk Operations", () => {
         departmentId: "ALL",
       });
 
-      const queryArgs = mockAttendanceCount.mock.calls[0][0];
+      const queryArgs = mockAttendanceCount.mock.calls[0]![0];
       expect(queryArgs.where.employee).toBeUndefined();
     });
   });
@@ -144,7 +144,7 @@ describe("attendance.service - Missed Check-Out Bulk Operations", () => {
       expect(result.skipped).toBe(0);
       expect(mockAttendanceUpdate).toHaveBeenCalledTimes(1);
 
-      const updateCall = mockAttendanceUpdate.mock.calls[0][0];
+      const updateCall = mockAttendanceUpdate.mock.calls[0]![0];
       expect(updateCall.where.id).toBe("att-1");
       expect(updateCall.data.source).toBe("MANUAL_HR");
       expect(updateCall.data.correctedById).toBe("admin-user-1");
@@ -152,7 +152,7 @@ describe("attendance.service - Missed Check-Out Bulk Operations", () => {
       expect(updateCall.data.notes).toContain("[Auto-Out HR: 17:00]");
 
       expect(mockWriteAudit).toHaveBeenCalledTimes(1);
-      const auditCall = mockWriteAudit.mock.calls[0][0];
+      const auditCall = mockWriteAudit.mock.calls[0]![0];
       expect(auditCall.action).toBe("ATTENDANCE_BULK_CHECKOUT");
       expect(auditCall.after.affectedCount).toBe(1);
       expect(auditCall.after.affectedIds).toContain("att-1");
