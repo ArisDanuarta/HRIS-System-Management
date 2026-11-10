@@ -19,8 +19,10 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 import { AttendanceCorrectionModal } from "./attendance-correction-modal";
+import { BulkCheckoutModal } from "./bulk-checkout-modal";
 import { exportAttendanceRekapXlsx } from "@/lib/attendance-export";
 import { logAttendanceExportAction } from "@/server/actions/attendance.actions";
 
