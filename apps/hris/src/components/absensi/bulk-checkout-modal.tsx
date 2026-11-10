@@ -40,26 +40,28 @@ export function BulkCheckoutModal({
 }: BulkCheckoutModalProps) {
   const [checkOutTime, setCheckOutTime] = useState("17:00");
   const [reason, setReason] = useState("Penyesuaian massal check-out audit HR");
-  const [count, setCount] = useState<number | null>(null);
-  const [isLoadingCount, setIsLoadingCount] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Load preview count when modal opens or period changes
-  useEffect(() => {
-    if (!isOpen) {
-      setCount(null);
-      setError(null);
-      setSuccess(null);
-      return;
-    }
+  const fetchKey = `${year}-${month}-${departmentId || "ALL"}`;
+  const [prevFetchKey, setPrevFetchKey] = useState(fetchKey);
+  const [count, setCount] = useState<number | null>(null);
+  const [isLoadingCount, setIsLoadingCount] = useState(true);
 
-    let isMounted = true;
+  // Adjust state during render when query parameters change (React 19 pattern)
+  if (fetchKey !== prevFetchKey) {
+    setPrevFetchKey(fetchKey);
     setIsLoadingCount(true);
+    setCount(null);
     setError(null);
+  }
 
-    getMissedCheckOutCountAction({
+  // Load preview count without calling setState synchronously in effect body
+  useEffect(() => {
+    let isMounted = true;
+
+    void getMissedCheckOutCountAction({
       year,
       month,
       departmentId: departmentId && departmentId !== "ALL" ? departmentId : undefined,
@@ -85,7 +87,18 @@ export function BulkCheckoutModal({
     return () => {
       isMounted = false;
     };
-  }, [isOpen, year, month, departmentId]);
+  }, [fetchKey, year, month, departmentId]);
+
+  // Support closing with Escape key for accessibility
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isPending) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose, isPending]);
 
   if (!isOpen) return null;
 

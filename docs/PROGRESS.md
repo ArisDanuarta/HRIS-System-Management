@@ -4,6 +4,33 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Fitur Presensi & Rekap HR] Pengisian Massal Check-Out Kosong (*Bulk Fill Missed Check-Out*) — 2026-11-10
+
+- **Status:** Selesai (Task 1, Task 2, Task 3 Tuntas & Terverifikasi 100%)
+- **Scope & Tujuan:**
+  Memfasilitasi Admin HR / Super Admin di halaman Rekap Absensi (`/absensi/rekap`) untuk melengkapi data presensi karyawan yang lupa melakukan tap *check-out* pada periode mingguan/bulanan tertentu secara massal dengan jam pulang yang terstandarisasi, aman, dan diaudit.
+- **Pekerjaan yang Telah Selesai:**
+  1. **Backend Schema & Service (`attendance.schema.ts` & `attendance.service.ts`):**
+     - Skema validasi Zod `bulkFillCheckOutSchema` (`year`, `month`, `departmentId?`, `checkOutTime`, `reason`).
+     - Query `getMissedCheckOutCount` untuk preview jumlah presensi belum check-out.
+     - Service `bulkFillMissedCheckOut`:
+       - **Strict Past Date Filter:** Hanya memproses `date < today` (zona waktu `Asia/Jakarta`). Data hari ini tetap aktif untuk presensi mandiri karyawan.
+       - **Smart Date Matching:** Jam checkout digabungkan dengan tanggal riil tiap baris presensi (`record.date`).
+       - **Pemeriksaan Kronologis:** Melewati baris jika waktu checkout lebih awal dari checkin (`checkOutDate > checkInAt`).
+       - **Audit Trail:** Menulis audit log `ATTENDANCE_BULK_CHECKOUT` dan menandai sumber `MANUAL_HR`.
+  2. **Server Actions & Tests (`attendance.actions.ts`, `attendance.service.test.ts`, `attendance.actions.test.ts`):**
+     - `getMissedCheckOutCountAction` & `bulkFillMissedCheckOutAction` dilindungi guard RBAC `hris.attendance.correct:all`.
+     - 10 unit test Vitest mencakup skenario keamanan tanggal, validasi izin akses, format jam, dan pemicu `revalidatePath`.
+  3. **Frontend UI Rekap (`bulk-checkout-modal.tsx` & `attendance-rekap-view.tsx`):**
+     - Tombol aksi `Lengkapi Check-Out` pada toolbar halaman Rekap Absensi (khusus HR/Admin).
+     - Modal dialog responsif beraksen PSPK (Navy `#102E50`, Gold `#F2AF3E`) dengan pratinjau jumlah data terdampak, input jam pulang default 17:00, input catatan audit, proteksi Escape a11y, dan pola penyesuaian state render React 19 tanpa cascading render.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck` (9/9 packages) lulus 100%.
+  - `pnpm lint` lulus 100% (0 error, 0 warning).
+  - `pnpm test` (44 test suites, 294 tests passed) lulus 100%.
+
+---
+
 ## [Inisiatif Multi-Device Responsif] Optimasi HP (PWA), Tablet (iPad), dan Desktop Web — 2026-11-09
 
 - **Status:** Selesai (Seluruh 6 Tahap Tuntas & Terverifikasi 100%)
