@@ -1,6 +1,6 @@
-import { prisma, writeAudit } from "@pspk/db";
-import { toDateString, getTimezoneAbbr } from "@pspk/shared";
-import { CorrectAttendanceInput } from "../schemas/attendance.schema";
+import { prisma, writeAudit, Prisma } from "@pspk/db";
+import { toDateString, getTimezoneAbbr, getTimezoneOffsetString } from "@pspk/shared";
+import { CorrectAttendanceInput, BulkFillCheckOutInput } from "../schemas/attendance.schema";
 import { getActiveWorkSchedule } from "./work-schedule.service";
 
 /**
@@ -253,4 +253,171 @@ export async function correctAttendance(input: CorrectAttendanceInput, adminUser
   });
 
   return result;
+}
+
+/**
+ * Counts uncompleted attendance records (checked-in but missing check-out) strictly for past dates (date < today).
+ */
+export async function getMissedCheckOutCount(filters: {
+  year: number;
+  month: number;
+  departmentId?: string;
+}) {
+  const opTimezone = process.env.APP_TIMEZONE || "Asia/Jakarta";
+  const todayDateStr = toDateString(new Date(), opTimezone);
+  const todayDate = new Date(todayDateStr);
+
+  const startDate = new Date(Date.UTC(filters.year, filters.month - 1, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(filters.year, filters.month, 0, 23, 59, 59, 999));
+
+  const where: Prisma.AttendanceWhereInput = {
+    date: {
+      gte: startDate,
+      lte: endDate,
+      lt: todayDate,
+    },
+    checkInAt: { not: null },
+    checkOutAt: null,
+    status: { in: ["PRESENT", "LATE", "WFH"] },
+  };
+
+  if (filters.departmentId && filters.departmentId !== "ALL") {
+    where.employee = {
+      currentDepartmentId: filters.departmentId,
+      deletedAt: null,
+    };
+  }
+
+  const count = await prisma.attendance.count({ where });
+  return count;
+}
+
+/**
+ * Bulk fills missing checkout timestamps for uncompleted past attendance records.
+ * Strictly limited to date < today and generates audit logs.
+ */
+export async function bulkFillMissedCheckOut(
+  input: BulkFillCheckOutInput,
+  adminUserId: string,
+  adminEmail: string = "admin@pspk.example",
+) {
+  const opTimezone = process.env.APP_TIMEZONE || "Asia/Jakarta";
+  const todayDateStr = toDateString(new Date(), opTimezone);
+  const todayDate = new Date(todayDateStr);
+
+  const startDate = new Date(Date.UTC(input.year, input.month - 1, 1, 0, 0, 0, 0));
+  const endDate = new Date(Date.UTC(input.year, input.month, 0, 23, 59, 59, 999));
+
+  const where: Prisma.AttendanceWhereInput = {
+    date: {
+      gte: startDate,
+      lte: endDate,
+      lt: todayDate,
+    },
+    checkInAt: { not: null },
+    checkOutAt: null,
+    status: { in: ["PRESENT", "LATE", "WFH"] },
+  };
+
+  if (input.departmentId && input.departmentId !== "ALL") {
+    where.employee = {
+      currentDepartmentId: input.departmentId,
+      deletedAt: null,
+    };
+  }
+
+  const records = await prisma.attendance.findMany({
+    where,
+    select: {
+      id: true,
+      employeeId: true,
+      date: true,
+      checkInAt: true,
+      notes: true,
+    },
+    orderBy: { date: "asc" },
+  });
+
+  if (records.length === 0) {
+    return {
+      count: 0,
+      skipped: 0,
+      message: "Tidak ada data presensi tanpa check-out pada periode yang dipilih.",
+    };
+  }
+
+  let updatedCount = 0;
+  let skippedCount = 0;
+  const updatedIds: string[] = [];
+
+  await prisma.$transaction(async (tx) => {
+    for (const rec of records) {
+      if (!rec.checkInAt) {
+        skippedCount++;
+        continue;
+      }
+
+      // Format record date to YYYY-MM-DD in operational timezone
+      const recDateStr = toDateString(rec.date, opTimezone);
+      const offset = getTimezoneOffsetString(opTimezone, rec.date);
+      const checkOutDate = new Date(`${recDateStr}T${input.checkOutTime}:00${offset}`);
+
+      // Safety check: ensure check-out timestamp is chronologically after check-in timestamp
+      if (checkOutDate.getTime() <= rec.checkInAt.getTime()) {
+        skippedCount++;
+        continue;
+      }
+
+      const autoNote = `[Auto-Out HR: ${input.checkOutTime}] ${input.reason}`;
+      const newNotes = rec.notes ? `${rec.notes} | ${autoNote}` : autoNote;
+
+      await tx.attendance.update({
+        where: { id: rec.id },
+        data: {
+          checkOutAt: checkOutDate,
+          notes: newNotes,
+          correctedById: adminUserId,
+          correctionReason: input.reason,
+          source: "MANUAL_HR",
+        },
+      });
+
+      updatedIds.push(rec.id);
+      updatedCount++;
+    }
+
+    if (updatedCount > 0) {
+      await writeAudit(
+        {
+          actorUserId: adminUserId,
+          actorEmail: adminEmail,
+          app: "hris",
+          action: "ATTENDANCE_BULK_CHECKOUT",
+          entityType: "Attendance",
+          after: {
+            affectedCount: updatedCount,
+            skippedCount,
+            affectedIds: updatedIds,
+            year: input.year,
+            month: input.month,
+            departmentId: input.departmentId || "ALL",
+            checkOutTime: input.checkOutTime,
+            reason: input.reason,
+          },
+        },
+        tx,
+      );
+    }
+  });
+
+  const skippedMsg =
+    skippedCount > 0
+      ? ` (${skippedCount} data dilewati karena waktu check-in melampaui jam check-out yang ditentukan)`
+      : "";
+
+  return {
+    count: updatedCount,
+    skipped: skippedCount,
+    message: `Berhasil melengkapi ${updatedCount} data check-out yang kosong${skippedMsg}.`,
+  };
 }

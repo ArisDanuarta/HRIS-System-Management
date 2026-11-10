@@ -32,3 +32,21 @@ export const correctAttendanceSchema = z.object({
 export type CheckInInput = z.infer<typeof checkInSchema>;
 export type CheckOutInput = z.infer<typeof checkOutSchema>;
 export type CorrectAttendanceInput = z.infer<typeof correctAttendanceSchema>;
+
+export const bulkFillCheckOutSchema = z.object({
+  year: z.number().int().min(2020, { message: "Tahun tidak valid" }),
+  month: z.number().int().min(1).max(12, { message: "Bulan harus antara 1 sampai 12" }),
+  departmentId: z.string().optional(),
+  checkOutTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+      message: "Format jam check-out harus HH:mm (contoh: 17:00)",
+    })
+    .default("17:00"),
+  reason: z
+    .string()
+    .min(3, { message: "Alasan penyesuaian wajib diisi minimal 3 karakter" })
+    .default("Penyesuaian massal check-out oleh HR"),
+});
+
+export type BulkFillCheckOutInput = z.infer<typeof bulkFillCheckOutSchema>;
