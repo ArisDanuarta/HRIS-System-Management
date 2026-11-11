@@ -115,19 +115,19 @@
 - Consumes: Data `SerializedSoftwareLicense` dan `SerializedCredential`.
 - Produces: Progress bar lisensi dinamis, penanda visual kedaluwarsa, dan tombol quick-copy surel login.
 
-- [ ] **Step 1: Terapkan warna dinamis pada progress bar utilisasi kursi lisensi**
+- [x] **Step 1: Terapkan warna dinamis pada progress bar utilisasi kursi lisensi**
   Pada `license-table.tsx`:
-  - < 75%: `bg-emerald-500`
-  - 75% - 90%: `bg-amber-500`
-  - > 90% atau penuh: `bg-rose-500`
+  - < 70%: `bg-emerald-500`
+  - 70% - 89%: `bg-amber-500`
+  - >= 90% atau penuh: `bg-rose-500`
 
-- [ ] **Step 2: Tambahkan indikator aksen baris untuk lisensi yang segera habis**
+- [x] **Step 2: Tambahkan indikator aksen baris untuk lisensi yang segera habis**
   Berikan garis tepi kiri tebal (`border-l-4 border-l-rose-500 bg-rose-50/20`) pada baris lisensi yang memiliki status segera kedaluwarsa (< 30 hari).
 
-- [ ] **Step 3: Sediakan tombol quick-copy pada identitas login kredensial**
+- [x] **Step 3: Sediakan tombol quick-copy pada identitas login kredensial**
   Pada `credential-table.tsx`, tambahkan ikon salin kecil di samping teks alamat surel login dengan indikator tooltip dan status tersalin (*copied*) 2 detik.
 
-- [ ] **Step 4: Jalankan verifikasi typecheck**
+- [x] **Step 4: Jalankan verifikasi typecheck**
   Run: `pnpm --filter @pspk/sysmgmt typecheck`
   Expected: PASS
 

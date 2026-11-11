@@ -410,7 +410,9 @@ export function UserManagementTable({
                 <th className="py-3 px-4">Profil Pegawai PSPK</th>
                 <th className="py-3 px-4">Peran (RBAC)</th>
                 <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Aksi Manajemen</th>
+                <th className="py-3 px-4 text-right sticky right-0 bg-slate-50/95 backdrop-blur-xs z-10 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)]">
+                  Aksi Manajemen
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
