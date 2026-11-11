@@ -499,7 +499,7 @@ export function UserManagementTable({
                           } ${
                             !canManageThisUser || isCurrentActor
                               ? "opacity-80 cursor-not-allowed"
-                              : "cursor-pointer"
+                              : "cursor-pointer active:scale-95"
                           }`}
                           title={
                             isCurrentActor
@@ -518,17 +518,17 @@ export function UserManagementTable({
                         </button>
                       </td>
 
-                      {/* Kolom Aksi */}
-                      <td className="py-3.5 px-4 text-right">
+                      {/* Kolom Aksi (Sticky Right dengan Micro-interaction) */}
+                      <td className="py-3.5 px-4 text-right sticky right-0 bg-white/95 group-hover:bg-slate-50/95 backdrop-blur-xs z-10 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)] transition-colors">
                         <div className="flex items-center justify-end gap-1.5">
                           {/* Kelola Peran */}
                           <button
                             type="button"
                             disabled={!canManageThisUser}
                             onClick={() => handleOpenRoleModal(u)}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                               canManageThisUser
-                                ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-[#102E50] hover:border-[#102E50]/30 shadow-2xs"
+                                ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-[#102E50] hover:border-[#102E50]/30 shadow-2xs active:scale-95 cursor-pointer"
                                 : "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
                             }`}
                             title={
@@ -550,9 +550,9 @@ export function UserManagementTable({
                               setResetResult(null);
                               setResetError(null);
                             }}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                               canManageThisUser
-                                ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-[#102E50] hover:border-[#102E50]/30 shadow-2xs"
+                                ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-[#102E50] hover:border-[#102E50]/30 shadow-2xs active:scale-95 cursor-pointer"
                                 : "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed"
                             }`}
                             title={
@@ -571,7 +571,7 @@ export function UserManagementTable({
                               href={`${process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}/karyawan/${u.employee.id}?tab=akun`}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-[#102E50] hover:bg-slate-100 transition-colors"
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-[#102E50] hover:bg-slate-100 transition-all active:scale-90"
                               title="Buka profil pegawai di HRIS"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
