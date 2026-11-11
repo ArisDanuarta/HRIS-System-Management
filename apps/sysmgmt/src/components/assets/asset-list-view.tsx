@@ -87,10 +87,35 @@ export function AssetListView({
   // State Modal
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isExcelMenuOpen, setIsExcelMenuOpen] = useState(false);
+  const excelMenuRef = useRef<HTMLDivElement>(null);
+
   const [editingAsset, setEditingAsset] = useState<SerializedAsset | null>(null);
   const [deletingAsset, setDeletingAsset] = useState<SerializedAsset | null>(null);
   const [checkoutAsset, setCheckoutAsset] = useState<SerializedAsset | null>(null);
   const [checkinAsset, setCheckinAsset] = useState<SerializedAsset | null>(null);
+
+  // Micro-interaction: Deteksi klik di luar popover dan tombol Escape untuk menutup menu
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (excelMenuRef.current && !excelMenuRef.current.contains(event.target as Node)) {
+        setIsExcelMenuOpen(false);
+      }
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsExcelMenuOpen(false);
+      }
+    }
+    if (isExcelMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isExcelMenuOpen]);
 
   // Handler update filter URL
   const applyFilters = (newCat?: string, newStat?: string, newSearch?: string, newPage?: number) => {
