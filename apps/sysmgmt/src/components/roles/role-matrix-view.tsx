@@ -19,7 +19,6 @@ import {
   RefreshCw,
   Link2,
   ChevronDown,
-  ChevronRight,
   Layers,
   Network,
   FileCheck,
@@ -483,7 +482,7 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
                 <button
                   type="button"
                   onClick={() => setIsEditMode(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-[#102E50] text-white hover:bg-[#1a4473] transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-[#102E50] text-white hover:bg-[#1a4473] active:scale-95 transition-all shadow-2xs"
                 >
                   <Edit3 className="w-3.5 h-3.5 text-[#F2AF3E]" />
                   <span>Ubah Hak Akses</span>
@@ -492,7 +491,7 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
                   type="button"
                   onClick={() => setShowResetModal(true)}
                   disabled={isResetting}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#102E50] hover:bg-slate-50 transition-colors shadow-2xs"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-[#102E50] hover:bg-slate-50 active:scale-95 transition-all shadow-2xs"
                   title="Kembalikan wewenang peran ke standar awal blueprint PSPK"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
@@ -638,34 +637,40 @@ export function RoleMatrixView({ matrixData }: RoleMatrixViewProps) {
                       {/* Baris Judul Kategori (Accordion Header) */}
                       <tr
                         onClick={() => toggleCategory(category.categoryKey)}
-                        className="bg-slate-100/80 hover:bg-slate-150 cursor-pointer transition-colors select-none font-semibold"
+                        className="bg-slate-100/90 hover:bg-slate-200/70 active:bg-slate-200 cursor-pointer transition-colors select-none font-semibold group/accordion"
                       >
                         <td
                           colSpan={matrixData.roles.length + 1}
                           className="py-2.5 px-4 text-slate-800"
                         >
-                          <div className="flex items-center justify-between">
+                          <div className="sticky left-4 inline-flex items-center justify-between w-full max-w-full">
                             <div className="flex items-center gap-2.5">
-                              <span className="text-slate-400">
-                                {isCollapsed ? (
-                                  <ChevronRight className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
+                              <span className="p-0.5 rounded text-slate-400 group-hover/accordion:text-[#102E50] transition-colors">
+                                <ChevronDown
+                                  className={`w-4 h-4 transition-transform duration-200 ease-in-out ${
+                                    isCollapsed ? "-rotate-90 text-slate-400" : "rotate-0 text-[#102E50]"
+                                  }`}
+                                />
                               </span>
-                              <div className="w-6 h-6 rounded-md bg-white border border-slate-200/80 flex items-center justify-center text-[#102E50] shadow-2xs">
+                              <div className="w-6 h-6 rounded-md bg-white border border-slate-200/80 flex items-center justify-center text-[#102E50] shadow-2xs group-hover/accordion:border-slate-300 transition-colors">
                                 <CategoryIcon className="w-3.5 h-3.5" />
                               </div>
-                              <span className="text-xs font-bold text-slate-900">
+                              <span className="text-xs font-bold text-slate-900 group-hover/accordion:text-[#102E50] transition-colors">
                                 {category.categoryLabel}
                               </span>
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-white text-slate-500 border border-slate-200/80 font-normal">
-                                {category.permissions.length} wewenang
-                              </span>
+                              {isCollapsed ? (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-semibold shadow-3xs animate-in fade-in duration-150">
+                                  {category.permissions.length} wewenang (tertutup)
+                                </span>
+                              ) : (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white text-slate-500 border border-slate-200/80 font-normal">
+                                  {category.permissions.length} wewenang
+                                </span>
+                              )}
                             </div>
 
                             <span
-                              className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                              className={`text-[9px] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider transition-transform group-active/accordion:scale-95 ${
                                 category.app === "hris"
                                   ? "bg-amber-100/70 text-amber-800 border border-amber-200/60"
                                   : "bg-blue-100/70 text-blue-800 border border-blue-200/60"
