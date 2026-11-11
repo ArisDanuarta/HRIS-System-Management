@@ -67,7 +67,7 @@ async function main() {
 
   // 3. Seed Akun Utama Superadmin
   console.log("👤 Seeding superadmin account...");
-  const superAdminEmail = "superadmin@pspk.id";
+  const superAdminEmail = "it@pspk.id";
   const superAdminName = "Super Administrator PSPK";
   const superAdminPass = "Superadmin321!";
 

@@ -166,14 +166,14 @@
 - Consumes: `SystemPreferencesData`, `SettingsStats`.
 - Produces: Gaya tab bertingkat yang kontras dan live helper text perhitungan durasi sesi.
 
-- [ ] **Step 1: Bedakan styling antara tab level 1 dan sub-tab level 2**
+- [x] **Step 1: Bedakan styling antara tab level 1 dan sub-tab level 2**
   Ubah sub-tab Tipe Aset vs Lokasi Aset di `settings-assets-tab.tsx` menjadi format segmented control pill (`bg-slate-100 p-1 rounded-xl`) agar tidak tertukar dengan tab navigasi utama.
 
-- [ ] **Step 2: Tambahkan kalkulasi konversi waktu otomatis di form preferensi**
+- [x] **Step 2: Tambahkan kalkulasi konversi waktu otomatis di form preferensi**
   Pada input `sessionTimeoutMins` di `settings-preferences-tab.tsx`, tambahkan teks bantuan real-time:
   Contoh: *"Setara dengan: 1 hari 0 jam (24 jam)"* berdasarkan angka menit yang diketikkan pengguna.
 
-- [ ] **Step 3: Jalankan verifikasi typecheck**
+- [x] **Step 3: Jalankan verifikasi typecheck**
   Run: `pnpm --filter @pspk/sysmgmt typecheck`
   Expected: PASS
 
@@ -184,15 +184,15 @@
 **Files:**
 - Scope: Seluruh aplikasi `apps/sysmgmt`
 
-- [ ] **Step 1: Jalankan typecheck menyeluruh**
+- [x] **Step 1: Jalankan typecheck menyeluruh**
   Run: `pnpm --filter @pspk/sysmgmt typecheck`
   Expected: Exit code 0, 0 error.
 
-- [ ] **Step 2: Jalankan linting**
+- [x] **Step 2: Jalankan linting**
   Run: `pnpm --filter @pspk/sysmgmt lint`
   Expected: Exit code 0, 0 error.
 
-- [ ] **Step 3: Jalankan production build test**
+- [x] **Step 3: Jalankan production build test**
   Run: `pnpm --filter @pspk/sysmgmt build`
   Expected: Build Next.js standalone berhasil tanpa kegagalan compile.
 
