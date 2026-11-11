@@ -12,8 +12,8 @@ export default function AppNotFound() {
     <NotFoundView
       inShell={true}
       currentApp="sysmgmt"
-      homeUrl="/pengguna"
-      homeLabel="Kembali ke Manajemen Pengguna"
+      homeUrl="/dashboard"
+      homeLabel="Kembali ke Dashboard Administrator"
       title="Halaman Tidak Ditemukan"
       message="Rute atau halaman yang Anda cari tidak ditemukan pada portal System Management."
     />

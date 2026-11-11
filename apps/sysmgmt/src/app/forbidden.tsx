@@ -6,8 +6,8 @@ export default function Forbidden() {
     <ForbiddenView
       inShell={false}
       currentApp="sysmgmt"
-      homeUrl="/pengguna"
-      homeLabel="Kembali ke Manajemen Pengguna"
+      homeUrl="/dashboard"
+      homeLabel="Kembali ke Dashboard Administrator"
       title="Akses Administrator Dibatasi"
       message="Sesi akun Anda tidak memiliki otorisasi untuk mengakses rute atau sumber daya yang diminta pada portal System Management."
       requiredRole="Administrator TI / Super Admin"
