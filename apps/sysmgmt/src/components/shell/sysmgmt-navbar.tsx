@@ -34,12 +34,23 @@ interface SysmgmtNavbarProps {
     roleKey?: string;
   };
   canAccessHris?: boolean;
+  hrisUrl?: string;
+  sysmgmtUrl?: string;
   moduleFlags?: ModuleFlags;
 }
 
-export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: SysmgmtNavbarProps) {
+export function SysmgmtNavbar({
+  user,
+  canAccessHris = false,
+  hrisUrl,
+  sysmgmtUrl,
+  moduleFlags,
+}: SysmgmtNavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
+
+  const effectiveHrisUrl = resolveAppUrl("hris", hrisUrl);
+  const effectiveSysmgmtUrl = resolveAppUrl("sysmgmt", sysmgmtUrl);
 
   const [openDropdown, setOpenDropdown] = useState<"inventaris" | "governance" | "user" | null>(
     null,
@@ -420,8 +431,8 @@ export function SysmgmtNavbar({ user, canAccessHris = false, moduleFlags }: Sysm
             {canAccessHris && (
               <AppSwitcher
                 currentApp="sysmgmt"
-                hrisUrl={process.env.NEXT_PUBLIC_HRIS_URL || "http://localhost:3001"}
-                sysmgmtUrl={process.env.NEXT_PUBLIC_SYSMGMT_URL || "http://localhost:3002"}
+                hrisUrl={effectiveHrisUrl}
+                sysmgmtUrl={effectiveSysmgmtUrl}
                 canAccessHris={canAccessHris}
                 userRoleName={user.roleName}
               />
