@@ -364,7 +364,7 @@ export function SettingsAssetsTab({
                   setSelectedLocation(null);
                   setLocationModalOpen(true);
                 }}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#102E50] text-white text-xs font-semibold hover:bg-[#102E50]/90 transition shadow-xs"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#102E50] text-white text-xs font-semibold hover:bg-[#1a4473] active:scale-95 transition-all shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Lokasi Baru</span>

@@ -38,6 +38,23 @@ export function SettingsPreferencesTab({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  // Helper konversi kalkulasi menit ke representasi waktu manusiawi
+  const formatHumanDuration = (minsStr: string) => {
+    const mins = parseInt(minsStr, 10);
+    if (isNaN(mins) || mins <= 0) return null;
+    const days = Math.floor(mins / 1440);
+    const remainingMinsAfterDays = mins % 1440;
+    const hours = Math.floor(remainingMinsAfterDays / 60);
+    const remainingMins = remainingMinsAfterDays % 60;
+
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days} hari`);
+    if (hours > 0) parts.push(`${hours} jam`);
+    if (remainingMins > 0 || parts.length === 0) parts.push(`${remainingMins} menit`);
+
+    return parts.join(" ");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canManage) return;
