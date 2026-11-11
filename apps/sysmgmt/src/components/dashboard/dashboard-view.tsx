@@ -210,7 +210,7 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
         </div>
 
         {/* Card 2: Inventaris Aset Lembaga */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between sm:col-span-1 lg:col-span-2 xl:col-span-1">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -251,7 +251,7 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
         </div>
 
         {/* Card 3: Lisensi Software */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between sm:col-span-1 lg:col-span-2 xl:col-span-1">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -299,7 +299,7 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
         </div>
 
         {/* Card 4: Brankas Kredensial & Akun */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between sm:col-span-1 lg:col-span-3 xl:col-span-1">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -353,7 +353,7 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
         </div>
 
         {/* Card 5: Dokumen & SOP */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between sm:col-span-1 lg:col-span-3 xl:col-span-1">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
