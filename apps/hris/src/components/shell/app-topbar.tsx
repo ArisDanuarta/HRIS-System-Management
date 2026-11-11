@@ -163,6 +163,7 @@ export function AppTopbar({
           <>
             <AppSwitcher
               currentApp="hris"
+              sysmgmtUrl={effectiveSysmgmtUrl}
               canAccessSysmgmt={canAccessSysmgmt}
               userRoleName={user.roleName}
             />
@@ -178,7 +179,11 @@ export function AppTopbar({
         <div className="h-6 w-px bg-[#dee9fc] hidden sm:block" />
 
         {/* User Navigation Dropdown */}
-        <UserNav user={user} canAccessSysmgmt={canAccessSysmgmt} />
+        <UserNav
+          user={user}
+          canAccessSysmgmt={canAccessSysmgmt}
+          sysmgmtUrl={effectiveSysmgmtUrl}
+        />
       </div>
     </header>
   );
