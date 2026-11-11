@@ -241,8 +241,16 @@ export function SettingsPreferencesTab({
                 Menit
               </span>
             </div>
+            {formatHumanDuration(sessionTimeoutMins) && (
+              <div className="mt-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-50/90 border border-amber-200/80 text-amber-900 text-[11px] font-medium shadow-3xs animate-in fade-in duration-150">
+                <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>
+                  Setara dengan: <strong className="font-bold text-amber-950">{formatHumanDuration(sessionTimeoutMins)}</strong>
+                </span>
+              </div>
+            )}
             <p className="text-[11px] text-slate-400 mt-1">
-              Nilai default: <span className="font-semibold text-slate-600">1440 Menit (24 Jam)</span>.
+              Standar PSPK: <span className="font-semibold text-slate-600">1440 Menit (24 Jam)</span>. Maks: 7 Hari (10.080 Menit).
             </p>
           </div>
         </div>
@@ -264,7 +272,7 @@ export function SettingsPreferencesTab({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#102E50] text-white text-xs font-semibold hover:bg-[#102E50]/90 transition shadow-xs disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-[#102E50] text-white text-xs font-semibold hover:bg-[#1a4473] active:scale-95 transition-all shadow-xs disabled:opacity-50 disabled:active:scale-100"
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
