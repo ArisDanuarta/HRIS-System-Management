@@ -79,81 +79,93 @@ export function DashboardView({ stats, currentUser }: DashboardViewProps) {
           </div>
         </div>
 
-        {/* Bilah Aksi Cepat (Quick Action Pills) */}
-        <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center gap-2.5">
-          <span className="text-xs font-semibold text-slate-400 mr-1 uppercase tracking-wider">
-            Aksi Cepat:
-          </span>
-          <Link
-            href="/pengguna"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <Users className="w-3.5 h-3.5 text-[#102E50]" />
-            <span>Kelola Pengguna</span>
-          </Link>
-          <Link
-            href="/pengguna?tab=roles"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
-            <span>Matriks Hak Akses (RBAC)</span>
-          </Link>
-          <Link
-            href="/aset"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <Layers className="w-3.5 h-3.5 text-teal-600" />
-            <span>Inventaris Aset</span>
-          </Link>
-          <Link
-            href="/lisensi"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-            <span>Lisensi Software</span>
-          </Link>
-          <Link
-            href="/kredensial"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <Lock className="w-3.5 h-3.5 text-amber-700" />
-            <span>Brankas Kredensial</span>
-          </Link>
-          <Link
-            href="/dokumen"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <FileText className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Dokumen & SOP</span>
-          </Link>
-          <Link
-            href="/pengguna?tab=modules"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
-            <span>Tata Kelola Modul</span>
-          </Link>
-          <Link
-            href="/audit"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <History className="w-3.5 h-3.5 text-purple-600" />
-            <span>Buku Besar Audit Log</span>
-          </Link>
-          <Link
-            href="/pengaturan"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 transition-colors"
-          >
-            <Settings className="w-3.5 h-3.5 text-slate-600" />
-            <span>Pengaturan Sistem</span>
-          </Link>
+        {/* Bilah Aksi Cepat (Quick Action Pills) Terorganisir */}
+        <div className="mt-6 pt-5 border-t border-slate-100 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 min-w-[130px]">
+              Inventaris & Layanan:
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/aset"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-teal-50/50 hover:border-teal-200 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-teal-900 transition-colors shadow-2xs"
+              >
+                <Layers className="w-3.5 h-3.5 text-teal-600" />
+                <span>Inventaris Aset</span>
+              </Link>
+              <Link
+                href="/lisensi"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-amber-50/50 hover:border-amber-200 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-amber-900 transition-colors shadow-2xs"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+                <span>Lisensi Software</span>
+              </Link>
+              <Link
+                href="/kredensial"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-amber-50/50 hover:border-amber-200 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-amber-900 transition-colors shadow-2xs"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-700" />
+                <span>Brankas Kredensial</span>
+              </Link>
+              <Link
+                href="/dokumen"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50/50 hover:border-indigo-200 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-indigo-900 transition-colors shadow-2xs"
+              >
+                <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Dokumen & SOP</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 pt-1">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0 min-w-[130px]">
+              Tata Kelola & Akses:
+            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <Link
+                href="/pengguna"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 hover:border-slate-300 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-[#102E50] transition-colors shadow-2xs"
+              >
+                <Users className="w-3.5 h-3.5 text-[#102E50]" />
+                <span>Kelola Pengguna</span>
+              </Link>
+              <Link
+                href="/pengguna?tab=roles"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 hover:border-slate-300 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-amber-900 transition-colors shadow-2xs"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+                <span>Matriks Hak Akses (RBAC)</span>
+              </Link>
+              <Link
+                href="/pengguna?tab=modules"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50/50 hover:border-blue-200 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-blue-900 transition-colors shadow-2xs"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                <span>Tata Kelola Modul</span>
+              </Link>
+              <Link
+                href="/audit"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-purple-50/50 hover:border-purple-200 border border-slate-200/90 text-xs font-medium text-slate-700 hover:text-purple-900 transition-colors shadow-2xs"
+              >
+                <History className="w-3.5 h-3.5 text-purple-600" />
+                <span>Buku Besar Audit</span>
+              </Link>
+              <Link
+                href="/pengaturan"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 hover:border-slate-300 border border-slate-200/90 text-xs font-medium text-slate-700 transition-colors shadow-2xs"
+              >
+                <Settings className="w-3.5 h-3.5 text-slate-600" />
+                <span>Pengaturan Sistem</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 2. Lima Kartu Metrik Utama (Responsive Grid) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {/* 2. Lima Kartu Metrik Utama (Responsive Grid Seimbang) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-5 gap-4">
         {/* Card 1: Akun & Keamanan Pengguna */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between sm:col-span-2 lg:col-span-2 xl:col-span-1">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
