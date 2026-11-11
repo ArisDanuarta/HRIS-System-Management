@@ -143,13 +143,13 @@
 - Consumes: Data matriks peran RBAC dan tabel akun pengguna.
 - Produces: Kolom aksi tabel pengguna yang tetap terlihat (sticky right) dan indikator jumlah izin pada akordion tertutup.
 
-- [ ] **Step 1: Jadikan kolom aksi manajemen pengguna sticky di tepi kanan**
+- [x] **Step 1: Jadikan kolom aksi manajemen pengguna sticky di tepi kanan**
   Tambahkan kelas `sticky right-0 bg-white/95 backdrop-blur-xs shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.06)]` pada sel th dan td aksi manajemen di `user-management-table.tsx`.
 
-- [ ] **Step 2: Tambahkan counter badge pada baris akordion kategori RBAC tertutup**
+- [x] **Step 2: Tambahkan counter badge pada baris akordion kategori RBAC tertutup**
   Pada `role-matrix-view.tsx`, tampilkan badge pill kecil bertuliskan `${category.permissions.length} wewenang` saat kondisi `isCollapsed` bernilai `true`.
 
-- [ ] **Step 3: Jalankan verifikasi typecheck**
+- [x] **Step 3: Jalankan verifikasi typecheck**
   Run: `pnpm --filter @pspk/sysmgmt typecheck`
   Expected: PASS
 

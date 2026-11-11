@@ -124,20 +124,26 @@ export function SettingsAssetsTab({
 
   return (
     <div className="space-y-6">
-      {/* Sub-tab Navigation */}
-      <div className="flex border-b border-slate-200">
+      {/* Sub-tab Navigation (Segmented Control Pill Kapsul) */}
+      <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200/80 shadow-2xs">
         <button
           type="button"
           onClick={() => setSubTab("TYPES")}
-          className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition -mb-px ${
+          className={`flex items-center gap-2 py-2 px-3.5 text-xs rounded-lg transition-all active:scale-95 ${
             subTab === "TYPES"
-              ? "border-[#102E50] text-[#102E50]"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-white text-[#102E50] font-bold shadow-xs"
+              : "text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-200/50"
           }`}
         >
-          <Layers className="w-4 h-4" />
+          <Layers className={`w-3.5 h-3.5 ${subTab === "TYPES" ? "text-[#102E50]" : "text-slate-400"}`} />
           <span>Tipe Inventaris Aset</span>
-          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+          <span
+            className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold border ${
+              subTab === "TYPES"
+                ? "bg-slate-100 text-slate-800 border-slate-200"
+                : "bg-white/80 text-slate-500 border-slate-200/60"
+            }`}
+          >
             {assetTypes.length}
           </span>
         </button>
@@ -145,15 +151,21 @@ export function SettingsAssetsTab({
         <button
           type="button"
           onClick={() => setSubTab("LOCATIONS")}
-          className={`flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 transition -mb-px ${
+          className={`flex items-center gap-2 py-2 px-3.5 text-xs rounded-lg transition-all active:scale-95 ${
             subTab === "LOCATIONS"
-              ? "border-[#102E50] text-[#102E50]"
-              : "border-transparent text-slate-500 hover:text-slate-800"
+              ? "bg-white text-[#102E50] font-bold shadow-xs"
+              : "text-slate-600 hover:text-slate-900 font-semibold hover:bg-slate-200/50"
           }`}
         >
-          <MapPin className="w-4 h-4" />
+          <MapPin className={`w-3.5 h-3.5 ${subTab === "LOCATIONS" ? "text-[#102E50]" : "text-slate-400"}`} />
           <span>Lokasi & Ruangan Kantor</span>
-          <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-slate-100 text-slate-600 font-semibold border border-slate-200">
+          <span
+            className={`ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold border ${
+              subTab === "LOCATIONS"
+                ? "bg-slate-100 text-slate-800 border-slate-200"
+                : "bg-white/80 text-slate-500 border-slate-200/60"
+            }`}
+          >
             {assetLocations.length}
           </span>
         </button>
@@ -212,7 +224,7 @@ export function SettingsAssetsTab({
                   setSelectedType(null);
                   setTypeModalOpen(true);
                 }}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#102E50] text-white text-xs font-semibold hover:bg-[#102E50]/90 transition shadow-xs"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#102E50] text-white text-xs font-semibold hover:bg-[#1a4473] active:scale-95 transition-all shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Tambah Tipe Aset</span>
