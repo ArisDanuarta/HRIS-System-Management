@@ -82,7 +82,7 @@ export function EmployeeFilterBar({
     <div className="bg-white rounded-xl border border-slate-200/80 p-3.5 shadow-xs flex flex-col gap-3 w-full min-w-0 max-w-full">
       <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 w-full min-w-0">
         {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 w-full min-w-0">
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 min-w-0 lg:min-w-[280px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
@@ -105,7 +105,7 @@ export function EmployeeFilterBar({
         </form>
 
         {/* Filter Dropdowns */}
-        <div className="flex flex-wrap items-center gap-2 w-full min-w-0">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto min-w-0">
           <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold pl-1 pr-1 shrink-0">
             <Filter className="w-3.5 h-3.5 text-slate-400" />
             <span>Filter:</span>

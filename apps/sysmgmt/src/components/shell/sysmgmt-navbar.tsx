@@ -6,6 +6,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { AppSwitcher } from "@pspk/ui";
 import { signOut } from "@pspk/auth/client";
+import { resolveAppUrl } from "@pspk/shared";
 import {
   Users,
   Layers,
