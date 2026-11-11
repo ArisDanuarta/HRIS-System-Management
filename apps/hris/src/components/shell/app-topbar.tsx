@@ -7,6 +7,7 @@ import { AppSwitcher } from "@pspk/ui";
 import { UserNav } from "./user-nav";
 import { NotificationBell } from "./notification-bell";
 import { RoleViewType } from "./app-sidebar";
+import { resolveAppUrl } from "@pspk/shared";
 
 export interface AppTopbarProps {
   user: {
@@ -20,6 +21,7 @@ export interface AppTopbarProps {
   isCollapsed: boolean;
   isSuperAdmin?: boolean;
   canAccessSysmgmt?: boolean;
+  sysmgmtUrl?: string;
   onRoleChange?: (role: RoleViewType) => void;
   onToggleMobile?: () => void;
   isMounted?: boolean;
@@ -31,11 +33,13 @@ export function AppTopbar({
   isCollapsed,
   isSuperAdmin = false,
   canAccessSysmgmt = false,
+  sysmgmtUrl,
   onRoleChange,
   onToggleMobile,
   isMounted = true,
 }: AppTopbarProps) {
   const pathname = usePathname();
+  const effectiveSysmgmtUrl = resolveAppUrl("sysmgmt", sysmgmtUrl);
 
   // Derive breadcrumb page title from pathname
   const getPageTitle = () => {

@@ -14,6 +14,7 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { authClient } from "@pspk/auth/client";
+import { resolveAppUrl } from "@pspk/shared";
 
 export interface UserNavProps {
   user: {
@@ -24,14 +25,17 @@ export interface UserNavProps {
     roleName?: string;
   };
   canAccessSysmgmt?: boolean;
+  sysmgmtUrl?: string;
 }
 
-export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
+export function UserNav({ user, canAccessSysmgmt = false, sysmgmtUrl }: UserNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [failedImgSrc, setFailedImgSrc] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const effectiveSysmgmtUrl = resolveAppUrl("sysmgmt", sysmgmtUrl);
 
   const showAvatar = Boolean(user.image && user.image !== failedImgSrc);
 
@@ -150,7 +154,7 @@ export function UserNav({ user, canAccessSysmgmt = false }: UserNavProps) {
 
             {canAccessSysmgmt && (
               <a
-                href={process.env.NEXT_PUBLIC_SYSMGMT_URL || "http://localhost:3002"}
+                href={effectiveSysmgmtUrl}
                 className="flex items-center justify-between px-3 py-2 rounded-lg text-xs text-[#43474e] hover:bg-[#eff4ff] hover:text-[#102e50] transition-colors font-medium"
                 onClick={() => setIsOpen(false)}
               >
