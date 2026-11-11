@@ -210,32 +210,91 @@ export function AssetListView({
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Ekspor Excel */}
-          <button
-            type="button"
-            onClick={() => exportAssetsToXlsx(assets)}
-            title="Unduh daftar inventaris aset ke berkas Microsoft Excel (.xlsx)"
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 hover:text-[#102E50] text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="hidden sm:inline">Ekspor Excel</span>
-          </button>
-
-          {/* Impor Excel */}
-          {canImport && (
+          {/* Kelola Data Excel Dropdown Menu dengan Micro-interaction */}
+          <div className="relative" ref={excelMenuRef}>
             <button
               type="button"
-              onClick={() => setIsImportModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold rounded-lg transition-colors shadow-2xs"
+              onClick={() => setIsExcelMenuOpen((prev) => !prev)}
+              aria-expanded={isExcelMenuOpen}
+              aria-haspopup="menu"
+              className={`inline-flex items-center gap-1.5 px-3 py-2 bg-white border text-xs font-semibold rounded-xl transition-all shadow-2xs cursor-pointer active:scale-95 ${
+                isExcelMenuOpen
+                  ? "border-[#102E50] text-[#102E50] ring-2 ring-[#102E50]/10"
+                  : "border-slate-200 text-slate-700 hover:text-[#102E50] hover:bg-slate-50"
+              }`}
             >
-              <Upload className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Impor Excel</span>
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Kelola Berkas Excel</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${
+                  isExcelMenuOpen ? "rotate-180 text-[#102E50]" : ""
+                }`}
+              />
             </button>
-          )}
+
+            {isExcelMenuOpen && (
+              <div
+                role="menu"
+                className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-64 rounded-2xl bg-white border border-slate-200/90 shadow-xl p-1.5 z-40 animate-in fade-in zoom-in-95 duration-150"
+              >
+                <div className="px-2.5 py-1.5 border-b border-slate-100 mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Opsi Spreadsheet (.xlsx)
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setIsExcelMenuOpen(false);
+                    exportAssetsToXlsx(assets);
+                  }}
+                  className="w-full text-left flex items-start gap-2.5 p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-[#102E50] transition-colors group cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 group-hover:text-[#102E50]">
+                      Ekspor Katalog Aset
+                    </div>
+                    <div className="text-[11px] text-slate-500 leading-snug">
+                      Unduh daftar {assets.length} unit terdaftar ke berkas Excel
+                    </div>
+                  </div>
+                </button>
+
+                {canImport && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsExcelMenuOpen(false);
+                      setIsImportModalOpen(true);
+                    }}
+                    className="w-full text-left flex items-start gap-2.5 p-2 rounded-xl hover:bg-emerald-50/60 text-slate-700 hover:text-emerald-900 transition-colors group cursor-pointer"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 group-hover:scale-105 transition-transform">
+                      <Upload className="w-3.5 h-3.5" />
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-slate-800 group-hover:text-emerald-900">
+                        Impor Massal Aset
+                      </div>
+                      <div className="text-[11px] text-slate-500 leading-snug">
+                        Unggah data perangkat baru dari berkas Excel
+                      </div>
+                    </div>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
           <Link
             href="/pengguna?tab=modules"
-            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 hover:text-[#102E50] text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 hover:text-[#102E50] text-xs font-semibold rounded-xl hover:bg-slate-50 transition-colors shadow-2xs active:scale-95"
           >
             <Sliders className="w-3.5 h-3.5" />
             <span>Tata Kelola Modul</span>
@@ -245,7 +304,7 @@ export function AssetListView({
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] text-white text-xs font-semibold rounded-lg hover:bg-[#1a4473] transition-colors shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] text-white text-xs font-semibold rounded-xl hover:bg-[#1a4473] transition-all shadow-xs active:scale-95 cursor-pointer"
             >
               <Plus className="w-4 h-4 text-[#F2AF3E]" />
               <span>Catat Aset Baru</span>
