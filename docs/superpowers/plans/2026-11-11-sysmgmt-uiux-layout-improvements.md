@@ -90,16 +90,16 @@
 - Consumes: `exportAssetsToXlsx`, `canImport`, `canWrite`.
 - Produces: Dropdown menu popover rapi untuk opsi ekspor/impor Excel yang ringkas.
 
-- [ ] **Step 1: Buat state dropdown menu berkas Excel**
-  Tambahkan state `isDataMenuOpen` dan ref tombol untuk menutup popover saat diklik di luar.
+- [x] **Step 1: Buat state dropdown menu berkas Excel**
+  Tambahkan state `isExcelMenuOpen` dan ref tombol untuk menutup popover saat diklik di luar.
 
-- [ ] **Step 2: Satukan tombol Ekspor & Impor ke dalam satu tombol grup "Kelola Data Excel"**
+- [x] **Step 2: Satukan tombol Ekspor & Impor ke dalam satu tombol grup "Kelola Data Excel"**
   Ganti tombol ganda yang memanjang di header dengan satu tombol dropdown sekunder yang memuat opsi:
   - Unduh Format / Ekspor Data (.xlsx)
   - Unggah / Impor Data (.xlsx)
   Pertahankan tombol primer *"Catat Aset Baru"* (`#102E50`) di posisi paling kanan.
 
-- [ ] **Step 3: Jalankan verifikasi typecheck**
+- [x] **Step 3: Jalankan verifikasi typecheck**
   Run: `pnpm --filter @pspk/sysmgmt typecheck`
   Expected: PASS
 

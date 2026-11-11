@@ -70,14 +70,14 @@ export function LicenseTable({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {licenses.map((license) => {
-              // Menentukan warna progress bar alokasi kursi
+              // Menentukan warna progress bar alokasi kursi secara dinamis
               let progressColor = "bg-emerald-500";
               let badgeColor = "bg-emerald-50 text-emerald-700 border-emerald-200";
 
-              if (license.utilizationPercent >= 100) {
+              if (license.utilizationPercent >= 90) {
                 progressColor = "bg-rose-500";
                 badgeColor = "bg-rose-50 text-rose-700 border-rose-200";
-              } else if (license.utilizationPercent >= 80) {
+              } else if (license.utilizationPercent >= 70) {
                 progressColor = "bg-amber-500";
                 badgeColor = "bg-amber-50 text-amber-700 border-amber-200";
               }
@@ -85,7 +85,13 @@ export function LicenseTable({
               return (
                 <tr
                   key={license.id}
-                  className="hover:bg-slate-50/70 transition-colors group"
+                  className={`hover:bg-slate-50/70 transition-colors group border-l-4 ${
+                    license.isExpired
+                      ? "border-l-rose-500 bg-rose-50/20"
+                      : license.isExpiringSoon
+                        ? "border-l-amber-500 bg-amber-50/15"
+                        : "border-l-transparent"
+                  }`}
                 >
                   {/* Kolom 1: Perangkat Lunak & Vendor */}
                   <td className="py-4 px-4 pl-6 align-top">
@@ -187,7 +193,7 @@ export function LicenseTable({
                           <button
                             type="button"
                             onClick={() => onRevealKey?.(license)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-[#102E50] hover:text-[#1a4473] bg-[#102E50]/5 hover:bg-[#102E50]/10 rounded-md border border-[#102E50]/20 transition-colors shadow-2xs"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-[#102E50] hover:text-[#1a4473] bg-[#102E50]/5 hover:bg-[#102E50]/10 rounded-md border border-[#102E50]/20 transition-all shadow-2xs active:scale-95 cursor-pointer"
                             title="Buka Kunci Produk (Aktivitas ini dicatat dalam log audit)"
                           >
                             <Eye className="w-3 h-3" />
@@ -209,7 +215,7 @@ export function LicenseTable({
                         <button
                           type="button"
                           onClick={() => onEditLicense?.(license)}
-                          className="p-1.5 rounded-lg text-slate-500 hover:text-[#102E50] hover:bg-slate-100 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-500 hover:text-[#102E50] hover:bg-slate-100 transition-all active:scale-90 cursor-pointer"
                           title="Ubah Lisensi"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -217,7 +223,7 @@ export function LicenseTable({
                         <button
                           type="button"
                           onClick={() => onDeleteLicense?.(license)}
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all active:scale-90 cursor-pointer"
                           title="Hapus Lisensi"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
