@@ -97,7 +97,14 @@ export function CredentialTable({
               const TwoFactorIcon = twoFactorMeta?.icon || ShieldAlert;
 
               return (
-                <tr key={cred.id} className="hover:bg-slate-50/70 transition-colors group">
+                <tr
+                  key={cred.id}
+                  className={`hover:bg-slate-50/70 transition-colors group border-l-4 ${
+                    cred.needsRotation
+                      ? "border-l-amber-500 bg-amber-50/15"
+                      : "border-l-transparent"
+                  }`}
+                >
                   {/* Kolom 1: Akun & Kategori */}
                   <td className="py-4 px-4 pl-6 align-top">
                     <div className="flex items-start gap-3">
