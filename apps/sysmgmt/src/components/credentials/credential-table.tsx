@@ -158,15 +158,24 @@ export function CredentialTable({
                           <button
                             type="button"
                             onClick={() => handleCopyText(cred.username!, `user-${cred.id}`)}
-                            title="Salin Username"
-                            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5"
+                            title={copiedKey === `user-${cred.id}` ? "Username Tersalin!" : "Salin Username"}
+                            className={`p-1 rounded-md transition-all active:scale-90 cursor-pointer ${
+                              copiedKey === `user-${cred.id}`
+                                ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-300"
+                                : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                            }`}
                           >
                             {copiedKey === `user-${cred.id}` ? (
-                              <Check className="w-3 h-3 text-emerald-500" />
+                              <Check className="w-3 h-3 text-emerald-600" />
                             ) : (
                               <Copy className="w-3 h-3" />
                             )}
                           </button>
+                          {copiedKey === `user-${cred.id}` && (
+                            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 animate-in fade-in duration-150">
+                              Tersalin
+                            </span>
+                          )}
                         </div>
                       )}
                       {cred.email && (
@@ -178,15 +187,24 @@ export function CredentialTable({
                           <button
                             type="button"
                             onClick={() => handleCopyText(cred.email!, `email-${cred.id}`)}
-                            title="Salin Email"
-                            className="text-slate-400 hover:text-slate-600 transition-colors p-0.5"
+                            title={copiedKey === `email-${cred.id}` ? "Email Tersalin!" : "Salin Email"}
+                            className={`p-1 rounded-md transition-all active:scale-90 cursor-pointer ${
+                              copiedKey === `email-${cred.id}`
+                                ? "bg-emerald-50 text-emerald-600 ring-1 ring-emerald-300"
+                                : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                            }`}
                           >
                             {copiedKey === `email-${cred.id}` ? (
-                              <Check className="w-3 h-3 text-emerald-500" />
+                              <Check className="w-3 h-3 text-emerald-600" />
                             ) : (
                               <Copy className="w-3 h-3" />
                             )}
                           </button>
+                          {copiedKey === `email-${cred.id}` && (
+                            <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200 animate-in fade-in duration-150">
+                              Tersalin
+                            </span>
+                          )}
                         </div>
                       )}
                       {!cred.username && !cred.email && (
@@ -206,7 +224,7 @@ export function CredentialTable({
                           <button
                             type="button"
                             onClick={() => onRevealPassword?.(cred)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold transition-colors shadow-2xs"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-[11px] font-semibold transition-all shadow-2xs active:scale-95 cursor-pointer"
                             title="Buka dan lihat password terenkripsi"
                           >
                             <Eye className="w-3 h-3" />
@@ -301,7 +319,7 @@ export function CredentialTable({
                         <button
                           type="button"
                           onClick={() => onEditCredential?.(cred)}
-                          className="p-1.5 text-slate-500 hover:text-[#102E50] hover:bg-slate-100 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-500 hover:text-[#102E50] hover:bg-slate-100 rounded-lg transition-all active:scale-90 cursor-pointer"
                           title="Edit Akun"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -309,7 +327,7 @@ export function CredentialTable({
                         <button
                           type="button"
                           onClick={() => onDeleteCredential?.(cred)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all active:scale-90 cursor-pointer"
                           title="Hapus Akun"
                         >
                           <Trash2 className="w-4 h-4" />
