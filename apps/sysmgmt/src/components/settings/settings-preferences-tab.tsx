@@ -39,8 +39,8 @@ export function SettingsPreferencesTab({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Helper konversi kalkulasi menit ke representasi waktu manusiawi
-  const formatHumanDuration = (minsStr: string) => {
-    const mins = parseInt(minsStr, 10);
+  const formatHumanDuration = (minsVal: string | number) => {
+    const mins = typeof minsVal === "number" ? minsVal : parseInt(minsVal, 10);
     if (isNaN(mins) || mins <= 0) return null;
     const days = Math.floor(mins / 1440);
     const remainingMinsAfterDays = mins % 1440;
