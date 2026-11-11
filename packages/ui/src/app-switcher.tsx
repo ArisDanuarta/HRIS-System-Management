@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { ArrowLeftRight, Check, ExternalLink, Lock, ShieldCheck } from "lucide-react";
+import { resolveAppUrl } from "@pspk/shared";
 
 export interface AppSwitcherProps {
   currentApp?: "hris" | "sysmgmt";
@@ -14,8 +15,8 @@ export interface AppSwitcherProps {
 
 export function AppSwitcher({
   currentApp = "hris",
-  hrisUrl = "http://localhost:3001",
-  sysmgmtUrl = "http://localhost:3002",
+  hrisUrl,
+  sysmgmtUrl,
   canAccessSysmgmt = false,
   canAccessHris = false,
   userRoleName,
@@ -25,6 +26,9 @@ export function AppSwitcher({
 
   const isHris = currentApp === "hris";
   const canSwitch = isHris ? canAccessSysmgmt : canAccessHris;
+
+  const effectiveHrisUrl = resolveAppUrl("hris", hrisUrl);
+  const effectiveSysmgmtUrl = resolveAppUrl("sysmgmt", sysmgmtUrl);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -108,7 +112,7 @@ export function AppSwitcher({
               </div>
             ) : canAccessHris ? (
               <a
-                href={hrisUrl}
+                href={effectiveHrisUrl}
                 onClick={() => setIsOpen(false)}
                 className="p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/80 transition-all flex items-start gap-2.5 group cursor-pointer"
               >
@@ -145,7 +149,7 @@ export function AppSwitcher({
               </div>
             ) : canAccessSysmgmt ? (
               <a
-                href={sysmgmtUrl}
+                href={effectiveSysmgmtUrl}
                 onClick={() => setIsOpen(false)}
                 className="p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/80 transition-all flex items-start gap-2.5 group cursor-pointer"
               >

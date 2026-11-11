@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { PspkLoader, PspkLogo, PspkLockup } from "./pspk-logo";
+import { resolveAppUrl } from "@pspk/shared";
 
 export interface LoginPageProps {
   currentApp: "hris" | "sysmgmt";
@@ -67,8 +68,8 @@ const HEADING_FONT = 'var(--font-lora, Lora, Georgia, "Times New Roman", serif)'
 
 export function LoginPage({
   currentApp = "hris",
-  hrisUrl = "http://localhost:3001",
-  sysmgmtUrl = "http://localhost:3002",
+  hrisUrl,
+  sysmgmtUrl,
   defaultEmail = "",
   onSubmit,
   onSuccess,
@@ -80,6 +81,17 @@ export function LoginPage({
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
+
+  const effectiveHrisUrl = resolveAppUrl("hris", hrisUrl);
+  const effectiveSysmgmtUrl = resolveAppUrl("sysmgmt", sysmgmtUrl);
+
+  const getPortalLoginUrl = React.useCallback(
+    (target: PortalKey) => {
+      const base = target === "hris" ? effectiveHrisUrl : effectiveSysmgmtUrl;
+      return `${base.replace(/\/+$/, "")}/login`;
+    },
+    [effectiveHrisUrl, effectiveSysmgmtUrl],
+  );
 
   // Active portal tab state (enables instant animated sliding indicator)
   const [activeTab, setActiveTab] = useState<PortalKey>(currentApp);
@@ -135,7 +147,7 @@ export function LoginPage({
     setIsSwitching(true);
     hasNavigatedRef.current = false;
 
-    const targetUrl = target === "hris" ? `${hrisUrl}/login` : `${sysmgmtUrl}/login`;
+    const targetUrl = getPortalLoginUrl(target);
 
     // Cek preferensi pengguna untuk reduced-motion (animasi statis)
     const prefersReducedMotion =
@@ -159,7 +171,7 @@ export function LoginPage({
   const handleAnimationComplete = () => {
     if (hasNavigatedRef.current) return;
 
-    const targetUrl = activeTab === "hris" ? `${hrisUrl}/login` : `${sysmgmtUrl}/login`;
+    const targetUrl = getPortalLoginUrl(activeTab);
 
     // Animasi gambar garis logo telah selesai 100% (keempat bentuk utuh sempurna).
     // Berikan jeda 180ms agar bentuk logo utuh terlihat sejenak sebelum browser berpindah halaman.
