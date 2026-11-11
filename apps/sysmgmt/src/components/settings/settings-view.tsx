@@ -177,7 +177,7 @@ export function SettingsView({
         <button
           type="button"
           onClick={() => handleTabChange("categories")}
-          className={`flex items-center gap-2 py-3.5 px-4 text-xs font-bold border-b-2 transition -mb-px whitespace-nowrap ${
+          className={`flex items-center gap-2 py-3.5 px-4 text-xs font-bold border-b-2 transition-all active:scale-[0.98] -mb-px whitespace-nowrap ${
             activeTab === "categories"
               ? "border-[#102E50] text-[#102E50] bg-white rounded-t-xl"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60"
@@ -193,7 +193,7 @@ export function SettingsView({
         <button
           type="button"
           onClick={() => handleTabChange("assets")}
-          className={`flex items-center gap-2 py-3.5 px-4 text-xs font-bold border-b-2 transition -mb-px whitespace-nowrap ${
+          className={`flex items-center gap-2 py-3.5 px-4 text-xs font-bold border-b-2 transition-all active:scale-[0.98] -mb-px whitespace-nowrap ${
             activeTab === "assets"
               ? "border-[#102E50] text-[#102E50] bg-white rounded-t-xl"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60"
@@ -209,7 +209,7 @@ export function SettingsView({
         <button
           type="button"
           onClick={() => handleTabChange("preferences")}
-          className={`flex items-center gap-2 py-3.5 px-4 text-xs font-bold border-b-2 transition -mb-px whitespace-nowrap ${
+          className={`flex items-center gap-2 py-3.5 px-4 text-xs font-bold border-b-2 transition-all active:scale-[0.98] -mb-px whitespace-nowrap ${
             activeTab === "preferences"
               ? "border-[#102E50] text-[#102E50] bg-white rounded-t-xl"
               : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60"
