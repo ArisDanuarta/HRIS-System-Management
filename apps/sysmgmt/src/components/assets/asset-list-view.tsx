@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SerializedAsset, AssetStats, ActiveEmployeeOption } from "@/server/queries/asset.queries";
@@ -26,6 +26,7 @@ import {
   Layers,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   User,
   AlertCircle,
   UserCheck,

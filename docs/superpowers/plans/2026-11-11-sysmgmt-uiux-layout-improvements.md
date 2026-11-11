@@ -65,17 +65,17 @@
 - Consumes: `SysmgmtDashboardStats` dari `@/server/queries/dashboard.queries`.
 - Produces: Tampilan kartu metrik responsif seimbang dan bilah aksi cepat yang terorganisir per kelompok.
 
-- [ ] **Step 1: Rapikan bilah Aksi Cepat (Quick Action Pills)**
+- [x] **Step 1: Rapikan bilah Aksi Cepat (Quick Action Pills)**
   Pisahkan pill aksi cepat menjadi dua kelompok logis di dalam header sambutan:
   1. *Inventaris & Layanan* (Aset, Lisensi, Kredensial, Dokumen).
   2. *Keamanan & Konfigurasi* (Pengguna, Matriks RBAC, Audit Log, Pengaturan).
 
-- [ ] **Step 2: Selaraskan breakpoint grid 5 kartu metrik utama**
+- [x] **Step 2: Selaraskan breakpoint grid 5 kartu metrik utama**
   Ubah grid dari `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5` menjadi:
   `grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-5 gap-4`
   Di mana pada breakpoint `lg`, kartu pertama (Akses & Pengguna) mengambil `lg:col-span-2` dan kartu berikutnya mengambil span yang proporsional sehingga tidak ada baris menggantung dengan whitespace kosong.
 
-- [ ] **Step 3: Jalankan verifikasi tampilan dan typecheck**
+- [x] **Step 3: Jalankan verifikasi tampilan dan typecheck**
   Run: `pnpm --filter @pspk/sysmgmt typecheck`
   Expected: PASS
 
