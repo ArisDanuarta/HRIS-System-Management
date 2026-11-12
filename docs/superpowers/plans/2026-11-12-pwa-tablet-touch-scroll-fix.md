@@ -63,9 +63,9 @@
    - Baris 209 (Bilah Tabs Swipeable Status Permohonan Cuti): Hapus `touch-pan-x`.
    - Baris 413 (Kontainer Tabel Permohonan Cuti `sm:block`): Hapus `touch-pan-x` dari `<div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">`.
 
-- [ ] **Step 1: Hapus `touch-pan-x` di `attendance-rekap-view.tsx`**
-- [ ] **Step 2: Hapus `touch-pan-x` di `leave-approval-view.tsx`**
-- [ ] **Step 3: Verifikasi typecheck task 2**
+- [x] **Step 1: Hapus `touch-pan-x` di `attendance-rekap-view.tsx`**
+- [x] **Step 2: Hapus `touch-pan-x` di `leave-approval-view.tsx`**
+- [x] **Step 3: Verifikasi typecheck task 2**
   Run: `pnpm --filter @pspk/hris typecheck`
   Expected: PASS tanpa error.
 

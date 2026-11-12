@@ -410,7 +410,7 @@ export function LeaveApprovalView({
         </div>
 
         {/* Desktop Table View (>= sm) */}
-        <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">
+        <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain]">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-[#eff4ff]/60 border-b border-[#dee9fc] text-[#5b6675] uppercase tracking-wider font-semibold">
