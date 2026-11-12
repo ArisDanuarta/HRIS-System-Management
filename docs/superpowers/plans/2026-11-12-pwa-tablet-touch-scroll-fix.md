@@ -83,9 +83,9 @@
 2. Di `payroll-detail-view.tsx`:
    - Baris 785 (Kontainer Tabel Daftar Slip Gaji Pegawai Per Periode `sm:block`): Hapus `touch-pan-x` dari `<div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">`.
 
-- [ ] **Step 1: Hapus `touch-pan-x` di `payroll-period-table.tsx`**
-- [ ] **Step 2: Hapus `touch-pan-x` di `payroll-detail-view.tsx`**
-- [ ] **Step 3: Verifikasi typecheck task 3**
+- [x] **Step 1: Hapus `touch-pan-x` di `payroll-period-table.tsx`**
+- [x] **Step 2: Hapus `touch-pan-x` di `payroll-detail-view.tsx`**
+- [x] **Step 3: Verifikasi typecheck task 3**
   Run: `pnpm --filter @pspk/hris typecheck`
   Expected: PASS tanpa error.
 

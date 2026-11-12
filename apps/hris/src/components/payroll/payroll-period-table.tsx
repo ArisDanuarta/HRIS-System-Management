@@ -266,7 +266,7 @@ export function PayrollPeriodTable({ periods, onOpenCreateModal }: PayrollPeriod
         </div>
 
         {/* Desktop Table View (>= sm) */}
-        <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x">
+        <div className="hidden sm:block w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain]">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
               <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
