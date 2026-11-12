@@ -132,6 +132,9 @@ export async function getCredentialsDirectory(
     andConditions.push({ isActive: true });
   } else if (status === "INACTIVE") {
     andConditions.push({ isActive: false });
+  } else if (needsRotationOnly) {
+    // Secara default, rotasi berkala hanya berlaku untuk akun aktif (sinkron 1:1 dengan kartu KPI & row status)
+    andConditions.push({ isActive: true });
   }
 
   // 5. Rotation filter (older than 90 days or null)

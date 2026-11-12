@@ -4,21 +4,33 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
-## [Perbaikan Sinkronisasi Kontrak Segera Berakhir & Audit Kueri Dashboard] — 2026-11-12
+## [Perbaikan Inkonsistensi Kueri Dashboard vs Halaman Kelola 100%] — 2026-11-12
 
-- **Status:** Selesai Diperbaiki & Terverifikasi (Kueri Direktori Karyawan Sinkron 100% dengan HR Dashboard)
+- **Status:** Selesai Diperbaiki & Terverifikasi (Seluruh 5 Temuan Audit Tuntas 100%, 0 Error)
 - **Scope & Tujuan:**
-  1. Memperbaiki *bug* di mana tautan "Kelola" pada widget HR Dashboard ("Kontrak Segera Berakhir") mengarahkan ke `/karyawan?expiring=true` namun menampilkan "Tidak Ada Data Pegawai" dan kartu metrik KPI "0", padahal dashboard menampilkan ada kontrak segera berakhir (misal: Farhan Ramadhan, berakhir 30 Nov 2026).
-  2. Melakukan audit komprehensif pada kueri-kueri lain di kedua platform (`apps/hris` dan `apps/sysmgmt`) yang memiliki potensi inkonsistensi antara angka metrik dashboard dan halaman kelola.
+  1. Memperbaiki masalah tautan "Kelola" pada widget HR Dashboard ("Kontrak Segera Berakhir") yang sebelumnya menampilkan 0 data pada `/karyawan?expiring=true` akibat pembatasan `type: "FIXED_TERM"`.
+  2. Melakukan audit menyeluruh dan perbaikan pada seluruh kueri dashboard vs halaman kelola yang inkonsisten di kedua platform (`apps/hris` dan `apps/sysmgmt`).
 
-- **Pekerjaan yang Telah Selesai:**
-  1. **Perbaikan Kueri Direktori Karyawan (`apps/hris/src/server/queries/employee.queries.ts`):**
-     - Menghapus pembatasan hardcoded `type: "FIXED_TERM"` pada filter `expiringSoonOnly` (baris 89–101) dan penghitungan kartu metrik `totalContractsExpiring` (baris 166–176).
-     - Seluruh tipe ikatan kerja aktif yang memiliki batas tanggal kontrak (`endDate`) dalam rentang $\le 30$ hari ke depan kini tertangkap secara konsisten (termasuk `PART_TIME_PROJECT` dan tipe kontrak riset lainnya).
-  2. **Verifikasi Kualitas & Data:**
-     - `pnpm --filter @pspk/hris typecheck` → Lolos 100% (0 error).
-     - `pnpm test` → 44 test suites, 294 tests lolos 100%.
-     - Verifikasi data langsung via database query: `getEmployeesDirectory({ expiringSoonOnly: true })` menghasilkan 1 pegawai: Farhan Ramadhan (`PSPK-202610-007`, `PART_TIME_PROJECT`, berakhir `2026-11-30`), dengan kartu metrik bernilai `1` (sebelumnya `0`).
+- **Pekerjaan yang Telah Selesai (5 File):**
+  1. **File 1 — Direktori Karyawan (`apps/hris/src/server/queries/employee.queries.ts`):**
+     - Menghapus pembatasan hardcoded `type: "FIXED_TERM"` pada filter `expiringSoonOnly` (baris 89–101) dan KPI `totalContractsExpiring` (baris 166–176). Kontrak bertipe riset proyek (`PART_TIME_PROJECT`) milik Farhan Ramadhan kini tertangkap dan sinkron 1:1.
+  2. **File 2 — Dashboard Manajer (`apps/hris/src/server/queries/dashboard/manager-dashboard.ts`):**
+     - Menyertakan pegawai masa percobaan (`status: { in: ["ACTIVE", "PROBATION"] }`) pada kueri bawahan langsung manajer (baris 94–98).
+     - Menambahkan kueri `prisma.timesheetReviewer.count` terpisah (baris 218–226) agar badge antrean timesheet manajer tidak terpotong batas `take: 5` dan sinkron dengan `layout.tsx` serta `/timesheet/persetujuan`.
+  3. **File 3 — HR Dashboard (`apps/hris/src/server/queries/dashboard/hr-dashboard.ts`):**
+     - Menyelaraskan penyebut pegawai aktif (`status: { in: ["ACTIVE", "PROBATION"] }` dan `deletedAt: null`), konsisten dengan modul Rekap Presensi (`/absensi/rekap`) dan mencakup seluruh staf aktif.
+     - Menyertakan filter pegawai aktif pada kueri presensi harian dan tren 7 hari.
+     - Menambahkan kueri `prisma.employmentContract.count` terpisah dengan filter `employee: { deletedAt: null }` agar kartu KPI kontrak akurat tanpa terpotong `take: 5`.
+  4. **File 4 — Persetujuan Cuti (`apps/hris/src/server/queries/leave.queries.ts` & `apps/hris/src/app/(app)/cuti/persetujuan/page.tsx`):**
+     - Menambahkan dukungan opsi `managerId` dan `isSuperOrHr` pada `getAllLeaveRequests` di `leave.queries.ts`.
+     - Meneruskan `managerId: employee?.id` dan `isSuperOrHr` di `page.tsx` sehingga manajer divisi hanya dapat melihat riwayat cuti anggota timnya sendiri (18 item), bukan seluruh data organisasi (27 item).
+  5. **File 5 — Brankas Kredensial (`apps/sysmgmt/src/server/queries/credential.queries.ts`):**
+     - Menyelaraskan filter `needsRotationOnly` agar secara default hanya menyaring akun aktif (`isActive: true`), konsisten dengan kartu KPI "Perlu Rotasi" dan status baris tabel di System Management.
+
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/hris typecheck` → Lolos 100% (0 error).
+  - `pnpm --filter @pspk/sysmgmt typecheck` → Lolos 100% (0 error).
+  - `pnpm test` → Seluruh 44 test suites, 294 tests lolos 100%.
 
 ---
 
