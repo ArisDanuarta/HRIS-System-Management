@@ -71,19 +71,29 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
     todayAttendances,
     pendingLeavesCount,
     expiringContracts,
+    totalExpiringContracts,
     last7DaysAttendances,
     contractsByType,
     pendingLeavesLong,
     onLeaveTodayList,
   ] = await Promise.all([
-    // 1. Total Active Employees
+    // 1. Total Active & Probation Employees (aktif bekerja di organisasi)
     prisma.employee.count({
-      where: { status: "ACTIVE", deletedAt: null },
+      where: {
+        status: { in: ["ACTIVE", "PROBATION"] },
+        deletedAt: null,
+      },
     }),
 
     // 2. Today attendances
     prisma.attendance.findMany({
-      where: { date: today },
+      where: {
+        date: today,
+        employee: {
+          status: { in: ["ACTIVE", "PROBATION"] },
+          deletedAt: null,
+        },
+      },
     }),
 
     // 3. Pending leave requests across entire organization
@@ -91,7 +101,7 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
       where: { status: "PENDING" },
     }),
 
-    // 4. Contracts expiring in <= 30 days
+    // 4. Contracts expiring in <= 30 days (daftar top 5 untuk antrean tindakan)
     prisma.employmentContract.findMany({
       where: {
         status: "ACTIVE",
@@ -99,6 +109,7 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
           lte: thirtyDaysFromNow,
           gte: today,
         },
+        employee: { deletedAt: null },
       },
       include: {
         employee: {
@@ -115,12 +126,28 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
       take: 5,
     }),
 
+    // Total hitungan kontrak berakhir <= 30 hari untuk kartu metrik (tanpa terpotong take 5)
+    prisma.employmentContract.count({
+      where: {
+        status: "ACTIVE",
+        endDate: {
+          lte: thirtyDaysFromNow,
+          gte: today,
+        },
+        employee: { deletedAt: null },
+      },
+    }),
+
     // 5. 7 days attendances for chart
     prisma.attendance.findMany({
       where: {
         date: {
           gte: sevenDaysAgo,
           lte: today,
+        },
+        employee: {
+          status: { in: ["ACTIVE", "PROBATION"] },
+          deletedAt: null,
         },
       },
       select: {
@@ -241,7 +268,7 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
     presentTodayCount,
     attendancePercentage,
     pendingLeavesCount,
-    expiringContractsCount: expiringContracts.length,
+    expiringContractsCount: totalExpiringContracts,
     expiringContracts: expiringContracts.map((c) => ({
       id: c.id,
       employeeId: c.employee.id,
