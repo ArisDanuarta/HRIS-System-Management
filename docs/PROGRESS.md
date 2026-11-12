@@ -4,6 +4,35 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Standardisasi Ikon Lucide React 100%] — 2026-11-12
+
+- **Status:** Selesai (Semua Komponen UI Terstandardisasi Lucide React, 0 Error)
+- **Scope & Tujuan:**
+  1. Menyeragamkan seluruh ikon antarmuka di kedua platform (HRIS & System Management) menjadi 100% menggunakan keluarga ikon `lucide-react`.
+  2. Mengeliminasi seluruh sisa hardcoded/inline SVG mentah yang sebelumnya masih dipakai pada halaman autentikasi dan komponen shared UI.
+  3. Memastikan logo identitas organisasi (PSPK) dan logo resmi Google OAuth tetap menggunakan aset vektor resmi.
+
+- **Pekerjaan yang Telah Selesai:**
+  1. **Halaman Autentikasi Login (`packages/ui/src/login-page.tsx`):**
+     - Mengganti seluruh 11 hardcoded SVG mentah dengan komponen Lucide React resmi:
+       * Tab Portal: `Users` (HRIS) dan `ShieldCheck` (System Management).
+       * Link Bantuan: `HelpCircle`.
+       * Alert Banner: `AlertCircle` dan `X`.
+       * Input Form: `Mail` (email) dan `Lock` (kata sandi).
+       * Toggle Sandi: `Eye` dan `EyeOff`.
+       * Tombol Aksi: `Loader2` (loading spinner berputar) dan `ArrowRight` (tombol masuk).
+  2. **Pengalih Aplikasi (*App Switcher*) (`packages/ui/src/app-switcher.tsx`):**
+     - Mengganti raw SVG panah dropdown dengan komponen Lucide `ChevronDown`.
+  3. **Komponen Tombol Inti (`packages/ui/src/button.tsx`):**
+     - Mengganti raw SVG spinner pemuatan dengan komponen Lucide `Loader2`.
+
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck` (seluruh 9 workspace package & app) → Lolos 100% (0 error).
+  - `pnpm lint` → Lolos 100% (0 error).
+  - `pnpm test` → 44 test suites, 294 tests lolos 100%.
+
+---
+
 ## [Perbaikan Touch Scroll Tablet & Mobile PWA HRIS] — 2026-11-12
 
 - **Status:** Selesai (5 Task Tuntas 100%, 0 Error)

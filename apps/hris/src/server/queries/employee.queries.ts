@@ -90,7 +90,6 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
     andConditions.push({
       contracts: {
         some: {
-          type: "FIXED_TERM",
           status: "ACTIVE",
           endDate: {
             gte: now,
