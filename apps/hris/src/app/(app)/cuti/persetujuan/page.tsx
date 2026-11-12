@@ -38,13 +38,15 @@ export default async function PersetujuanCutiPage() {
       orderBy: { createdAt: "asc" },
     }));
 
-  // Fetch pending requests & all requests for history/audit
+  // Fetch pending requests & all requests for history/audit (disesuaikan dengan scope wewenang HR vs Manajer)
   const [pendingRequests, allRequestsResult] = await Promise.all([
     getPendingLeaveApprovals({
       managerId: employee?.id,
       isSuperOrHr,
     }),
     getAllLeaveRequests({
+      managerId: employee?.id,
+      isSuperOrHr,
       pageSize: 100,
     }),
   ]);
