@@ -165,7 +165,6 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
     }),
     prisma.employmentContract.count({
       where: {
-        type: "FIXED_TERM",
         status: "ACTIVE",
         endDate: {
           gte: now,
