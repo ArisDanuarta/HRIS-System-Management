@@ -148,14 +148,25 @@ export async function getPendingLeaveApprovals(options?: {
 
 /**
  * Retrieves all leave requests for HR management table with filtering.
+ * Mendukung pembatasan wewenang tim manajer (managerId & isSuperOrHr)
+ * agar manajer hanya melihat riwayat cuti dari bawahan langsungnya.
  */
 export async function getAllLeaveRequests(options?: {
   status?: LeaveStatus | "ALL";
   departmentId?: string;
+  managerId?: string;
+  isSuperOrHr?: boolean;
   page?: number;
   pageSize?: number;
 }) {
-  const { status = "ALL", departmentId, page = 1, pageSize = 20 } = options || {};
+  const {
+    status = "ALL",
+    departmentId,
+    managerId,
+    isSuperOrHr = false,
+    page = 1,
+    pageSize = 20,
+  } = options || {};
 
   const where: Record<string, unknown> = {};
 
@@ -163,10 +174,19 @@ export async function getAllLeaveRequests(options?: {
     where.status = status;
   }
 
+  const employeeWhere: Record<string, unknown> = {};
+
   if (departmentId && departmentId !== "ALL") {
-    where.employee = {
-      currentDepartmentId: departmentId,
-    };
+    employeeWhere.currentDepartmentId = departmentId;
+  }
+
+  // Jika diakses oleh manajer non-HR, batasi hanya permohonan dari bawahan langsung
+  if (!isSuperOrHr && managerId) {
+    employeeWhere.managerId = managerId;
+  }
+
+  if (Object.keys(employeeWhere).length > 0) {
+    where.employee = employeeWhere;
   }
 
   const [totalCount, requests] = await Promise.all([
