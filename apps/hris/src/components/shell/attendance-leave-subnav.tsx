@@ -73,7 +73,7 @@ export function AttendanceLeaveSubnav({
 
   return (
     <div
-      className={`w-full min-w-0 max-w-full flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-xs overflow-x-auto scrollbar-none no-scrollbar scroll-smooth [overscroll-behavior-x:contain] touch-pan-x ${className}`}
+      className={`w-full min-w-0 max-w-full flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-xs overflow-x-auto scrollbar-none no-scrollbar scroll-smooth [overscroll-behavior-x:contain] ${className}`}
     >
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;

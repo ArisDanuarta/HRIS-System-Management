@@ -285,7 +285,7 @@ export function ProfileView({ profile }: ProfileViewProps) {
         </div>
 
         {/* Navigation Tabs Bar */}
-        <div className="px-4 sm:px-6 md:px-8 border-t border-[#dee9fc] bg-[#f8fafd] flex items-center gap-2 overflow-x-auto scrollbar-none no-scrollbar [overscroll-behavior-x:contain] touch-pan-x w-full min-w-0 max-w-full">
+        <div className="px-4 sm:px-6 md:px-8 border-t border-[#dee9fc] bg-[#f8fafd] flex items-center gap-2 overflow-x-auto scrollbar-none no-scrollbar [overscroll-behavior-x:contain] w-full min-w-0 max-w-full">
           {/* Tab 1: Identitas */}
           <button
             type="button"

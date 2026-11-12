@@ -103,9 +103,9 @@
 2. Di `profile-view.tsx`:
    - Baris 288 (Bilah Sub-tab Navigasi Profil Pegawai): Hapus `touch-pan-x` dari kontainer horizontal sub-tab.
 
-- [ ] **Step 1: Hapus `touch-pan-x` di `attendance-leave-subnav.tsx`**
-- [ ] **Step 2: Hapus `touch-pan-x` di `profile-view.tsx`**
-- [ ] **Step 3: Verifikasi typecheck task 4**
+- [x] **Step 1: Hapus `touch-pan-x` di `attendance-leave-subnav.tsx`**
+- [x] **Step 2: Hapus `touch-pan-x` di `profile-view.tsx`**
+- [x] **Step 3: Verifikasi typecheck task 4**
   Run: `pnpm --filter @pspk/hris typecheck`
   Expected: PASS tanpa error.
 
