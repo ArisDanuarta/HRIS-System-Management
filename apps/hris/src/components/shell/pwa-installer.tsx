@@ -185,7 +185,7 @@ export function PwaInstaller() {
                 Pasang Aplikasi HRIS PSPK
               </h4>
               <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5 leading-snug">
-                Pasang di layar utama ponsel untuk akses presensi harian dan pengajuan cuti instan.
+                Pasang di layar utama ponsel untuk akses presensi harian dan pengajuan cuti.
               </p>
               <div className="flex items-center gap-2 mt-3">
                 <button
