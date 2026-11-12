@@ -375,7 +375,7 @@ export function NotificationCenterView({
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 scrollbar-none [overscroll-behavior-x:contain] touch-pan-x text-xs w-full min-w-0 max-w-full">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1.5 pt-1 scrollbar-none [overscroll-behavior-x:contain] text-xs w-full min-w-0 max-w-full">
           <span className="text-slate-400 flex items-center gap-1 mr-1 text-[11px] font-semibold uppercase tracking-wider whitespace-nowrap">
             <Filter className="w-3.5 h-3.5" />
             Kategori:

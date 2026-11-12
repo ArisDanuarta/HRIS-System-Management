@@ -4,6 +4,38 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Perbaikan Touch Scroll Tablet & Mobile PWA HRIS] — 2026-11-12
+
+- **Status:** Selesai (5 Task Tuntas 100%, 0 Error)
+- **Scope & Tujuan:**
+  1. Mengatasi masalah gestur sentuh gulir vertikal (*vertical touch scroll*) yang macet/beku saat pengguna mengusap layar pada area tabel atau grid kalender di perangkat tablet/iPad dan smartphone PWA.
+  2. Mengaudit dan membersihkan seluruh penggunaan utilitas CSS `touch-pan-x` (`touch-action: pan-x;`) yang secara native memblokir propagasi sentuh vertikal pada level peramban.
+  3. Memastikan perbaikan mencakup seluruh peran: Staf, Manajer, Admin HR, dan Super Admin.
+
+- **Pekerjaan yang Telah Selesai (5 Task):**
+  1. **Task 1 — Kalender Kerja & Riwayat Kehadiran Staf:**
+     - `apps/hris/src/components/kalender/work-calendar-view.tsx`: Menghapus `touch-pan-x` dari baris 505 (filter bar) dan baris 693 (grid tanggal kalender kerja).
+     - `apps/hris/src/components/absensi/attendance-table.tsx`: Menghapus `touch-pan-x` dari baris 252 (kontainer tabel riwayat kehadiran).
+  2. **Task 2 — Rekap Presensi & Persetujuan Cuti Tim (Manajer & HR):**
+     - `apps/hris/src/components/absensi/attendance-rekap-view.tsx`: Menghapus `touch-pan-x` dari baris 627 (matriks presensi bulanan) dan baris 864 (tabel ringkasan kehadiran pegawai).
+     - `apps/hris/src/components/cuti/leave-approval-view.tsx`: Menghapus `touch-pan-x` dari baris 209 (tab status permohonan) dan baris 413 (tabel permohonan cuti bawahan).
+  3. **Task 3 — Tabel Penggajian (Payroll HR):**
+     - `apps/hris/src/components/payroll/payroll-period-table.tsx`: Menghapus `touch-pan-x` dari baris 269 (tabel periode penggajian).
+     - `apps/hris/src/components/payroll/payroll-detail-view.tsx`: Menghapus `touch-pan-x` dari baris 785 (tabel rincian slip gaji pegawai).
+  4. **Task 4 — Subnav Menu Bar & Tab Profil Pegawai:**
+     - `apps/hris/src/components/shell/attendance-leave-subnav.tsx`: Menghapus `touch-pan-x` dari baris 76 (kontainer subnav menu atas).
+     - `apps/hris/src/components/profil/profile-view.tsx`: Menghapus `touch-pan-x` dari baris 288 (tab navigasi profil).
+  5. **Task 5 — Pusat Notifikasi & Verifikasi Menyeluruh:**
+     - `apps/hris/src/components/notifications/notification-center-view.tsx`: Menghapus `touch-pan-x` dari baris 378 (kategori filter notifikasi).
+     - Sweep pencarian `touch-pan`: 0 temuan di seluruh workspace.
+
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/hris typecheck` → Lolos (0 error).
+  - `pnpm --filter @pspk/hris lint` → Lolos (0 error).
+  - `pnpm test` → 44 test suites, 294 tests lolos 100%.
+
+---
+
 ## [Deployment VPS, Migrasi Data & Perbaikan UX Navigasi] — 2026-11-11
 
 - **Status:** Selesai (Semua Task & Verifikasi Tuntas 100%)

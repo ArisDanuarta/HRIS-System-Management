@@ -125,11 +125,11 @@
    - Jalankan `pnpm --filter @pspk/hris lint`.
    - Jalankan `pnpm test`.
 
-- [ ] **Step 1: Hapus `touch-pan-x` di `notification-center-view.tsx`**
-- [ ] **Step 2: Cek sweep pencarian `touch-pan` pada workspace**
+- [x] **Step 1: Hapus `touch-pan-x` di `notification-center-view.tsx`**
+- [x] **Step 2: Cek sweep pencarian `touch-pan` pada workspace**
   Run: `grep -rn --exclude-dir={node_modules,.next,dist,.turbo} "touch-pan" apps/ packages/`
   Expected: Bersih / tidak ada lagi utilitas pemblokir scroll.
-- [ ] **Step 3: Jalankan verifikasi menyeluruh (typecheck, lint, test)**
+- [x] **Step 3: Jalankan verifikasi menyeluruh (typecheck, lint, test)**
   Run: `pnpm --filter @pspk/hris typecheck && pnpm --filter @pspk/hris lint && pnpm test`
   Expected: Seluruh suite lolos tanpa kesalahan.
 
