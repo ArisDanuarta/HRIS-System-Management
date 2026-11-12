@@ -502,7 +502,7 @@ export function WorkCalendarView({
         </div>
 
         {/* === Filter Bar === */}
-        <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center gap-2 overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none w-full min-w-0 max-w-full">
+        <div className="px-4 sm:px-6 py-2.5 sm:py-3 border-b border-slate-100 flex items-center gap-2 overflow-x-auto [overscroll-behavior-x:contain] scrollbar-none w-full min-w-0 max-w-full">
           {filterItems.map((f) => (
             <button
               key={f.id}
@@ -690,7 +690,7 @@ export function WorkCalendarView({
             </div>
 
             {/* Grid Container */}
-            <div className="p-4 md:p-6 w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none">
+            <div className="p-4 md:p-6 w-full min-w-0 max-w-full overflow-x-auto [overscroll-behavior-x:contain] scrollbar-none">
               <div className="min-w-[680px] sm:min-w-0">
                 {/* Header hari */}
                 <div className="grid grid-cols-7 gap-1.5 mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-[#5b6675]">

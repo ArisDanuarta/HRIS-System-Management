@@ -41,9 +41,9 @@
 2. Di `attendance-table.tsx`:
    - Baris 252 (Kontainer Tabel Riwayat Kehadiran Desktop/Tablet `sm:block`): Hapus `touch-pan-x` dari `<div className="hidden sm:block overflow-x-auto w-full min-w-0 max-w-full [overscroll-behavior-x:contain] touch-pan-x">`.
 
-- [ ] **Step 1: Hapus `touch-pan-x` di `work-calendar-view.tsx`**
-- [ ] **Step 2: Hapus `touch-pan-x` di `attendance-table.tsx`**
-- [ ] **Step 3: Verifikasi typecheck task 1**
+- [x] **Step 1: Hapus `touch-pan-x` di `work-calendar-view.tsx`**
+- [x] **Step 2: Hapus `touch-pan-x` di `attendance-table.tsx`**
+- [x] **Step 3: Verifikasi typecheck task 1**
   Run: `pnpm --filter @pspk/hris typecheck`
   Expected: PASS tanpa error.
 

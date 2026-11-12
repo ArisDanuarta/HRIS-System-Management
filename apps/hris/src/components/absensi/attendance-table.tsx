@@ -249,7 +249,7 @@ export function AttendanceTable({ attendances }: AttendanceTableProps) {
       </div>
 
       {/* Desktop Tabular View (Layar >= 640px) */}
-      <div className="hidden sm:block overflow-x-auto w-full min-w-0 max-w-full [overscroll-behavior-x:contain] touch-pan-x">
+      <div className="hidden sm:block overflow-x-auto w-full min-w-0 max-w-full [overscroll-behavior-x:contain]">
         <table className="w-full text-left text-xs border-collapse">
           <thead>
             <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] uppercase tracking-wider font-bold text-[11px]">
