@@ -624,7 +624,7 @@ export function AttendanceRekapView({
               <span className="italic text-slate-400">Geser horizontal ↔</span>
             </div>
 
-            <div className="overflow-x-auto w-full min-w-0 [overscroll-behavior-x:contain] touch-pan-x">
+            <div className="overflow-x-auto w-full min-w-0 [overscroll-behavior-x:contain]">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-50/90 border-b border-slate-200/80 text-[#102e50] font-bold text-[10px]">
