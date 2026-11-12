@@ -206,7 +206,7 @@ export function LeaveApprovalView({
       )}
 
       {/* Tabs Swipeable Row */}
-      <div className="w-full min-w-0 max-w-full flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto [overscroll-behavior-x:contain] touch-pan-x scrollbar-none">
+      <div className="w-full min-w-0 max-w-full flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto [overscroll-behavior-x:contain] scrollbar-none">
         <button
           type="button"
           onClick={() => handleTabChange("PENDING")}
