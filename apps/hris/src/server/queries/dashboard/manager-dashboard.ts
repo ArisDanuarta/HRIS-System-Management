@@ -89,11 +89,11 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
   const today = new Date(todayDateStr);
   const currentYear = today.getFullYear();
 
-  // Find direct subordinates
+  // Find direct subordinates (aktif dan masa percobaan)
   const subordinates = await prisma.employee.findMany({
     where: {
       managerId,
-      status: "ACTIVE",
+      status: { in: ["ACTIVE", "PROBATION"] },
       deletedAt: null,
     },
     select: {
@@ -125,6 +125,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     managerBalances,
     workSchedule,
     pendingTimesheetReviewsRaw,
+    totalPendingTimesheets,
   ] = await Promise.all([
     // Today's attendance for team
     subordinateIds.length > 0
@@ -214,6 +215,14 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
+
+    // Total hitungan antrean timesheet untuk badge metrik (tanpa terpotong take 5)
+    prisma.timesheetReviewer.count({
+      where: {
+        reviewerId: managerId,
+        status: { in: ["PENDING", "IN_REVIEW"] },
+      },
+    }),
   ]);
 
   const teamPresentCount = todayTeamAttendances.filter((a) =>
@@ -240,7 +249,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     totalTeamMembers: subordinates.length,
     teamPresentCount,
     pendingLeavesCount: pendingLeaveRequests.length,
-    pendingTimesheetsCount: pendingTimesheetReviews.length,
+    pendingTimesheetsCount: totalPendingTimesheets,
     pendingTimesheetReviews,
     pendingLeaveRequests: pendingLeaveRequests.map((r) => ({
       id: r.id,

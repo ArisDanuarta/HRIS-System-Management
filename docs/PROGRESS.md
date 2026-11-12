@@ -4,6 +4,24 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Perbaikan Sinkronisasi Kontrak Segera Berakhir & Audit Kueri Dashboard] — 2026-11-12
+
+- **Status:** Selesai Diperbaiki & Terverifikasi (Kueri Direktori Karyawan Sinkron 100% dengan HR Dashboard)
+- **Scope & Tujuan:**
+  1. Memperbaiki *bug* di mana tautan "Kelola" pada widget HR Dashboard ("Kontrak Segera Berakhir") mengarahkan ke `/karyawan?expiring=true` namun menampilkan "Tidak Ada Data Pegawai" dan kartu metrik KPI "0", padahal dashboard menampilkan ada kontrak segera berakhir (misal: Farhan Ramadhan, berakhir 30 Nov 2026).
+  2. Melakukan audit komprehensif pada kueri-kueri lain di kedua platform (`apps/hris` dan `apps/sysmgmt`) yang memiliki potensi inkonsistensi antara angka metrik dashboard dan halaman kelola.
+
+- **Pekerjaan yang Telah Selesai:**
+  1. **Perbaikan Kueri Direktori Karyawan (`apps/hris/src/server/queries/employee.queries.ts`):**
+     - Menghapus pembatasan hardcoded `type: "FIXED_TERM"` pada filter `expiringSoonOnly` (baris 89–101) dan penghitungan kartu metrik `totalContractsExpiring` (baris 166–176).
+     - Seluruh tipe ikatan kerja aktif yang memiliki batas tanggal kontrak (`endDate`) dalam rentang $\le 30$ hari ke depan kini tertangkap secara konsisten (termasuk `PART_TIME_PROJECT` dan tipe kontrak riset lainnya).
+  2. **Verifikasi Kualitas & Data:**
+     - `pnpm --filter @pspk/hris typecheck` → Lolos 100% (0 error).
+     - `pnpm test` → 44 test suites, 294 tests lolos 100%.
+     - Verifikasi data langsung via database query: `getEmployeesDirectory({ expiringSoonOnly: true })` menghasilkan 1 pegawai: Farhan Ramadhan (`PSPK-202610-007`, `PART_TIME_PROJECT`, berakhir `2026-11-30`), dengan kartu metrik bernilai `1` (sebelumnya `0`).
+
+---
+
 ## [Standardisasi Ikon Lucide React 100%] — 2026-11-12
 
 - **Status:** Selesai (Semua Komponen UI Terstandardisasi Lucide React, 0 Error)
