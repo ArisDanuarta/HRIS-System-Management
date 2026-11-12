@@ -9,6 +9,7 @@ coverage/
 !.env.production.example
 .data/
 *.dump
+*.tar.gz
 *.log
 .DS_Store
 

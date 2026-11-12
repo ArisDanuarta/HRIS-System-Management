@@ -4,6 +4,50 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Deployment VPS, Migrasi Data & Perbaikan UX Navigasi] — 2026-11-11
+
+- **Status:** Selesai (Semua Task & Verifikasi Tuntas 100%)
+- **Scope & Tujuan:**
+  1. Peningkatan UI/UX System Management (Task 1 s/d 7: Dashboard, Aset, Lisensi, Kredensial, Pengguna, Matriks Peran, Pengaturan).
+  2. Persiapan deployment produksi ke VPS Ubuntu 24.04 (Docker Compose, PostgreSQL 17, Caddy SSL Let's Encrypt).
+  3. Mengatasi masalah tautan portal yang terlempar ke `localhost` saat diakses via domain VPS (`hris.moonrayz.my.id` & `sysmgmt.moonrayz.my.id`).
+  4. Memperbaiki tata letak filter bar direktori pegawai di mana tombol "Cari" sebelumnya terhimpit/offside ke kiri.
+  5. Melakukan prosedur ekspor dan migrasi data riil (28 akun pengguna, 26 data karyawan, 29 aset, dan berkas uploads) dari lingkungan lokal ke VPS.
+
+- **Pekerjaan yang Telah Selesai:**
+  1. **Peningkatan UI/UX System Management:**
+     - Dashboard: Quick Action button responsif, KPI metric cards adaptif.
+     - Inventaris Aset: Dropdown menu Excel (ekspor/impor) dengan listener klik luar dan tombol Escape, pill-style sub-navigation, transisi skala aktif.
+     - Lisensi Software: Ambang batas utilisasi dinamis dan indikator status border kiri.
+     - Brankas Kredensial: Label pengingat ganti sandi berkala, feedback visual saat menyalin ke clipboard.
+     - Kelola Pengguna: Kolom "Tindakan" sticky pada tabel, micro-interaction feedback.
+     - Matriks Peran: Animasi skala aktif pada tombol aksi.
+     - Pengaturan: Human-friendly duration preview pada tab preferensi.
+  2. **Persiapan Deployment VPS Ubuntu 24.04:**
+     - Menambahkan binaryTargets `linux-musl-openssl-3.0.x` pada `packages/db/prisma/schema/base.prisma`.
+     - Memberikan hak akses eksplisit tabel dan sequences di `docker/postgres/init/02-app-role.sh`.
+     - Memperbarui email admin default seed ke `it@pspk.id`.
+     - Konfigurasi swap 4GB, Caddy HTTPS otomatis, dan container build di VPS.
+  3. **Smart Dynamic Origin Resolver (`resolveAppUrl`):**
+     - Dibuat fungsi utilitas cerdas `packages/shared/src/url.ts` yang mengevaluasi `window.location` di sisi browser dan `process.env.HRIS_URL`/`SYSMGMT_URL` di sisi server.
+     - Di browser lokal: mengarahkan ke `localhost:3001` (HRIS) dan `localhost:3002` (Sysmgmt).
+     - Di browser VPS/Produksi: menukar subdomain secara dinamis (`hris.` ↔ `sysmgmt.`) pada domain publik apa pun (`moonrayz.my.id`, `pspk.id`), bebas dari ketergantungan nilai build args yang jatuh ke localhost.
+     - Diterapkan pada `packages/ui/src/app-switcher.tsx`, `packages/ui/src/login-page.tsx`, `apps/hris/src/components/shell/user-nav.tsx`, `apps/hris/src/components/shell/app-topbar.tsx`, dan `apps/sysmgmt/src/components/shell/sysmgmt-navbar.tsx`.
+  4. **Perbaikan Tata Letak Filter Bar Pegawai:**
+     - File: `apps/hris/src/components/karyawan/employee-filter-bar.tsx`.
+     - Mengubah styling kontainer filter dari `w-full min-w-0` menjadi `w-full lg:w-auto min-w-0`, serta form pencarian dengan `flex-1 min-w-0 lg:min-w-[280px]`.
+     - Tombol "Cari" kini terpasang rapi di dalam field input pencarian di sisi kanan tanpa mencelat ke luar batas kiri container.
+  5. **Migrasi Data Lengkap ke VPS:**
+     - Ekspor database lokal (skema `core`, `hris`, `sysmgmt`) ke `pspk_local_backup.dump`.
+     - Ekspor berkas fisik uploads dari `.data/uploads` ke `uploads_backup.tar.gz`.
+     - Panduan pemulihan (*restore*) menggunakan `pg_restore` pada container PostgreSQL dan ekstraksi arsip ke volume `pspk-platform_uploads`.
+
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck` (seluruh package & apps) lulus 100% (0 error).
+  - `pnpm test` (44 test suites, 294 tests) lulus 100%.
+
+---
+
 ## [Fitur Presensi & Rekap HR] Pengisian Massal Check-Out Kosong (*Bulk Fill Missed Check-Out*) — 2026-11-10
 
 - **Status:** Selesai (Task 1, Task 2, Task 3 Tuntas & Terverifikasi 100%)
