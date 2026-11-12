@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { ArrowLeftRight, Check, ExternalLink, Lock, ShieldCheck } from "lucide-react";
+import { ArrowLeftRight, Check, ChevronDown, ExternalLink, Lock, ShieldCheck } from "lucide-react";
 import { resolveAppUrl } from "@pspk/shared";
 
 export interface AppSwitcherProps {
@@ -68,16 +68,11 @@ export function AppSwitcher({
           </span>
         </div>
 
-        <svg
+        <ChevronDown
           className={`w-3.5 h-3.5 text-[#5b6675] transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M19 9l-7 7-7-7" />
-        </svg>
+        />
       </button>
 
       {/* Dropdown Menu */}
