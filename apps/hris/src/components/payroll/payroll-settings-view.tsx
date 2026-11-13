@@ -403,7 +403,11 @@ export function PayrollSettingsView({
               <span className="text-[#102E50] font-bold">Pengaturan Dokumen & Bank</span>
             </div>
           )}
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-serif">
+          <h1
+            className={`${
+              isEmbedded ? "text-base sm:text-lg" : "text-xl sm:text-2xl"
+            } font-bold text-slate-900 font-serif`}
+          >
             {hideSubNav && activeTab === "bank"
               ? "Rekening Bank Pengirim Gaji"
               : hideSubNav && activeTab === "document"

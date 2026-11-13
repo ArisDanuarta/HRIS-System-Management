@@ -115,19 +115,22 @@ export function TataKelolaView({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const currentTab = normalizeTab(searchParams.get("tab"));
-  const [activeTab, setActiveTab] = useState<TataKelolaTab>(currentTab);
-
-  React.useEffect(() => {
-    setActiveTab(currentTab);
-  }, [currentTab]);
+  const activeTab = normalizeTab(searchParams.get("tab"));
 
   const handleTabChange = (newTab: TataKelolaTab) => {
-    setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tab", newTab);
     router.push(`?${params.toString()}`);
   };
+
+  // Helper ekstrak kode singkat bank pengirim (misal: "Bank Negara Indonesia (BNI)" -> "BNI")
+  const shortBankName = React.useMemo(() => {
+    const raw = payrollSettings.senderBankName || "";
+    const match = raw.match(/\(([^)]+)\)/);
+    if (match && match[1]) return match[1].trim();
+    const firstWord = raw.split(" ")[0];
+    return firstWord ? firstWord.slice(0, 8) : "";
+  }, [payrollSettings.senderBankName]);
 
   // Definisi Navigasi Sidebar Kiri yang Terkelompok Rapi
   const navGroups = [
@@ -136,15 +139,15 @@ export function TataKelolaView({
       items: [
         {
           id: "organisasi" as TataKelolaTab,
-          label: "Struktur Divisi & Formasi",
+          label: "Struktur Organisasi",
           icon: Building2,
-          badge: `${orgStats.totalDepartments} Divisi`,
+          badge: String(orgStats.totalDepartments),
         },
         {
           id: "ikatan-kerja" as TataKelolaTab,
           label: "Status Kepegawaian",
           icon: Briefcase,
-          badge: `${employmentTypes.length} Tipe`,
+          badge: String(employmentTypes.length),
         },
       ],
     },
@@ -153,27 +156,27 @@ export function TataKelolaView({
       items: [
         {
           id: "jadwal-kerja" as TataKelolaTab,
-          label: "Jam Kerja & Toleransi",
+          label: "Jam Kerja Kantor",
           icon: Clock,
-          badge: workSchedule ? `${workSchedule.workStartTime}–${workSchedule.workEndTime}` : undefined,
+          badge: undefined,
         },
         {
           id: "jenis-cuti" as TataKelolaTab,
           label: "Master Jenis Cuti",
           icon: CalendarClock,
-          badge: `${leaveTypes.length} Jenis`,
+          badge: String(leaveTypes.length),
         },
         {
           id: "hari-libur" as TataKelolaTab,
           label: "Hari Libur & Cuti Bersama",
           icon: Calendar,
-          badge: `${holidays.length} Hari`,
+          badge: String(holidays.length),
         },
         {
           id: "saldo-cuti" as TataKelolaTab,
-          label: "Kuota Saldo Cuti Pegawai",
+          label: "Saldo Cuti Pegawai",
           icon: Users,
-          badge: `${employeeBalances.length} Staf`,
+          badge: String(employeeBalances.length),
         },
       ],
     },
@@ -182,21 +185,21 @@ export function TataKelolaView({
       items: [
         {
           id: "payroll-komponen" as TataKelolaTab,
-          label: "Komponen Gaji & Tunjangan",
+          label: "Komponen Gaji",
           icon: Receipt,
-          badge: `${salaryComponents.length} Komponen`,
+          badge: String(salaryComponents.length),
         },
         {
           id: "bank-pengirim" as TataKelolaTab,
-          label: "Rekening Bank Pengirim",
+          label: "Rekening Bank Lembaga",
           icon: Landmark,
-          badge: payrollSettings.senderBankName,
+          badge: shortBankName || undefined,
         },
         {
           id: "kop-dokumen" as TataKelolaTab,
-          label: "Kop Dokumen & Format Slip",
+          label: "Kop & Format Dokumen",
           icon: FileText,
-          badge: "Template",
+          badge: undefined,
         },
       ],
     },
@@ -326,19 +329,19 @@ export function TataKelolaView({
             className="w-full appearance-none bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] pr-10 cursor-pointer"
           >
             <optgroup label="── ORGANISASI & JABATAN ──">
-              <option value="organisasi">🏢 Struktur Divisi & Formasi ({orgStats.totalDepartments})</option>
-              <option value="ikatan-kerja">💼 Status Kepegawaian ({employmentTypes.length} Tipe)</option>
+              <option value="organisasi">🏢 Struktur Organisasi ({orgStats.totalDepartments})</option>
+              <option value="ikatan-kerja">💼 Status Kepegawaian ({employmentTypes.length})</option>
             </optgroup>
             <optgroup label="── WAKTU & ATURAN CUTI ──">
-              <option value="jadwal-kerja">⏰ Jam Kerja & Toleransi Masuk</option>
-              <option value="jenis-cuti">📋 Master Jenis Cuti ({leaveTypes.length} Jenis)</option>
-              <option value="hari-libur">📅 Hari Libur & Cuti Bersama ({holidays.length} Hari)</option>
-              <option value="saldo-cuti">👥 Kuota Saldo Cuti Pegawai ({employeeBalances.length} Staf)</option>
+              <option value="jadwal-kerja">⏰ Jam Kerja Kantor</option>
+              <option value="jenis-cuti">📋 Master Jenis Cuti ({leaveTypes.length})</option>
+              <option value="hari-libur">📅 Hari Libur & Cuti Bersama ({holidays.length})</option>
+              <option value="saldo-cuti">👥 Saldo Cuti Pegawai ({employeeBalances.length})</option>
             </optgroup>
             <optgroup label="── PENGGAJIAN (PAYROLL) ──">
-              <option value="payroll-komponen">🧾 Komponen Gaji & Tunjangan ({salaryComponents.length})</option>
-              <option value="bank-pengirim">🏛️ Rekening Bank Pengirim ({payrollSettings.senderBankName})</option>
-              <option value="kop-dokumen">📄 Kop Dokumen & Format Slip Gaji</option>
+              <option value="payroll-komponen">🧾 Komponen Gaji ({salaryComponents.length})</option>
+              <option value="bank-pengirim">🏛️ Rekening Bank Lembaga ({shortBankName || "Utama"})</option>
+              <option value="kop-dokumen">📄 Kop & Format Dokumen</option>
             </optgroup>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
@@ -349,8 +352,8 @@ export function TataKelolaView({
 
       {/* 5. Master-Detail Layout (Desktop Grid 12 Kolom) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Sisi Kiri: Sidebar Navigasi Menu Master Data (3 Kolom Desktop) */}
-        <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 lg:sticky lg:top-20 space-y-4">
+        {/* Sisi Kiri: Sidebar Navigasi Menu Master Data (4 Kolom Desktop) */}
+        <aside className="hidden lg:block lg:col-span-4 xl:col-span-4 lg:sticky lg:top-20 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3 space-y-5">
             {navGroups.map((group) => (
               <div key={group.title} className="space-y-1">
@@ -382,7 +385,7 @@ export function TataKelolaView({
                         </div>
                         {item.badge && (
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 tabular-nums ${
+                            className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 tabular-nums max-w-[80px] truncate ${
                               isActive
                                 ? "bg-white/15 text-white font-bold"
                                 : "bg-slate-100 text-slate-500 font-medium"
@@ -400,8 +403,8 @@ export function TataKelolaView({
           </div>
         </aside>
 
-        {/* Sisi Kanan: Konten Utama Master Data (8-9 Kolom Desktop) */}
-        <main className="lg:col-span-8 xl:col-span-9 min-w-0 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7">
+        {/* Sisi Kanan: Konten Utama Master Data (8 Kolom Desktop) */}
+        <main className="lg:col-span-8 xl:col-span-8 min-w-0 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7">
           {/* TAB 1: STRUKTUR DIVISI & JABATAN */}
           {activeTab === "organisasi" && (
             <div className="space-y-6 animate-in fade-in duration-200">
