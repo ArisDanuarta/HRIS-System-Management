@@ -30,6 +30,8 @@ import { PayrollDocumentPreview } from "./payroll-document-preview";
 interface PayrollSettingsViewProps {
   initialSettings: PayrollSettingsData;
   isEmbedded?: boolean;
+  activeSubTab?: "bank" | "document";
+  hideSubNav?: boolean;
 }
 
 const COMMON_BANKS = [
@@ -75,8 +77,12 @@ const BORDER_PRESETS = [
 export function PayrollSettingsView({
   initialSettings,
   isEmbedded = false,
+  activeSubTab,
+  hideSubNav = false,
 }: PayrollSettingsViewProps) {
-  const [activeTab, setActiveTab] = useState<"bank" | "document">("bank");
+  const [internalTab, setInternalTab] = useState<"bank" | "document">(activeSubTab || "bank");
+  const activeTab = hideSubNav && activeSubTab ? activeSubTab : internalTab;
+  const setActiveTab = setInternalTab;
   const [isPending, startTransition] = useTransition();
   const [statusMessage, setStatusMessage] = useState<{
     type: "success" | "error";

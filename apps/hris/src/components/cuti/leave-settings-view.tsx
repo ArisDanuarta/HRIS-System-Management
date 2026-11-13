@@ -275,106 +275,159 @@ export function LeaveSettingsView({
       )}
 
       {/* Tabs Controller */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-        {/* Mobile Dropdown (< sm) */}
-        <div className="sm:hidden w-full min-w-0">
-          <label htmlFor="leave-settings-subtab" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
-            Kategori Kebijakan Cuti
-          </label>
-          <select
-            id="leave-settings-subtab"
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value as "schedule" | "types" | "holidays" | "balances")}
-            className="w-full appearance-none bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] cursor-pointer"
-          >
-            <option value="schedule">🕒 Jadwal Kerja & Jam Masuk</option>
-            <option value="types">📋 Jenis & Kuota Cuti ({leaveTypes.length})</option>
-            <option value="holidays">📅 Kalender Libur & Cuti Bersama ({holidays.length})</option>
-            <option value="balances">👥 Saldo Cuti Pegawai ({employeeBalances.length})</option>
-          </select>
+      {hideSubNav ? (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-slate-900 font-serif">
+              {activeTab === "schedule" && "Jadwal Kerja & Jam Operasional"}
+              {activeTab === "types" && `Master Jenis & Aturan Cuti (${leaveTypes.length})`}
+              {activeTab === "holidays" && `Kalender Libur & Cuti Bersama (${holidays.length})`}
+              {activeTab === "balances" && `Saldo & Kuota Cuti Pegawai (${employeeBalances.length})`}
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {activeTab === "schedule" &&
+                "Konfigurasi jam operasional masuk dan pulang kantor, toleransi keterlambatan presensi, serta mode kerja WFO/WFH."}
+              {activeTab === "types" &&
+                "Pengaturan kuota hari cuti tahunan, status cuti berbayar atau tanpa gaji, serta kewajiban dokumen pendukung."}
+              {activeTab === "holidays" &&
+                "Daftar tanggal merah libur nasional dan penetapan cuti bersama resmi tahun berjalan."}
+              {activeTab === "balances" &&
+                "Pemantauan dan penyesuaian kuota cuti tahunan pegawai serta riwayat penggunaan."}
+            </p>
+          </div>
+
+          {activeTab === "types" && (
+            <button
+              type="button"
+              onClick={() => {
+                setCreateName("");
+                setCreateQuota(12);
+                setCreateIsPaid(true);
+                setCreateRequiresAttachment(false);
+                setCreateApplicableGender("ALL");
+                setCreateIsActive(true);
+                setIsCreateTypeModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
+            >
+              <Plus className="w-4 h-4 text-[#ffddb0]" />
+              <span>Tambah Jenis Cuti</span>
+            </button>
+          )}
+
+          {activeTab === "holidays" && (
+            <button
+              type="button"
+              onClick={() => setIsHolidayModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
+            >
+              <Plus className="w-4 h-4 text-[#ffddb0]" />
+              <span>Tambah Hari Libur</span>
+            </button>
+          )}
         </div>
+      ) : (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+          {/* Mobile Dropdown (< sm) */}
+          <div className="sm:hidden w-full min-w-0">
+            <label htmlFor="leave-settings-subtab" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              Kategori Kebijakan Cuti
+            </label>
+            <select
+              id="leave-settings-subtab"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as "schedule" | "types" | "holidays" | "balances")}
+              className="w-full appearance-none bg-white border border-slate-300 rounded-xl px-4 py-2.5 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] cursor-pointer"
+            >
+              <option value="schedule">🕒 Jadwal Kerja & Jam Masuk</option>
+              <option value="types">📋 Jenis & Kuota Cuti ({leaveTypes.length})</option>
+              <option value="holidays">📅 Kalender Libur & Cuti Bersama ({holidays.length})</option>
+              <option value="balances">👥 Saldo Cuti Pegawai ({employeeBalances.length})</option>
+            </select>
+          </div>
 
-        {/* Desktop Buttons (>= sm) */}
-        <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab("schedule")}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "schedule"
-                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Clock className="w-3.5 h-3.5" />
-            <span>Jadwal Kerja & Jam Masuk</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("types")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "types"
-                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            Jenis & Kuota Cuti ({leaveTypes.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("holidays")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "holidays"
-                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            Kalender Hari Libur & Cuti Bersama ({holidays.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("balances")}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "balances"
-                ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
-                : "text-slate-600 hover:bg-slate-100"
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Saldo Cuti Pegawai ({employeeBalances.length})</span>
-          </button>
+          {/* Desktop Buttons (>= sm) */}
+          <div className="hidden sm:flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab("schedule")}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "schedule"
+                  ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Jadwal Kerja & Jam Masuk</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("types")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "types"
+                  ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              Jenis & Kuota Cuti ({leaveTypes.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("holidays")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "holidays"
+                  ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              Kalender Hari Libur & Cuti Bersama ({holidays.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("balances")}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "balances"
+                  ? "bg-[#102e50] text-[#ffddb0] shadow-xs"
+                  : "text-slate-600 hover:bg-slate-100"
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Saldo Cuti Pegawai ({employeeBalances.length})</span>
+            </button>
+          </div>
+
+          {/* Action Button for Active Tab */}
+          {activeTab === "types" && (
+            <button
+              type="button"
+              onClick={() => {
+                setCreateName("");
+                setCreateQuota(12);
+                setCreateIsPaid(true);
+                setCreateRequiresAttachment(false);
+                setCreateApplicableGender("ALL");
+                setCreateIsActive(true);
+                setIsCreateTypeModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
+            >
+              <Plus className="w-4 h-4 text-[#ffddb0]" />
+              <span>Tambah Jenis Cuti</span>
+            </button>
+          )}
+
+          {activeTab === "holidays" && (
+            <button
+              type="button"
+              onClick={() => setIsHolidayModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
+            >
+              <Plus className="w-4 h-4 text-[#ffddb0]" />
+              <span>Tambah Hari Libur</span>
+            </button>
+          )}
         </div>
-
-        {/* Action Button for Active Tab */}
-        {activeTab === "types" && (
-          <button
-            type="button"
-            onClick={() => {
-              setCreateName("");
-              setCreateQuota(12);
-              setCreateIsPaid(true);
-              setCreateRequiresAttachment(false);
-              setCreateApplicableGender("ALL");
-              setCreateIsActive(true);
-              setIsCreateTypeModalOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
-          >
-            <Plus className="w-4 h-4 text-[#ffddb0]" />
-            <span>Tambah Jenis Cuti</span>
-          </button>
-        )}
-
-        {activeTab === "holidays" && (
-          <button
-            type="button"
-            onClick={() => setIsHolidayModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0c233d] text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-[0.98] shrink-0"
-          >
-            <Plus className="w-4 h-4 text-[#ffddb0]" />
-            <span>Tambah Hari Libur</span>
-          </button>
-        )}
-      </div>
+      )}
 
       {/* TAB 0: JADWAL KERJA & JAM MASUK */}
       {activeTab === "schedule" &&
