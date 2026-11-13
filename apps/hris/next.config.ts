@@ -33,7 +33,7 @@ const config: NextConfig = {
       },
       {
         source: "/cuti/pengaturan",
-        destination: "/tata-kelola?tab=jadwal-cuti",
+        destination: "/tata-kelola?tab=jenis-cuti",
         permanent: false,
       },
       {
@@ -43,7 +43,7 @@ const config: NextConfig = {
       },
       {
         source: "/payroll/pengaturan",
-        destination: "/tata-kelola?tab=dokumen-bank",
+        destination: "/tata-kelola?tab=bank-pengirim",
         permanent: false,
       },
     ];
