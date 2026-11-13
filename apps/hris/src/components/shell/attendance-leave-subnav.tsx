@@ -65,7 +65,7 @@ export function AttendanceLeaveSubnav({
     {
       id: "pengaturan" as AttendanceLeaveTab,
       label: "Pengaturan Jadwal & Kuota",
-      href: "/tata-kelola?tab=jadwal-cuti",
+      href: "/tata-kelola?tab=jadwal-kerja",
       icon: <Settings className="w-3.5 h-3.5" />,
       visible: isHrOrAdmin,
     },
