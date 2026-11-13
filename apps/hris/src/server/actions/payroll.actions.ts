@@ -459,6 +459,7 @@ export async function createOrUpdateSalaryComponentAction(input: {
         userAgent: actor.userAgent,
       });
 
+      revalidatePath("/tata-kelola");
       revalidatePath("/payroll/komponen");
 
       return {
@@ -490,6 +491,7 @@ export async function createOrUpdateSalaryComponentAction(input: {
         userAgent: actor.userAgent,
       });
 
+      revalidatePath("/tata-kelola");
       revalidatePath("/payroll/komponen");
 
       return {
@@ -502,6 +504,95 @@ export async function createOrUpdateSalaryComponentAction(input: {
     return {
       ok: false as const,
       error: err instanceof Error ? err.message : "Gagal menyimpan komponen gaji.",
+    };
+  }
+}
+
+/**
+ * Hapus Komponen Gaji (Safe Delete)
+ */
+export async function deleteSalaryComponentAction(id: string) {
+  try {
+    const actor = await getActorInfo();
+
+    if (!actor.isSuperAdmin && !actor.isAdminHr) {
+      return {
+        ok: false as const,
+        error: "Hanya Admin HR atau Super Admin yang berwenang menghapus komponen gaji.",
+      };
+    }
+
+    if (!id || typeof id !== "string") {
+      return {
+        ok: false as const,
+        error: "ID komponen gaji tidak valid.",
+      };
+    }
+
+    const component = await prisma.salaryComponent.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            payslipLines: true,
+            employeeComponents: true,
+          },
+        },
+      },
+    });
+
+    if (!component) {
+      return {
+        ok: false as const,
+        error: "Komponen gaji tidak ditemukan.",
+      };
+    }
+
+    // Safety Check 1: Riwayat Slip Gaji Historis
+    if (component._count.payslipLines > 0) {
+      return {
+        ok: false as const,
+        error: `Komponen '${component.name}' tidak dapat dihapus permanen karena sudah tercatat dalam ${component._count.payslipLines} rincian riwayat slip gaji pegawai. Silakan ubah statusnya menjadi 'Nonaktif' melalui tombol Ubah agar data keuangan masa lalu tetap terjaga.`,
+      };
+    }
+
+    // Safety Check 2: Sedang ditugaskan ke data karyawan aktif
+    if (component._count.employeeComponents > 0) {
+      return {
+        ok: false as const,
+        error: `Komponen '${component.name}' masih terhubung dengan ${component._count.employeeComponents} data penugasan karyawan. Lepaskan penugasan komponen pada data karyawan terlebih dahulu, atau ubah status komponen menjadi 'Nonaktif'.`,
+      };
+    }
+
+    // Aman dihapus permanen
+    await prisma.salaryComponent.delete({
+      where: { id },
+    });
+
+    await writeAudit({
+      actorUserId: actor.userId,
+      actorEmail: actor.email,
+      app: "hris",
+      action: "DELETE",
+      entityType: "SalaryComponent",
+      entityId: id,
+      before: { code: component.code, name: component.name, type: component.type },
+      ip: actor.ip,
+      userAgent: actor.userAgent,
+    });
+
+    revalidatePath("/tata-kelola");
+    revalidatePath("/payroll/komponen");
+
+    return {
+      ok: true as const,
+      message: `Komponen gaji '${component.name}' (${component.code}) berhasil dihapus permanen.`,
+    };
+  } catch (err: unknown) {
+    console.error("deleteSalaryComponentAction error:", err);
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal menghapus komponen gaji.",
     };
   }
 }
