@@ -404,11 +404,18 @@ export function PayrollSettingsView({
             </div>
           )}
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-serif">
-            Pengaturan Penggajian & Dokumen Resmi
+            {hideSubNav && activeTab === "bank"
+              ? "Rekening Bank Pengirim Gaji"
+              : hideSubNav && activeTab === "document"
+                ? "Kop Dokumen Resmi & Format Slip"
+                : "Pengaturan Penggajian & Dokumen Resmi"}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Konfigurasi rekening bank operasional penyalur gaji PSPK, identitas kop surat, logo, dan
-            gaya dokumen cetak slip gaji.
+            {hideSubNav && activeTab === "bank"
+              ? "Informasi rekening bank resmi operasional PSPK untuk penyaluran gaji dan pencatatan payroll."
+              : hideSubNav && activeTab === "document"
+                ? "Kustomisasi logo lembaga, alamat kop surat, gaya garis pemisah, dan format cetak slip gaji."
+                : "Konfigurasi rekening bank operasional penyalur gaji PSPK, identitas kop surat, logo, dan gaya dokumen cetak slip gaji."}
           </p>
         </div>
 
@@ -458,33 +465,35 @@ export function PayrollSettingsView({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Form Settings (7 cols) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-          {/* Tab Navigation Segmented Control */}
-          <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 w-full sm:w-fit">
-            <button
-              type="button"
-              onClick={() => setActiveTab("bank")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "bank"
-                  ? "bg-white text-[#102E50] shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <Landmark className="w-4 h-4 text-emerald-600" />
-              <span>Rekening Bank Pengirim</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("document")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "document"
-                  ? "bg-white text-[#102E50] shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <FileText className="w-4 h-4 text-[#F2AF3E]" />
-              <span>Kop & Desain Dokumen</span>
-            </button>
-          </div>
+          {/* Tab Navigation Segmented Control - Only shown when hideSubNav is false */}
+          {!hideSubNav && (
+            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200 w-full sm:w-fit">
+              <button
+                type="button"
+                onClick={() => setActiveTab("bank")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "bank"
+                    ? "bg-white text-[#102E50] shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Landmark className="w-4 h-4 text-emerald-600" />
+                <span>Rekening Bank Pengirim</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("document")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "document"
+                    ? "bg-white text-[#102E50] shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <FileText className="w-4 h-4 text-[#F2AF3E]" />
+                <span>Kop & Desain Dokumen</span>
+              </button>
+            </div>
+          )}
 
           {/* TAB 1: REKENING BANK PENGIRIM */}
           {activeTab === "bank" && (
