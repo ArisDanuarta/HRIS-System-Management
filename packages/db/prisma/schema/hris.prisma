@@ -229,6 +229,8 @@ model Employee {
   birthPlace            String?        @map("birth_place")
   gender                Gender?
   maritalStatus         MaritalStatus? @map("marital_status")
+  ptkpStatus            PtkpStatus     @default(TK_0) @map("ptkp_status")
+  taxMethod             TaxMethod      @default(GROSS) @map("tax_method")
   address               String?
   emergencyContactName  String?        @map("emergency_contact_name")
   emergencyContactPhone String?        @map("emergency_contact_phone")
@@ -541,6 +543,10 @@ model Payslip {
   grossAmount    Decimal       @map("gross_amount") @db.Decimal(15, 2)
   totalDeduction Decimal       @map("total_deduction") @db.Decimal(15, 2)
   netAmount      Decimal       @map("net_amount") @db.Decimal(15, 2)
+  taxableGross   Decimal?      @map("taxable_gross") @db.Decimal(15, 2)
+  pph21Amount    Decimal?      @map("pph21_amount") @db.Decimal(15, 2)
+  terCategory    String?       @map("ter_category")
+  terRate        Decimal?      @map("ter_rate") @db.Decimal(5, 4)
   wageType       WageType      @default(MONTHLY) @map("wage_type")
   totalHours     Decimal?      @map("total_hours") @db.Decimal(8, 2)
   hourlyRate     Decimal?      @map("hourly_rate") @db.Decimal(15, 2)
