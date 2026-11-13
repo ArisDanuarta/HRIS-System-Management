@@ -26,6 +26,27 @@ enum MaritalStatus {
   @@schema("hris")
 }
 
+enum PtkpStatus {
+  TK_0
+  TK_1
+  TK_2
+  TK_3
+  K_0
+  K_1
+  K_2
+  K_3
+
+  @@schema("hris")
+}
+
+enum TaxMethod {
+  GROSS
+  GROSS_UP
+  NETT
+
+  @@schema("hris")
+}
+
 enum EmploymentType {
   PERMANENT
   FIXED_TERM
