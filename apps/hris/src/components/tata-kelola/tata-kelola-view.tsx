@@ -353,7 +353,7 @@ export function TataKelolaView({
       {/* 5. Master-Detail Layout (Desktop Grid 12 Kolom) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Sisi Kiri: Sidebar Navigasi Menu Master Data (4 Kolom Desktop) */}
-        <aside className="hidden lg:block lg:col-span-4 xl:col-span-4 lg:sticky lg:top-20 space-y-4">
+        <aside className="hidden lg:block lg:col-span-3 xl:col-span-3 lg:sticky lg:top-20 space-y-3">
           <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3 space-y-5">
             {navGroups.map((group) => (
               <div key={group.title} className="space-y-1">
