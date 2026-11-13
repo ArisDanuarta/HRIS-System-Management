@@ -403,8 +403,8 @@ export function TataKelolaView({
           </div>
         </aside>
 
-        {/* Sisi Kanan: Konten Utama Master Data (8 Kolom Desktop) */}
-        <main className="lg:col-span-8 xl:col-span-8 min-w-0 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7">
+        {/* Sisi Kanan: Konten Utama Master Data (9 Kolom Desktop) */}
+        <main className="lg:col-span-9 xl:col-span-9 min-w-0 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7">
           {/* TAB 1: STRUKTUR DIVISI & JABATAN */}
           {activeTab === "organisasi" && (
             <div className="space-y-6 animate-in fade-in duration-200">
