@@ -6,9 +6,13 @@ import Link from "next/link";
 import {
   Building2,
   Briefcase,
+  Clock,
   CalendarClock,
+  Calendar,
+  Users,
   Receipt,
   Landmark,
+  FileText,
   ShieldCheck,
   SlidersHorizontal,
   ArrowLeft,
@@ -30,14 +34,23 @@ import type { SalaryComponentItem } from "@/components/payroll/salary-component-
 import type { PayrollSettingsData } from "@/server/queries/payroll-settings.queries";
 
 export type TataKelolaTab =
+  // Group 1: Organisasi & Struktur
   | "organisasi"
   | "ikatan-kerja"
-  | "jadwal-cuti"
+  // Group 2: Waktu & Aturan Cuti
+  | "jadwal-kerja"
+  | "jenis-cuti"
+  | "hari-libur"
+  | "saldo-cuti"
+  // Group 3: Penggajian (Payroll)
   | "payroll-komponen"
+  | "bank-pengirim"
+  | "kop-dokumen"
+  // Alias untuk kompatibilitas tautan lama
+  | "jadwal-cuti"
   | "dokumen-bank";
 
 export interface TataKelolaViewProps {
-  // Data Tab 1: Struktur Organisasi
   departments: DepartmentItem[];
   orgStats: {
     totalDepartments: number;
@@ -50,11 +63,7 @@ export interface TataKelolaViewProps {
       SUPPORT: number;
     };
   };
-
-  // Data Tab 2: Tipe Ikatan Kerja
   employmentTypes: EmploymentTypeDetail[];
-
-  // Data Tab 3: Jam Kerja & Cuti
   leaveTypes: LeaveTypeItem[];
   holidays: Array<{
     id: string;
@@ -65,16 +74,30 @@ export interface TataKelolaViewProps {
   workSchedule?: ActiveWorkSchedule;
   employeeBalances: EmployeeLeaveBalanceOverview[];
   defaultLeaveType?: { id: string; name: string } | null;
-
-  // Data Tab 4: Komponen Penggajian
   salaryComponents: SalaryComponentItem[];
-
-  // Data Tab 5: Kop Surat & Rekening Penggajian
   payrollSettings: PayrollSettingsData;
-
-  // State
   canManage: boolean;
 }
+
+const normalizeTab = (raw: string | null): TataKelolaTab => {
+  if (!raw) return "organisasi";
+  if (raw === "jadwal-cuti") return "jenis-cuti";
+  if (raw === "dokumen-bank") return "bank-pengirim";
+
+  const validTabs: TataKelolaTab[] = [
+    "organisasi",
+    "ikatan-kerja",
+    "jadwal-kerja",
+    "jenis-cuti",
+    "hari-libur",
+    "saldo-cuti",
+    "payroll-komponen",
+    "bank-pengirim",
+    "kop-dokumen",
+  ];
+
+  return validTabs.includes(raw as TataKelolaTab) ? (raw as TataKelolaTab) : "organisasi";
+};
 
 export function TataKelolaView({
   departments,
@@ -92,18 +115,7 @@ export function TataKelolaView({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const tabParam = searchParams.get("tab") as TataKelolaTab | null;
-  const validTabs: TataKelolaTab[] = [
-    "organisasi",
-    "ikatan-kerja",
-    "jadwal-cuti",
-    "payroll-komponen",
-    "dokumen-bank",
-  ];
-
-  const currentTab: TataKelolaTab =
-    tabParam && validTabs.includes(tabParam) ? tabParam : "organisasi";
-
+  const currentTab = normalizeTab(searchParams.get("tab"));
   const [activeTab, setActiveTab] = useState<TataKelolaTab>(currentTab);
 
   const handleTabChange = (newTab: TataKelolaTab) => {
@@ -113,9 +125,82 @@ export function TataKelolaView({
     router.push(`?${params.toString()}`);
   };
 
+  // Definisi Navigasi Sidebar Kiri yang Terkelompok Rapi
+  const navGroups = [
+    {
+      title: "Organisasi & Jabatan",
+      items: [
+        {
+          id: "organisasi" as TataKelolaTab,
+          label: "Struktur Divisi & Formasi",
+          icon: Building2,
+          badge: `${orgStats.totalDepartments} Divisi`,
+        },
+        {
+          id: "ikatan-kerja" as TataKelolaTab,
+          label: "Status Kepegawaian",
+          icon: Briefcase,
+          badge: `${employmentTypes.length} Tipe`,
+        },
+      ],
+    },
+    {
+      title: "Waktu & Aturan Cuti",
+      items: [
+        {
+          id: "jadwal-kerja" as TataKelolaTab,
+          label: "Jam Kerja & Toleransi",
+          icon: Clock,
+          badge: workSchedule ? `${workSchedule.workStartTime}–${workSchedule.workEndTime}` : undefined,
+        },
+        {
+          id: "jenis-cuti" as TataKelolaTab,
+          label: "Master Jenis Cuti",
+          icon: CalendarClock,
+          badge: `${leaveTypes.length} Jenis`,
+        },
+        {
+          id: "hari-libur" as TataKelolaTab,
+          label: "Hari Libur & Cuti Bersama",
+          icon: Calendar,
+          badge: `${holidays.length} Hari`,
+        },
+        {
+          id: "saldo-cuti" as TataKelolaTab,
+          label: "Kuota Saldo Cuti Pegawai",
+          icon: Users,
+          badge: `${employeeBalances.length} Staf`,
+        },
+      ],
+    },
+    {
+      title: "Penggajian (Payroll)",
+      items: [
+        {
+          id: "payroll-komponen" as TataKelolaTab,
+          label: "Komponen Gaji & Tunjangan",
+          icon: Receipt,
+          badge: `${salaryComponents.length} Komponen`,
+        },
+        {
+          id: "bank-pengirim" as TataKelolaTab,
+          label: "Rekening Bank Pengirim",
+          icon: Landmark,
+          badge: payrollSettings.senderBankName,
+        },
+        {
+          id: "kop-dokumen" as TataKelolaTab,
+          label: "Kop Dokumen & Format Slip",
+          icon: FileText,
+          badge: "Template",
+        },
+      ],
+    },
+  ];
+
   return (
-    <div className="space-y-6 max-w-[1440px] w-full min-w-0 mx-auto pb-16 animate-in fade-in duration-200">
-      {/* Navigation Breadcrumb */}
+    <div className="flex flex-col gap-6 max-w-[1440px] w-full min-w-0 mx-auto pb-16 animate-in fade-in duration-200">
+      {/* 1. Baris Atas: Breadcrumb & Mode Status */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href="/dashboard"
@@ -127,11 +212,11 @@ export function TataKelolaView({
 
         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 self-start sm:self-auto">
           <ShieldCheck className="w-4 h-4 text-emerald-600" />
-          <span>{canManage ? "Mode Pengelola Master Penuh" : "Akses Hanya Baca"}</span>
+          <span>{canManage ? "Mode Kelola Master Penuh" : "Akses Hanya Baca"}</span>
         </div>
       </div>
 
-      {/* Header Utama Eksekutif */}
+      {/* 2. Header Utama Eksekutif */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2">
@@ -143,145 +228,114 @@ export function TataKelolaView({
               Admin HR
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl">
-            Pusat konfigurasi terpadu tata kelola kepegawaian PSPK: struktur formasi divisi, jenis
-            ikatan kerja, regulasi jam operasional & cuti, master komponen gaji, serta rekening bank
-            resmi pengirim penggajian.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
+            Pusat pengaturan data master HR: struktur organisasi divisi, status kepegawaian, jam kerja
+            operasional, regulasi cuti tahunan, master komponen gaji, serta rekening resmi penggajian.
           </p>
         </div>
       </div>
 
-      {/* 4 Kartu Metrik Ringkasan Tata Kelola */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full min-w-0">
-        {/* Card 1: Struktur & Jabatan */}
-        <div
-          onClick={() => handleTabChange("organisasi")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
-            activeTab === "organisasi" ? "border-[#102E50] ring-1 ring-[#102E50]/20" : "border-slate-200"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#102E50] flex items-center justify-center shrink-0">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Struktur Divisi
-              </div>
-              <div className="text-lg font-bold text-slate-900 mt-0.5">
-                {orgStats.totalDepartments} Divisi
-              </div>
-            </div>
+      {/* 3. Ringkasan Statistik Global (Non-Klik, Murni Informatif) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 w-full min-w-0">
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#102E50] flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5 text-[#102E50]" />
           </div>
-          <div className="text-[11px] text-slate-500 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <span>Formasi Jabatan</span>
-            <span className="font-semibold text-slate-700">{orgStats.totalPositions} Posisi</span>
-          </div>
-        </div>
-
-        {/* Card 2: Tipe Ikatan Kerja */}
-        <div
-          onClick={() => handleTabChange("ikatan-kerja")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
-            activeTab === "ikatan-kerja" ? "border-[#102E50] ring-1 ring-[#102E50]/20" : "border-slate-200"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-              <Briefcase className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Ikatan Kerja
-              </div>
-              <div className="text-lg font-bold text-slate-900 mt-0.5">
-                {employmentTypes.length} Tipe Kontrak
-              </div>
-            </div>
-          </div>
-          <div className="text-[11px] text-slate-500 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <span>Skema Aktif</span>
-            <span className="font-semibold text-emerald-600">
-              {employmentTypes.filter((t) => t.isActive).length} Aktif
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Struktur Organisasi
+            </span>
+            <span className="text-sm sm:text-base font-bold text-slate-900 truncate block">
+              {orgStats.totalDepartments} Divisi
+            </span>
+            <span className="text-[11px] text-slate-500 truncate block">
+              {orgStats.totalPositions} Formasi Jabatan
             </span>
           </div>
         </div>
 
-        {/* Card 3: Kebijakan Cuti & Jam Kerja */}
-        <div
-          onClick={() => handleTabChange("jadwal-cuti")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
-            activeTab === "jadwal-cuti" ? "border-[#102E50] ring-1 ring-[#102E50]/20" : "border-slate-200"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-              <CalendarClock className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Jadwal & Cuti
-              </div>
-              <div className="text-lg font-bold text-slate-900 mt-0.5">
-                {leaveTypes.length} Jenis Cuti
-              </div>
-            </div>
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+            <Briefcase className="w-5 h-5 text-amber-700" />
           </div>
-          <div className="text-[11px] text-slate-500 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <span>Hari Libur Nasional</span>
-            <span className="font-semibold text-slate-700">{holidays.length} Hari</span>
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Status Pegawai
+            </span>
+            <span className="text-sm sm:text-base font-bold text-slate-900 truncate block">
+              {employmentTypes.length} Tipe Kontrak
+            </span>
+            <span className="text-[11px] text-emerald-600 font-semibold truncate block">
+              {employmentTypes.filter((t) => t.isActive).length} Skema Aktif
+            </span>
           </div>
         </div>
 
-        {/* Card 4: Komponen Payroll & Bank */}
-        <div
-          onClick={() => handleTabChange("payroll-komponen")}
-          className={`p-4 rounded-xl border bg-white shadow-2xs transition cursor-pointer hover:shadow-xs hover:border-[#102E50]/40 min-w-0 ${
-            activeTab === "payroll-komponen" || activeTab === "dokumen-bank"
-              ? "border-[#102E50] ring-1 ring-[#102E50]/20"
-              : "border-slate-200"
-          }`}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
-              <Receipt className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                Gaji & Rekening
-              </div>
-              <div className="text-lg font-bold text-slate-900 mt-0.5">
-                {salaryComponents.length} Komponen
-              </div>
-            </div>
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+            <CalendarClock className="w-5 h-5 text-emerald-700" />
           </div>
-          <div className="text-[11px] text-slate-500 mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
-            <span>Bank Pengirim</span>
-            <span className="font-semibold text-slate-700 truncate max-w-[130px]" title={payrollSettings.senderBankName}>
-              {payrollSettings.senderBankName}
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Regulasi Cuti & Libur
+            </span>
+            <span className="text-sm sm:text-base font-bold text-slate-900 truncate block">
+              {leaveTypes.length} Jenis Cuti
+            </span>
+            <span className="text-[11px] text-slate-500 truncate block">
+              {holidays.length} Hari Libur Nasional
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200/90 shadow-2xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+            <Receipt className="w-5 h-5 text-purple-700" />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+              Master Penggajian
+            </span>
+            <span className="text-sm sm:text-base font-bold text-slate-900 truncate block">
+              {salaryComponents.length} Komponen
+            </span>
+            <span className="text-[11px] text-slate-500 truncate block" title={payrollSettings.senderBankName}>
+              Bank: {payrollSettings.senderBankName}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Navigasi 5 Tab Terpusat */}
-      {/* 1. Mobile Tab Selector (< sm): Dropdown sentuh satu ketukan, bebas scroll trap vertikal */}
-      <div className="sm:hidden w-full min-w-0">
-        <label htmlFor="tata-kelola-mobile-tab" className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+      {/* 4. Selector Mobile (< lg): Dropdown Khusus Layar Ponsel */}
+      <div className="lg:hidden w-full bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
+        <label
+          htmlFor="tata-kelola-mobile-select"
+          className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider"
+        >
           Pilih Kategori Pengaturan
         </label>
         <div className="relative">
           <select
-            id="tata-kelola-mobile-tab"
+            id="tata-kelola-mobile-select"
             value={activeTab}
             onChange={(e) => handleTabChange(e.target.value as TataKelolaTab)}
-            className="w-full appearance-none bg-white border border-slate-300 rounded-xl px-4 py-3 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] pr-10 cursor-pointer"
+            className="w-full appearance-none bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-xs font-bold text-[#102E50] shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#102E50] focus:border-[#102E50] pr-10 cursor-pointer"
           >
-            <option value="organisasi">🏢 Struktur Divisi & Jabatan ({orgStats.totalDepartments} Divisi)</option>
-            <option value="ikatan-kerja">💼 Tipe Ikatan Kerja ({employmentTypes.length} Tipe)</option>
-            <option value="jadwal-cuti">📅 Jam Kerja, Cuti & Libur ({leaveTypes.length} Jenis Cuti)</option>
-            <option value="payroll-komponen">🧾 Komponen Gaji & Tunjangan ({salaryComponents.length} Komponen)</option>
-            <option value="dokumen-bank">🏛️ Kop Dokumen & Rekening Bank</option>
+            <optgroup label="── ORGANISASI & JABATAN ──">
+              <option value="organisasi">🏢 Struktur Divisi & Formasi ({orgStats.totalDepartments})</option>
+              <option value="ikatan-kerja">💼 Status Kepegawaian ({employmentTypes.length} Tipe)</option>
+            </optgroup>
+            <optgroup label="── WAKTU & ATURAN CUTI ──">
+              <option value="jadwal-kerja">⏰ Jam Kerja & Toleransi Masuk</option>
+              <option value="jenis-cuti">📋 Master Jenis Cuti ({leaveTypes.length} Jenis)</option>
+              <option value="hari-libur">📅 Hari Libur & Cuti Bersama ({holidays.length} Hari)</option>
+              <option value="saldo-cuti">👥 Kuota Saldo Cuti Pegawai ({employeeBalances.length} Staf)</option>
+            </optgroup>
+            <optgroup label="── PENGGAJIAN (PAYROLL) ──">
+              <option value="payroll-komponen">🧾 Komponen Gaji & Tunjangan ({salaryComponents.length})</option>
+              <option value="bank-pengirim">🏛️ Rekening Bank Pengirim ({payrollSettings.senderBankName})</option>
+              <option value="kop-dokumen">📄 Kop Dokumen & Format Slip Gaji</option>
+            </optgroup>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-500">
             <SlidersHorizontal className="w-4 h-4 text-[#102E50]" />
@@ -289,164 +343,194 @@ export function TataKelolaView({
         </div>
       </div>
 
-      {/* 2. Desktop Tab Bar (>= sm): Navigasi Tab Horizontal Lengkap */}
-      <div className="hidden sm:block w-full min-w-0 max-w-full overflow-hidden border-b border-slate-200">
-        <div className="flex overflow-x-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden w-full min-w-0 gap-0 [overscroll-behavior-x:contain]">
-          <button
-            type="button"
-            onClick={() => handleTabChange("organisasi")}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
-              activeTab === "organisasi"
-                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-            }`}
-          >
-            <Building2 className="w-4 h-4 shrink-0" />
-            <span>Struktur Divisi & Jabatan</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-600 font-mono">
-              {orgStats.totalDepartments}
-            </span>
-          </button>
+      {/* 5. Master-Detail Layout (Desktop Grid 12 Kolom) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Sisi Kiri: Sidebar Navigasi Menu Master Data (3 Kolom Desktop) */}
+        <aside className="hidden lg:block lg:col-span-4 xl:col-span-3 lg:sticky lg:top-20 space-y-4">
+          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-3 space-y-5">
+            {navGroups.map((group) => (
+              <div key={group.title} className="space-y-1">
+                <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {group.title}
+                </div>
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const isActive = activeTab === item.id;
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleTabChange(item.id)}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                          isActive
+                            ? "bg-[#102E50] text-white shadow-xs font-bold"
+                            : "text-slate-600 hover:text-[#102E50] hover:bg-slate-100/70"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <Icon
+                            className={`w-4 h-4 shrink-0 ${
+                              isActive ? "text-[#F2AF3E]" : "text-slate-400"
+                            }`}
+                          />
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 tabular-nums ${
+                              isActive
+                                ? "bg-white/15 text-white font-bold"
+                                : "bg-slate-100 text-slate-500 font-medium"
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </aside>
 
-          <button
-            type="button"
-            onClick={() => handleTabChange("ikatan-kerja")}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
-              activeTab === "ikatan-kerja"
-                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-            }`}
-          >
-            <Briefcase className="w-4 h-4 shrink-0" />
-            <span>Tipe Ikatan Kerja</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-mono font-bold">
-              {employmentTypes.length}
-            </span>
-          </button>
+        {/* Sisi Kanan: Konten Utama Master Data (8-9 Kolom Desktop) */}
+        <main className="lg:col-span-8 xl:col-span-9 min-w-0 bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 sm:p-7">
+          {/* TAB 1: STRUKTUR DIVISI & JABATAN */}
+          {activeTab === "organisasi" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 font-serif">
+                    Struktur Divisi & Formasi Jabatan
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Kelola hierarki divisi kerja, klasifikasi unit kerja, serta formasi jabatan resmi PSPK.
+                  </p>
+                </div>
+                <Link
+                  href="/karyawan/struktur"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102E50] bg-[#eff4ff] border border-[#dee9fc] px-3.5 py-2 rounded-xl shadow-2xs hover:bg-[#dee9fc] transition-colors shrink-0 w-fit"
+                >
+                  <Network className="w-4 h-4 text-[#102E50]" />
+                  <span>Lihat Visual Bagan Pohon ↗</span>
+                </Link>
+              </div>
 
-          <button
-            type="button"
-            onClick={() => handleTabChange("jadwal-cuti")}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
-              activeTab === "jadwal-cuti"
-                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-            }`}
-          >
-            <CalendarClock className="w-4 h-4 shrink-0" />
-            <span>Jam Kerja, Cuti & Libur</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono">
-              {leaveTypes.length}
-            </span>
-          </button>
+              <OrganizationManagement initialDepartments={departments} />
+            </div>
+          )}
 
-          <button
-            type="button"
-            onClick={() => handleTabChange("payroll-komponen")}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
-              activeTab === "payroll-komponen"
-                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-            }`}
-          >
-            <Receipt className="w-4 h-4 shrink-0" />
-            <span>Komponen Gaji & Tunjangan</span>
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-purple-100 text-purple-800 font-mono">
-              {salaryComponents.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleTabChange("dokumen-bank")}
-            className={`flex items-center gap-2 px-4 py-3 text-xs font-bold transition-all border-b-2 -mb-px whitespace-nowrap shrink-0 ${
-              activeTab === "dokumen-bank"
-                ? "border-[#102E50] text-[#102E50] bg-slate-50/70"
-                : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
-            }`}
-          >
-            <Landmark className="w-4 h-4 shrink-0" />
-            <span>Kop Dokumen & Rekening Bank</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Kontainer Isi Tab Terpilih */}
-      <div className="mt-4">
-        {activeTab === "organisasi" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Quick Link & Context Bar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4.5 rounded-xl border border-slate-200 shadow-2xs">
-              <div>
+          {/* TAB 2: STATUS KEPEGAWAIAN (IKATAN KERJA) */}
+          {activeTab === "ikatan-kerja" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <div className="border-b border-slate-200/80 pb-4">
                 <h2 className="text-base font-bold text-slate-900 font-serif">
-                  Struktur Divisi & Formasi Jabatan
+                  Master Status Kepegawaian & Perjanjian Kontrak
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Kelola hierarki divisi kerja, unit kerja (Governance, Leadership, Initiative, Support), serta formasi jabatan resmi PSPK.
+                  Konfigurasi jenis perjanjian kerja (PKWTT, PKWT, Freelance, Magang), metode pengupahan
+                  (Bulanan vs Per Jam), dan acuan tarif honorarium riset.
                 </p>
               </div>
-              <Link
-                href="/karyawan/struktur"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#102E50] bg-[#eff4ff] border border-[#dee9fc] px-3.5 py-2 rounded-lg shadow-2xs hover:bg-[#dee9fc] transition-colors shrink-0 w-fit"
-              >
-                <Network className="w-4 h-4 text-[#102E50]" />
-                <span>Lihat Visual Bagan Pohon ↗</span>
-              </Link>
+
+              <EmploymentTypeManagement initialTypes={employmentTypes} />
             </div>
+          )}
 
-            <OrganizationManagement initialDepartments={departments} />
-          </div>
-        )}
-
-        {activeTab === "ikatan-kerja" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Header Konteks Ikatan Kerja */}
-            <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-2xs">
-              <h2 className="text-base font-bold text-slate-900 font-serif">
-                Master Tipe Ikatan Kerja & Perjanjian Kontrak
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Konfigurasi master kategori perjanjian kerja (PKWTT, PKWT, Freelance, Magang), metode pengupahan (Bulanan vs Per Jam), dan tarif acuan honorarium riset.
-              </p>
+          {/* TAB 3: JAM KERJA & TOLERANSI MASUK */}
+          {activeTab === "jadwal-kerja" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <LeaveSettingsView
+                leaveTypes={leaveTypes}
+                holidays={holidays}
+                workSchedule={workSchedule}
+                employeeBalances={employeeBalances}
+                defaultLeaveType={defaultLeaveType}
+                activeSubTab="schedule"
+                hideSubNav={true}
+              />
             </div>
+          )}
 
-            <EmploymentTypeManagement initialTypes={employmentTypes} />
-          </div>
-        )}
-
-        {activeTab === "jadwal-cuti" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Header Konteks Jadwal & Cuti */}
-            <div className="bg-white p-4.5 rounded-xl border border-slate-200 shadow-2xs">
-              <h2 className="text-base font-bold text-slate-900 font-serif">
-                Jam Kerja Kantor, Master Cuti & Hari Libur Nasional
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Konfigurasi jam masuk-pulang operasional lembaga, toleransi keterlambatan presensi, jenis cuti resmi (kuota & syarat lampiran), kalender libur bersama, dan kuota cuti tahunan pegawai.
-              </p>
+          {/* TAB 4: MASTER JENIS CUTI */}
+          {activeTab === "jenis-cuti" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <LeaveSettingsView
+                leaveTypes={leaveTypes}
+                holidays={holidays}
+                workSchedule={workSchedule}
+                employeeBalances={employeeBalances}
+                defaultLeaveType={defaultLeaveType}
+                activeSubTab="types"
+                hideSubNav={true}
+              />
             </div>
+          )}
 
-            <LeaveSettingsView
-              leaveTypes={leaveTypes}
-              holidays={holidays}
-              workSchedule={workSchedule}
-              employeeBalances={employeeBalances}
-              defaultLeaveType={defaultLeaveType}
-            />
-          </div>
-        )}
+          {/* TAB 5: HARI LIBUR & CUTI BERSAMA */}
+          {activeTab === "hari-libur" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <LeaveSettingsView
+                leaveTypes={leaveTypes}
+                holidays={holidays}
+                workSchedule={workSchedule}
+                employeeBalances={employeeBalances}
+                defaultLeaveType={defaultLeaveType}
+                activeSubTab="holidays"
+                hideSubNav={true}
+              />
+            </div>
+          )}
 
-        {activeTab === "payroll-komponen" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <SalaryComponentsTable components={salaryComponents} isEmbedded={true} />
-          </div>
-        )}
+          {/* TAB 6: KUOTA SALDO CUTI PEGAWAI */}
+          {activeTab === "saldo-cuti" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <LeaveSettingsView
+                leaveTypes={leaveTypes}
+                holidays={holidays}
+                workSchedule={workSchedule}
+                employeeBalances={employeeBalances}
+                defaultLeaveType={defaultLeaveType}
+                activeSubTab="balances"
+                hideSubNav={true}
+              />
+            </div>
+          )}
 
-        {activeTab === "dokumen-bank" && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <PayrollSettingsView initialSettings={payrollSettings} isEmbedded={true} />
-          </div>
-        )}
+          {/* TAB 7: KOMPONEN GAJI & TUNJANGAN */}
+          {activeTab === "payroll-komponen" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <SalaryComponentsTable components={salaryComponents} isEmbedded={true} />
+            </div>
+          )}
+
+          {/* TAB 8: REKENING BANK PENGIRIM */}
+          {activeTab === "bank-pengirim" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <PayrollSettingsView
+                initialSettings={payrollSettings}
+                isEmbedded={true}
+                activeSubTab="bank"
+                hideSubNav={true}
+              />
+            </div>
+          )}
+
+          {/* TAB 9: KOP DOKUMEN & FORMAT SLIP */}
+          {activeTab === "kop-dokumen" && (
+            <div className="space-y-6 animate-in fade-in duration-200">
+              <PayrollSettingsView
+                initialSettings={payrollSettings}
+                isEmbedded={true}
+                activeSubTab="document"
+                hideSubNav={true}
+              />
+            </div>
+          )}
+        </main>
       </div>
     </div>
   );
