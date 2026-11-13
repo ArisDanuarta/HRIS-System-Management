@@ -118,6 +118,10 @@ export function TataKelolaView({
   const currentTab = normalizeTab(searchParams.get("tab"));
   const [activeTab, setActiveTab] = useState<TataKelolaTab>(currentTab);
 
+  React.useEffect(() => {
+    setActiveTab(currentTab);
+  }, [currentTab]);
+
   const handleTabChange = (newTab: TataKelolaTab) => {
     setActiveTab(newTab);
     const params = new URLSearchParams(searchParams.toString());

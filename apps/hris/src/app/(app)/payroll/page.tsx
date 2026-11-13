@@ -86,7 +86,7 @@ export default async function PayrollPage() {
             <span>Master Komponen Gaji</span>
           </Link>
           <Link
-            href="/tata-kelola?tab=dokumen-bank"
+            href="/tata-kelola?tab=bank-pengirim"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg shadow-2xs transition-colors"
           >
             <Settings className="w-3.5 h-3.5 text-slate-500" />
