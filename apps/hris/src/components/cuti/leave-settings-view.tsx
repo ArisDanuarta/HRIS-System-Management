@@ -48,6 +48,8 @@ interface LeaveSettingsViewProps {
   workSchedule?: ActiveWorkSchedule;
   employeeBalances?: EmployeeLeaveBalanceOverview[];
   defaultLeaveType?: { id: string; name: string } | null;
+  activeSubTab?: "schedule" | "types" | "holidays" | "balances";
+  hideSubNav?: boolean;
 }
 
 export function LeaveSettingsView({
@@ -56,10 +58,14 @@ export function LeaveSettingsView({
   workSchedule,
   employeeBalances = [],
   defaultLeaveType,
+  activeSubTab,
+  hideSubNav = false,
 }: LeaveSettingsViewProps) {
-  const [activeTab, setActiveTab] = useState<"schedule" | "types" | "holidays" | "balances">(
-    "types",
+  const [internalTab, setInternalTab] = useState<"schedule" | "types" | "holidays" | "balances">(
+    activeSubTab || "types",
   );
+  const activeTab = hideSubNav && activeSubTab ? activeSubTab : internalTab;
+  const setActiveTab = setInternalTab;
 
   // Holiday Modal state
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
