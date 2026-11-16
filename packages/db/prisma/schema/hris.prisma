@@ -357,6 +357,8 @@ model Employee {
   @@index([status])
   @@index([managerId])
   @@index([currentDepartmentId])
+  @@index([workLocationId])
+  @@index([legalEntityId])
   @@map("employees")
   @@schema("hris")
 }
@@ -386,19 +388,25 @@ model EmploymentHistory {
 model EmployeeDocument {
   id           String   @id @default(uuid())
   employeeId   String   @map("employee_id")
-  category     String   // KTP, NPWP, DIPLOMA, CV, CONTRACT, CERTIFICATE, OTHER
+  category     String   // KTP, NPWP, CV, DIPLOMA, CERTIFICATE, CONTRACT, FAMILY_CARD, BANK_BOOK, BPJS_KES, BPJS_TK, SKCK, HEALTH_CERT, PREVIOUS_EMPLOYER_LETTER, OFFER_LETTER, NDA, MARRIAGE_CERT, OTHER
   title        String
   fileName     String   @map("file_name")
   fileKey      String   @map("file_key")
   fileSize     Int      @map("file_size")
   mimeType     String   @map("mime_type")
   uploadedById String   @map("uploaded_by_id")
+  educationId  String?  @map("education_id")
+  trainingId   String?  @map("training_id")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee  Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  education EmployeeEducation? @relation(fields: [educationId], references: [id], onDelete: SetNull)
+  training  EmployeeTraining?  @relation(fields: [trainingId], references: [id], onDelete: SetNull)
 
   @@index([employeeId])
   @@index([category])
+  @@index([educationId])
+  @@index([trainingId])
   @@map("employee_documents")
   @@schema("hris")
 }
@@ -424,6 +432,7 @@ model EmploymentTypeMaster {
 model EmploymentContract {
   id                   String                @id @default(uuid())
   employeeId           String                @map("employee_id")
+  contractNo           String?               @map("contract_no")
   type                 EmploymentType
   employmentTypeId     String?               @map("employment_type_id")
   startDate            DateTime              @map("start_date") @db.Date
@@ -1004,6 +1013,135 @@ model EmailBroadcastRecipient {
   @@index([broadcastId])
   @@index([email])
   @@map("email_broadcast_recipients")
+  @@schema("hris")
+}
+
+model WorkLocation {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  isDefault Boolean  @default(false) @map("is_default")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employees Employee[]
+
+  @@map("work_locations")
+  @@schema("hris")
+}
+
+model LegalEntity {
+  id        String   @id @default(uuid())
+  name      String
+  tkuCode   String?  @map("tku_code")
+  npwp      String?
+  isDefault Boolean  @default(false) @map("is_default")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employees Employee[]
+
+  @@map("legal_entities")
+  @@schema("hris")
+}
+
+model EmployeeAddress {
+  id         String      @id @default(uuid())
+  employeeId String      @map("employee_id")
+  type       AddressType
+  street     String
+  kelurahan  String?
+  kecamatan  String?
+  city       String?
+  province   String?
+  postalCode String?     @map("postal_code")
+  createdAt  DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime    @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, type])
+  @@map("employee_addresses")
+  @@schema("hris")
+}
+
+model EmployeeFamilyMember {
+  id          String         @id @default(uuid())
+  employeeId  String         @map("employee_id")
+  name        String
+  relation    FamilyRelation
+  birthDate   DateTime?      @map("birth_date") @db.Date
+  phone       String?
+  isDependent Boolean        @default(false) @map("is_dependent")
+  notes       String?
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("employee_family_members")
+  @@schema("hris")
+}
+
+model EmployeeEducation {
+  id             String         @id @default(uuid())
+  employeeId     String         @map("employee_id")
+  level          EducationLevel
+  institution    String
+  major          String?
+  graduationYear Int?           @map("graduation_year")
+  gpa            Decimal?       @db.Decimal(4, 2)
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee  Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  documents EmployeeDocument[]
+
+  @@index([employeeId])
+  @@map("employee_educations")
+  @@schema("hris")
+}
+
+model EmployeeTraining {
+  id                String    @id @default(uuid())
+  employeeId        String    @map("employee_id")
+  name              String
+  participationType String?   @map("participation_type")
+  startDate         DateTime? @map("start_date") @db.Date
+  endDate           DateTime? @map("end_date") @db.Date
+  duration          String?
+  location          String?
+  organizer         String?
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee  Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  documents EmployeeDocument[]
+
+  @@index([employeeId])
+  @@map("employee_trainings")
+  @@schema("hris")
+}
+
+model EmployeeWorkExperience {
+  id               String    @id @default(uuid())
+  employeeId       String    @map("employee_id")
+  companyName      String    @map("company_name")
+  jobTitle         String    @map("job_title")
+  startDate        DateTime  @map("start_date") @db.Date
+  endDate          DateTime? @map("end_date") @db.Date
+  reasonForLeaving String?   @map("reason_for_leaving")
+  description      String?   @db.Text
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([employeeId])
+  @@map("employee_work_experiences")
   @@schema("hris")
 }
 
