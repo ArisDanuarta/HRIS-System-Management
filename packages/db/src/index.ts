@@ -99,6 +99,12 @@ export {
   TwoFactorType,
   PtkpStatus,
   TaxMethod,
+  Religion,
+  Citizenship,
+  BloodType,
+  AddressType,
+  FamilyRelation,
+  EducationLevel,
 } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./audit";

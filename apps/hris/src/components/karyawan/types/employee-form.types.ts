@@ -14,7 +14,7 @@ import {
   WageType,
 } from "@pspk/db";
 
-export {
+export type {
   Religion,
   Citizenship,
   BloodType,
