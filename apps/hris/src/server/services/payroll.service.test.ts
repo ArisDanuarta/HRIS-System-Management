@@ -183,7 +183,7 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
 
     // Ambil parameter data yang dikirim ke tx.payslip.create
     expect(mockPayslipCreate).toHaveBeenCalledTimes(1);
-    const createdData = mockPayslipCreate.mock.calls[0][0].data;
+    const createdData = mockPayslipCreate.mock.calls[0]![0].data;
 
     // 1. Verifikasi Penghasilan Tunai (Cash Gross): 8 jt + 1 jt = 9.000.000
     expect(createdData.grossAmount).toBe(9000000);
@@ -251,7 +251,7 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
 
     await calculatePeriodPayroll("period-10");
 
-    const createdData = mockPayslipCreate.mock.calls[0][0].data;
+    const createdData = mockPayslipCreate.mock.calls[0]![0].data;
     const lines = createdData.lines.create;
 
     // Ada baris Tunjangan PPh 21 (Gross Up) di EARNING
@@ -307,7 +307,7 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
 
     await calculatePeriodPayroll("period-10");
 
-    const createdData = mockPayslipCreate.mock.calls[0][0].data;
+    const createdData = mockPayslipCreate.mock.calls[0]![0].data;
     const lines = createdData.lines.create;
 
     // Pajak tetap terhitung di metadata slip
@@ -368,7 +368,7 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
 
     await calculatePeriodPayroll("period-12");
 
-    const createdData = mockPayslipCreate.mock.calls[0][0].data;
+    const createdData = mockPayslipCreate.mock.calls[0]![0].data;
 
     // Verifikasi kategori Pasal 17
     expect(createdData.terCategory).toBe("PASAL_17");
@@ -424,7 +424,7 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
 
     await calculatePeriodPayroll("period-10");
 
-    const createdData = mockPayslipCreate.mock.calls[0][0].data;
+    const createdData = mockPayslipCreate.mock.calls[0]![0].data;
 
     // 100 jam x 50.000 = 5.000.000
     expect(createdData.grossAmount).toBe(5000000);
