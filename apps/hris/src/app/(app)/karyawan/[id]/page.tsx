@@ -707,9 +707,12 @@ export default async function EmployeeDetailPage({
                 <>
                   <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Status PTKP (PP 58/2023)
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <Info className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                          Status PTKP (PP 58/2023)
+                        </span>
+                      </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ptkpInfo.terBadgeClass}`}>
                         {ptkpInfo.terCategory}
                       </span>
@@ -732,9 +735,12 @@ export default async function EmployeeDetailPage({
 
                   <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                        Metode Perhitungan Pajak
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <Receipt className="w-3.5 h-3.5 text-[#102E50] shrink-0" />
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                          Metode Perhitungan Pajak
+                        </span>
+                      </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${taxMethodInfo.badgeClass}`}>
                         {taxMethodInfo.badge}
                       </span>
