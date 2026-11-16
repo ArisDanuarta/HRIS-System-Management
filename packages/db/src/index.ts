@@ -97,6 +97,8 @@ export {
   BroadcastDeliveryStatus,
   CredentialCategory,
   TwoFactorType,
+  PtkpStatus,
+  TaxMethod,
 } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./audit";
