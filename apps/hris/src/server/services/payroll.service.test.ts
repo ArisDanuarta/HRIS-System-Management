@@ -482,4 +482,112 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
     expect(createdData.pph21Amount).toBe(376344);
     expect(createdData.netAmount).toBe(12000000 - 376344);
   });
+
+  it("Kompensasi Satu Pintu: Menghitung tunjangan perorangan dari salaryComponents dan mencegah kebocoran ke staf lain", async () => {
+    mockPayrollPeriodFindUnique.mockResolvedValue({
+      id: "period-11",
+      year: 2026,
+      month: 11,
+      status: "DRAFT",
+    });
+
+    const compTransport = {
+      id: "comp-trans",
+      code: "ALLOWANCE_TRANSPORT",
+      name: "Tunjangan Transportasi",
+      type: "EARNING",
+      calcType: "FIXED",
+      defaultValue: 0, // master default 0
+      isActive: true,
+    };
+    const compPosition = {
+      id: "comp-pos",
+      code: "ALLOWANCE_POSITION",
+      name: "Tunjangan Jabatan",
+      type: "EARNING",
+      calcType: "FIXED",
+      defaultValue: 0, // master default 0
+      isActive: true,
+    };
+
+    mockEmployeeFindMany.mockResolvedValue([
+      {
+        id: "emp-lead",
+        fullName: "Ahmad Ketua Tim",
+        employeeNo: "PSPK-010",
+        status: "ACTIVE",
+        ptkpStatus: "TK_0",
+        taxMethod: "GROSS",
+        contracts: [
+          {
+            id: "contract-lead",
+            wageType: "MONTHLY",
+            baseSalary: 10000000,
+            hourlyRate: null,
+            status: "ACTIVE",
+          },
+        ],
+        // Pegawai ini memiliki tunjangan jabatan & transport
+        salaryComponents: [
+          {
+            id: "esc-1",
+            componentId: "comp-pos",
+            amount: 2500000,
+          },
+          {
+            id: "esc-2",
+            componentId: "comp-trans",
+            amount: 750000,
+          },
+        ],
+      },
+      {
+        id: "emp-staff",
+        fullName: "Siti Staf Junior",
+        employeeNo: "PSPK-011",
+        status: "ACTIVE",
+        ptkpStatus: "TK_0",
+        taxMethod: "GROSS",
+        contracts: [
+          {
+            id: "contract-staff",
+            wageType: "MONTHLY",
+            baseSalary: 6000000,
+            hourlyRate: null,
+            status: "ACTIVE",
+          },
+        ],
+        // Pegawai ini tidak memiliki tunjangan apa pun
+        salaryComponents: [],
+      },
+    ]);
+
+    mockSalaryComponentFindMany.mockResolvedValue([compTransport, compPosition]);
+
+    await calculatePeriodPayroll("period-11");
+
+    expect(mockPayslipCreate).toHaveBeenCalledTimes(2);
+
+    const callLead = mockPayslipCreate.mock.calls.find(
+      (c) => c[0].data.employeeId === "emp-lead",
+    );
+    const callStaff = mockPayslipCreate.mock.calls.find(
+      (c) => c[0].data.employeeId === "emp-staff",
+    );
+
+    expect(callLead).toBeDefined();
+    expect(callStaff).toBeDefined();
+
+    // Lead: Gaji pokok 10 jt + TJ Jabatan 2.5 jt + TJ Transport 750k = 13.250.000
+    expect(callLead![0].data.grossAmount).toBe(13250000);
+    const leadLines = callLead![0].data.lines.create;
+    expect(leadLines.some((l: { label: string; amount: number }) => l.label === "Tunjangan Jabatan" && l.amount === 2500000)).toBe(true);
+    expect(leadLines.some((l: { label: string; amount: number }) => l.label === "Tunjangan Transportasi" && l.amount === 750000)).toBe(true);
+
+    // Staff: Gaji pokok 6 jt saja, tidak boleh mendapat tunjangan jabatan atau transport
+    expect(callStaff![0].data.grossAmount).toBe(6000000);
+    const staffLines = callStaff![0].data.lines.create;
+    expect(staffLines.some((l: { label: string }) => l.label === "Tunjangan Jabatan")).toBe(false);
+    expect(staffLines.some((l: { label: string }) => l.label === "Tunjangan Transportasi")).toBe(false);
+  });
 });
