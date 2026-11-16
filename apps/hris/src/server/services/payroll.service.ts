@@ -122,6 +122,47 @@ export async function calculatePeriodPayroll(
       },
     });
 
+    // Peta slip gaji Jan-Nov jika menghitung periode Desember (Masa 12)
+    const pastPayslipsByEmp = new Map<
+      string,
+      Array<{
+        taxableGross: unknown;
+        grossAmount: unknown;
+        pph21Amount: unknown;
+        lines: Array<{ type: string; label: string; amount: unknown }>;
+      }>
+    >();
+
+    if (period.month === 12) {
+      const pastPayslips = await tx.payslip.findMany({
+        where: {
+          period: {
+            year: period.year,
+            month: { lt: 12 },
+          },
+        },
+        select: {
+          employeeId: true,
+          taxableGross: true,
+          grossAmount: true,
+          pph21Amount: true,
+          lines: {
+            select: {
+              type: true,
+              label: true,
+              amount: true,
+            },
+          },
+        },
+      });
+
+      for (const p of pastPayslips) {
+        const arr = pastPayslipsByEmp.get(p.employeeId) ?? [];
+        arr.push(p);
+        pastPayslipsByEmp.set(p.employeeId, arr);
+      }
+    }
+
     for (const emp of activeEmployees) {
       const activeContract = emp.contracts[0];
       const wageType = activeContract?.wageType || "MONTHLY";
@@ -212,7 +253,18 @@ export async function calculatePeriodPayroll(
           continue;
         }
 
-        // B. Pegawai Per Jam / Freelance (HOURLY):
+        // B. Abaikan master PPh 21 lama karena pajak dihitung otomatis oleh Tax Engine (PP 58/2023 & Ps 17)
+        if (
+          comp.code === "POT_PPH21" ||
+          comp.code === "PPH_21" ||
+          comp.code === "PPH21" ||
+          comp.name.toLowerCase().includes("pph 21") ||
+          comp.name.toLowerCase().includes("pph21")
+        ) {
+          continue;
+        }
+
+        // C. Pegawai Per Jam / Freelance (HOURLY):
         // Sesuai prinsip "No Work, No Pay", kompensasi pegawai per jam hanya berasal dari jam kerja timesheet.
         // Tunjangan tetap bulanan dan iuran BPJS reguler tidak berlaku untuk kontrak per jam.
         if (wageType === "HOURLY") {
@@ -256,7 +308,124 @@ export async function calculatePeriodPayroll(
         }
       }
 
-      // Hitung total gross, deductions, dan net
+      // 3. Kalkulasi Pajak Penghasilan (PPh 21 Metode Gross)
+      // A. Total penghasilan tunai bruto (Cash Earnings)
+      const cashEarnings = linesData
+        .filter((l) => l.type === "EARNING")
+        .reduce((sum, l) => sum + l.amount, 0);
+
+      // B. Premi asuransi tanggungan lembaga (JKK 0.24%, JKM 0.30%, BPJS Kes 4%) sebagai penambah bruto pajak
+      const companyBenefit =
+        wageType === "MONTHLY"
+          ? calculateCompanyTaxableBenefit(baseSalary)
+          : { bpjsKesehatan: 0, jkk: 0, jkm: 0, totalBenefit: 0 };
+      const companyTaxBenefit = companyBenefit.totalBenefit;
+
+      // C. Dasar Pengenaan Pajak (DPP / Taxable Gross)
+      const taxableGross = cashEarnings + companyTaxBenefit;
+
+      // D. Hitung PPh 21 (Bulan 1-11: TER PP 58/2023, Bulan 12: Pasal 17 UU HPP)
+      let pph21 = 0;
+      let terCategory: string | null = null;
+      let terRate: number | null = null;
+
+      if (period.month <= 11) {
+        const monthlyResult = calculateMonthlyPph21Ter(taxableGross, emp.ptkpStatus);
+        pph21 = monthlyResult.pph21;
+        terCategory = monthlyResult.terCategory;
+        terRate = monthlyResult.terRate;
+      } else {
+        // Bulan 12 (Desember) - Rekonsiliasi Tahunan Pasal 17
+        const pastSlips = pastPayslipsByEmp.get(emp.id) ?? [];
+        let pastTaxableGross = 0;
+        let pastPph21Paid = 0;
+        let pastPensionDeductions = 0;
+
+        for (const p of pastSlips) {
+          pastTaxableGross += p.taxableGross ? Number(p.taxableGross) : Number(p.grossAmount);
+          if (p.pph21Amount) {
+            pastPph21Paid += Number(p.pph21Amount);
+          } else {
+            const pphLine = p.lines
+              .filter(
+                (l) =>
+                  l.type === "DEDUCTION" &&
+                  (l.label.toLowerCase().includes("pph 21") ||
+                    l.label.toLowerCase().includes("pph21")),
+              )
+              .reduce((s, l) => s + Number(l.amount), 0);
+            pastPph21Paid += pphLine;
+          }
+
+          const pensionLine = p.lines
+            .filter(
+              (l) =>
+                l.type === "DEDUCTION" &&
+                (l.label.toLowerCase().includes("jht") ||
+                  l.label.toLowerCase().includes("jp") ||
+                  l.label.toLowerCase().includes("pensiun")),
+            )
+            .reduce((s, l) => s + Number(l.amount), 0);
+          pastPensionDeductions += pensionLine;
+        }
+
+        const currentPensionDeductions = linesData
+          .filter(
+            (l) =>
+              l.type === "DEDUCTION" &&
+              (l.label.toLowerCase().includes("jht") ||
+                l.label.toLowerCase().includes("jp") ||
+                l.label.toLowerCase().includes("pensiun")),
+          )
+          .reduce((sum, l) => sum + l.amount, 0);
+
+        const annualResult = calculateAnnualPph21Pasal17({
+          annualTaxableGross: pastTaxableGross + taxableGross,
+          ptkp: emp.ptkpStatus,
+          annualPensionDeductions: pastPensionDeductions + currentPensionDeductions,
+          monthsWorked: Math.min(12, pastSlips.length + 1),
+          previousPph21Paid: pastPph21Paid,
+        });
+
+        pph21 = Math.max(0, annualResult.pph21December);
+        terCategory = "PASAL_17";
+        terRate = null;
+      }
+
+      // E. Terapkan PPh 21 ke rincian slip sesuai Metode Pajak Pegawai
+      const taxMethod = emp.taxMethod || "GROSS";
+
+      if (pph21 > 0) {
+        const taxLabel =
+          period.month === 12
+            ? "PPh 21 (Pasal 17 Desember)"
+            : `PPh 21 (${(terCategory ?? "").replace("_", " ")} ${((terRate ?? 0) * 100).toFixed(2).replace(/\.00$/, "")}%)`;
+
+        if (taxMethod === "GROSS") {
+          linesData.push({
+            componentId: null,
+            label: taxLabel,
+            type: "DEDUCTION",
+            amount: pph21,
+          });
+        } else if (taxMethod === "GROSS_UP") {
+          linesData.push({
+            componentId: null,
+            label: "Tunjangan PPh 21 (Gross Up)",
+            type: "EARNING",
+            amount: pph21,
+          });
+          linesData.push({
+            componentId: null,
+            label: taxLabel,
+            type: "DEDUCTION",
+            amount: pph21,
+          });
+        }
+        // Jika NETT: PPh 21 ditanggung kantor tanpa memotong gaji tunai pegawai
+      }
+
+      // F. Hitung total penghasilan tunai (grossAmount), potongan (totalDeduction), dan THP (netAmount)
       const grossAmount = linesData
         .filter((l) => l.type === "EARNING")
         .reduce((sum, l) => sum + l.amount, 0);
@@ -271,7 +440,7 @@ export async function calculatePeriodPayroll(
       grandDeduction += totalDeduction;
       grandNet += netAmount;
 
-      // Simpan Payslip dan baris-baris rinciannya
+      // G. Simpan Payslip dan baris-baris rinciannya
       await tx.payslip.create({
         data: {
           periodId: period.id,
@@ -283,6 +452,10 @@ export async function calculatePeriodPayroll(
           totalHours: wageType === "HOURLY" ? totalHours : null,
           hourlyRate: wageType === "HOURLY" ? effectiveHourlyRate : null,
           timesheetKey,
+          taxableGross,
+          pph21Amount: pph21,
+          terCategory,
+          terRate,
           status: "CALCULATED",
           lines: {
             create: linesData.map((l) => ({
