@@ -107,6 +107,8 @@ export async function getPayrollPeriodById(periodId: string) {
               fullName: true,
               bankName: true,
               bankAccountEnc: true,
+              ptkpStatus: true,
+              taxMethod: true,
               currentDepartment: { select: { id: true, name: true } },
               currentPosition: { select: { id: true, title: true } },
               contracts: {

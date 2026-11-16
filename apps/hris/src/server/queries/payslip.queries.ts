@@ -43,6 +43,10 @@ export interface MyPayslipDetail {
   grossAmount: number;
   totalDeduction: number;
   netAmount: number;
+  taxableGross?: number | null;
+  pph21Amount?: number | null;
+  terCategory?: string | null;
+  terRate?: number | null;
   wageType: string;
   totalHours: number | null;
   hourlyRate: number | null;
@@ -57,6 +61,8 @@ export interface MyPayslipDetail {
     bankName: string | null;
     bankAccountMasked: string;
     contractType: string | null;
+    ptkpStatus?: string | null;
+    taxMethod?: string | null;
   };
   earnings: {
     id: string;
@@ -217,6 +223,8 @@ export async function getMyPayslipDetail(
           workEmail: true,
           bankName: true,
           bankAccountEnc: true,
+          ptkpStatus: true,
+          taxMethod: true,
           currentDepartment: { select: { id: true, name: true } },
           currentPosition: { select: { id: true, title: true } },
           contracts: {
@@ -278,6 +286,10 @@ export async function getMyPayslipDetail(
     grossAmount: Number(p.grossAmount),
     totalDeduction: Number(p.totalDeduction),
     netAmount: Number(p.netAmount),
+    taxableGross: p.taxableGross ? Number(p.taxableGross) : null,
+    pph21Amount: p.pph21Amount ? Number(p.pph21Amount) : null,
+    terCategory: p.terCategory,
+    terRate: p.terRate ? Number(p.terRate) : null,
     wageType: p.wageType,
     totalHours: p.totalHours ? Number(p.totalHours) : null,
     hourlyRate: p.hourlyRate ? Number(p.hourlyRate) : null,
@@ -292,6 +304,8 @@ export async function getMyPayslipDetail(
       bankName: p.employee.bankName || "Bank Transfer",
       bankAccountMasked,
       contractType: p.employee.contracts[0]?.type || null,
+      ptkpStatus: p.employee.ptkpStatus,
+      taxMethod: p.employee.taxMethod,
     },
     earnings,
     deductions,
