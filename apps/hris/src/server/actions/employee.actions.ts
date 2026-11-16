@@ -403,6 +403,67 @@ export async function unmaskSensitiveFieldAction(input: UnmaskFieldInput) {
   }
 }
 
+export async function uploadEmployeePhotoAction(employeeId: string, formData: FormData) {
+  try {
+    const { authCtx, actor } = await getAuthenticatedActor();
+    assertCan(authCtx, "hris.employee.write:all");
+
+    const file = formData.get("file") as File;
+    if (!file) throw new Error("Berkas foto profil tidak ditemukan.");
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      throw new Error("Format foto harus JPG, PNG, atau WEBP.");
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error("Ukuran foto maksimal 2 MB.");
+    }
+
+    let ext = "jpg";
+    if (file.type === "image/png") ext = "png";
+    if (file.type === "image/webp") ext = "webp";
+
+    const timestamp = Date.now();
+    const key = `avatars/${employeeId}-${timestamp}.${ext}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    const storage = getStorageProvider();
+    await storage.put(key, buffer, { contentType: file.type });
+
+    const avatarUrl = `/api/documents/${key}`;
+
+    const updated = await prisma.employee.update({
+      where: { id: employeeId },
+      data: { photoKey: key },
+    });
+
+    if (updated.userId) {
+      await prisma.user.update({
+        where: { id: updated.userId },
+        data: { image: avatarUrl },
+      });
+    }
+
+    const { writeAudit } = await import("@pspk/db");
+    await writeAudit({
+      actorUserId: actor.id,
+      actorEmail: actor.email,
+      app: "hris",
+      action: "UPDATE",
+      entityType: "EmployeePhoto",
+      entityId: employeeId,
+      after: { photoKey: key, sizeBytes: file.size },
+    });
+
+    revalidatePath(`/karyawan/${employeeId}`);
+    return { ok: true as const, photoKey: key, photoUrl: avatarUrl };
+  } catch (err: unknown) {
+    console.error("uploadEmployeePhotoAction error:", err);
+    return {
+      ok: false as const,
+      error: err instanceof Error ? err.message : "Gagal mengunggah foto profil.",
+    };
+  }
+}
+
 export type ImportEmployeeRow = {
   fullName: string;
   nickname?: string;

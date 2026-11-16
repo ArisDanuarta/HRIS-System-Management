@@ -1,4 +1,4 @@
-import { prisma, writeAudit, Religion, Citizenship, BloodType } from "@pspk/db";
+import { prisma, writeAudit, Religion, Citizenship, BloodType, AddressType } from "@pspk/db";
 import { encryptField, decryptField } from "@pspk/shared";
 import { hashPassword } from "@pspk/auth";
 import {
@@ -213,6 +213,65 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         currentPositionId: data.currentPositionId,
       },
     });
+
+    // Simpan Alamat KTP & Domisili jika disediakan
+    if (data.addressKtp && (data.addressKtp.street?.trim() || data.addressKtp.city?.trim())) {
+      await tx.employeeAddress.upsert({
+        where: {
+          employeeId_type: {
+            employeeId: newEmployee.id,
+            type: AddressType.KTP,
+          },
+        },
+        create: {
+          employeeId: newEmployee.id,
+          type: AddressType.KTP,
+          street: data.addressKtp.street.trim(),
+          kelurahan: data.addressKtp.kelurahan?.trim() || null,
+          kecamatan: data.addressKtp.kecamatan?.trim() || null,
+          city: data.addressKtp.city?.trim() || null,
+          province: data.addressKtp.province?.trim() || null,
+          postalCode: data.addressKtp.postalCode?.trim() || null,
+        },
+        update: {
+          street: data.addressKtp.street.trim(),
+          kelurahan: data.addressKtp.kelurahan?.trim() || null,
+          kecamatan: data.addressKtp.kecamatan?.trim() || null,
+          city: data.addressKtp.city?.trim() || null,
+          province: data.addressKtp.province?.trim() || null,
+          postalCode: data.addressKtp.postalCode?.trim() || null,
+        },
+      });
+    }
+
+    if (data.addressDomicile && (data.addressDomicile.street?.trim() || data.addressDomicile.city?.trim())) {
+      await tx.employeeAddress.upsert({
+        where: {
+          employeeId_type: {
+            employeeId: newEmployee.id,
+            type: AddressType.DOMICILE,
+          },
+        },
+        create: {
+          employeeId: newEmployee.id,
+          type: AddressType.DOMICILE,
+          street: data.addressDomicile.street.trim(),
+          kelurahan: data.addressDomicile.kelurahan?.trim() || null,
+          kecamatan: data.addressDomicile.kecamatan?.trim() || null,
+          city: data.addressDomicile.city?.trim() || null,
+          province: data.addressDomicile.province?.trim() || null,
+          postalCode: data.addressDomicile.postalCode?.trim() || null,
+        },
+        update: {
+          street: data.addressDomicile.street.trim(),
+          kelurahan: data.addressDomicile.kelurahan?.trim() || null,
+          kecamatan: data.addressDomicile.kecamatan?.trim() || null,
+          city: data.addressDomicile.city?.trim() || null,
+          province: data.addressDomicile.province?.trim() || null,
+          postalCode: data.addressDomicile.postalCode?.trim() || null,
+        },
+      });
+    }
 
     // Format full notes including contractNumber if provided
     let fullContractNotes = data.contractNotes?.trim() || "";
@@ -514,6 +573,65 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         currentPositionId: data.currentPositionId,
       },
     });
+
+    // Simpan Alamat KTP & Domisili jika disediakan
+    if (data.addressKtp && (data.addressKtp.street?.trim() || data.addressKtp.city?.trim())) {
+      await tx.employeeAddress.upsert({
+        where: {
+          employeeId_type: {
+            employeeId: data.id,
+            type: AddressType.KTP,
+          },
+        },
+        create: {
+          employeeId: data.id,
+          type: AddressType.KTP,
+          street: data.addressKtp.street.trim(),
+          kelurahan: data.addressKtp.kelurahan?.trim() || null,
+          kecamatan: data.addressKtp.kecamatan?.trim() || null,
+          city: data.addressKtp.city?.trim() || null,
+          province: data.addressKtp.province?.trim() || null,
+          postalCode: data.addressKtp.postalCode?.trim() || null,
+        },
+        update: {
+          street: data.addressKtp.street.trim(),
+          kelurahan: data.addressKtp.kelurahan?.trim() || null,
+          kecamatan: data.addressKtp.kecamatan?.trim() || null,
+          city: data.addressKtp.city?.trim() || null,
+          province: data.addressKtp.province?.trim() || null,
+          postalCode: data.addressKtp.postalCode?.trim() || null,
+        },
+      });
+    }
+
+    if (data.addressDomicile && (data.addressDomicile.street?.trim() || data.addressDomicile.city?.trim())) {
+      await tx.employeeAddress.upsert({
+        where: {
+          employeeId_type: {
+            employeeId: data.id,
+            type: AddressType.DOMICILE,
+          },
+        },
+        create: {
+          employeeId: data.id,
+          type: AddressType.DOMICILE,
+          street: data.addressDomicile.street.trim(),
+          kelurahan: data.addressDomicile.kelurahan?.trim() || null,
+          kecamatan: data.addressDomicile.kecamatan?.trim() || null,
+          city: data.addressDomicile.city?.trim() || null,
+          province: data.addressDomicile.province?.trim() || null,
+          postalCode: data.addressDomicile.postalCode?.trim() || null,
+        },
+        update: {
+          street: data.addressDomicile.street.trim(),
+          kelurahan: data.addressDomicile.kelurahan?.trim() || null,
+          kecamatan: data.addressDomicile.kecamatan?.trim() || null,
+          city: data.addressDomicile.city?.trim() || null,
+          province: data.addressDomicile.province?.trim() || null,
+          postalCode: data.addressDomicile.postalCode?.trim() || null,
+        },
+      });
+    }
 
     // Sinkronisasi data kontrak aktif pegawai
     const activeContract = await tx.employmentContract.findFirst({

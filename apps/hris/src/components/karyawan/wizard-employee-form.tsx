@@ -31,6 +31,11 @@ import {
   Download,
   Receipt,
   Info,
+  Camera,
+  PhoneCall,
+  Home,
+  HeartHandshake,
+  FileUp,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -38,11 +43,23 @@ import {
   generateNextEmployeeNoAction,
   checkEmployeeNoAvailabilityAction,
   uploadContractFileAction,
+  uploadEmployeePhotoAction,
 } from "@/server/actions/employee.actions";
 import { createEmploymentTypeAction } from "@/server/actions/employment-type.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
-import { EmployeeStatus, EmploymentType, Gender, MaritalStatus, PtkpStatus, TaxMethod } from "@pspk/db";
+import {
+  EmployeeStatus,
+  EmploymentType,
+  Gender,
+  MaritalStatus,
+  PtkpStatus,
+  TaxMethod,
+  Religion,
+  Citizenship,
+  BloodType,
+  AddressType,
+} from "@pspk/db";
 import { toDateString, formatRupiah } from "@pspk/shared";
 import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
 import {
@@ -51,7 +68,9 @@ import {
 } from "@/server/services/tax/pph21-calculator";
 import { DocumentUploadCard } from "./components/DocumentUploadCard";
 import { DocumentChecklistSummary, ChecklistDocItem } from "./components/DocumentChecklistSummary";
-import { UploadedFileState, AdditionalDocumentItem } from "./types/employee-form.types";
+import { FormSection } from "./components/FormSection";
+import { AddressFields } from "./components/AddressFields";
+import { UploadedFileState, AdditionalDocumentItem, AddressData } from "./types/employee-form.types";
 import {
   uploadEmployeeDocumentAction,
   DocumentCategory,
@@ -118,7 +137,26 @@ export interface InitialEmployeeData {
   hasPassportKitas?: boolean;
   hasBpjsKes?: boolean;
   hasBpjsTk?: boolean;
-  citizenship?: "WNI" | "WNA";
+  citizenship?: "WNI" | "WNA" | Citizenship | null;
+  religion?: Religion | null;
+  bloodType?: BloodType | null;
+  motherName?: string | null;
+  landlinePhone?: string | null;
+  emergencyContactRelation?: string | null;
+  photoKey?: string | null;
+  hasCv?: boolean;
+  hasDiploma?: boolean;
+  hasFamilyCard?: boolean;
+  addresses?: {
+    id?: string;
+    type: AddressType;
+    street: string;
+    kelurahan?: string | null;
+    kecamatan?: string | null;
+    city?: string | null;
+    province?: string | null;
+    postalCode?: string | null;
+  }[];
   contracts?: {
     type: EmploymentType;
     employmentTypeId?: string | null;
@@ -238,10 +276,15 @@ export function WizardEmployeeForm({
     birthDate: initialData?.birthDate ? toDateString(initialData.birthDate) : "",
     birthPlace: initialData?.birthPlace || "",
     gender: initialData?.gender || "MALE",
+    religion: (initialData?.religion as string) || "",
+    bloodType: (initialData?.bloodType as string) || "",
     maritalStatus: initialData?.maritalStatus || "SINGLE",
+    motherName: initialData?.motherName || "",
+    landlinePhone: initialData?.landlinePhone || "",
     address: initialData?.address || "",
     emergencyContactName: initialData?.emergencyContactName || "",
     emergencyContactPhone: initialData?.emergencyContactPhone || "",
+    emergencyContactRelation: initialData?.emergencyContactRelation || "",
 
     // Step 2: Placement
     employeeNo: initialData?.employeeNo || "",
@@ -302,6 +345,111 @@ export function WizardEmployeeForm({
     createUserAccount: mode === "create",
     accountRole: "staff",
   });
+
+  // State Alamat Lengkap (KTP & Domisili)
+  const initialKtp = initialData?.addresses?.find((a) => a.type === "KTP");
+  const initialDomicile = initialData?.addresses?.find((a) => a.type === "DOMICILE");
+
+  const [addressKtp, setAddressKtp] = useState<AddressData>({
+    street: initialKtp?.street || "",
+    kelurahan: initialKtp?.kelurahan || "",
+    kecamatan: initialKtp?.kecamatan || "",
+    city: initialKtp?.city || "",
+    province: initialKtp?.province || "",
+    postalCode: initialKtp?.postalCode || "",
+  });
+
+  const [addressDomicile, setAddressDomicile] = useState<AddressData>({
+    street: initialDomicile?.street || initialData?.address || "",
+    kelurahan: initialDomicile?.kelurahan || "",
+    kecamatan: initialDomicile?.kecamatan || "",
+    city: initialDomicile?.city || "",
+    province: initialDomicile?.province || "",
+    postalCode: initialDomicile?.postalCode || "",
+  });
+
+  const [isDomicileSameAsKtp, setIsDomicileSameAsKtp] = useState<boolean>(false);
+
+  const handleToggleSameAddress = (checked: boolean) => {
+    setIsDomicileSameAsKtp(checked);
+    if (checked) {
+      setAddressDomicile({ ...addressKtp });
+    }
+  };
+
+  const handleAddressKtpChange = (newKtp: AddressData) => {
+    setAddressKtp(newKtp);
+    if (isDomicileSameAsKtp) {
+      setAddressDomicile(newKtp);
+    }
+  };
+
+  // State Foto Profil & Dokumen Langkah 1
+  const [profilePhoto, setProfilePhoto] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState<string | null>(
+    initialData?.photoKey ? `/api/documents/${initialData.photoKey}` : null,
+  );
+
+  const handleProfilePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setProfilePhoto({
+        file: null,
+        status: "error",
+        error: "Format foto harus JPG, PNG, atau WEBP.",
+      });
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setProfilePhoto({
+        file: null,
+        status: "error",
+        error: "Ukuran foto melebihi batas maksimal 2 MB.",
+      });
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setProfilePhotoPreview(previewUrl);
+    setProfilePhoto({
+      file,
+      fileName: file.name,
+      fileSize: file.size,
+      status: "staged",
+    });
+  };
+
+  const handleRemoveProfilePhoto = () => {
+    setProfilePhoto({ file: null, status: "idle" });
+    setProfilePhotoPreview(initialData?.photoKey ? `/api/documents/${initialData.photoKey}` : null);
+  };
+
+  const [docCv, setDocCv] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docDiploma, setDocDiploma] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docFamilyCard, setDocFamilyCard] = useState<UploadedFileState>({ file: null, status: "idle" });
+
+  // Helper Perhitungan Usia Otomatis dari Tanggal Lahir
+  const calculateAge = (birthDateStr?: string | null): string | null => {
+    if (!birthDateStr) return null;
+    const birth = new Date(birthDateStr);
+    if (isNaN(birth.getTime())) return null;
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (now.getDate() < birth.getDate()) {
+      months--;
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    if (years < 0) return null;
+    if (years === 0) return `${months} bulan`;
+    return months > 0 ? `${years} tahun ${months} bulan` : `${years} tahun`;
+  };
 
   // Dokumen Berkas Berpasangan Langkah 4
   const [docKtp, setDocKtp] = useState<UploadedFileState>({ file: null, status: "idle" });
@@ -668,6 +816,14 @@ export function WizardEmployeeForm({
         address: formData.address.trim() || undefined,
         emergencyContactName: formData.emergencyContactName.trim() || undefined,
         emergencyContactPhone: formData.emergencyContactPhone.trim() || undefined,
+        emergencyContactRelation: formData.emergencyContactRelation.trim() || undefined,
+        religion: formData.religion || undefined,
+        citizenship: (formData.citizenship as "WNI" | "WNA") || "WNI",
+        bloodType: formData.bloodType || undefined,
+        motherName: formData.motherName?.trim() || undefined,
+        landlinePhone: formData.landlinePhone?.trim() || undefined,
+        addressKtp: addressKtp.street?.trim() || addressKtp.city?.trim() ? addressKtp : undefined,
+        addressDomicile: addressDomicile.street?.trim() || addressDomicile.city?.trim() ? addressDomicile : undefined,
         employeeNo: formData.employeeNo.trim(),
         currentDepartmentId: formData.currentDepartmentId,
         currentPositionId: formData.currentPositionId,
@@ -694,7 +850,6 @@ export function WizardEmployeeForm({
         passportKitas: formData.passportKitas?.trim() || undefined,
         bpjsKesehatanNo: formData.bpjsKesehatanNo?.trim() || undefined,
         bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo?.trim() || undefined,
-        citizenship: (formData.citizenship as "WNI" | "WNA") || "WNI",
         ptkpStatus: formData.ptkpStatus,
         taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
@@ -712,6 +867,27 @@ export function WizardEmployeeForm({
 
         // Upload semua berkas dokumen yang ter-stage secara paralel
         const docsToUpload: Array<{ category: DocumentCategory; title: string; file: File }> = [];
+        if (docCv.file) {
+          docsToUpload.push({
+            category: "CV",
+            title: "Curriculum Vitae / Resume",
+            file: docCv.file,
+          });
+        }
+        if (docDiploma.file) {
+          docsToUpload.push({
+            category: "DIPLOMA",
+            title: "Ijazah & Transkrip Terakhir",
+            file: docDiploma.file,
+          });
+        }
+        if (docFamilyCard.file) {
+          docsToUpload.push({
+            category: "FAMILY_CARD",
+            title: "Kartu Keluarga (KK)",
+            file: docFamilyCard.file,
+          });
+        }
         if (docKtp.file) {
           docsToUpload.push({
             category: "KTP",
@@ -803,6 +979,17 @@ export function WizardEmployeeForm({
           }
         }
 
+        // Unggah foto profil jika terpasang
+        if (profilePhoto.file) {
+          try {
+            const photoFd = new FormData();
+            photoFd.append("file", profilePhoto.file);
+            await uploadEmployeePhotoAction(newEmployeeId, photoFd);
+          } catch (photoErr) {
+            console.error("Gagal mengunggah foto profil:", photoErr);
+          }
+        }
+
         setIsSubmitting(false);
 
         if (res.data.accountCreated && res.data.credentials) {
@@ -839,9 +1026,17 @@ export function WizardEmployeeForm({
         birthPlace: formData.birthPlace?.trim() || undefined,
         gender: formData.gender as Gender,
         maritalStatus: formData.maritalStatus as MaritalStatus,
-        address: formData.address?.trim() || undefined,
+        address: formData.address.trim() || undefined,
         emergencyContactName: formData.emergencyContactName?.trim() || undefined,
         emergencyContactPhone: formData.emergencyContactPhone?.trim() || undefined,
+        emergencyContactRelation: formData.emergencyContactRelation?.trim() || undefined,
+        religion: formData.religion || undefined,
+        citizenship: (formData.citizenship as "WNI" | "WNA") || "WNI",
+        bloodType: formData.bloodType || undefined,
+        motherName: formData.motherName?.trim() || undefined,
+        landlinePhone: formData.landlinePhone?.trim() || undefined,
+        addressKtp: addressKtp.street?.trim() || addressKtp.city?.trim() ? addressKtp : undefined,
+        addressDomicile: addressDomicile.street?.trim() || addressDomicile.city?.trim() ? addressDomicile : undefined,
         employeeNo: formData.employeeNo.trim(),
         currentDepartmentId: formData.currentDepartmentId,
         currentPositionId: formData.currentPositionId,
@@ -868,7 +1063,6 @@ export function WizardEmployeeForm({
         passportKitas: formData.passportKitas?.trim() || undefined,
         bpjsKesehatanNo: formData.bpjsKesehatanNo?.trim() || undefined,
         bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo?.trim() || undefined,
-        citizenship: (formData.citizenship as "WNI" | "WNA") || "WNI",
         ptkpStatus: formData.ptkpStatus,
         taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
@@ -884,6 +1078,27 @@ export function WizardEmployeeForm({
       if (res.ok) {
         // Upload dokumen baru jika ada yang dipilih saat edit
         const docsToUpload: Array<{ category: DocumentCategory; title: string; file: File }> = [];
+        if (docCv.file) {
+          docsToUpload.push({
+            category: "CV",
+            title: "Curriculum Vitae / Resume",
+            file: docCv.file,
+          });
+        }
+        if (docDiploma.file) {
+          docsToUpload.push({
+            category: "DIPLOMA",
+            title: "Ijazah & Transkrip Terakhir",
+            file: docDiploma.file,
+          });
+        }
+        if (docFamilyCard.file) {
+          docsToUpload.push({
+            category: "FAMILY_CARD",
+            title: "Kartu Keluarga (KK)",
+            file: docFamilyCard.file,
+          });
+        }
         if (docKtp.file) {
           docsToUpload.push({
             category: "KTP",
@@ -954,6 +1169,17 @@ export function WizardEmployeeForm({
               return uploadEmployeeDocumentAction(fd);
             }),
           );
+        }
+
+        // Unggah foto profil baru jika dipilih saat edit
+        if (profilePhoto.file) {
+          try {
+            const photoFd = new FormData();
+            photoFd.append("file", profilePhoto.file);
+            await uploadEmployeePhotoAction(initialData.id, photoFd);
+          } catch (photoErr) {
+            console.error("Gagal mengunggah foto profil:", photoErr);
+          }
         }
 
         setIsSubmitting(false);
@@ -1079,199 +1305,513 @@ export function WizardEmployeeForm({
 
         {/* STEP 1: IDENTITAS PRIBADI */}
         {currentStep === 1 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
-            <div className="md:col-span-2 pb-2 border-b border-slate-100">
-              <h3 className="font-bold text-base text-[#102E50] font-heading">
-                Identitas Pribadi Pegawai
-              </h3>
-              <p className="text-xs text-slate-500">
-                Data diri lengkap sesuai KTP dan dokumen identitas resmi
-              </p>
+          <div className="flex flex-col gap-5 animate-in fade-in duration-200">
+            {/* Header Pengantar */}
+            <div className="pb-2 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="font-bold text-base text-[#102E50] font-heading">
+                  Identitas Pribadi & Kontak Pegawai
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Data diri lengkap, informasi kontak, alamat domisili, dan berkas identitas resmi
+                </p>
+              </div>
+              <div className="text-[11px] text-slate-500 bg-slate-100/80 px-2.5 py-1 rounded-md border border-slate-200/80 w-fit">
+                Tanda <span className="text-[#A8281C] font-bold">*</span> wajib diisi
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Lengkap & Gelar <span className="text-[#A8281C]">*</span>
-              </label>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                placeholder="Contoh: Dr. Budi Rahardjo, M.Ed."
-                required
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+            {/* SEKSI 2.1: DATA DIRI */}
+            <FormSection
+              id="seksi-data-diri"
+              title="2.1 Data Diri Pegawai"
+              subtitle="Foto profil, nama lengkap, tempat tanggal lahir, agama, dan status kependudukan"
+              icon={User}
+              badge={
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100/70 text-[#102E50] border border-blue-200/60">
+                  Data Pokok
+                </span>
+              }
+              defaultOpen={true}
+            >
+              <div className="flex flex-col gap-5">
+                {/* Komponen Upload Foto Profil */}
+                <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                  <div className="relative group shrink-0">
+                    <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-slate-300 bg-white overflow-hidden flex items-center justify-center shadow-2xs">
+                      {profilePhotoPreview ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={profilePhotoPreview}
+                          alt="Foto Profil"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-slate-400">
+                          <User className="w-8 h-8 stroke-[1.5]" />
+                          <span className="text-[9px] font-semibold mt-0.5">Tanpa Foto</span>
+                        </div>
+                      )}
+                    </div>
+                    {profilePhoto.file && (
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-xs">
+                        <Check className="w-3 h-3 stroke-[2.5]" />
+                      </span>
+                    )}
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Panggilan
-              </label>
-              <input
-                type="text"
-                name="nickname"
-                value={formData.nickname}
-                onChange={handleChange}
-                placeholder="Contoh: Budi"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div className="flex-1 text-center sm:text-left flex flex-col justify-center">
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        Foto Profil Pegawai
+                      </h4>
+                      <span className="text-[10px] text-slate-500 bg-slate-200/60 px-1.5 py-0.5 rounded">
+                        Opsional
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 leading-relaxed mb-3">
+                      Gunakan foto formal/semi-formal berlatar belakang polos. Format JPG, PNG, atau WEBP maks 2 MB.
+                    </p>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Email Kantor (PSPK) <span className="text-[#A8281C]">*</span>
-              </label>
-              <input
-                type="email"
-                name="workEmail"
-                value={formData.workEmail}
-                onChange={handleChange}
-                placeholder="nama@pspk.id"
-                required
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Wajib berakhiran <strong className="text-slate-600">@pspk.id</strong> (digunakan
-                untuk login akun pegawai).
-              </span>
-            </div>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                      <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:text-[#102E50] text-xs font-semibold shadow-2xs transition-all active:scale-95">
+                        <Camera className="w-3.5 h-3.5 text-[#102E50]" />
+                        <span>{profilePhoto.file || profilePhotoPreview ? "Ganti Foto" : "Pilih Foto"}</span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          onChange={handleProfilePhotoChange}
+                          className="hidden"
+                        />
+                      </label>
+                      {(profilePhoto.file || profilePhotoPreview) && (
+                        <button
+                          type="button"
+                          onClick={handleRemoveProfilePhoto}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Hapus</span>
+                        </button>
+                      )}
+                      {profilePhoto.status === "error" && (
+                        <span className="text-[11px] text-red-600 font-medium">
+                          {profilePhoto.error}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Email Pribadi{" "}
-                {formData.createUserAccount && (
-                  <span className="text-[#A8281C]">* (Wajib untuk Akun)</span>
-                )}
-              </label>
-              <input
-                type="email"
-                name="personalEmail"
-                value={formData.personalEmail}
-                onChange={handleChange}
-                placeholder="nama.pribadi@gmail.com"
-                required={formData.createUserAccount}
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Kredensial login & kata sandi sementara akan otomatis dikirimkan ke email ini.
-              </span>
-            </div>
+                {/* Grid Input Data Diri */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Nama Lengkap & Gelar <span className="text-[#A8281C]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="Contoh: Dr. Budi Rahardjo, M.Ed."
+                      required
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Telepon / WhatsApp
-              </label>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="+628123456789"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Nama Panggilan
+                    </label>
+                    <input
+                      type="text"
+                      name="nickname"
+                      value={formData.nickname}
+                      onChange={handleChange}
+                      placeholder="Contoh: Budi"
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Jenis Kelamin
-              </label>
-              <select
-                name="gender"
-                value={formData.gender}
-                onChange={handleChange}
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              >
-                <option value="MALE">Laki-laki</option>
-                <option value="FEMALE">Perempuan</option>
-              </select>
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Jenis Kelamin
+                    </label>
+                    <select
+                      name="gender"
+                      value={formData.gender}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    >
+                      <option value="MALE">Laki-laki</option>
+                      <option value="FEMALE">Perempuan</option>
+                    </select>
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Tempat Lahir
-              </label>
-              <input
-                type="text"
-                name="birthPlace"
-                value={formData.birthPlace}
-                onChange={handleChange}
-                placeholder="Kota kelahiran"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Tempat Lahir
+                    </label>
+                    <input
+                      type="text"
+                      name="birthPlace"
+                      value={formData.birthPlace}
+                      onChange={handleChange}
+                      placeholder="Kota kelahiran (contoh: Jakarta)"
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Tanggal Lahir
-              </label>
-              <input
-                type="date"
-                name="birthDate"
-                value={formData.birthDate}
-                onChange={handleChange}
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-semibold text-slate-700">
+                        Tanggal Lahir
+                      </label>
+                      {formData.birthDate && calculateAge(formData.birthDate) && (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 bg-blue-50 text-[#102E50] border border-blue-200/80 rounded-md">
+                          Usia: {calculateAge(formData.birthDate)}
+                        </span>
+                      )}
+                    </div>
+                    <input
+                      type="date"
+                      name="birthDate"
+                      value={formData.birthDate}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Status Pernikahan
-              </label>
-              <select
-                name="maritalStatus"
-                value={formData.maritalStatus}
-                onChange={handleChange}
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              >
-                <option value="SINGLE">Belum Menikah</option>
-                <option value="MARRIED">Menikah</option>
-                <option value="DIVORCED">Cerai Hidup</option>
-                <option value="WIDOWED">Cerai Mati</option>
-              </select>
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Agama
+                    </label>
+                    <select
+                      name="religion"
+                      value={formData.religion}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    >
+                      <option value="">-- Pilih Agama --</option>
+                      <option value="ISLAM">Islam</option>
+                      <option value="CHRISTIAN">Kristen (Protestan)</option>
+                      <option value="CATHOLIC">Katolik</option>
+                      <option value="HINDU">Hindu</option>
+                      <option value="BUDDHIST">Buddha</option>
+                      <option value="CONFUCIAN">Konghucu</option>
+                      <option value="OTHER">Lainnya</option>
+                    </select>
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Alamat Domisili
-              </label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Jl. Nama Jalan, Kelurahan, Kecamatan, Kota"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Kewarganegaraan
+                    </label>
+                    <div className="flex items-center gap-4 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-lg h-[38px]">
+                      <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-slate-800">
+                        <input
+                          type="radio"
+                          name="citizenship"
+                          value="WNI"
+                          checked={formData.citizenship === "WNI"}
+                          onChange={() => setFormData((prev) => ({ ...prev, citizenship: "WNI" }))}
+                          className="text-[#102E50] focus:ring-[#102E50]"
+                        />
+                        <span>WNI (Indonesia)</span>
+                      </label>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-xs font-medium text-slate-800">
+                        <input
+                          type="radio"
+                          name="citizenship"
+                          value="WNA"
+                          checked={formData.citizenship === "WNA"}
+                          onChange={() => setFormData((prev) => ({ ...prev, citizenship: "WNA" }))}
+                          className="text-[#102E50] focus:ring-[#102E50]"
+                        />
+                        <span>WNA (Asing)</span>
+                      </label>
+                    </div>
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Kontak Darurat
-              </label>
-              <input
-                type="text"
-                name="emergencyContactName"
-                value={formData.emergencyContactName}
-                onChange={handleChange}
-                placeholder="Nama anggota keluarga / kerabat"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Golongan Darah
+                    </label>
+                    <select
+                      name="bloodType"
+                      value={formData.bloodType}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    >
+                      <option value="">-- Pilih Golongan Darah --</option>
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="AB">AB</option>
+                      <option value="O">O</option>
+                      <option value="UNKNOWN">Tidak Tahu</option>
+                    </select>
+                  </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                No. HP Kontak Darurat
-              </label>
-              <input
-                type="text"
-                name="emergencyContactPhone"
-                value={formData.emergencyContactPhone}
-                onChange={handleChange}
-                placeholder="+628123456789"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Status Pernikahan
+                    </label>
+                    <select
+                      name="maritalStatus"
+                      value={formData.maritalStatus}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    >
+                      <option value="SINGLE">Belum Menikah</option>
+                      <option value="MARRIED">Menikah</option>
+                      <option value="DIVORCED">Cerai Hidup</option>
+                      <option value="WIDOWED">Cerai Mati</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                      Nama Ibu Kandung
+                    </label>
+                    <input
+                      type="text"
+                      name="motherName"
+                      value={formData.motherName}
+                      onChange={handleChange}
+                      placeholder="Nama lengkap ibu kandung"
+                      className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                    <span className="text-[11px] text-slate-400 mt-1 block">
+                      Dibutuhkan untuk verifikasi pendaftaran BPJS Ketenagakerjaan & perbankan.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </FormSection>
+
+            {/* SEKSI 2.2: KONTAK */}
+            <FormSection
+              id="seksi-kontak"
+              title="2.2 Informasi Kontak"
+              subtitle="Email resmi PSPK, email pribadi untuk akses akun, nomor WhatsApp, dan telepon"
+              icon={PhoneCall}
+              badge={
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100/70 text-[#102E50] border border-blue-200/60">
+                  Wajib Inti
+                </span>
+              }
+              defaultOpen={true}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Email Kantor (PSPK) <span className="text-[#A8281C]">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    name="workEmail"
+                    value={formData.workEmail}
+                    onChange={handleChange}
+                    placeholder="nama@pspk.id"
+                    required
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    Wajib berakhiran <strong className="text-slate-600">@pspk.id</strong> (digunakan untuk login akun pegawai).
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Email Pribadi{" "}
+                    {formData.createUserAccount && (
+                      <span className="text-[#A8281C]">* (Wajib untuk Akun)</span>
+                    )}
+                  </label>
+                  <input
+                    type="email"
+                    name="personalEmail"
+                    value={formData.personalEmail}
+                    onChange={handleChange}
+                    placeholder="nama.pribadi@gmail.com"
+                    required={formData.createUserAccount}
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    Kredensial login & kata sandi sementara akan otomatis dikirimkan ke email ini.
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Nomor HP / WhatsApp
+                  </label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    placeholder="Contoh: 08123456789 atau +628123456789"
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    Format angka 9-15 digit untuk keperluan koordinasi via WhatsApp.
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Nomor Telepon Rumah / Lainnya
+                  </label>
+                  <input
+                    type="text"
+                    name="landlinePhone"
+                    value={formData.landlinePhone}
+                    onChange={handleChange}
+                    placeholder="Contoh: 021-1234567 (opsional)"
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    Nomor telepon rumah tetap atau nomor alternatif jika ada.
+                  </span>
+                </div>
+              </div>
+            </FormSection>
+
+            {/* SEKSI 2.3: ALAMAT KEPENDUDUKAN & DOMISILI */}
+            <FormSection
+              id="seksi-alamat"
+              title="2.3 Alamat KTP & Alamat Domisili"
+              subtitle="Alamat terdaftar sesuai KTP dan alamat tempat tinggal saat ini"
+              icon={Home}
+              defaultOpen={true}
+            >
+              <div className="flex flex-col gap-4">
+                {/* Alamat KTP */}
+                <AddressFields
+                  title="Alamat Sesuai KTP"
+                  description="Alamat tempat tinggal resmi yang tercantum pada Kartu Tanda Penduduk"
+                  value={addressKtp}
+                  onChange={handleAddressKtpChange}
+                />
+
+                {/* Alamat Domisili dengan opsi sync */}
+                <AddressFields
+                  title="Alamat Domisili Saat Ini"
+                  description="Alamat tempat tinggal saat ini jika berbeda dengan alamat KTP"
+                  value={addressDomicile}
+                  onChange={(newDom) => setAddressDomicile(newDom)}
+                  syncOption={{
+                    checked: isDomicileSameAsKtp,
+                    onChange: handleToggleSameAddress,
+                    label: "Sama dengan alamat KTP",
+                  }}
+                />
+              </div>
+            </FormSection>
+
+            {/* SEKSI 2.4: KONTAK DARURAT */}
+            <FormSection
+              id="seksi-kontak-darurat"
+              title="2.4 Kontak Darurat"
+              subtitle="Pihak keluarga atau kerabat terdekat yang dapat dihubungi saat keadaan mendesak"
+              icon={HeartHandshake}
+              defaultOpen={true}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Nama Kontak Darurat
+                  </label>
+                  <input
+                    type="text"
+                    name="emergencyContactName"
+                    value={formData.emergencyContactName}
+                    onChange={handleChange}
+                    placeholder="Nama anggota keluarga / kerabat"
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    No. HP Kontak Darurat
+                  </label>
+                  <input
+                    type="text"
+                    name="emergencyContactPhone"
+                    value={formData.emergencyContactPhone}
+                    onChange={handleChange}
+                    placeholder="+628123456789"
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Hubungan dengan Pegawai
+                  </label>
+                  <select
+                    name="emergencyContactRelation"
+                    value={formData.emergencyContactRelation}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  >
+                    <option value="">-- Pilih Hubungan --</option>
+                    <option value="Ayah">Ayah</option>
+                    <option value="Ibu">Ibu</option>
+                    <option value="Suami/Istri">Suami / Istri</option>
+                    <option value="Anak">Anak</option>
+                    <option value="Saudara">Saudara Kandung</option>
+                    <option value="Lainnya">Kerabat / Lainnya</option>
+                  </select>
+                </div>
+              </div>
+            </FormSection>
+
+            {/* SEKSI 2.5: BERKAS DOKUMEN PRIBADI */}
+            <FormSection
+              id="seksi-dokumen-langkah-1"
+              title="2.5 Berkas Dokumen Pribadi"
+              subtitle="Unggah salinan Curriculum Vitae, ijazah terakhir, dan kartu keluarga"
+              icon={FileUp}
+              badge={
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Dapat Disusulkan
+                </span>
+              }
+              defaultOpen={true}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <DocumentUploadCard
+                  label="Curriculum Vitae (CV) / Resume"
+                  description="Dokumen riwayat hidup profesional pegawai terbaru"
+                  accept="application/pdf"
+                  maxSizeMB={10}
+                  value={docCv}
+                  onChange={setDocCv}
+                />
+
+                <DocumentUploadCard
+                  label="Ijazah & Transkrip Terakhir"
+                  description="Bukti kelulusan jenjang pendidikan formal terakhir"
+                  accept="application/pdf,image/jpeg,image/png"
+                  maxSizeMB={5}
+                  value={docDiploma}
+                  onChange={setDocDiploma}
+                />
+
+                <DocumentUploadCard
+                  label="Kartu Keluarga (KK)"
+                  description="Salinan kartu keluarga untuk verifikasi data tanggungan"
+                  accept="application/pdf,image/jpeg,image/png"
+                  maxSizeMB={5}
+                  value={docFamilyCard}
+                  onChange={setDocFamilyCard}
+                />
+              </div>
+            </FormSection>
           </div>
         )}
 
@@ -2732,6 +3272,27 @@ export function WizardEmployeeForm({
 
               const isWna = formData.citizenship === "WNA";
               const checklistItems: ChecklistDocItem[] = [
+                {
+                  id: "cv",
+                  label: "Curriculum Vitae (CV) / Resume",
+                  step: 1,
+                  isRequired: false,
+                  isUploaded: Boolean(docCv.file || initialData?.hasCv),
+                },
+                {
+                  id: "diploma",
+                  label: "Ijazah & Transkrip Terakhir",
+                  step: 1,
+                  isRequired: false,
+                  isUploaded: Boolean(docDiploma.file || initialData?.hasDiploma),
+                },
+                {
+                  id: "family_card",
+                  label: "Kartu Keluarga (KK)",
+                  step: 1,
+                  isRequired: false,
+                  isUploaded: Boolean(docFamilyCard.file || initialData?.hasFamilyCard),
+                },
                 {
                   id: "ktp",
                   label: isWna ? "No. Paspor / KITAS & Dokumen" : "Foto KTP (Identitas Resmi)",

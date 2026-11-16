@@ -289,6 +289,11 @@ export async function getEmployeeById(id: string) {
       documents: {
         orderBy: { createdAt: "desc" },
       },
+      addresses: true,
+      familyMembers: true,
+      educations: true,
+      trainings: true,
+      workExperiences: true,
       salaryComponents: {
         include: {
           component: true,
@@ -324,8 +329,17 @@ export async function getEmployeeById(id: string) {
   }
 
   // Strip ciphertext fields from the returned object to prevent leaking sensitive blobs
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { nikEnc, npwpEnc, bankAccountEnc, ...sanitizedEmp } = emp;
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const {
+    nikEnc,
+    npwpEnc,
+    bankAccountEnc,
+    passportKitasEnc,
+    bpjsKesNoEnc,
+    bpjsTkNoEnc,
+    ...sanitizedEmp
+  } = emp;
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   return {
     ...sanitizedEmp,
@@ -335,6 +349,12 @@ export async function getEmployeeById(id: string) {
     hasNik: !!emp.nikEnc,
     hasNpwp: !!emp.npwpEnc,
     hasBankAccount: !!emp.bankAccountEnc,
+    hasPassportKitas: !!emp.passportKitasEnc,
+    hasBpjsKes: !!emp.bpjsKesNoEnc,
+    hasBpjsTk: !!emp.bpjsTkNoEnc,
+    hasCv: emp.documents.some((d) => d.category === "CV"),
+    hasDiploma: emp.documents.some((d) => d.category === "DIPLOMA"),
+    hasFamilyCard: emp.documents.some((d) => d.category === "FAMILY_CARD"),
     salaryComponents: emp.salaryComponents.map((sc) => ({
       id: sc.id,
       componentId: sc.componentId,
