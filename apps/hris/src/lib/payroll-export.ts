@@ -636,7 +636,7 @@ export async function generatePayrollExcelExport(periodId: string): Promise<Gene
   let totalPph21 = 0;
 
   period.payslips.forEach((p) => {
-    let slipPph21 = p.pph21Amount ? Number(p.pph21Amount) : 0;
+    const slipPph21 = p.pph21Amount ? Number(p.pph21Amount) : 0;
     let foundPphInLines = false;
 
     p.lines.forEach((l) => {
