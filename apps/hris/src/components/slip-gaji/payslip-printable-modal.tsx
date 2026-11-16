@@ -287,6 +287,22 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
                         )}
                       </td>
                     </tr>
+                    <tr>
+                      <td className="py-1 text-slate-500 font-medium whitespace-nowrap align-top w-1">
+                        Status PTKP
+                      </td>
+                      <td className="py-1 px-2 text-slate-400 font-normal align-top w-1">:</td>
+                      <td className="py-1 font-semibold text-slate-700 align-top">
+                        {payslip.employee.ptkpStatus
+                          ? payslip.employee.ptkpStatus.replace("_", "/")
+                          : "TK/0"}
+                        {payslip.employee.taxMethod && (
+                          <span className="text-slate-400 font-normal text-[10px] ml-1.5">
+                            ({payslip.employee.taxMethod})
+                          </span>
+                        )}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -415,6 +431,86 @@ export function PayslipPrintableModal({ isOpen, onClose, payslip }: PayslipPrint
                 )}
               </div>
             )}
+
+            {/* Informasi Perpajakan PPh 21 (PP 58/2023 & PMK 168/2023) */}
+            <div className="payslip-tax-box p-3.5 sm:p-4 bg-slate-50/90 rounded-xl border border-slate-200/90 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-2.5 border-b border-slate-200/80 gap-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-[#102E50] text-[#F2AF3E] flex items-center justify-center font-bold text-[10px] shrink-0">
+                    %
+                  </div>
+                  <div>
+                    <span className="font-bold text-[#102E50] text-xs">
+                      Informasi Perpajakan PPh 21 ({payslip.employee.taxMethod || "GROSS"})
+                    </span>
+                    <span className="text-[11px] text-slate-500 block">
+                      Regulasi: PP 58/2023 & PMK 168/2023 • PTKP:{" "}
+                      <strong className="text-slate-800 font-semibold">
+                        {payslip.employee.ptkpStatus
+                          ? payslip.employee.ptkpStatus.replace("_", "/")
+                          : "TK/0"}
+                      </strong>
+                      {payslip.terCategory && (
+                        <>
+                          {" "}• Kategori:{" "}
+                          <strong className="text-slate-800 font-semibold">
+                            {payslip.terCategory.replace("_", " ")}
+                          </strong>
+                        </>
+                      )}
+                      {payslip.terRate !== null && payslip.terRate !== undefined && (
+                        <>
+                          {" "}• Tarif TER:{" "}
+                          <strong className="text-slate-800 font-semibold">
+                            {(Number(payslip.terRate) * 100).toFixed(2).replace(/\.00$/, "")}%
+                          </strong>
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+                {payslip.pph21Amount !== null && payslip.pph21Amount !== undefined && (
+                  <div className="text-left sm:text-right shrink-0 bg-white px-2.5 py-1 rounded-md border border-slate-200">
+                    <span className="text-[10px] text-slate-400 block uppercase font-medium">
+                      PPh 21 Terutang
+                    </span>
+                    <span className="font-mono font-bold text-xs text-rose-700">
+                      {formatRupiah(payslip.pph21Amount)}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px]">
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200/70">
+                  <span className="text-slate-400 block text-[10px] uppercase font-medium">
+                    Total Penghasilan Tunai
+                  </span>
+                  <span className="font-mono font-semibold text-slate-800">
+                    {formatRupiah(payslip.grossAmount)}
+                  </span>
+                </div>
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200/70">
+                  <span className="text-slate-400 block text-[10px] uppercase font-medium">
+                    Manfaat Asuransi Lembaga
+                  </span>
+                  <span className="font-mono font-semibold text-emerald-800">
+                    +{formatRupiah(Math.max(0, (payslip.taxableGross ?? payslip.grossAmount) - payslip.grossAmount))}
+                  </span>
+                  <span className="text-[9px] text-slate-400 block mt-0.5 leading-tight">
+                    *Premi BPJS Kes & TK porsi kantor (Objek natura)
+                  </span>
+                </div>
+                <div className="bg-white p-2.5 rounded-lg border border-slate-200/70">
+                  <span className="text-slate-400 block text-[10px] uppercase font-medium">
+                    Dasar Bruto Pajak (DPP)
+                  </span>
+                  <span className="font-mono font-bold text-[#102E50]">
+                    {formatRupiah(payslip.taxableGross ?? payslip.grossAmount)}
+                  </span>
+                </div>
+              </div>
+            </div>
 
             {/* Breakdown Table: Earnings vs Deductions */}
             <div className="payslip-breakdown-grid grid grid-cols-1 md:grid-cols-2 gap-6">

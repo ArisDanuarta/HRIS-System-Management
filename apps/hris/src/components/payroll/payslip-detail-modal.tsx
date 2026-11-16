@@ -148,6 +148,55 @@ export function PayslipDetailModal({ payslip, periodTitle, onClose }: PayslipDet
           </div>
         </div>
 
+        {/* Info Perpajakan PPh 21 */}
+        {(payslip.taxableGross !== undefined || payslip.pph21Amount !== undefined) && (
+          <div className="bg-slate-50/90 border border-slate-200 rounded-xl p-3.5 text-xs text-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 mb-2 border-b border-slate-200/80">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-[#102E50] text-[#F2AF3E] flex items-center justify-center text-[10px] font-bold">
+                  %
+                </span>
+                <span className="font-bold text-[#102E50]">
+                  Perhitungan PPh 21 ({payslip.employee.taxMethod || "GROSS"})
+                </span>
+              </div>
+              <span className="font-mono text-xs font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 self-start sm:self-auto">
+                Potongan Pajak: {formatRupiah(payslip.pph21Amount ?? 0)}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                <span className="text-slate-400 block text-[10px] uppercase font-medium">Status PTKP</span>
+                <span className="font-semibold text-slate-800">
+                  {payslip.employee.ptkpStatus ? payslip.employee.ptkpStatus.replace("_", "/") : "TK/0"}
+                </span>
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                <span className="text-slate-400 block text-[10px] uppercase font-medium">Kategori & Tarif</span>
+                <span className="font-semibold text-slate-800">
+                  {payslip.terCategory ? payslip.terCategory.replace("_", " ") : "-"}{" "}
+                  {payslip.terRate !== null && payslip.terRate !== undefined
+                    ? `(${(Number(payslip.terRate) * 100).toFixed(2).replace(/\.00$/, "")}%)`
+                    : ""}
+                </span>
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                <span className="text-slate-400 block text-[10px] uppercase font-medium">Penghasilan Tunai</span>
+                <span className="font-mono font-semibold text-slate-800">
+                  {formatRupiah(payslip.grossAmount)}
+                </span>
+              </div>
+              <div className="bg-white p-2 rounded-lg border border-slate-200">
+                <span className="text-slate-400 block text-[10px] uppercase font-medium">Dasar Bruto Pajak (DPP)</span>
+                <span className="font-mono font-bold text-[#102E50]">
+                  {formatRupiah(payslip.taxableGross ?? payslip.grossAmount)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Info Timesheet Khusus Staf Per Jam */}
         {payslip.wageType === "HOURLY" && (
           <div className="bg-amber-50/80 border border-amber-200/80 rounded-xl p-3.5 mb-5 text-xs text-amber-950">
