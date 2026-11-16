@@ -694,7 +694,7 @@ export function WizardEmployeeForm({
         passportKitas: formData.passportKitas?.trim() || undefined,
         bpjsKesehatanNo: formData.bpjsKesehatanNo?.trim() || undefined,
         bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo?.trim() || undefined,
-        citizenship: (formData.citizenship as any) || "WNI",
+        citizenship: (formData.citizenship as "WNI" | "WNA") || "WNI",
         ptkpStatus: formData.ptkpStatus,
         taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
@@ -711,7 +711,7 @@ export function WizardEmployeeForm({
         const newEmployeeId = res.data.id;
 
         // Upload semua berkas dokumen yang ter-stage secara paralel
-        const docsToUpload: Array<{ category: any; title: string; file: File }> = [];
+        const docsToUpload: Array<{ category: DocumentCategory; title: string; file: File }> = [];
         if (docKtp.file) {
           docsToUpload.push({
             category: "KTP",
@@ -868,7 +868,7 @@ export function WizardEmployeeForm({
         passportKitas: formData.passportKitas?.trim() || undefined,
         bpjsKesehatanNo: formData.bpjsKesehatanNo?.trim() || undefined,
         bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo?.trim() || undefined,
-        citizenship: (formData.citizenship as any) || "WNI",
+        citizenship: (formData.citizenship as "WNI" | "WNA") || "WNI",
         ptkpStatus: formData.ptkpStatus,
         taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
@@ -883,7 +883,7 @@ export function WizardEmployeeForm({
 
       if (res.ok) {
         // Upload dokumen baru jika ada yang dipilih saat edit
-        const docsToUpload: Array<{ category: any; title: string; file: File }> = [];
+        const docsToUpload: Array<{ category: DocumentCategory; title: string; file: File }> = [];
         if (docKtp.file) {
           docsToUpload.push({
             category: "KTP",
