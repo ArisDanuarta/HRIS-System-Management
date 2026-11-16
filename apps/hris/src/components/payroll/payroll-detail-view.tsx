@@ -689,8 +689,18 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                        {p.employee.employeeNo} • {p.employee.currentDepartment?.name || "PSPK"}
+                      <div className="text-[11px] text-slate-500 font-mono mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span>{p.employee.employeeNo} • {p.employee.currentDepartment?.name || "PSPK"}</span>
+                        {p.employee.ptkpStatus && (
+                          <span className="text-[10px] text-slate-600 bg-slate-100 px-1 py-0.5 rounded font-sans">
+                            PTKP: {p.employee.ptkpStatus.replace("_", "/")}
+                          </span>
+                        )}
+                        {p.terCategory && (
+                          <span className="text-[10px] text-[#102E50] bg-blue-50 px-1 py-0.5 rounded font-sans font-medium">
+                            {p.terCategory.replace("_", " ")}
+                          </span>
+                        )}
                       </div>
                       {p.employee.currentPosition?.title && (
                         <div className="text-[10px] text-slate-400 mt-0.5">
@@ -834,8 +844,21 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
                             </span>
                           )}
                         </div>
-                        <div className="text-[11px] font-mono text-slate-500">
-                          {p.employee.employeeNo}
+                        <div className="text-[11px] font-mono text-slate-500 flex items-center gap-1.5 flex-wrap">
+                          <span>{p.employee.employeeNo}</span>
+                          {p.employee.ptkpStatus && (
+                            <span className="text-[10px] text-slate-600 bg-slate-100 px-1 py-0.5 rounded font-sans">
+                              PTKP: {p.employee.ptkpStatus.replace("_", "/")}
+                            </span>
+                          )}
+                          {p.terCategory && (
+                            <span className="text-[10px] text-[#102E50] bg-blue-50 px-1 py-0.5 rounded font-sans font-medium">
+                              {p.terCategory.replace("_", " ")}
+                              {p.terRate !== null && p.terRate !== undefined
+                                ? ` (${(Number(p.terRate) * 100).toFixed(2).replace(/\.00$/, "")}%)`
+                                : ""}
+                            </span>
+                          )}
                         </div>
                         {p.wageType === "HOURLY" && (
                           <div className="text-[10px] text-amber-800 font-medium flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -890,7 +913,14 @@ export function PayrollDetailView({ period }: PayrollDetailViewProps) {
 
                       {/* Potongan */}
                       <td className="py-3 px-4 text-right font-mono text-xs text-rose-700 font-medium">
-                        -{formatRupiah(p.totalDeduction)}
+                        <div>-{formatRupiah(p.totalDeduction)}</div>
+                        {p.pph21Amount !== undefined &&
+                          p.pph21Amount !== null &&
+                          Number(p.pph21Amount) > 0 && (
+                            <div className="text-[10px] text-slate-400 font-normal">
+                              PPh 21: {formatRupiah(p.pph21Amount)}
+                            </div>
+                          )}
                       </td>
 
                       {/* Gaji Bersih */}

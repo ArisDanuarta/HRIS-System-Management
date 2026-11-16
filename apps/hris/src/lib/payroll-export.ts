@@ -477,10 +477,17 @@ export async function generatePayrollExcelExport(periodId: string): Promise<Gene
       }
     });
 
+    // Jika pph21 belum terhitung dari baris namun tersimpan pada metadata payslip
+    if (pph21 === 0 && p.pph21Amount && Number(p.pph21Amount) > 0) {
+      pph21 = Number(p.pph21Amount);
+    }
+
+    const ptkpText = p.employee.ptkpStatus ? p.employee.ptkpStatus.replace("_", "/") : "TK/0";
     const schemeText = p.wageType === "HOURLY" ? "Per Jam" : "Bulanan";
-    const hoursNote = p.wageType === "HOURLY"
-      ? `${Number(p.totalHours || 0)} jam @ Rp ${Number(p.hourlyRate || 0).toLocaleString("id-ID")}`
-      : "-";
+    const hoursNote =
+      p.wageType === "HOURLY"
+        ? `${Number(p.totalHours || 0)} jam @ Rp ${Number(p.hourlyRate || 0).toLocaleString("id-ID")}`
+        : `PTKP: ${ptkpText}${p.terCategory ? ` • ${p.terCategory.replace("_", " ")}` : ""}`;
 
     const ledgerValues = [
       idx + 1,
@@ -629,13 +636,23 @@ export async function generatePayrollExcelExport(periodId: string): Promise<Gene
   let totalPph21 = 0;
 
   period.payslips.forEach((p) => {
+    let slipPph21 = p.pph21Amount ? Number(p.pph21Amount) : 0;
+    let foundPphInLines = false;
+
     p.lines.forEach((l) => {
       const amt = Number(l.amount);
       const lbl = l.label.toLowerCase();
       if (lbl.includes("kesehatan") || lbl.includes("bpjs kes")) totalBpjsKes += amt;
       else if (lbl.includes("ketenagakerjaan") || lbl.includes("bpjs tk")) totalBpjsTk += amt;
-      else if (lbl.includes("pph") || lbl.includes("pajak")) totalPph21 += amt;
+      else if (lbl.includes("pph") || lbl.includes("pajak")) {
+        totalPph21 += amt;
+        foundPphInLines = true;
+      }
     });
+
+    if (!foundPphInLines && slipPph21 > 0) {
+      totalPph21 += slipPph21;
+    }
   });
 
   wsSummary.mergeCells("B5:F5");
