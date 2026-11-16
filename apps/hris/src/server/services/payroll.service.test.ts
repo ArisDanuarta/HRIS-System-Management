@@ -354,7 +354,7 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
 
     // Mock akumulasi 11 bulan sebelumnya (Jan-Nov)
     // Tiap bulan taxableGross: 8.363.200 (8 jt gaji + 363.200 premi lembaga), pph21: 125.448 (TER A 1.5%)
-    const pastSlips = Array.from({ length: 11 }, (_, i) => ({
+    const pastSlips = Array.from({ length: 11 }, () => ({
       employeeId: "emp-budi",
       taxableGross: 8363200,
       grossAmount: 8000000,
