@@ -47,6 +47,65 @@ enum TaxMethod {
   @@schema("hris")
 }
 
+enum Religion {
+  ISLAM
+  CHRISTIAN
+  CATHOLIC
+  HINDU
+  BUDDHIST
+  CONFUCIAN
+  OTHER
+
+  @@schema("hris")
+}
+
+enum Citizenship {
+  WNI
+  WNA
+
+  @@schema("hris")
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
+  UNKNOWN
+
+  @@schema("hris")
+}
+
+enum AddressType {
+  KTP
+  DOMICILE
+
+  @@schema("hris")
+}
+
+enum FamilyRelation {
+  FATHER
+  MOTHER
+  SPOUSE
+  CHILD
+  SIBLING
+  OTHER
+
+  @@schema("hris")
+}
+
+enum EducationLevel {
+  SMA_SMK
+  D3
+  D4
+  S1
+  S2
+  S3
+  OTHER
+
+  @@schema("hris")
+}
+
 enum EmploymentType {
   PERMANENT
   FIXED_TERM
@@ -231,8 +290,21 @@ model Employee {
   maritalStatus         MaritalStatus? @map("marital_status")
   ptkpStatus            PtkpStatus     @default(TK_0) @map("ptkp_status")
   taxMethod             TaxMethod      @default(GROSS) @map("tax_method")
-  address               String?
-  emergencyContactName  String?        @map("emergency_contact_name")
+  // Alamat lama (deprecated: gunakan relasi addresses ke EmployeeAddress)
+  address                  String?
+  religion                 Religion?
+  citizenship              Citizenship                @default(WNI)
+  bloodType                BloodType?                 @map("blood_type")
+  motherName               String?                    @map("mother_name")
+  landlinePhone            String?                    @map("landline_phone")
+  emergencyContactRelation String?                    @map("emergency_contact_relation")
+  passportKitasEnc         String?                    @map("passport_kitas_enc")
+  bpjsKesNoEnc             String?                    @map("bpjs_kes_no_enc")
+  bpjsTkNoEnc              String?                    @map("bpjs_tk_no_enc")
+  probationEndDate         DateTime?                  @map("probation_end_date") @db.Date
+  workLocationId           String?                    @map("work_location_id")
+  legalEntityId            String?                    @map("legal_entity_id")
+  emergencyContactName     String?                    @map("emergency_contact_name")
   emergencyContactPhone String?        @map("emergency_contact_phone")
   nikEnc                String?        @map("nik_enc")
   npwpEnc               String?        @map("npwp_enc")
@@ -255,7 +327,14 @@ model Employee {
   directReports     Employee[]                 @relation("ManagerSubordinates")
   currentPosition   Position?                  @relation(fields: [currentPositionId], references: [id])
   currentDepartment Department?                @relation(fields: [currentDepartmentId], references: [id])
-  contracts         EmploymentContract[]
+  workLocation        WorkLocation?              @relation(fields: [workLocationId], references: [id], onDelete: SetNull)
+  legalEntity         LegalEntity?               @relation(fields: [legalEntityId], references: [id], onDelete: SetNull)
+  addresses           EmployeeAddress[]
+  familyMembers       EmployeeFamilyMember[]
+  educations          EmployeeEducation[]
+  trainings           EmployeeTraining[]
+  workExperiences     EmployeeWorkExperience[]
+  contracts           EmploymentContract[]
   histories         EmploymentHistory[]
   attendances       Attendance[]
   leaveBalances     LeaveBalance[]
