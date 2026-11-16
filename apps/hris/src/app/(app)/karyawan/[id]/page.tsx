@@ -283,6 +283,7 @@ export default async function EmployeeDetailPage({
                     NIP: {employee.employeeNo}
                   </span>
                   <StatusBadge status={employee.status} size="sm" />
+                  <PtkpBadge status={employee.ptkpStatus} size="sm" />
                   {activeContract && (
                     <ContractTypeBadge
                       type={activeContract.type}
@@ -692,6 +693,35 @@ export default async function EmployeeDetailPage({
                 maskedValue={employee.bankAccountMasked}
                 hasValue={employee.hasBankAccount}
               />
+            </div>
+
+            {/* Status Perpajakan PPh 21 */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                Status PTKP (PP 58/2023)
+              </span>
+              <div className="flex items-center gap-2 pt-0.5">
+                <PtkpBadge status={employee.ptkpStatus} size="md" />
+              </div>
+              <span className="text-[11px] text-slate-500">
+                Dasar pengenaan tarif efektif rata-rata (TER) pemotongan PPh 21 bulanan.
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                Metode Perhitungan Pajak
+              </span>
+              <div className="flex items-center gap-2 pt-0.5">
+                <TaxMethodBadge method={employee.taxMethod} size="md" />
+              </div>
+              <span className="text-[11px] text-slate-500">
+                {employee.taxMethod === "GROSS_UP"
+                  ? "Pajak ditanggung penuh oleh lembaga via tunjangan pajak."
+                  : employee.taxMethod === "NETT"
+                    ? "Gaji diterima bersih tanpa pemotongan pajak penghasilan."
+                    : "Pajak dipotong langsung dari penghasilan bruto karyawan."}
+              </span>
             </div>
           </div>
         </div>
