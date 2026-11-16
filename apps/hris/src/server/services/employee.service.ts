@@ -55,6 +55,18 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
     data.bankAccount && data.bankAccount.trim() !== ""
       ? encryptField(data.bankAccount.trim())
       : null;
+  const passportKitasEnc =
+    data.passportKitas && data.passportKitas.trim() !== ""
+      ? encryptField(data.passportKitas.trim())
+      : null;
+  const bpjsKesNoEnc =
+    data.bpjsKesehatanNo && data.bpjsKesehatanNo.trim() !== ""
+      ? encryptField(data.bpjsKesehatanNo.trim())
+      : null;
+  const bpjsTkNoEnc =
+    data.bpjsKetenagakerjaanNo && data.bpjsKetenagakerjaanNo.trim() !== ""
+      ? encryptField(data.bpjsKetenagakerjaanNo.trim())
+      : null;
 
   // 3. Database transaction
   const result = await prisma.$transaction(async (tx) => {
@@ -185,6 +197,18 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
         status: data.status,
         managerId: data.managerId || null,
+        religion: (data.religion as any) || null,
+        citizenship: (data.citizenship as any) || "WNI",
+        bloodType: (data.bloodType as any) || null,
+        motherName: data.motherName?.trim() || null,
+        landlinePhone: data.landlinePhone?.trim() || null,
+        emergencyContactRelation: data.emergencyContactRelation?.trim() || null,
+        passportKitasEnc,
+        bpjsKesNoEnc,
+        bpjsTkNoEnc,
+        probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
+        workLocationId: data.workLocationId?.trim() || null,
+        legalEntityId: data.legalEntityId?.trim() || null,
         currentDepartmentId: data.currentDepartmentId,
         currentPositionId: data.currentPositionId,
       },
@@ -458,6 +482,18 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
         status: data.status,
         managerId: normalizedNewManagerId,
+        religion: (data.religion as any) || null,
+        citizenship: (data.citizenship as any) || "WNI",
+        bloodType: (data.bloodType as any) || null,
+        motherName: data.motherName?.trim() || null,
+        landlinePhone: data.landlinePhone?.trim() || null,
+        emergencyContactRelation: data.emergencyContactRelation?.trim() || null,
+        passportKitasEnc,
+        bpjsKesNoEnc,
+        bpjsTkNoEnc,
+        probationEndDate: data.probationEndDate ? new Date(data.probationEndDate) : null,
+        workLocationId: data.workLocationId?.trim() || null,
+        legalEntityId: data.legalEntityId?.trim() || null,
         currentDepartmentId: data.currentDepartmentId,
         currentPositionId: data.currentPositionId,
       },
@@ -831,7 +867,7 @@ export async function reactivateEmployee(id: string, actor: ActorContext) {
 
 export async function unmaskSensitiveField(
   employeeId: string,
-  field: "nik" | "npwp" | "bankAccount",
+  field: "nik" | "npwp" | "bankAccount" | "passportKitas" | "bpjsKes" | "bpjsTk",
   actor: ActorContext,
 ) {
   const employee = await prisma.employee.findUnique({
@@ -843,6 +879,9 @@ export async function unmaskSensitiveField(
       nikEnc: true,
       npwpEnc: true,
       bankAccountEnc: true,
+      passportKitasEnc: true,
+      bpjsKesNoEnc: true,
+      bpjsTkNoEnc: true,
       deletedAt: true,
     },
   });
@@ -863,6 +902,15 @@ export async function unmaskSensitiveField(
   } else if (field === "bankAccount") {
     rawEncrypted = employee.bankAccountEnc;
     fieldLabel = "Nomor Rekening Bank";
+  } else if (field === "passportKitas") {
+    rawEncrypted = employee.passportKitasEnc;
+    fieldLabel = "No. Paspor / KITAS";
+  } else if (field === "bpjsKes") {
+    rawEncrypted = employee.bpjsKesNoEnc;
+    fieldLabel = "No. BPJS Kesehatan";
+  } else if (field === "bpjsTk") {
+    rawEncrypted = employee.bpjsTkNoEnc;
+    fieldLabel = "No. BPJS Ketenagakerjaan";
   }
 
   if (!rawEncrypted) {

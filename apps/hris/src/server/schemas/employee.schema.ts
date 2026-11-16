@@ -80,6 +80,42 @@ export const baseEmployeeSchema = z.object({
   bankName: z.string().optional(),
   bankAccount: z.string().optional(),
   bankAccountName: z.string().optional(),
+  passportKitas: z.string().max(50).optional().or(z.literal("")),
+  bpjsKesehatanNo: z.string().max(25).optional().or(z.literal("")),
+  bpjsKetenagakerjaanNo: z.string().max(25).optional().or(z.literal("")),
+  citizenship: z.enum(["WNI", "WNA"]).optional().default("WNI"),
+  religion: z.string().optional().or(z.literal("")),
+  bloodType: z.string().optional().or(z.literal("")),
+  motherName: z.string().optional().or(z.literal("")),
+  landlinePhone: z.string().optional().or(z.literal("")),
+  emergencyContactRelation: z.string().optional().or(z.literal("")),
+  workLocationId: z.string().optional().or(z.literal("")),
+  legalEntityId: z.string().optional().or(z.literal("")),
+  probationEndDate: z.string().optional().or(z.literal("")),
+  addressKtp: z
+    .object({
+      street: z.string().default(""),
+      kelurahan: z.string().optional(),
+      kecamatan: z.string().optional(),
+      city: z.string().optional(),
+      province: z.string().optional(),
+      postalCode: z.string().optional(),
+    })
+    .optional(),
+  addressDomicile: z
+    .object({
+      street: z.string().default(""),
+      kelurahan: z.string().optional(),
+      kecamatan: z.string().optional(),
+      city: z.string().optional(),
+      province: z.string().optional(),
+      postalCode: z.string().optional(),
+    })
+    .optional(),
+  familyMembers: z.array(z.any()).optional().default([]),
+  educations: z.array(z.any()).optional().default([]),
+  trainings: z.array(z.any()).optional().default([]),
+  workExperiences: z.array(z.any()).optional().default([]),
   createUserAccount: z.boolean().optional().default(true),
   accountRole: AccountRoleEnum.optional().default("staff"),
 });
@@ -112,7 +148,7 @@ export type UpdateEmployeeInput = z.infer<typeof updateEmployeeSchema>;
 
 export const unmaskFieldSchema = z.object({
   employeeId: z.string().min(1, "ID pegawai tidak valid"),
-  field: z.enum(["nik", "npwp", "bankAccount"], {
+  field: z.enum(["nik", "npwp", "bankAccount", "passportKitas", "bpjsKes", "bpjsTk"], {
     errorMap: () => ({ message: "Field sensitif tidak valid" }),
   }),
 });

@@ -4,7 +4,6 @@ import React, { useRef, useState } from "react";
 import {
   UploadCloud,
   FileText,
-  Image as ImageIcon,
   CheckCircle,
   AlertCircle,
   Trash2,

@@ -15,13 +15,21 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25 MB
 const VALID_CATEGORIES = [
   "KTP",
   "NPWP",
+  "CV",
+  "DIPLOMA",
+  "CERTIFICATE",
+  "CONTRACT",
+  "FAMILY_CARD",
   "BANK_BOOK",
   "BPJS",
-  "DIPLOMA",
-  "CV",
-  "CONTRACT",
-  "EXPERIENCE_LETTER",
-  "CERTIFICATE",
+  "BPJS_KES",
+  "BPJS_TK",
+  "SKCK",
+  "HEALTH_CERT",
+  "PREVIOUS_EMPLOYER_LETTER",
+  "OFFER_LETTER",
+  "NDA",
+  "MARRIAGE_CERT",
   "OTHER",
 ] as const;
 
@@ -92,6 +100,8 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
     const category = formData.get("category") as DocumentCategory;
     const title = (formData.get("title") as string)?.trim();
     const file = formData.get("file") as File | null;
+    const educationId = ((formData.get("educationId") as string) || "").trim() || null;
+    const trainingId = ((formData.get("trainingId") as string) || "").trim() || null;
 
     if (!employeeId) {
       return { success: false, message: "ID pegawai tidak valid." };
@@ -170,6 +180,8 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
         fileSize: file.size,
         mimeType: file.type,
         uploadedById: userId,
+        educationId,
+        trainingId,
       },
     });
 
