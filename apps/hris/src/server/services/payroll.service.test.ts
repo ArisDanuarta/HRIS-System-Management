@@ -435,4 +435,51 @@ describe("payroll.service - Kalkulasi PPh 21 Terintegrasi", () => {
     expect(createdData.terRate).toBe(0);
     expect(createdData.netAmount).toBe(5000000);
   });
+
+  it("Kasus Karyawan K/1 (TER B): Gaji Pokok 12 jt -> DPP 12.544.800 -> TER B 3% tepat Rp376.344", async () => {
+    mockPayrollPeriodFindUnique.mockResolvedValue({
+      id: "period-10",
+      year: 2026,
+      month: 10,
+      status: "DRAFT",
+    });
+
+    mockEmployeeFindMany.mockResolvedValue([
+      {
+        id: "emp-dewi",
+        fullName: "Dewi Lestari",
+        employeeNo: "PSPK-005",
+        status: "ACTIVE",
+        ptkpStatus: "K_1",
+        taxMethod: "GROSS",
+        contracts: [
+          {
+            id: "contract-dewi",
+            wageType: "MONTHLY",
+            baseSalary: 12000000,
+            hourlyRate: null,
+            status: "ACTIVE",
+          },
+        ],
+        salaryComponents: [],
+      },
+    ]);
+
+    mockSalaryComponentFindMany.mockResolvedValue([]);
+
+    await calculatePeriodPayroll("period-10");
+
+    const createdData = mockPayslipCreate.mock.calls[0]![0].data;
+
+    // Gaji pokok 12.000.000
+    expect(createdData.grossAmount).toBe(12000000);
+    // Premi lembaga: BPJS Kes (max base 12 jt x 4% = 480.000) + JKK (12 jt x 0.24% = 28.800) + JKM (12 jt x 0.30% = 36.000) = 544.800
+    // DPP = 12.000.000 + 544.800 = 12.544.800
+    expect(createdData.taxableGross).toBe(12544800);
+    expect(createdData.terCategory).toBe("TER_B");
+    expect(createdData.terRate).toBe(0.03); // 3%
+    // PPh 21 = 12.544.800 x 3% = 376.344
+    expect(createdData.pph21Amount).toBe(376344);
+    expect(createdData.netAmount).toBe(12000000 - 376344);
+  });
 });
