@@ -49,6 +49,13 @@ import {
   calculateMonthlyPph21Ter,
   calculateCompanyTaxableBenefit,
 } from "@/server/services/tax/pph21-calculator";
+import { DocumentUploadCard } from "./components/DocumentUploadCard";
+import { DocumentChecklistSummary, ChecklistDocItem } from "./components/DocumentChecklistSummary";
+import { UploadedFileState, AdditionalDocumentItem } from "./types/employee-form.types";
+import {
+  uploadEmployeeDocumentAction,
+  DocumentCategory,
+} from "@/server/actions/document.actions";
 
 interface DepartmentOption {
   id: string;
@@ -108,6 +115,10 @@ export interface InitialEmployeeData {
   hasNik?: boolean;
   hasNpwp?: boolean;
   hasBankAccount?: boolean;
+  hasPassportKitas?: boolean;
+  hasBpjsKes?: boolean;
+  hasBpjsTk?: boolean;
+  citizenship?: "WNI" | "WNA";
   contracts?: {
     type: EmploymentType;
     employmentTypeId?: string | null;
@@ -279,6 +290,10 @@ export function WizardEmployeeForm({
     // Step 4: Sensitive Data, Tax & Account
     nik: "",
     npwp: "",
+    passportKitas: "",
+    bpjsKesehatanNo: "",
+    bpjsKetenagakerjaanNo: "",
+    citizenship: initialData?.citizenship || "WNI",
     ptkpStatus: (initialData?.ptkpStatus as PtkpStatus) || "TK_0",
     taxMethod: (initialData?.taxMethod as TaxMethod) || "GROSS",
     bankName: initialData?.bankName || "",
@@ -287,6 +302,56 @@ export function WizardEmployeeForm({
     createUserAccount: mode === "create",
     accountRole: "staff",
   });
+
+  // Dokumen Berkas Berpasangan Langkah 4
+  const [docKtp, setDocKtp] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docNpwp, setDocNpwp] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docBankBook, setDocBankBook] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docBpjsKes, setDocBpjsKes] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docBpjsTk, setDocBpjsTk] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docSkck, setDocSkck] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docHealthCert, setDocHealthCert] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [additionalDocs, setAdditionalDocs] = useState<AdditionalDocumentItem[]>([]);
+  const [uploadWarningMessage, setUploadWarningMessage] = useState<string | null>(null);
+
+  const handleAddAdditionalDoc = () => {
+    setAdditionalDocs((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        title: "",
+        file: null,
+        status: "idle",
+      },
+    ]);
+  };
+
+  const handleRemoveAdditionalDoc = (id: string) => {
+    setAdditionalDocs((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleUpdateAdditionalDocTitle = (id: string, title: string) => {
+    setAdditionalDocs((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, title } : d)),
+    );
+  };
+
+  const handleUpdateAdditionalDocFile = (id: string, fileState: UploadedFileState) => {
+    setAdditionalDocs((prev) =>
+      prev.map((d) =>
+        d.id === id
+          ? {
+              ...d,
+              file: fileState.file,
+              fileName: fileState.fileName,
+              fileSize: fileState.fileSize,
+              status: fileState.status,
+              error: fileState.error,
+            }
+          : d,
+      ),
+    );
+  };
 
   // State berkas upload kontrak kerja PDF
   const [contractFile, setContractFile] = useState<File | null>(null);
@@ -626,6 +691,10 @@ export function WizardEmployeeForm({
         contractNotes: formData.contractNotes.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
+        passportKitas: formData.passportKitas?.trim() || undefined,
+        bpjsKesehatanNo: formData.bpjsKesehatanNo?.trim() || undefined,
+        bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo?.trim() || undefined,
+        citizenship: (formData.citizenship as any) || "WNI",
         ptkpStatus: formData.ptkpStatus,
         taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
@@ -637,9 +706,105 @@ export function WizardEmployeeForm({
       };
 
       const res = await createEmployeeAction(payload);
-      setIsSubmitting(false);
 
       if (res.ok) {
+        const newEmployeeId = res.data.id;
+
+        // Upload semua berkas dokumen yang ter-stage secara paralel
+        const docsToUpload: Array<{ category: any; title: string; file: File }> = [];
+        if (docKtp.file) {
+          docsToUpload.push({
+            category: "KTP",
+            title: formData.citizenship === "WNA" ? "Paspor / KITAS WNA" : "Kartu Tanda Penduduk (KTP)",
+            file: docKtp.file,
+          });
+        }
+        if (docNpwp.file) {
+          docsToUpload.push({
+            category: "NPWP",
+            title: "Nomor Pokok Wajib Pajak (NPWP)",
+            file: docNpwp.file,
+          });
+        }
+        if (docBankBook.file) {
+          docsToUpload.push({
+            category: "BANK_BOOK",
+            title: "Buku Tabungan / Rekening Payroll",
+            file: docBankBook.file,
+          });
+        }
+        if (docBpjsKes.file) {
+          docsToUpload.push({
+            category: "BPJS_KES",
+            title: "Kartu BPJS Kesehatan",
+            file: docBpjsKes.file,
+          });
+        }
+        if (docBpjsTk.file) {
+          docsToUpload.push({
+            category: "BPJS_TK",
+            title: "Kartu BPJS Ketenagakerjaan",
+            file: docBpjsTk.file,
+          });
+        }
+        if (docSkck.file) {
+          docsToUpload.push({
+            category: "SKCK",
+            title: "Surat Keterangan Catatan Kepolisian (SKCK)",
+            file: docSkck.file,
+          });
+        }
+        if (docHealthCert.file) {
+          docsToUpload.push({
+            category: "HEALTH_CERT",
+            title: "Surat Keterangan Sehat",
+            file: docHealthCert.file,
+          });
+        }
+        for (const addDoc of additionalDocs) {
+          if (addDoc.file) {
+            docsToUpload.push({
+              category: "OTHER",
+              title: addDoc.title.trim() || "Dokumen Tambahan",
+              file: addDoc.file,
+            });
+          }
+        }
+
+        if (docsToUpload.length > 0) {
+          const uploadPromises = docsToUpload.map(async (docItem) => {
+            const fd = new FormData();
+            fd.append("employeeId", newEmployeeId);
+            fd.append("category", docItem.category);
+            fd.append("title", docItem.title);
+            fd.append("file", docItem.file);
+            const uploadRes = await uploadEmployeeDocumentAction(fd);
+            return {
+              title: docItem.title,
+              success: uploadRes.success,
+              message: uploadRes.message,
+            };
+          });
+
+          const uploadResults = await Promise.allSettled(uploadPromises);
+          const failedUploads: string[] = [];
+          uploadResults.forEach((result, idx) => {
+            if (result.status === "rejected") {
+              failedUploads.push(docsToUpload[idx]?.title || "Dokumen");
+            } else if (!result.value.success) {
+              failedUploads.push(result.value.title);
+            }
+          });
+
+          if (failedUploads.length > 0) {
+            setUploadWarningMessage(
+              `Pegawai berhasil didaftarkan, namun berkas berikut belum berhasil terunggah: ${failedUploads.join(", ")}. Anda dapat mengunggahnya melalui tab Berkas Pegawai.`
+            );
+          }
+        }
+
+        setIsSubmitting(false);
+
         if (res.data.accountCreated && res.data.credentials) {
           setCreatedCredentials({
             id: res.data.id,
@@ -700,6 +865,10 @@ export function WizardEmployeeForm({
         contractNotes: formData.contractNotes?.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
+        passportKitas: formData.passportKitas?.trim() || undefined,
+        bpjsKesehatanNo: formData.bpjsKesehatanNo?.trim() || undefined,
+        bpjsKetenagakerjaanNo: formData.bpjsKetenagakerjaanNo?.trim() || undefined,
+        citizenship: (formData.citizenship as any) || "WNI",
         ptkpStatus: formData.ptkpStatus,
         taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
@@ -711,9 +880,83 @@ export function WizardEmployeeForm({
       };
 
       const res = await updateEmployeeAction(payload);
-      setIsSubmitting(false);
 
       if (res.ok) {
+        // Upload dokumen baru jika ada yang dipilih saat edit
+        const docsToUpload: Array<{ category: any; title: string; file: File }> = [];
+        if (docKtp.file) {
+          docsToUpload.push({
+            category: "KTP",
+            title: formData.citizenship === "WNA" ? "Paspor / KITAS WNA" : "Kartu Tanda Penduduk (KTP)",
+            file: docKtp.file,
+          });
+        }
+        if (docNpwp.file) {
+          docsToUpload.push({
+            category: "NPWP",
+            title: "Nomor Pokok Wajib Pajak (NPWP)",
+            file: docNpwp.file,
+          });
+        }
+        if (docBankBook.file) {
+          docsToUpload.push({
+            category: "BANK_BOOK",
+            title: "Buku Tabungan / Rekening Payroll",
+            file: docBankBook.file,
+          });
+        }
+        if (docBpjsKes.file) {
+          docsToUpload.push({
+            category: "BPJS_KES",
+            title: "Kartu BPJS Kesehatan",
+            file: docBpjsKes.file,
+          });
+        }
+        if (docBpjsTk.file) {
+          docsToUpload.push({
+            category: "BPJS_TK",
+            title: "Kartu BPJS Ketenagakerjaan",
+            file: docBpjsTk.file,
+          });
+        }
+        if (docSkck.file) {
+          docsToUpload.push({
+            category: "SKCK",
+            title: "Surat Keterangan Catatan Kepolisian (SKCK)",
+            file: docSkck.file,
+          });
+        }
+        if (docHealthCert.file) {
+          docsToUpload.push({
+            category: "HEALTH_CERT",
+            title: "Surat Keterangan Sehat",
+            file: docHealthCert.file,
+          });
+        }
+        for (const addDoc of additionalDocs) {
+          if (addDoc.file) {
+            docsToUpload.push({
+              category: "OTHER",
+              title: addDoc.title.trim() || "Dokumen Tambahan",
+              file: addDoc.file,
+            });
+          }
+        }
+
+        if (docsToUpload.length > 0) {
+          await Promise.allSettled(
+            docsToUpload.map((d) => {
+              const fd = new FormData();
+              fd.append("employeeId", initialData.id);
+              fd.append("category", d.category);
+              fd.append("title", d.title);
+              fd.append("file", d.file);
+              return uploadEmployeeDocumentAction(fd);
+            }),
+          );
+        }
+
+        setIsSubmitting(false);
         router.push(`/karyawan/${initialData.id}`);
         router.refresh();
       } else {
@@ -1909,117 +2152,466 @@ export function WizardEmployeeForm({
 
         {/* STEP 4: PERBANKAN & AKUN */}
         {currentStep === 4 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
-            <div className="md:col-span-2 pb-2 border-b border-slate-100">
-              <h3 className="font-bold text-base text-[#102E50] font-heading">
-                Perbankan, Data Sensitif & Akun Pengguna
-              </h3>
-              <p className="text-xs text-slate-500">
-                Data rekening payroll, dokumen kependudukan resmi terenkripsi (AES-256), dan akun login portal
-              </p>
-            </div>
-
-            {/* Identitas Resmi Kependudukan (Terenkripsi) */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Induk Kependudukan (NIK)
-              </label>
-              <input
-                type="text"
-                name="nik"
-                value={formData.nik}
-                onChange={handleChange}
-                placeholder={
-                  initialData?.hasNik ? "Sudah terenkripsi (isi untuk mengubah)" : "16 digit NIK"
-                }
-                maxLength={20}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Disimpan terenkripsi otomatis (AES-256-GCM) di database
+          <div className="flex flex-col gap-6 animate-in fade-in duration-200">
+            {/* Header Seksi */}
+            <div className="pb-3 border-b border-slate-100 flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-bold text-base text-[#102E50] font-heading flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-[#102E50]" />
+                  <span>Perbankan, Data Sensitif & Akun Pengguna</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Lengkapi data rekening payroll, dokumen kependudukan resmi terenkripsi (AES-256), kartu jaminan sosial BPJS, dan akun login portal.
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-sky-800 bg-sky-100/70 px-2.5 py-1 rounded-md border border-sky-200/60 shrink-0">
+                Langkah 4 dari 4
               </span>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Pokok Wajib Pajak (NPWP)
-              </label>
-              <input
-                type="text"
-                name="npwp"
-                value={formData.npwp}
-                onChange={handleChange}
-                placeholder={
-                  initialData?.hasNpwp
-                    ? "Sudah terenkripsi (isi untuk mengubah)"
-                    : "15 / 16 digit NPWP"
-                }
-                maxLength={25}
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Disimpan terenkripsi otomatis (AES-256-GCM) di database
-              </span>
+            {/* Peringatan jika ada berkas gagal diunggah */}
+            {uploadWarningMessage && (
+              <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-xl flex items-start gap-2 shadow-xs">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>{uploadWarningMessage}</span>
+              </div>
+            )}
+
+            {/* KARTU 1: IDENTITAS RESMI KEPENDUDUKAN & DOKUMEN BERPASANGAN */}
+            <div className="border border-slate-200/90 rounded-xl p-4 sm:p-5 bg-white shadow-2xs flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#102E50]/10 text-[#102E50] flex items-center justify-center shrink-0">
+                    <Key className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                      Identitas Resmi Kependudukan & Dokumen Terenkripsi
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      NIK, NPWP, atau Paspor otomatis diamankan dengan enkripsi standar militer AES-256-GCM.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  AES-256 Terenkripsi
+                </span>
+              </div>
+
+              {/* Baris 1: NIK atau Paspor/KITAS Berpasangan dengan Dokumen Upload */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.citizenship === "WNA" ? (
+                  <>
+                    <div className="flex flex-col gap-1.5 justify-center">
+                      <label className="text-xs font-semibold text-slate-700">
+                        Nomor Paspor / KITAS <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="passportKitas"
+                        value={formData.passportKitas || ""}
+                        onChange={handleChange}
+                        placeholder={
+                          initialData?.hasPassportKitas
+                            ? "Sudah terenkripsi (isi untuk mengubah)"
+                            : "Nomor Paspor atau kartu KITAS aktif"
+                        }
+                        className="w-full px-3 py-2 text-xs font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                      <span className="text-[10px] text-slate-400">
+                        Wajib untuk pegawai berstatus Warga Negara Asing (WNA)
+                      </span>
+                    </div>
+
+                    <DocumentUploadCard
+                      label="Foto / Berkas Paspor atau KITAS"
+                      description="Halaman identitas paspor atau dokumen izin tinggal resmi"
+                      required={true}
+                      value={docKtp}
+                      onChange={setDocKtp}
+                      maxSizeMB={5}
+                      accept="application/pdf,image/jpeg,image/png"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-1.5 justify-center">
+                      <label className="text-xs font-semibold text-slate-700">
+                        Nomor Induk Kependudukan (NIK) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="nik"
+                        value={formData.nik}
+                        onChange={(e) => {
+                          const numOnly = e.target.value.replace(/\D/g, "");
+                          setFormData((prev) => ({ ...prev, nik: numOnly }));
+                        }}
+                        maxLength={16}
+                        placeholder={
+                          initialData?.hasNik
+                            ? "Sudah terenkripsi (isi untuk mengubah)"
+                            : "16 digit NIK sesuai KTP"
+                        }
+                        className="w-full px-3 py-2 text-xs font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                      <span className="text-[10px] text-slate-400">
+                        16 digit angka resmi kependudukan Indonesia
+                      </span>
+                    </div>
+
+                    <DocumentUploadCard
+                      label="Foto Kartu Tanda Penduduk (KTP)"
+                      description="Foto e-KTP jelas & terbaca untuk verifikasi identitas resmi"
+                      required={true}
+                      value={docKtp}
+                      onChange={setDocKtp}
+                      maxSizeMB={5}
+                      accept="application/pdf,image/jpeg,image/png"
+                    />
+                  </>
+                )}
+              </div>
+
+              {/* Baris 2: NPWP Berpasangan dengan Dokumen Upload */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+                <div className="flex flex-col gap-1.5 justify-center">
+                  <label className="text-xs font-semibold text-slate-700">
+                    Nomor Pokok Wajib Pajak (NPWP)
+                  </label>
+                  <input
+                    type="text"
+                    name="npwp"
+                    value={formData.npwp}
+                    onChange={handleChange}
+                    maxLength={25}
+                    placeholder={
+                      initialData?.hasNpwp
+                        ? "Sudah terenkripsi (isi untuk mengubah)"
+                        : "15 atau 16 digit NPWP"
+                    }
+                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[10px] text-slate-400">
+                    Jika diisi, wajib melampirkan foto kartu NPWP di sebelah kanan
+                  </span>
+                </div>
+
+                <DocumentUploadCard
+                  label="Foto / Salinan Kartu NPWP"
+                  description="Kartu fisik NPWP atau bukti konfirmasi NPWP elektronik (DJP)"
+                  required={Boolean(formData.npwp && formData.npwp.trim() !== "")}
+                  value={docNpwp}
+                  onChange={setDocNpwp}
+                  maxSizeMB={5}
+                  accept="application/pdf,image/jpeg,image/png"
+                />
+              </div>
             </div>
 
-            {/* Rekening Bank Payroll */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Bank Payroll
-              </label>
-              <select
-                name="bankName"
-                value={formData.bankName}
-                onChange={handleChange}
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              >
-                <option value="">-- Pilih Bank Payroll --</option>
-                <option value="Bank Mandiri">Bank Mandiri</option>
-                <option value="Bank BCA">Bank BCA</option>
-                <option value="Bank BNI">Bank BNI</option>
-                <option value="Bank BRI">Bank BRI</option>
-                <option value="Bank BSI">Bank BSI (Syariah)</option>
-                <option value="Bank CIMB Niaga">Bank CIMB Niaga</option>
-                <option value="Bank Permata">Bank Permata</option>
-                <option value="Bank Danamon">Bank Danamon</option>
-                <option value="Bank Lainnya">Bank Lainnya</option>
-              </select>
+            {/* KARTU 2: REKENING BANK PAYROLL & BUKU TABUNGAN */}
+            <div className="border border-slate-200/90 rounded-xl p-4 sm:p-5 bg-white shadow-2xs flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#102E50]/10 text-[#102E50] flex items-center justify-center shrink-0">
+                    <Receipt className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                      Rekening Bank Payroll & Buku Tabungan
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Rekening tujuan pencairan gaji bulanan dan bukti buku tabungan resmi.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  Payroll Disbursement
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Kolom Kiri: Form Rekening */}
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Nama Bank Payroll <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="bankName"
+                      value={formData.bankName}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    >
+                      <option value="">-- Pilih Bank Payroll --</option>
+                      <option value="Bank Mandiri">Bank Mandiri</option>
+                      <option value="Bank BCA">Bank BCA</option>
+                      <option value="Bank BNI">Bank BNI</option>
+                      <option value="Bank BRI">Bank BRI</option>
+                      <option value="Bank BSI">Bank BSI (Syariah)</option>
+                      <option value="Bank CIMB Niaga">Bank CIMB Niaga</option>
+                      <option value="Bank Permata">Bank Permata</option>
+                      <option value="Bank Danamon">Bank Danamon</option>
+                      <option value="Bank Lainnya">Bank Lainnya</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Nomor Rekening Bank <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankAccount"
+                      value={formData.bankAccount}
+                      onChange={handleChange}
+                      placeholder={
+                        initialData?.hasBankAccount
+                          ? "Sudah terenkripsi (isi untuk mengubah)"
+                          : "Contoh: 1230009876543"
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">
+                      Disimpan terenkripsi otomatis (AES-256)
+                    </span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Nama Pemilik Rekening (Sesuai Buku Tabungan) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="bankAccountName"
+                      value={formData.bankAccountName}
+                      onChange={handleChange}
+                      placeholder="Nama lengkap sesuai yang tertera di rekening"
+                      className="w-full px-3 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
+                </div>
+
+                {/* Kolom Kanan: Upload Buku Tabungan */}
+                <div className="flex flex-col justify-start">
+                  <DocumentUploadCard
+                    label="Foto Buku Tabungan / Halaman Depan Rekening"
+                    description="Foto halaman buku tabungan atau tangkapan layar e-statement yang memuat nomor rekening dan nama pemilik"
+                    required={true}
+                    value={docBankBook}
+                    onChange={setDocBankBook}
+                    maxSizeMB={5}
+                    accept="application/pdf,image/jpeg,image/png"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Rekening Bank
-              </label>
-              <input
-                type="text"
-                name="bankAccount"
-                value={formData.bankAccount}
-                onChange={handleChange}
-                placeholder={
-                  initialData?.hasBankAccount
-                    ? "Sudah terenkripsi (isi untuk mengubah)"
-                    : "Nomor rekening payroll"
-                }
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
+            {/* KARTU 3: JAMINAN SOSIAL & KETENAGAKERJAAN (BPJS) */}
+            <div className="border border-slate-200/90 rounded-xl p-4 sm:p-5 bg-white shadow-2xs flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#102E50]/10 text-[#102E50] flex items-center justify-center shrink-0">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                      Jaminan Sosial Ketenagakerjaan & Kesehatan (BPJS)
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Nomor kepesertaan dan kartu BPJS Kesehatan serta BPJS Ketenagakerjaan (Disarankan).
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Program Jamsostek
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* BPJS Kesehatan */}
+                <div className="flex flex-col gap-2.5 p-3 rounded-lg border border-slate-200/80 bg-slate-50/30">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Nomor BPJS Kesehatan (13 Digit)
+                    </label>
+                    <input
+                      type="text"
+                      name="bpjsKesehatanNo"
+                      value={formData.bpjsKesehatanNo || ""}
+                      onChange={(e) => {
+                        const numOnly = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, bpjsKesehatanNo: numOnly }));
+                      }}
+                      maxLength={13}
+                      placeholder={
+                        initialData?.hasBpjsKes
+                          ? "Sudah terenkripsi (isi untuk mengubah)"
+                          : "Contoh: 0001234567890"
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
+                  <DocumentUploadCard
+                    label="Kartu BPJS Kesehatan"
+                    description="Kartu fisik atau kartu digital e-ID BPJS Kesehatan"
+                    required={false}
+                    value={docBpjsKes}
+                    onChange={setDocBpjsKes}
+                    maxSizeMB={5}
+                    accept="application/pdf,image/jpeg,image/png"
+                  />
+                </div>
+
+                {/* BPJS Ketenagakerjaan */}
+                <div className="flex flex-col gap-2.5 p-3 rounded-lg border border-slate-200/80 bg-slate-50/30">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Nomor BPJS Ketenagakerjaan (11 Digit)
+                    </label>
+                    <input
+                      type="text"
+                      name="bpjsKetenagakerjaanNo"
+                      value={formData.bpjsKetenagakerjaanNo || ""}
+                      onChange={(e) => {
+                        const numOnly = e.target.value.replace(/\D/g, "");
+                        setFormData((prev) => ({ ...prev, bpjsKetenagakerjaanNo: numOnly }));
+                      }}
+                      maxLength={11}
+                      placeholder={
+                        initialData?.hasBpjsTk
+                          ? "Sudah terenkripsi (isi untuk mengubah)"
+                          : "Contoh: 12345678901"
+                      }
+                      className="w-full px-3 py-2 text-xs font-mono bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                    />
+                  </div>
+                  <DocumentUploadCard
+                    label="Kartu BPJS Ketenagakerjaan"
+                    description="Kartu peserta KPJ atau kartu digital Jamsostek"
+                    required={false}
+                    value={docBpjsTk}
+                    onChange={setDocBpjsTk}
+                    maxSizeMB={5}
+                    accept="application/pdf,image/jpeg,image/png"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nama Pemilik Rekening (Sesuai Buku Tabungan)
-              </label>
-              <input
-                type="text"
-                name="bankAccountName"
-                value={formData.bankAccountName}
-                onChange={handleChange}
-                placeholder="Nama pemilik rekening bank"
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
+            {/* KARTU 4: BERKAS & DOKUMEN PENDUKUNG LAINNYA (OPSIONAL) */}
+            <div className="border border-slate-200/90 rounded-xl p-4 sm:p-5 bg-white shadow-2xs flex flex-col gap-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#102E50]/10 text-[#102E50] flex items-center justify-center shrink-0">
+                    <FileText className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                      Berkas & Dokumen Pendukung Tambahan (Opsional)
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      SKCK, Surat Keterangan Sehat, atau berkas pendukung lainnya.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200/80">
+                  Opsional
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DocumentUploadCard
+                  label="Surat Keterangan Catatan Kepolisian (SKCK)"
+                  description="SKCK yang masih berlaku dari kepolisian (PDF / JPG maks 5 MB)"
+                  required={false}
+                  value={docSkck}
+                  onChange={setDocSkck}
+                  maxSizeMB={5}
+                  accept="application/pdf,image/jpeg,image/png"
+                />
+
+                <DocumentUploadCard
+                  label="Surat Keterangan Sehat / Bebas Narkoba"
+                  description="Surat keterangan sehat dokter atau klinik (PDF / JPG maks 5 MB)"
+                  required={false}
+                  value={docHealthCert}
+                  onChange={setDocHealthCert}
+                  maxSizeMB={5}
+                  accept="application/pdf,image/jpeg,image/png"
+                />
+              </div>
+
+              {/* Dokumen Tambahan Lainnya (Multi-berkas) */}
+              <div className="pt-3 border-t border-slate-100 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-800">
+                      Dokumen Lainnya
+                    </h5>
+                    <p className="text-[11px] text-slate-500">
+                      Unggah berkas lain seperti sertifikat keahlian, rekomendasi, atau portofolio.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddAdditionalDoc}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Tambah Berkas Lainnya</span>
+                  </button>
+                </div>
+
+                {additionalDocs.length > 0 && (
+                  <div className="flex flex-col gap-3">
+                    {additionalDocs.map((docItem, index) => (
+                      <div
+                        key={docItem.id}
+                        className="p-3 rounded-lg border border-slate-200 bg-slate-50/40 flex flex-col gap-2.5"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <input
+                            type="text"
+                            value={docItem.title}
+                            onChange={(e) =>
+                              handleUpdateAdditionalDocTitle(docItem.id, e.target.value)
+                            }
+                            placeholder={`Nama / Keterangan Dokumen #${index + 1} (contoh: Portofolio Riset)`}
+                            className="text-xs font-semibold px-2.5 py-1.5 rounded border border-slate-200 bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#102E50] w-full sm:w-1/2"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAdditionalDoc(docItem.id)}
+                            className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 font-semibold shrink-0"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
+                        <DocumentUploadCard
+                          label={docItem.title || `Berkas #${index + 1}`}
+                          required={false}
+                          value={{
+                            file: docItem.file,
+                            fileName: docItem.fileName,
+                            fileSize: docItem.fileSize,
+                            status: docItem.status,
+                            error: docItem.error,
+                          }}
+                          onChange={(fs) => handleUpdateAdditionalDocFile(docItem.id, fs)}
+                          maxSizeMB={10}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* KARTU 5: PEMBUATAN AKUN PENGGUNA PORTAL HRIS */}
             {mode === "create" && (
-              <div className="md:col-span-2 p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-blue-200/60 flex flex-col gap-4">
+              <div className="p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border border-blue-200/60 flex flex-col gap-4 shadow-2xs">
                 <div className="flex items-start gap-3">
                   <input
                     type="checkbox"
@@ -2059,7 +2651,7 @@ export function WizardEmployeeForm({
                         name="accountRole"
                         value={formData.accountRole}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                       >
                         {availableRoles.map((r) => (
                           <option key={r.key} value={r.key}>
@@ -2068,8 +2660,7 @@ export function WizardEmployeeForm({
                         ))}
                       </select>
                       <span className="text-[11px] text-slate-500 mt-1 block">
-                        Peran ini menentukan hak akses serta menu yang dapat dibuka oleh staf di
-                        dalam portal.
+                        Peran ini menentukan hak akses serta menu yang dapat dibuka oleh staf di dalam portal.
                       </span>
                     </div>
 
@@ -2120,7 +2711,7 @@ export function WizardEmployeeForm({
               </div>
             )}
 
-            {/* Ringkasan Konfirmasi Data Sebelum Simpan */}
+            {/* KARTU 6: RINGKASAN KELENGKAPAN BERKAS & KONFIRMASI DATA */}
             {(() => {
               const currentDept = departments.find((d) => d.id === formData.currentDepartmentId);
               const currentPos = currentDept?.positions.find((p) => p.id === formData.currentPositionId);
@@ -2139,119 +2730,176 @@ export function WizardEmployeeForm({
               const thpFinal = Math.max(0, totalGross - estBpjs - pphDeduction);
               const selectedPtkp = getPtkpExplanation(formData.ptkpStatus);
 
+              const isWna = formData.citizenship === "WNA";
+              const checklistItems: ChecklistDocItem[] = [
+                {
+                  id: "ktp",
+                  label: isWna ? "No. Paspor / KITAS & Dokumen" : "Foto KTP (Identitas Resmi)",
+                  step: 4,
+                  isRequired: true,
+                  isUploaded: isWna
+                    ? Boolean(formData.passportKitas || docKtp.file || initialData?.hasPassportKitas)
+                    : Boolean(docKtp.file || initialData?.hasNik),
+                },
+                {
+                  id: "bank_book",
+                  label: "Foto Buku Tabungan / Bukti Rekening",
+                  step: 4,
+                  isRequired: true,
+                  isUploaded: Boolean(docBankBook.file || initialData?.hasBankAccount),
+                },
+                {
+                  id: "npwp",
+                  label: "Foto Kartu NPWP",
+                  step: 4,
+                  isRequired: Boolean(formData.npwp && formData.npwp.trim() !== ""),
+                  isUploaded: Boolean(docNpwp.file || initialData?.hasNpwp),
+                },
+                {
+                  id: "bpjs_kes",
+                  label: "Kartu BPJS Kesehatan",
+                  step: 4,
+                  isRequired: false,
+                  isUploaded: Boolean(docBpjsKes.file || initialData?.hasBpjsKes),
+                },
+                {
+                  id: "bpjs_tk",
+                  label: "Kartu BPJS Ketenagakerjaan",
+                  step: 4,
+                  isRequired: false,
+                  isUploaded: Boolean(docBpjsTk.file || initialData?.hasBpjsTk),
+                },
+                {
+                  id: "contract",
+                  label: "Dokumen Kontrak Kerja / PKWT",
+                  step: 3,
+                  isRequired: formData.employmentType === "FIXED_TERM",
+                  isUploaded: Boolean(contractFile || formData.contractDocumentKey),
+                },
+              ];
+
               return (
-                <div className="md:col-span-2 p-5 bg-gradient-to-br from-slate-50 via-white to-sky-50/50 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col gap-3.5">
-                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                    <div className="flex items-center gap-2">
-                      <FileCheck className="w-4 h-4 text-[#102E50]" />
-                      <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
-                        Konfirmasi Ringkasan Data {mode === "create" ? "Pendaftaran" : "Pembaruan"} Pegawai
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-semibold text-sky-800 bg-sky-100/70 px-2 py-0.5 rounded-md border border-sky-200/60">
-                      Langkah Terakhir (4 dari 4)
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-4">
+                  {/* Kartu Ringkasan Checklist Dokumen */}
+                  <DocumentChecklistSummary
+                    items={checklistItems}
+                    onJumpToStep={(stepNumber) => setCurrentStep(stepNumber)}
+                  />
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                    {/* Kolom 1: Profil & Penempatan */}
-                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Identitas & Penempatan
-                      </span>
-                      <span className="font-bold text-slate-900 text-xs truncate">
-                        {formData.fullName || "(Belum diisi)"}
-                      </span>
-                      <span className="text-[11px] text-slate-500 font-mono">
-                        NIP: {formData.employeeNo || "-"}
-                      </span>
-                      <span className="text-[11px] text-slate-600 truncate">
-                        {currentDept?.name || "Divisi belum dipilih"}
-                      </span>
-                      <span className="text-[11px] font-semibold text-[#102E50] truncate">
-                        {currentPos?.title || "Posisi belum dipilih"}
+                  {/* Kartu Konfirmasi Data 4 Kolom */}
+                  <div className="p-5 bg-gradient-to-br from-slate-50 via-white to-sky-50/50 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col gap-3.5">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <FileCheck className="w-4 h-4 text-[#102E50]" />
+                        <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                          Konfirmasi Ringkasan Data {mode === "create" ? "Pendaftaran" : "Pembaruan"} Pegawai
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                        Siap Disimpan
                       </span>
                     </div>
 
-                    {/* Kolom 2: Paket Kompensasi & Estimasi THP */}
-                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Paket Kompensasi & THP
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 text-[11px]">Gaji Pokok:</span>
-                        <span className="font-semibold text-slate-900 font-mono text-[11px]">
-                          {formatRupiah(base)}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                      {/* Kolom 1: Profil & Penempatan */}
+                      <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Identitas & Penempatan
+                        </span>
+                        <span className="font-bold text-slate-900 text-xs truncate">
+                          {formData.fullName || "(Belum diisi)"}
+                        </span>
+                        <span className="text-[11px] text-slate-500 font-mono">
+                          NIP: {formData.employeeNo || "-"}
+                        </span>
+                        <span className="text-[11px] text-slate-600 truncate">
+                          {currentDept?.name || "Divisi belum dipilih"}
+                        </span>
+                        <span className="text-[11px] font-semibold text-[#102E50] truncate">
+                          {currentPos?.title || "Posisi belum dipilih"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 text-[11px]">Tunjangan:</span>
-                        <span className="font-semibold text-emerald-700 font-mono text-[11px]">
-                          + {formatRupiah(totalAllowances)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 text-[11px]">Total Bruto:</span>
-                        <span className="font-bold text-slate-900 font-mono text-[11px]">
-                          {formatRupiah(totalGross)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
-                        <span className="font-bold text-emerald-800 text-[11px]">Est. THP Bersih:</span>
-                        <span className="font-bold text-emerald-700 font-mono text-xs">
-                          {formatRupiah(thpFinal)}
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* Kolom 3: Perpajakan & Payroll */}
-                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Pajak & Rekening Payroll
-                      </span>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 text-[11px]">PTKP:</span>
-                        <span className="font-semibold text-slate-900 text-[11px]">
-                          {formData.ptkpStatus.replace("_", "/")} ({selectedPtkp?.terCategory || "TER A"})
+                      {/* Kolom 2: Paket Kompensasi & Estimasi THP */}
+                      <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Paket Kompensasi & THP
                         </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500 text-[11px]">Metode:</span>
-                        <span className="font-semibold text-[#102E50] text-[11px]">
-                          {formData.taxMethod}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
-                        <span className="text-slate-500 text-[11px]">Bank:</span>
-                        <span className="font-semibold text-slate-800 text-[11px] truncate">
-                          {formData.bankName || "Belum dipilih"}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Kolom 4: Akun & Hak Akses */}
-                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Akun & Akses Sistem
-                      </span>
-                      {formData.createUserAccount ? (
-                        <>
-                          <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Buat Akun Otomatis
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">Gaji Pokok:</span>
+                          <span className="font-semibold text-slate-900 font-mono text-[11px]">
+                            {formatRupiah(base)}
                           </span>
-                          <span className="text-[11px] text-slate-600 font-mono truncate">
-                            {formData.workEmail || "-"}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">Tunjangan:</span>
+                          <span className="font-semibold text-emerald-700 font-mono text-[11px]">
+                            + {formatRupiah(totalAllowances)}
                           </span>
-                          <span className="text-[11px] text-slate-700 font-semibold capitalize mt-0.5">
-                            Role: {formData.accountRole.replace("_", " ")}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">Total Bruto:</span>
+                          <span className="font-bold text-slate-900 font-mono text-[11px]">
+                            {formatRupiah(totalGross)}
                           </span>
-                        </>
-                      ) : (
-                        <span className="text-[11px] text-slate-500 italic">
-                          Tanpa pembuatan akun otomatis
+                        </div>
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
+                          <span className="font-bold text-emerald-800 text-[11px]">Est. THP Bersih:</span>
+                          <span className="font-bold text-emerald-700 font-mono text-xs">
+                            {formatRupiah(thpFinal)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Kolom 3: Perpajakan & Payroll */}
+                      <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Pajak & Rekening Payroll
                         </span>
-                      )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">PTKP:</span>
+                          <span className="font-semibold text-slate-900 text-[11px]">
+                            {formData.ptkpStatus.replace("_", "/")} ({selectedPtkp?.terCategory || "TER A"})
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">Metode:</span>
+                          <span className="font-semibold text-[#102E50] text-[11px]">
+                            {formData.taxMethod}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
+                          <span className="text-slate-500 text-[11px]">Bank:</span>
+                          <span className="font-semibold text-slate-800 text-[11px] truncate">
+                            {formData.bankName || "Belum dipilih"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Kolom 4: Akun & Hak Akses */}
+                      <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          Akun & Akses Sistem
+                        </span>
+                        {formData.createUserAccount ? (
+                          <>
+                            <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Buat Akun Otomatis
+                            </span>
+                            <span className="text-[11px] text-slate-600 font-mono truncate">
+                              {formData.workEmail || "-"}
+                            </span>
+                            <span className="text-[11px] text-slate-700 font-semibold capitalize mt-0.5">
+                              Role: {formData.accountRole.replace("_", " ")}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-slate-500 italic">
+                            Tanpa pembuatan akun otomatis
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import { prisma, writeAudit } from "@pspk/db";
+import { prisma, writeAudit, Religion, Citizenship, BloodType } from "@pspk/db";
 import { encryptField, decryptField } from "@pspk/shared";
 import { hashPassword } from "@pspk/auth";
 import {
@@ -197,9 +197,9 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
         status: data.status,
         managerId: data.managerId || null,
-        religion: (data.religion as any) || null,
-        citizenship: (data.citizenship as any) || "WNI",
-        bloodType: (data.bloodType as any) || null,
+        religion: data.religion ? (data.religion as Religion) : null,
+        citizenship: (data.citizenship as Citizenship) || Citizenship.WNI,
+        bloodType: data.bloodType ? (data.bloodType as BloodType) : null,
         motherName: data.motherName?.trim() || null,
         landlinePhone: data.landlinePhone?.trim() || null,
         emergencyContactRelation: data.emergencyContactRelation?.trim() || null,
@@ -227,6 +227,7 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
     const newContract = await tx.employmentContract.create({
       data: {
         employeeId: newEmployee.id,
+        contractNo: data.contractNumber?.trim() || null,
         type: data.employmentType,
         employmentTypeId:
           data.employmentTypeId && data.employmentTypeId.trim() !== ""
@@ -401,6 +402,21 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
     bankAccountEnc = encryptField(data.bankAccount.trim());
   }
 
+  let passportKitasEnc = current.passportKitasEnc;
+  if (data.passportKitas && data.passportKitas.trim() !== "") {
+    passportKitasEnc = encryptField(data.passportKitas.trim());
+  }
+
+  let bpjsKesNoEnc = current.bpjsKesNoEnc;
+  if (data.bpjsKesehatanNo && data.bpjsKesehatanNo.trim() !== "") {
+    bpjsKesNoEnc = encryptField(data.bpjsKesehatanNo.trim());
+  }
+
+  let bpjsTkNoEnc = current.bpjsTkNoEnc;
+  if (data.bpjsKetenagakerjaanNo && data.bpjsKetenagakerjaanNo.trim() !== "") {
+    bpjsTkNoEnc = encryptField(data.bpjsKetenagakerjaanNo.trim());
+  }
+
   // Check if manager changed
   const normalizedNewManagerId = data.managerId?.trim() ? data.managerId.trim() : null;
   const isManagerChanged = normalizedNewManagerId !== (current.managerId || null);
@@ -482,9 +498,9 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
         status: data.status,
         managerId: normalizedNewManagerId,
-        religion: (data.religion as any) || null,
-        citizenship: (data.citizenship as any) || "WNI",
-        bloodType: (data.bloodType as any) || null,
+        religion: data.religion ? (data.religion as Religion) : null,
+        citizenship: (data.citizenship as Citizenship) || Citizenship.WNI,
+        bloodType: data.bloodType ? (data.bloodType as BloodType) : null,
         motherName: data.motherName?.trim() || null,
         landlinePhone: data.landlinePhone?.trim() || null,
         emergencyContactRelation: data.emergencyContactRelation?.trim() || null,
@@ -521,6 +537,10 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         where: { id: activeContract.id },
         data: {
           type: data.employmentType,
+          contractNo:
+            data.contractNumber !== undefined
+              ? data.contractNumber?.trim() || null
+              : activeContract.contractNo,
           employmentTypeId:
             data.employmentTypeId && data.employmentTypeId.trim() !== ""
               ? data.employmentTypeId
@@ -549,6 +569,7 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         data: {
           employeeId: data.id,
           type: data.employmentType,
+          contractNo: data.contractNumber?.trim() || null,
           employmentTypeId:
             data.employmentTypeId && data.employmentTypeId.trim() !== ""
               ? data.employmentTypeId
