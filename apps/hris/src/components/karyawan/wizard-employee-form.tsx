@@ -29,6 +29,7 @@ import {
   FileCheck,
   Trash2,
   Download,
+  Receipt,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -40,7 +41,7 @@ import {
 import { createEmploymentTypeAction } from "@/server/actions/employment-type.actions";
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
-import { EmployeeStatus, EmploymentType, Gender, MaritalStatus } from "@pspk/db";
+import { EmployeeStatus, EmploymentType, Gender, MaritalStatus, PtkpStatus, TaxMethod } from "@pspk/db";
 import { toDateString } from "@pspk/shared";
 
 interface DepartmentOption {
@@ -96,6 +97,8 @@ export interface InitialEmployeeData {
   status: EmployeeStatus;
   bankName?: string | null;
   bankAccountName?: string | null;
+  ptkpStatus?: PtkpStatus | null;
+  taxMethod?: TaxMethod | null;
   hasNik?: boolean;
   hasNpwp?: boolean;
   hasBankAccount?: boolean;
