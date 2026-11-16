@@ -1,5 +1,5 @@
 import React from "react";
-import { EmployeeStatus, EmploymentType } from "@pspk/db";
+import { EmployeeStatus, EmploymentType, PtkpStatus, TaxMethod } from "@pspk/db";
 
 interface StatusBadgeProps {
   status: EmployeeStatus | string;
@@ -108,4 +108,58 @@ export function ContractTypeBadge({ type, label }: ContractTypeBadgeProps) {
         </span>
       );
   }
+}
+
+interface PtkpBadgeProps {
+  status: PtkpStatus | string;
+  size?: "sm" | "md";
+}
+
+export function PtkpBadge({ status, size = "md" }: PtkpBadgeProps) {
+  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs";
+  const formatted = status.replace("_", "/");
+  const terCategory =
+    status === "K_3"
+      ? "TER C"
+      : ["TK_2", "TK_3", "K_1", "K_2"].includes(status)
+        ? "TER B"
+        : "TER A";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full font-semibold bg-sky-50 text-sky-800 border border-sky-200 ${sizeClasses}`}
+      title={`Status PTKP ${formatted} (Kategori ${terCategory} PP 58/2023)`}
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+      <span>PTKP {formatted}</span>
+      <span className="text-[10px] bg-sky-100 text-sky-900 px-1.5 py-0.2 rounded font-mono font-bold">
+        {terCategory}
+      </span>
+    </span>
+  );
+}
+
+interface TaxMethodBadgeProps {
+  method: TaxMethod | string;
+  size?: "sm" | "md";
+}
+
+export function TaxMethodBadge({ method, size = "md" }: TaxMethodBadgeProps) {
+  const sizeClasses = size === "sm" ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs";
+  const label =
+    method === "GROSS_UP"
+      ? "Gross Up"
+      : method === "NETT"
+        ? "Nett"
+        : "Gross";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full font-semibold bg-purple-50 text-purple-800 border border-purple-200 ${sizeClasses}`}
+      title={`Metode Pajak: ${label}`}
+    >
+      <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
+      <span>{label}</span>
+    </span>
+  );
 }

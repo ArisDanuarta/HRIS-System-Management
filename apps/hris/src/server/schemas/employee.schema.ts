@@ -16,6 +16,19 @@ export const EmploymentTypeEnum = z.enum(["PERMANENT", "FIXED_TERM", "PART_TIME_
 
 export const AccountRoleEnum = z.enum(["staff", "manager", "admin_hr", "admin_it"]);
 
+export const PtkpStatusEnum = z.enum([
+  "TK_0",
+  "TK_1",
+  "TK_2",
+  "TK_3",
+  "K_0",
+  "K_1",
+  "K_2",
+  "K_3",
+]);
+
+export const TaxMethodEnum = z.enum(["GROSS", "GROSS_UP", "NETT"]);
+
 export const baseEmployeeSchema = z.object({
   fullName: z.string().min(3, "Nama lengkap minimal 3 karakter"),
   nickname: z.string().optional(),
@@ -57,6 +70,8 @@ export const baseEmployeeSchema = z.object({
   contractDocumentKey: z.string().optional().nullable().or(z.literal("")),
   nik: z.string().max(20, "NIK maksimal 20 digit").optional().or(z.literal("")),
   npwp: z.string().max(25, "NPWP maksimal 25 digit").optional().or(z.literal("")),
+  ptkpStatus: PtkpStatusEnum.default("TK_0"),
+  taxMethod: TaxMethodEnum.default("GROSS"),
   bankName: z.string().optional(),
   bankAccount: z.string().optional(),
   bankAccountName: z.string().optional(),
