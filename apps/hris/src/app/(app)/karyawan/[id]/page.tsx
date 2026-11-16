@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { formatDate } from "@pspk/shared";
+import { formatDate, formatRupiah } from "@pspk/shared";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma, getModuleFlags, isModuleActive } from "@pspk/db";
 import type { Metadata } from "next";
@@ -767,26 +767,206 @@ export default async function EmployeeDetailPage({
         </div>
       )}
 
-      {/* TAB 3: KONTRAK KERJA */}
+      {/* TAB 3: KONTRAK KERJA & STRUKTUR KOMPENSASI */}
       {effectiveTab === "kontrak" && (
-        <EmployeeContractsTable
-          employeeId={employee.id}
-          employeeName={employee.fullName}
-          isHrOrAdmin={isHrOrAdmin}
-          contracts={employee.contracts.map((c) => ({
-            id: c.id,
-            type: c.type,
-            wageType: c.wageType,
-            hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
-            baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
-            startDate: c.startDate,
-            endDate: c.endDate,
-            status: c.status,
-            documentKey: c.documentKey,
-            notes: c.notes,
-            employmentTypeMaster: c.employmentTypeMaster,
-          }))}
-        />
+        <div className="flex flex-col gap-6 w-full min-w-0">
+          {/* Kartu Ringkasan Struktur Kompensasi & Paket Penggajian (Khusus HR / Admin) */}
+          {isHrOrAdmin && (
+            <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Receipt className="w-5 h-5 text-[#102E50]" />
+                  <div>
+                    <h3 className="font-bold text-sm text-[#102E50] font-heading">
+                      Struktur Kompensasi & Paket Penggajian Aktif
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Rincian gaji pokok dan tunjangan bulanan resmi yang melekat pada kontrak kerja staf
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href={`/karyawan/${employee.id}/ubah`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#102E50] bg-slate-100 hover:bg-slate-200/80 transition-colors"
+                >
+                  <Edit className="w-3.5 h-3.5" />
+                  <span>Ubah Kompensasi</span>
+                </Link>
+              </div>
+
+              {(() => {
+                const baseSalary =
+                  activeContract?.wageType === "HOURLY"
+                    ? 0
+                    : activeContract?.baseSalary
+                      ? Number(activeContract.baseSalary)
+                      : 0;
+                const hourlyRate =
+                  activeContract?.wageType === "HOURLY" && activeContract?.hourlyRate
+                    ? Number(activeContract.hourlyRate)
+                    : null;
+                const allowances = employee.salaryComponents || [];
+                const totalAllowances = allowances.reduce((acc, c) => acc + c.amount, 0);
+                const totalGrossCash = baseSalary + totalAllowances;
+                const estBpjsKes = Math.round(baseSalary * 0.01);
+                const estBpjsTk = Math.round(baseSalary * 0.02);
+
+                return (
+                  <div className="flex flex-col gap-4">
+                    {/* Ringkasan Angka Utama */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          {activeContract?.wageType === "HOURLY" ? "Tarif Upah Per Jam" : "Gaji Pokok Bulanan"}
+                        </span>
+                        <div className="mt-2">
+                          <span className="text-lg font-bold font-mono text-[#102E50]">
+                            {activeContract?.wageType === "HOURLY"
+                              ? `${formatRupiah(hourlyRate || 0)} / jam`
+                              : formatRupiah(baseSalary)}
+                          </span>
+                          <span className="text-[11px] text-slate-500 block mt-0.5">
+                            {activeContract?.wageType === "HOURLY"
+                              ? "Berbasis timesheet kehadiran disetujui"
+                              : "Gaji pokok kontrak kerja aktif"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+                          Total Tunjangan Bulanan
+                        </span>
+                        <div className="mt-2">
+                          <span className="text-lg font-bold font-mono text-emerald-700">
+                            + {formatRupiah(totalAllowances)}
+                          </span>
+                          <span className="text-[11px] text-emerald-600 block mt-0.5">
+                            {allowances.length > 0
+                              ? `${allowances.length} komponen tunjangan aktif`
+                              : "Tanpa tunjangan tambahan"}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200/80 flex flex-col justify-between">
+                        <span className="text-[11px] font-bold text-sky-800 uppercase tracking-wider">
+                          Estimasi Penghasilan Bruto Tunai
+                        </span>
+                        <div className="mt-2">
+                          <span className="text-lg font-bold font-mono text-sky-900">
+                            {formatRupiah(totalGrossCash)}
+                          </span>
+                          <span className="text-[11px] text-sky-700 block mt-0.5">
+                            Gaji Pokok + Total Tunjangan
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Breakdown Tunjangan & Potongan BPJS */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                      {/* Daftar Tunjangan */}
+                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white flex flex-col gap-2">
+                        <span className="font-bold text-[#102E50] text-xs pb-1.5 border-b border-slate-100 flex items-center justify-between">
+                          <span>Rincian Komponen Tunjangan</span>
+                          <span className="text-[11px] font-normal text-slate-400">
+                            {allowances.length} Item
+                          </span>
+                        </span>
+                        {allowances.length === 0 ? (
+                          <div className="py-4 text-center text-slate-400 italic">
+                            Pegawai ini tidak memiliki komponen tunjangan khusus.
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-slate-100">
+                            {allowances.map((item) => (
+                              <div
+                                key={item.id}
+                                className="py-2 flex items-center justify-between text-xs"
+                              >
+                                <div>
+                                  <span className="font-semibold text-slate-800 block">
+                                    {item.name}
+                                  </span>
+                                  <span className="text-[10px] text-slate-400 font-mono">
+                                    {item.code}
+                                  </span>
+                                </div>
+                                <span className="font-mono font-bold text-emerald-700">
+                                  {formatRupiah(item.amount)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Estimasi Potongan & Metadata Perpajakan */}
+                      <div className="p-3.5 rounded-xl border border-slate-200/80 bg-white flex flex-col gap-2.5">
+                        <span className="font-bold text-[#102E50] text-xs pb-1.5 border-b border-slate-100">
+                          Estimasi Iuran BPJS & Perpajakan (PP 58/2023)
+                        </span>
+
+                        <div className="space-y-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-600">Iuran BPJS Kesehatan Pegawai (1%):</span>
+                            <span className="font-mono font-semibold text-rose-600">
+                              - {formatRupiah(estBpjsKes)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-600">Iuran BPJS Ketenagakerjaan Pegawai (2%):</span>
+                            <span className="font-mono font-semibold text-rose-600">
+                              - {formatRupiah(estBpjsTk)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between pt-1 border-t border-slate-100">
+                            <span className="text-slate-600">Status PTKP & Kategori TER:</span>
+                            <span className="font-semibold text-slate-800">
+                              {employee.ptkpStatus ? employee.ptkpStatus.replace("_", "/") : "TK/0"} (
+                              {getPtkpExplanation(employee.ptkpStatus)?.terCategory || "TER A"})
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-600">Metode Pemotongan Pajak:</span>
+                            <span className="font-semibold text-[#102E50]">
+                              {employee.taxMethod || "GROSS"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="mt-auto p-2 bg-slate-50 rounded-lg text-[10.5px] text-slate-500 italic border border-slate-100">
+                          * Pajak PPh 21 dihitung otomatis setiap periode payroll berdasarkan status PTKP & aturan TER (PP 58/2023).
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Tabel Riwayat Kontrak Kerja */}
+          <EmployeeContractsTable
+            employeeId={employee.id}
+            employeeName={employee.fullName}
+            isHrOrAdmin={isHrOrAdmin}
+            contracts={employee.contracts.map((c) => ({
+              id: c.id,
+              type: c.type,
+              wageType: c.wageType,
+              hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
+              baseSalary: c.baseSalary ? Number(c.baseSalary) : null,
+              startDate: c.startDate,
+              endDate: c.endDate,
+              status: c.status,
+              documentKey: c.documentKey,
+              notes: c.notes,
+              employmentTypeMaster: c.employmentTypeMaster,
+            }))}
+          />
+        </div>
       )}
 
       {/* TAB 4: JABATAN & TIM */}

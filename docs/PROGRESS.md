@@ -4,6 +4,45 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Implementasi Kompensasi Satu Pintu & Pembersihan Komponen Gaji] — 2026-11-16
+
+- **Status:** Selesai Diimplementasikan & Terverifikasi (Seluruh 6 Task Tuntas 100%, 0 Error)
+- **Scope & Tujuan:**
+  1. Membersihkan komponen statis dummy dari master katalog Tata Kelola (`salary_components`): menonaktifkan `BASE_SALARY` (Rp 8 jt) dan `DED_PPH21` (Rp 150k), serta mereset `defaultValue` seluruh tunjangan master menjadi Rp 0 agar tidak bocor otomatis ke karyawan tanpa kontrak tertulis.
+  2. Menerapkan antarmuka penginputan paket kompensasi terpadu ("Satu Pintu") pada formulir pendaftaran dan pengubahan pegawai (`wizard-employee-form.tsx`).
+  3. Menghapus paksaan nilai dummy pada form karyawan (default `baseSalary: 10000000`, paksaan `bankName: "Bank Mandiri"`, dan catatan dummy).
+  4. Menyediakan kotak *Live Preview* kalkulasi kompensasi (Total Bruto Tunai, Estimasi Potongan BPJS Pegawai 1% Kes + 2% TK) di Langkah 3 serta Kartu Ringkasan Final Konfirmasi Pendaftaran di Langkah 4.
+  5. Menyinkronkan backend service (`employee.service.ts`), skema Zod (`employee.schema.ts`), kueri profil (`employee.queries.ts`), dan mesin penggajian (`payroll.service.ts`) agar tunjangan tersimpan dan ditarik spesifik per karyawan (`employee_salary_components`).
+  6. Menyajikan kartu *Struktur Kompensasi & Paket Penggajian Aktif* pada tab Kontrak & Kompensasi profil pegawai (`apps/hris/src/app/(app)/karyawan/[id]/page.tsx`).
+
+- **Pekerjaan yang Telah Selesai (6 Task):**
+  1. **Task 1 — Pembersihan Data Statis di Database & Tata Kelola:**
+     - Database `salary_components`: `BASE_SALARY` dan `DED_PPH21` diatur `isActive: false` dan `defaultValue: 0`.
+     - Tunjangan master (`ALLOWANCE_POSITION`, `ALLOWANCE_TRANSPORT`, `ALLOWANCE_COMMUNICATION`, `ALLOWANCE_OTHER`) diatur `defaultValue: 0`.
+     - BPJS Kesehatan (`DED_BPJS_KES`) dan Ketenagakerjaan (`DED_BPJS_TK`) dikonversi ke metode `PERCENT_OF_BASE` (1% dan 2%).
+     - Tabel master Tata Kelola (`salary-components-table.tsx`): difilter dari komponen usang, diberi label status `"Per Kontrak Pegawai (Rp 0)"`, dan dipasang banner panduan resmi bagi HR.
+  2. **Task 2 — Skema Zod & Backend Service Kompensasi Pegawai:**
+     - Menambahkan field `allowancePosition`, `allowanceTransport`, `allowanceCommunication`, `allowanceOther`, dan `allowanceOtherNote` pada `employee.schema.ts`.
+     - Memperbarui `createEmployee` dan `updateEmployee` di `employee.service.ts` untuk menyimpan atau meng-update tunjangan aktif ke tabel `employee_salary_components`.
+     - Memperbarui `getEmployeeById` di `employee.queries.ts` untuk memetakan `salaryComponents` berelasi lengkap dengan kode dan nama komponen.
+  3. **Task 3 — Antarmuka UI Kompensasi Satu Pintu (`wizard-employee-form.tsx`):**
+     - Menghapus default `baseSalary: 10000000` $\rightarrow$ diganti input fleksibel dengan placeholder informatif.
+     - Mengubah select `bankName` dengan opsi `-- Pilih Bank Payroll --` dan daftar bank umum nasional.
+     - Membuat seksi *Struktur Kompensasi & Paket Penggajian* di Langkah 3 (Gaji Pokok + 4 Tunjangan Perorangan + Live Preview).
+     - Menambahkan kartu *Konfirmasi Ringkasan Data Pegawai* di Langkah 4 sebelum tombol pendaftaran/simpan.
+  4. **Task 4 — Sinkronisasi Mesin Penggajian (`payroll.service.ts` & Slip Gaji):**
+     - Memastikan kalkulasi slip gaji menarik Gaji Pokok dari kontrak aktif dan tunjangan riil dari `emp.salaryComponents`.
+     - Menambahkan unit test baru `Kompensasi Satu Pintu` di `payroll.service.test.ts` (lolos 100%).
+  5. **Task 5 — Pembaruan Profil Pegawai (`page.tsx`):**
+     - Menambahkan kartu *Struktur Kompensasi & Paket Penggajian Aktif* pada tab Kontrak (`/karyawan/[id]?tab=kontrak`), lengkap dengan breakdown tunjangan, estimasi potongan BPJS pegawai (1% + 2%), status PTKP/TER, dan tombol ubah kompensasi.
+  6. **Task 6 — Verifikasi Menyeluruh & Testing:**
+     - `pnpm test` $\rightarrow$ 46 file pengujian, 337 tes lolos 100%.
+     - `pnpm typecheck` $\rightarrow$ 9 paket monorepo lolos 100%.
+     - `pnpm lint` $\rightarrow$ 0 error, 0 warning.
+     - `pnpm --filter @pspk/hris build` $\rightarrow$ Berhasil dikompilasi (Next.js Turbopack).
+
+---
+
 ## [Implementasi PPh 21 Metode Gross (TER PP 58/2023 & Pasal 17 UU HPP)] — 2026-11-16
 
 - **Status:** Selesai Diimplementasikan & Terverifikasi (Seluruh 6 Task Tuntas 100%, 0 Error)
