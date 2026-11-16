@@ -1961,11 +1961,16 @@ export function WizardEmployeeForm({
                 onChange={handleChange}
                 className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               >
+                <option value="">-- Pilih Bank Payroll --</option>
                 <option value="Bank Mandiri">Bank Mandiri</option>
                 <option value="Bank BCA">Bank BCA</option>
                 <option value="Bank BNI">Bank BNI</option>
                 <option value="Bank BRI">Bank BRI</option>
                 <option value="Bank BSI">Bank BSI (Syariah)</option>
+                <option value="Bank CIMB Niaga">Bank CIMB Niaga</option>
+                <option value="Bank Permata">Bank Permata</option>
+                <option value="Bank Danamon">Bank Danamon</option>
+                <option value="Bank Lainnya">Bank Lainnya</option>
               </select>
             </div>
 
@@ -2102,6 +2107,132 @@ export function WizardEmployeeForm({
                 )}
               </div>
             )}
+
+            {/* Ringkasan Konfirmasi Data Sebelum Simpan */}
+            {(() => {
+              const currentDept = departments.find((d) => d.id === formData.currentDepartmentId);
+              const currentPos = currentDept?.positions.find((p) => p.id === formData.currentPositionId);
+              const base = Number(formData.baseSalary) || 0;
+              const pos = Number(formData.allowancePosition) || 0;
+              const tra = Number(formData.allowanceTransport) || 0;
+              const com = Number(formData.allowanceCommunication) || 0;
+              const oth = Number(formData.allowanceOther) || 0;
+              const totalAllowances = pos + tra + com + oth;
+              const totalGross = base + totalAllowances;
+              const selectedPtkp = getPtkpExplanation(formData.ptkpStatus);
+
+              return (
+                <div className="md:col-span-2 p-5 bg-gradient-to-br from-slate-50 via-white to-sky-50/50 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col gap-3.5">
+                  <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="w-4 h-4 text-[#102E50]" />
+                      <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                        Konfirmasi Ringkasan Data {mode === "create" ? "Pendaftaran" : "Pembaruan"} Pegawai
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-semibold text-sky-800 bg-sky-100/70 px-2 py-0.5 rounded-md border border-sky-200/60">
+                      Langkah Terakhir (4 dari 4)
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    {/* Kolom 1: Profil & Penempatan */}
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Identitas & Penempatan
+                      </span>
+                      <span className="font-bold text-slate-900 text-xs truncate">
+                        {formData.fullName || "(Belum diisi)"}
+                      </span>
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        NIP: {formData.employeeNo || "-"}
+                      </span>
+                      <span className="text-[11px] text-slate-600 truncate">
+                        {currentDept?.name || "Divisi belum dipilih"}
+                      </span>
+                      <span className="text-[11px] font-semibold text-[#102E50] truncate">
+                        {currentPos?.title || "Posisi belum dipilih"}
+                      </span>
+                    </div>
+
+                    {/* Kolom 2: Paket Kompensasi */}
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Paket Kompensasi Bulanan
+                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Gaji Pokok:</span>
+                        <span className="font-semibold text-slate-900 font-mono text-[11px]">
+                          Rp {base.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Tunjangan:</span>
+                        <span className="font-semibold text-emerald-700 font-mono text-[11px]">
+                          + Rp {totalAllowances.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
+                        <span className="font-bold text-[#102E50] text-[11px]">Total Bruto:</span>
+                        <span className="font-bold text-[#102E50] font-mono text-xs">
+                          Rp {totalGross.toLocaleString("id-ID")}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Kolom 3: Perpajakan & Payroll */}
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Pajak & Rekening Payroll
+                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">PTKP:</span>
+                        <span className="font-semibold text-slate-900 text-[11px]">
+                          {formData.ptkpStatus.replace("_", "/")} ({selectedPtkp?.terCategory || "TER A"})
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Metode:</span>
+                        <span className="font-semibold text-[#102E50] text-[11px]">
+                          {formData.taxMethod}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
+                        <span className="text-slate-500 text-[11px]">Bank:</span>
+                        <span className="font-semibold text-slate-800 text-[11px] truncate">
+                          {formData.bankName || "Belum dipilih"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Kolom 4: Akun & Hak Akses */}
+                    <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        Akun & Akses Sistem
+                      </span>
+                      {formData.createUserAccount ? (
+                        <>
+                          <span className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Buat Akun Otomatis
+                          </span>
+                          <span className="text-[11px] text-slate-600 font-mono truncate">
+                            {formData.workEmail || "-"}
+                          </span>
+                          <span className="text-[11px] text-slate-700 font-semibold capitalize mt-0.5">
+                            Role: {formData.accountRole.replace("_", " ")}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-[11px] text-slate-500 italic">
+                          Tanpa pembuatan akun otomatis
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 
