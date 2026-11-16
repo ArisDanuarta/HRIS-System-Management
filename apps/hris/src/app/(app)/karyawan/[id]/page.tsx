@@ -22,7 +22,10 @@ import {
   Laptop,
   Calendar,
   AlertCircle,
+  Receipt,
+  Info,
 } from "lucide-react";
+import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
 import {
   getEmployeeById,
   getOrgStructureData,
@@ -696,33 +699,64 @@ export default async function EmployeeDetailPage({
             </div>
 
             {/* Status Perpajakan PPh 21 */}
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Status PTKP (PP 58/2023)
-              </span>
-              <div className="flex items-center gap-2 pt-0.5">
-                <PtkpBadge status={employee.ptkpStatus} size="md" />
-              </div>
-              <span className="text-[11px] text-slate-500">
-                Dasar pengenaan tarif efektif rata-rata (TER) pemotongan PPh 21 bulanan.
-              </span>
-            </div>
+            {(() => {
+              const ptkpInfo = getPtkpExplanation(employee.ptkpStatus);
+              const taxMethodInfo = getTaxMethodExplanation(employee.taxMethod);
 
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Metode Perhitungan Pajak
-              </span>
-              <div className="flex items-center gap-2 pt-0.5">
-                <TaxMethodBadge method={employee.taxMethod} size="md" />
-              </div>
-              <span className="text-[11px] text-slate-500">
-                {employee.taxMethod === "GROSS_UP"
-                  ? "Pajak ditanggung penuh oleh lembaga via tunjangan pajak."
-                  : employee.taxMethod === "NETT"
-                    ? "Gaji diterima bersih tanpa pemotongan pajak penghasilan."
-                    : "Pajak dipotong langsung dari penghasilan bruto karyawan."}
-              </span>
-            </div>
+              return (
+                <>
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Status PTKP (PP 58/2023)
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ptkpInfo.terBadgeClass}`}>
+                        {ptkpInfo.terCategory}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <PtkpBadge status={employee.ptkpStatus} size="md" />
+                    </div>
+                    <div className="text-[11px] text-slate-600 space-y-1.5 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
+                      <div className="font-semibold text-slate-800">
+                        {ptkpInfo.annualPtkp} <span className="text-slate-500 font-normal">({ptkpInfo.monthlyPtkp})</span>
+                      </div>
+                      <div className="text-emerald-700 font-medium">
+                        {ptkpInfo.zeroTaxLimit}
+                      </div>
+                      <div className="text-slate-500 text-[10.5px]">
+                        {ptkpInfo.calculationDetail}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                        Metode Perhitungan Pajak
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${taxMethodInfo.badgeClass}`}>
+                        {taxMethodInfo.badge}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <TaxMethodBadge method={employee.taxMethod} size="md" />
+                    </div>
+                    <div className="text-[11px] text-slate-600 space-y-1.5 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
+                      <div className="font-semibold text-slate-800">
+                        {taxMethodInfo.title}
+                      </div>
+                      <div className="text-slate-500 text-[10.5px]">
+                        {taxMethodInfo.howItWorks}
+                      </div>
+                      <div className="text-[10.5px] text-slate-600 font-medium bg-slate-50 p-1.5 rounded border border-slate-100">
+                        Dampak THP: {taxMethodInfo.employeeImpact}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

@@ -55,7 +55,7 @@ export function AppTopbar({
     }
     if (pathname.startsWith("/cuti/persetujuan")) return "Persetujuan Cuti";
     if (pathname.startsWith("/absensi/rekap")) {
-      return currentRole === "manager" ? "Absensi Tim" : "Kehadiran Organisasi";
+      return currentRole === "manager" ? "Absensi Tim" : "Absensi Karyawan";
     }
     if (pathname.startsWith("/cuti")) return "Cuti Saya";
     if (pathname.startsWith("/absensi")) return "Absensi Saya";

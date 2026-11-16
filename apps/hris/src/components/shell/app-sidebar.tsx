@@ -354,7 +354,7 @@ export function AppSidebar({
               )}
               <NavItem
                 href="/absensi/rekap"
-                label="Kehadiran Organisasi"
+                label="Absensi Karyawan"
                 icon={<CalendarCheck className="w-5 h-5 shrink-0" />}
                 isActive={isNavActive("/absensi/rekap")}
                 isCollapsed={isCollapsed}

@@ -30,6 +30,7 @@ import {
   Trash2,
   Download,
   Receipt,
+  Info,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -43,6 +44,7 @@ import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/emplo
 
 import { EmployeeStatus, EmploymentType, Gender, MaritalStatus, PtkpStatus, TaxMethod } from "@pspk/db";
 import { toDateString } from "@pspk/shared";
+import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
 
 interface DepartmentOption {
   id: string;
@@ -1575,56 +1577,180 @@ export function WizardEmployeeForm({
             </div>
 
             {/* Konfigurasi Pajak Penghasilan PPh 21 (PP 58/2023) */}
-            <div className="md:col-span-2 p-4 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-4 h-4 text-[#102E50]" />
-                <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
-                  Pengaturan Pajak Penghasilan (PPh 21 — PP 58/2023)
-                </h4>
-              </div>
-              <p className="text-xs text-slate-500">
-                Status PTKP menentukan lapisan Tarif Efektif Rata-Rata (TER A, B, atau C) untuk pemotongan PPh 21 bulanan sesuai PP No. 58/2023.
-              </p>
+            {(() => {
+              const selectedPtkpInfo = getPtkpExplanation(formData.ptkpStatus);
+              const selectedTaxMethodInfo = getTaxMethodExplanation(formData.taxMethod);
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Status PTKP (Penghasilan Tidak Kena Pajak) <span className="text-[#A8281C]">*</span>
-                  </label>
-                  <select
-                    name="ptkpStatus"
-                    value={formData.ptkpStatus}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-                  >
-                    <option value="TK_0">TK/0 — Tidak Kawin, 0 Tanggungan (TER A - Rp 54 jt)</option>
-                    <option value="TK_1">TK/1 — Tidak Kawin, 1 Tanggungan (TER A - Rp 58,5 jt)</option>
-                    <option value="TK_2">TK/2 — Tidak Kawin, 2 Tanggungan (TER B - Rp 63 jt)</option>
-                    <option value="TK_3">TK/3 — Tidak Kawin, 3 Tanggungan (TER B - Rp 67,5 jt)</option>
-                    <option value="K_0">K/0 — Kawin, 0 Tanggungan (TER A - Rp 58,5 jt)</option>
-                    <option value="K_1">K/1 — Kawin, 1 Tanggungan (TER B - Rp 63 jt)</option>
-                    <option value="K_2">K/2 — Kawin, 2 Tanggungan (TER B - Rp 67,5 jt)</option>
-                    <option value="K_3">K/3 — Kawin, 3 Tanggungan (TER C - Rp 72 jt)</option>
-                  </select>
-                </div>
+              return (
+                <div className="md:col-span-2 p-4 sm:p-5 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col gap-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <Receipt className="w-4 h-4 text-[#102E50]" />
+                      <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                        Pengaturan Pajak Penghasilan (PPh 21 — PP 58/2023)
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-500 bg-white px-2.5 py-0.5 rounded-full border border-slate-200">
+                      Regulasi PP 58/2023 & PMK 168/2023
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Status PTKP menentukan lapisan <strong>Tarif Efektif Rata-Rata (TER A, B, atau C)</strong> untuk pemotongan bulanan Januari–November dan rekonsiliasi Pasal 17 UU HPP pada masa Desember.
+                  </p>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Metode Pemotongan Pajak <span className="text-[#A8281C]">*</span>
-                  </label>
-                  <select
-                    name="taxMethod"
-                    value={formData.taxMethod}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-                  >
-                    <option value="GROSS">GROSS — Pajak dipotong dari gaji karyawan (Standar)</option>
-                    <option value="GROSS_UP">GROSS UP — Pajak ditunjang penuh oleh lembaga</option>
-                    <option value="NETT">NETT — Gaji diterima bersih tanpa potongan pajak</option>
-                  </select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    {/* Kolom 1: Status PTKP */}
+                    <div className="flex flex-col gap-2">
+                      <label className="block text-xs font-semibold text-slate-700">
+                        Status PTKP (Penghasilan Tidak Kena Pajak) <span className="text-[#A8281C]">*</span>
+                      </label>
+                      <select
+                        name="ptkpStatus"
+                        value={formData.ptkpStatus}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+                      >
+                        <option value="TK_0">TK/0 — Tidak Kawin, 0 Tanggungan (TER A - Rp 54 jt)</option>
+                        <option value="TK_1">TK/1 — Tidak Kawin, 1 Tanggungan (TER A - Rp 58,5 jt)</option>
+                        <option value="TK_2">TK/2 — Tidak Kawin, 2 Tanggungan (TER B - Rp 63 jt)</option>
+                        <option value="TK_3">TK/3 — Tidak Kawin, 3 Tanggungan (TER B - Rp 67,5 jt)</option>
+                        <option value="K_0">K/0 — Kawin, 0 Tanggungan (TER A - Rp 58,5 jt)</option>
+                        <option value="K_1">K/1 — Kawin, 1 Tanggungan (TER B - Rp 63 jt)</option>
+                        <option value="K_2">K/2 — Kawin, 2 Tanggungan (TER B - Rp 67,5 jt)</option>
+                        <option value="K_3">K/3 — Kawin, 3 Tanggungan (TER C - Rp 72 jt)</option>
+                      </select>
+
+                      {/* Keterangan & Rincian Status PTKP yang dipilih */}
+                      {selectedPtkpInfo && (
+                        <div className="p-3.5 rounded-lg bg-sky-50/70 border border-sky-200/90 text-xs flex flex-col gap-2.5 mt-1 shadow-xs">
+                          <div className="flex items-center justify-between gap-2 border-b border-sky-200/60 pb-2">
+                            <div className="flex items-center gap-1.5 font-bold text-[#102E50]">
+                              <Info className="w-4 h-4 text-sky-600 shrink-0" />
+                              <span>{selectedPtkpInfo.statusLabel}</span>
+                            </div>
+                            <span
+                              className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${selectedPtkpInfo.terBadgeClass}`}
+                            >
+                              {selectedPtkpInfo.terCategory}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[11px] bg-white/90 p-2.5 rounded-md border border-sky-100">
+                            <div>
+                              <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">
+                                Nilai PTKP Setahun:
+                              </span>
+                              <span className="font-bold text-slate-800 text-xs block">
+                                {selectedPtkpInfo.annualPtkp}
+                              </span>
+                              <span className="text-[10px] text-slate-500">
+                                ({selectedPtkpInfo.monthlyPtkp})
+                              </span>
+                            </div>
+                            <div>
+                              <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">
+                                Batas Bebas Pajak:
+                              </span>
+                              <span className="font-semibold text-emerald-700 block">
+                                {selectedPtkpInfo.zeroTaxLimit}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="text-[11px] text-slate-700 leading-relaxed">
+                            <span className="font-bold text-[#102E50]">Alur Perhitungan: </span>
+                            {selectedPtkpInfo.calculationDetail}
+                          </div>
+
+                          <div className="text-[10.5px] text-sky-900 bg-sky-100/70 p-2 rounded-md flex items-start gap-1.5 border border-sky-200/50">
+                            <span className="font-bold shrink-0">Catatan HR:</span>
+                            <span>{selectedPtkpInfo.notes}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Kolom 2: Metode Pemotongan Pajak */}
+                    <div className="flex flex-col gap-2">
+                      <label className="block text-xs font-semibold text-slate-700">
+                        Metode Pemotongan Pajak <span className="text-[#A8281C]">*</span>
+                      </label>
+                      <select
+                        name="taxMethod"
+                        value={formData.taxMethod}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+                      >
+                        <option value="GROSS">GROSS — Pajak dipotong dari gaji karyawan (Standar)</option>
+                        <option value="GROSS_UP">GROSS UP — Pajak ditunjang penuh oleh lembaga</option>
+                        <option value="NETT">NETT — Gaji diterima bersih tanpa potongan pajak</option>
+                      </select>
+
+                      {/* Keterangan & Rincian Metode Pajak yang dipilih */}
+                      {selectedTaxMethodInfo && (
+                        <div
+                          className={`p-3.5 rounded-lg border text-xs flex flex-col gap-2.5 mt-1 shadow-xs ${selectedTaxMethodInfo.bgClass} ${selectedTaxMethodInfo.borderClass}`}
+                        >
+                          <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                            <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                              <Receipt className="w-4 h-4 text-[#102E50] shrink-0" />
+                              <span>{selectedTaxMethodInfo.title}</span>
+                            </div>
+                            <span
+                              className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${selectedTaxMethodInfo.badgeClass}`}
+                            >
+                              {selectedTaxMethodInfo.badge}
+                            </span>
+                          </div>
+
+                          <div className="text-[11px] text-slate-700 leading-relaxed">
+                            <span className="font-bold text-slate-900">Konsep: </span>
+                            {selectedTaxMethodInfo.summary}
+                          </div>
+
+                          <div className="text-[11px] text-slate-700 leading-relaxed bg-white/90 p-2.5 rounded-md border border-slate-200/60 space-y-1.5">
+                            <div>
+                              <span className="font-semibold text-slate-900">Dampak ke Karyawan: </span>
+                              <span className="text-slate-600">{selectedTaxMethodInfo.employeeImpact}</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-slate-900">Dampak ke Lembaga: </span>
+                              <span className="text-slate-600">{selectedTaxMethodInfo.companyImpact}</span>
+                            </div>
+                          </div>
+
+                          <div className="text-[10.5px] text-slate-700 bg-slate-100/80 p-2 rounded-md flex items-start gap-1.5 border border-slate-200/60">
+                            <span className="font-bold text-[#102E50] shrink-0">Peruntukan:</span>
+                            <span>{selectedTaxMethodInfo.bestFor}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Banner Rangkuman Aturan Penting HR */}
+                  <div className="p-3.5 bg-amber-50/90 rounded-lg border border-amber-200/80 text-xs text-amber-950 flex items-start gap-2.5 mt-1">
+                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="space-y-1.5 text-[11px] leading-relaxed w-full">
+                      <p className="font-bold text-amber-950">
+                        Hal Penting untuk HR & Penggajian (PP 58/2023 & PMK 168/2023):
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-amber-900">
+                        <li>
+                          <strong>Dasar Bruto Pengenaan Pajak (DPP):</strong> Dihitung dari seluruh penghasilan tunai (gaji pokok, lembur, tunjangan) ditambah <strong>Premi Asuransi Lembaga</strong> (JKK 0,24%–0,54%, JKM 0,30%, BPJS Kesehatan 4%) sebagai objek pajak natura.
+                        </li>
+                        <li>
+                          <strong>Masa Januari – November:</strong> Dipotong otomatis menggunakan persentase Tarif Efektif Rata-Rata (TER) bulanan sesuai status PTKP di atas.
+                        </li>
+                        <li>
+                          <strong>Masa Desember (Akhir Tahun):</strong> Dihitung ulang menggunakan Tarif Progresif Pasal 17 UU HPP atas akumulasi penghasilan neto setahun dikurangi PTKP setahun, lalu dikurangkan dengan akumulasi PPh 21 Jan–Nov.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">

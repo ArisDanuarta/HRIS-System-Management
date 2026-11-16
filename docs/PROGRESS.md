@@ -4,6 +4,58 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Implementasi PPh 21 Metode Gross (TER PP 58/2023 & Pasal 17 UU HPP)] — 2026-11-16
+
+- **Status:** Selesai Diimplementasikan & Terverifikasi (Seluruh 6 Task Tuntas 100%, 0 Error)
+- **Scope & Tujuan:**
+  1. Menerapkan perhitungan Pajak Penghasilan Karyawan (PPh 21) Metode Gross resmi sesuai **PP No. 58 Tahun 2023** dan **PMK No. 168 Tahun 2023**.
+  2. Menyediakan pengelolaan status PTKP (TK/0 s/d K/3) dan metode pajak (`GROSS`, `GROSS_UP`, `NETT`) pada form pembuatan & pengubahan profil karyawan.
+  3. Memisahkan penghasilan tunai dan premi asuransi tanggungan lembaga (BPJS Kesehatan 4% maks Rp12 juta, JKK 0,24%, dan JKM 0,30% = total 4,54% dari Gaji Pokok) sebagai Dasar Pengenaan Pajak (DPP).
+  4. Menghitung PPh 21 bulanan masa Januari–November menggunakan Tarif Efektif Rata-Rata (TER) Kategori A, B, atau C.
+  5. Menghitung rekonsiliasi PPh 21 akhir tahun masa Desember menggunakan tarif progresif Pasal 17 ayat (1) huruf a UU HPP setelah dikurangi biaya jabatan (5%, maks Rp6 juta/tahun) dan iuran pensiun/JHT karyawan.
+  6. Menyajikan rincian informasi pajak secara transparan pada slip gaji digital pegawai, cetak format dokumen A4, modal admin HR, tabel rekapitulasi dashboard, serta berkas ekspor resmi Excel (3 sheet) dan CSV transfer perbankan.
+
+- **Pekerjaan yang Telah Selesai (6 Task):**
+  1. **Task 1 — Database & Skema Prisma (`packages/db`):**
+     - Menambahkan enum `PtkpStatus` (`TK_0`, `TK_1`, `TK_2`, `TK_3`, `K_0`, `K_1`, `K_2`, `K_3`) dan `TaxMethod` (`GROSS`, `GROSS_UP`, `NETT`).
+     - Menambahkan field `ptkpStatus` dan `taxMethod` pada model `Employee`.
+     - Menambahkan field `taxableGross`, `pph21Amount`, `terCategory`, dan `terRate` pada model `Payslip`.
+     - Menjalankan migrasi SQL (`20261113082925_add_ptkp_and_pph21_tax_fields`) dan regenerasi `@pspk/db`.
+  2. **Task 2 — Mesin Kalkulasi Pajak & Matriks TER (`apps/hris/src/server/services/tax`):**
+     - Membuat `ter-tables.ts` yang memuat seluruh lapisan matriks resmi (44 lapisan TER A, 40 lapisan TER B, 41 lapisan TER C, bracket PTKP, dan lapisan Pasal 17 progresif).
+     - Membuat `pph21-calculator.ts` dengan fungsi independen: `getPtkpCategory`, `findTerRate`, `calculateMonthlyPph21Ter`, `calculatePasal17Tax`, `calculateAnnualPph21Pasal17`, dan `calculateCompanyTaxableBenefit`.
+     - Menulis 36 unit test matematis pada `pph21-calculator.test.ts` (lolos 100%).
+  3. **Task 3 — Pengaturan PTKP Karyawan di UI Master & Form:**
+     - Menambahkan validasi `PtkpStatusEnum` dan `TaxMethodEnum` pada `employee.schema.ts`.
+     - Mendukung penyimpanan dan audit log untuk status PTKP dan metode pajak di `employee.service.ts`.
+     - Menambahkan komponen badge `PtkpBadge` dan `TaxMethodBadge` di `status-badge.tsx`.
+     - Menambahkan dropdown pilihan PTKP (lengkap dengan penjelasan kategori TER) dan metode pajak pada Step 4 formulir wizard karyawan (`wizard-employee-form.tsx`).
+     - Menampilkan badge PTKP di header profil dan rincian data pajak pada tab Data Sensitif (`apps/hris/src/app/(app)/karyawan/[id]/page.tsx`).
+  4. **Task 4 — Integrasi Mesin Pajak ke Layanan Penggajian (`payroll.service.ts`):**
+     - Mengotomatiskan perhitungan Dasar Bruto Pajak (DPP) dari pendapatan tunai ditambah manfaat premi lembaga.
+     - Mengotomatiskan potongan PPh 21 TER untuk bulan 1–11 dan Pasal 17 tahunan untuk bulan 12.
+     - Mendukung perlakuan metode `GROSS`, `GROSS_UP` (tunjangan pajak + potongan seimbang), dan `NETT`.
+     - Mencegah duplikasi komponen legacy `POT_PPH21`.
+     - Mengintegrasikan perhitungan pajak saat admin mengubah jam kerja staf per jam di `updatePayslipTimesheet`.
+     - Menulis 6 unit test integrasi penggajian pada `payroll.service.test.ts`.
+  5. **Task 5 — Pembaruan Tampilan Slip Gaji & Ekspor Payroll:**
+     - Memperbarui `payslip.queries.ts` dan `payroll.queries.ts` untuk memetakan metadata perpajakan.
+     - Menambahkan kartu informasi perpajakan pada dokumen slip gaji cetak A4 dan modal digital (`payslip-printable-modal.tsx`).
+     - Menambahkan kartu rincian pajak pada modal admin (`payslip-detail-modal.tsx`) dan badge PTKP/TER pada tabel dashboard admin (`payroll-detail-view.tsx`).
+     - Memperbarui ekspor Excel 3 sheet (`payroll-export.ts`) dan CSV transfer bank (`generatePayrollBankExport`).
+  6. **Task 6 — Verifikasi Menyeluruh & Simulasi Kasus Riil:**
+     - Simulasi Kasus Budi (TK/0): Pokok 8 jt + Transport 1 jt + Premi Kantor 363.200 $\rightarrow$ DPP 9.363.200 $\rightarrow$ PPh 21 TER A 1,75% = Rp163.856 $\rightarrow$ THP Rp8.516.144 (Akurat 100%).
+     - Simulasi Kasus Dewi (K/1, TER B): Pokok 12 jt + Premi Kantor 544.800 $\rightarrow$ DPP 12.544.800 $\rightarrow$ PPh 21 TER B 3,00% = Rp376.344.
+     - Simulasi Kasus Gross-Up, Nett, Rekonsiliasi Tahunan Desember Pasal 17, dan PKWT Per Jam.
+
+- **Verifikasi Kualitas:**
+  - `pnpm test` → 46 test files, 336 test cases lolos 100%.
+  - `pnpm typecheck` (9 packages in scope) → Lolos 100% (0 error).
+  - `pnpm lint` → Lolos 100% (0 error, 0 warning).
+  - `pnpm build` (Next.js App Router Turbopack: `@pspk/hris` dan `@pspk/sysmgmt`) → Sukses 100%.
+
+---
+
 ## [Perbaikan Inkonsistensi Kueri Dashboard vs Halaman Kelola 100%] — 2026-11-12
 
 - **Status:** Selesai Diperbaiki & Terverifikasi (Seluruh 5 Temuan Audit Tuntas 100%, 0 Error)
