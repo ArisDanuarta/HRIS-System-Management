@@ -43,8 +43,12 @@ import { createEmploymentTypeAction } from "@/server/actions/employment-type.act
 import { CreateEmployeeInput, UpdateEmployeeInput } from "@/server/schemas/employee.schema";
 
 import { EmployeeStatus, EmploymentType, Gender, MaritalStatus, PtkpStatus, TaxMethod } from "@pspk/db";
-import { toDateString } from "@pspk/shared";
+import { toDateString, formatRupiah } from "@pspk/shared";
 import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
+import {
+  calculateMonthlyPph21Ter,
+  calculateCompanyTaxableBenefit,
+} from "@/server/services/tax/pph21-calculator";
 
 interface DepartmentOption {
   id: string;
@@ -752,8 +756,8 @@ export function WizardEmployeeForm({
   const steps = [
     { num: 1, title: "Identitas Pribadi", icon: User },
     { num: 2, title: "Penempatan Kerja", icon: Briefcase },
-    { num: 3, title: "Kontrak & Gaji", icon: FileText },
-    { num: 4, title: "Data Sensitif & Akun", icon: Shield },
+    { num: 3, title: "Kontrak & Kompensasi", icon: FileText },
+    { num: 4, title: "Perbankan & Akun", icon: Shield },
   ];
 
   return (
@@ -1198,7 +1202,7 @@ export function WizardEmployeeForm({
           </div>
         )}
 
-        {/* STEP 3: KONTRAK & GAJI */}
+        {/* STEP 3: KONTRAK & KOMPENSASI */}
         {currentStep === 3 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
             <div className="md:col-span-2 pb-2 border-b border-slate-100">
@@ -1206,16 +1210,19 @@ export function WizardEmployeeForm({
                 Kontrak Kerja & Kompensasi
               </h3>
               <p className="text-xs text-slate-500">
-                Ketentuan perjanjian ikatan kerja dan nilai gaji pokok
+                Ketentuan perjanjian ikatan kerja, paket remunerasi bulanan, dan pengaturan perpajakan staf
               </p>
             </div>
 
-            {/* Tipe Ikatan Kerja — dinamis dari EmploymentTypeMaster */}
-            <div className="md:col-span-2">
-              <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Tipe Ikatan Kerja <span className="text-[#A8281C]">*</span>
-                </label>
+            {/* BAGIAN A: KETENTUAN & BERKAS KONTRAK KERJA */}
+            <div className="md:col-span-2 p-5 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#102E50]" />
+                  <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                    Ketentuan & Berkas Kontrak Kerja
+                  </h4>
+                </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -1244,7 +1251,7 @@ export function WizardEmployeeForm({
               </div>
 
               {quickCreateSuccess && (
-                <div className="mb-3 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between animate-in fade-in duration-150">
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center justify-between animate-in fade-in duration-150">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>{quickCreateSuccess}</span>
@@ -1259,91 +1266,259 @@ export function WizardEmployeeForm({
                 </div>
               )}
 
-              {employmentTypesList.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {employmentTypesList.map((et) => {
-                    const isSelected = formData.employmentTypeId === et.id;
-                    return (
-                      <button
-                        key={et.id}
-                        type="button"
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            employmentTypeId: et.id,
-                            employmentType: et.category as EmploymentType,
-                            wageType: et.wageType,
-                            hourlyRate:
-                              et.wageType === "HOURLY"
-                                ? (et.defaultHourlyRate ?? 30000)
-                                : prev.hourlyRate,
-                            baseSalary:
-                              et.wageType === "MONTHLY" &&
-                              (!prev.baseSalary || prev.baseSalary === 0)
-                                ? 10000000
-                                : prev.baseSalary,
-                          }))
-                        }
-                        className={`text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
-                          isSelected
-                            ? "border-[#102E50] bg-[#102E50]/5 shadow-xs"
-                            : "border-slate-200 bg-slate-50/70 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span
-                            className={`text-xs font-bold ${
-                              isSelected ? "text-[#102E50]" : "text-slate-700"
-                            }`}
-                          >
-                            {et.name}
-                          </span>
-                          <span
-                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
-                              et.wageType === "HOURLY"
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {et.wageType === "HOURLY" ? "Per Jam" : "Bulanan"}
-                          </span>
-                        </div>
-                        {et.description && (
-                          <p className="text-[11px] text-slate-500 mt-1 leading-tight">
-                            {et.description}
-                          </p>
-                        )}
-                        {et.wageType === "HOURLY" && et.defaultHourlyRate && (
-                          <p className="text-[11px] text-slate-400 mt-1">
-                            Tarif default: Rp{et.defaultHourlyRate.toLocaleString("id-ID")}/jam
-                          </p>
-                        )}
-                      </button>
-                    );
-                  })}
+              {/* Tipe Ikatan Kerja Cards */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2">
+                  Pilih Tipe Ikatan Kerja <span className="text-[#A8281C]">*</span>
+                </label>
+                {employmentTypesList.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    {employmentTypesList.map((et) => {
+                      const isSelected = formData.employmentTypeId === et.id;
+                      return (
+                        <button
+                          key={et.id}
+                          type="button"
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              employmentTypeId: et.id,
+                              employmentType: et.category as EmploymentType,
+                              wageType: et.wageType,
+                              hourlyRate:
+                                et.wageType === "HOURLY"
+                                  ? (et.defaultHourlyRate ?? 30000)
+                                  : prev.hourlyRate,
+                              baseSalary: prev.baseSalary,
+                            }))
+                          }
+                          className={`text-left p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-[#102E50] bg-[#102E50]/5 shadow-xs"
+                              : "border-slate-200 bg-slate-50/70 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span
+                              className={`text-xs font-bold ${
+                                isSelected ? "text-[#102E50]" : "text-slate-700"
+                              }`}
+                            >
+                              {et.name}
+                            </span>
+                            <span
+                              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${
+                                et.wageType === "HOURLY"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-blue-100 text-blue-800"
+                              }`}
+                            >
+                              {et.wageType === "HOURLY" ? "Per Jam" : "Bulanan"}
+                            </span>
+                          </div>
+                          {et.description && (
+                            <p className="text-[11px] text-slate-500 mt-1 leading-tight">
+                              {et.description}
+                            </p>
+                          )}
+                          {et.wageType === "HOURLY" && et.defaultHourlyRate && (
+                            <p className="text-[11px] text-slate-400 mt-1">
+                              Tarif default: Rp{et.defaultHourlyRate.toLocaleString("id-ID")}/jam
+                            </p>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <select
+                    name="employmentType"
+                    value={formData.employmentType}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  >
+                    <option value="PERMANENT">Pegawai Tetap (Permanent)</option>
+                    <option value="FIXED_TERM">PKWT Riset (Fixed Term Project)</option>
+                    <option value="PART_TIME_PROJECT">Paruh Waktu / Proyek Ad-Hoc</option>
+                  </select>
+                )}
+                {!formData.employmentTypeId && employmentTypesList.length > 0 && (
+                  <p className="text-[11px] text-[#A8281C] mt-1.5">
+                    Pilih tipe ikatan kerja terlebih dahulu
+                  </p>
+                )}
+              </div>
+
+              {/* Grid Tanggal Kontrak */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Tanggal Mulai Kontrak <span className="text-[#A8281C]">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="contractStartDate"
+                    value={formData.contractStartDate}
+                    onChange={handleChange}
+                    required
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
                 </div>
-              ) : (
-                // Fallback ke dropdown biasa jika master data belum tersedia
-                <select
-                  name="employmentType"
-                  value={formData.employmentType}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-                >
-                  <option value="PERMANENT">Pegawai Tetap (Permanent)</option>
-                  <option value="FIXED_TERM">PKWT Riset (Fixed Term Project)</option>
-                  <option value="PART_TIME_PROJECT">Paruh Waktu / Proyek Ad-Hoc</option>
-                </select>
-              )}
-              {!formData.employmentTypeId && employmentTypesList.length > 0 && (
-                <p className="text-[11px] text-[#A8281C] mt-1.5">
-                  Pilih tipe ikatan kerja terlebih dahulu
-                </p>
-              )}
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Tanggal Berakhir Kontrak{" "}
+                    {formData.employmentType === "FIXED_TERM" && (
+                      <span className="text-[#A8281C]">* (Wajib untuk PKWT)</span>
+                    )}
+                  </label>
+                  <input
+                    type="date"
+                    name="contractEndDate"
+                    value={formData.contractEndDate}
+                    onChange={handleChange}
+                    required={formData.employmentType === "FIXED_TERM"}
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">
+                    Sistem akan memicu peringatan otomatis jika masa kontrak tersisa ≤ 30 hari
+                  </span>
+                </div>
+              </div>
+
+              {/* Nomor Dokumen Kontrak & Catatan */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Nomor Surat Perjanjian / SK Kontrak
+                  </label>
+                  <input
+                    type="text"
+                    name="contractNumber"
+                    value={formData.contractNumber}
+                    onChange={handleChange}
+                    placeholder="Contoh: 018/PKWT/PSPK/X/2026 atau No. SK Direksi"
+                    className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Catatan Kontrak Kerja
+                  </label>
+                  <input
+                    type="text"
+                    name="contractNotes"
+                    value={formData.contractNotes}
+                    onChange={handleChange}
+                    placeholder="Keterangan penugasan khusus atau klausul riset..."
+                    className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  />
+                </div>
+              </div>
+
+              {/* Lampiran Berkas Kontrak Kerja (PDF) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700">
+                    Lampiran Berkas Kontrak Kerja (PDF)
+                  </label>
+                  <span className="text-[11px] text-slate-400">
+                    Opsional saat pendaftaran • Maksimal 10 MB
+                  </span>
+                </div>
+
+                {formData.contractDocumentKey && !contractFile && (
+                  <div className="mb-3 p-3 bg-blue-50/70 border border-blue-200/80 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-semibold text-blue-900 truncate">
+                          Berkas Kontrak Telah Terunggah
+                        </span>
+                        <span className="text-[11px] text-blue-700 font-mono truncate">
+                          {formData.contractDocumentKey}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <a
+                        href={`/api/documents/${formData.contractDocumentKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-2.5 py-1 text-xs font-semibold bg-white text-blue-700 hover:bg-blue-100/60 rounded border border-blue-300 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Lihat PDF</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, contractDocumentKey: "" }))}
+                        className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                        title="Hapus berkas kontrak ini"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {(!formData.contractDocumentKey || contractFile) && (
+                  <div className="p-4 bg-slate-50/70 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl transition-all">
+                    {!contractFile ? (
+                      <label className="flex flex-col items-center justify-center cursor-pointer py-2">
+                        <UploadCloud className="w-7 h-7 text-slate-400 mb-1.5 group-hover:text-[#102E50]" />
+                        <span className="text-xs font-bold text-slate-700 mb-0.5">
+                          Pilih atau seret berkas PDF kontrak ke sini
+                        </span>
+                        <span className="text-[11px] text-slate-400">
+                          Hanya format PDF (.pdf), ukuran maksimal 10 MB
+                        </span>
+                        <input
+                          type="file"
+                          accept="application/pdf,.pdf"
+                          onChange={handleContractFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                    ) : (
+                      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
+                            <FileCheck className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-bold text-slate-800 truncate">
+                              {contractFile.name}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {(contractFile.size / 1024 / 1024).toFixed(2)} MB • Siap disimpan
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleRemoveContractFile}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                          title="Hapus pilihan berkas"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+
+                    {contractFileError && (
+                      <p className="text-xs text-rose-600 font-semibold mt-2 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{contractFileError}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Seksi Struktur Kompensasi & Paket Penggajian (Satu Pintu) */}
+            {/* BAGIAN B: STRUKTUR KOMPENSASI & PENGATURAN PAJAK (SATU PINTU) */}
             <div className="md:col-span-2 p-5 bg-gradient-to-br from-slate-50 via-slate-50/90 to-blue-50/20 rounded-xl border border-slate-200/90 flex flex-col gap-4 shadow-2xs">
               <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200/70">
                 <div className="flex items-center gap-2.5">
@@ -1352,10 +1527,10 @@ export function WizardEmployeeForm({
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
-                      Struktur Kompensasi & Paket Penggajian
+                      Struktur Kompensasi, Tunjangan & Pajak (PPh 21)
                     </h4>
                     <p className="text-[11px] text-slate-500">
-                      Tentukan gaji pokok dan tunjangan tetap yang disepakati dalam surat penawaran / perjanjian kerja.
+                      Tentukan gaji pokok, tunjangan tetap, dan konfigurasi pajak penghasilan sesuai penawaran kerja.
                     </p>
                   </div>
                 </div>
@@ -1491,7 +1666,138 @@ export function WizardEmployeeForm({
                     </div>
                   </div>
 
-                  {/* Ringkasan Estimasi Pendapatan Tunai (Live Preview) */}
+                  {/* Pengaturan Pajak Penghasilan (PPh 21 — PP 58/2023) */}
+                  {(() => {
+                    const selectedPtkpInfo = getPtkpExplanation(formData.ptkpStatus);
+                    const selectedTaxMethodInfo = getTaxMethodExplanation(formData.taxMethod);
+
+                    return (
+                      <div className="p-4 sm:p-5 bg-white rounded-xl border border-slate-200 flex flex-col gap-4 shadow-2xs">
+                        <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <Receipt className="w-4 h-4 text-[#102E50]" />
+                            <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                              Pengaturan Pajak Penghasilan (PPh 21 — PP 58/2023)
+                            </h4>
+                          </div>
+                          <span className="text-[11px] font-medium text-slate-500 bg-slate-50 px-2.5 py-0.5 rounded-full border border-slate-200">
+                            Regulasi PP 58/2023 & PMK 168/2023
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">
+                          Status PTKP menentukan lapisan <strong>Tarif Efektif Rata-Rata (TER A, B, atau C)</strong> untuk pemotongan bulanan Januari–November dan rekonsiliasi Pasal 17 UU HPP pada masa Desember.
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                          {/* Kolom 1: Status PTKP */}
+                          <div className="flex flex-col gap-2">
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Status PTKP (Penghasilan Tidak Kena Pajak) <span className="text-[#A8281C]">*</span>
+                            </label>
+                            <select
+                              name="ptkpStatus"
+                              value={formData.ptkpStatus}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+                            >
+                              <option value="TK_0">TK/0 — Tidak Kawin, 0 Tanggungan (TER A - Rp 54 jt)</option>
+                              <option value="TK_1">TK/1 — Tidak Kawin, 1 Tanggungan (TER A - Rp 58,5 jt)</option>
+                              <option value="TK_2">TK/2 — Tidak Kawin, 2 Tanggungan (TER B - Rp 63 jt)</option>
+                              <option value="TK_3">TK/3 — Tidak Kawin, 3 Tanggungan (TER B - Rp 67,5 jt)</option>
+                              <option value="K_0">K/0 — Kawin, 0 Tanggungan (TER A - Rp 58,5 jt)</option>
+                              <option value="K_1">K/1 — Kawin, 1 Tanggungan (TER B - Rp 63 jt)</option>
+                              <option value="K_2">K/2 — Kawin, 2 Tanggungan (TER B - Rp 67,5 jt)</option>
+                              <option value="K_3">K/3 — Kawin, 3 Tanggungan (TER C - Rp 72 jt)</option>
+                            </select>
+
+                            {selectedPtkpInfo && (
+                              <div className="p-3 rounded-lg bg-sky-50/70 border border-sky-200/90 text-xs flex flex-col gap-2 shadow-2xs">
+                                <div className="flex items-center justify-between gap-2 border-b border-sky-200/60 pb-1.5">
+                                  <div className="flex items-center gap-1.5 font-bold text-[#102E50]">
+                                    <Info className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                                    <span>{selectedPtkpInfo.statusLabel}</span>
+                                  </div>
+                                  <span className={`px-2 py-0.5 text-[10.5px] font-bold rounded-md border ${selectedPtkpInfo.terBadgeClass}`}>
+                                    {selectedPtkpInfo.terCategory}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[10.5px] bg-white/90 p-2 rounded-md border border-sky-100">
+                                  <div>
+                                    <span className="text-slate-400 block text-[9.5px] font-bold uppercase">Nilai PTKP Setahun:</span>
+                                    <span className="font-bold text-slate-800 text-xs">{selectedPtkpInfo.annualPtkp}</span>
+                                    <span className="text-[10px] text-slate-500 block">({selectedPtkpInfo.monthlyPtkp})</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-slate-400 block text-[9.5px] font-bold uppercase">Batas Bebas Pajak:</span>
+                                    <span className="font-semibold text-emerald-700 block">{selectedPtkpInfo.zeroTaxLimit}</span>
+                                  </div>
+                                </div>
+                                <div className="text-[10.5px] text-slate-700 leading-relaxed">
+                                  <span className="font-bold text-[#102E50]">Alur: </span>
+                                  {selectedPtkpInfo.calculationDetail}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Kolom 2: Metode Pemotongan Pajak */}
+                          <div className="flex flex-col gap-2">
+                            <label className="block text-xs font-semibold text-slate-700">
+                              Metode Pemotongan Pajak <span className="text-[#A8281C]">*</span>
+                            </label>
+                            <select
+                              name="taxMethod"
+                              value={formData.taxMethod}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
+                            >
+                              <option value="GROSS">GROSS — Pajak dipotong dari gaji karyawan (Standar)</option>
+                              <option value="GROSS_UP">GROSS UP — Pajak ditunjang penuh oleh lembaga</option>
+                              <option value="NETT">NETT — Gaji diterima bersih tanpa potongan pajak</option>
+                            </select>
+
+                            {selectedTaxMethodInfo && (
+                              <div className={`p-3 rounded-lg border text-xs flex flex-col gap-2 shadow-2xs ${selectedTaxMethodInfo.bgClass} ${selectedTaxMethodInfo.borderClass}`}>
+                                <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-1.5">
+                                  <div className="flex items-center gap-1.5 font-bold text-slate-900">
+                                    <Receipt className="w-3.5 h-3.5 text-[#102E50] shrink-0" />
+                                    <span>{selectedTaxMethodInfo.title}</span>
+                                  </div>
+                                  <span className={`px-2 py-0.5 text-[10.5px] font-bold rounded-md border ${selectedTaxMethodInfo.badgeClass}`}>
+                                    {selectedTaxMethodInfo.badge}
+                                  </span>
+                                </div>
+                                <div className="text-[10.5px] text-slate-700 leading-relaxed">
+                                  <span className="font-bold text-slate-900">Konsep: </span>
+                                  {selectedTaxMethodInfo.summary}
+                                </div>
+                                <div className="text-[10.5px] text-slate-700 leading-relaxed bg-white/90 p-2 rounded-md border border-slate-200/60 space-y-1">
+                                  <div>
+                                    <span className="font-semibold text-slate-900">Ke Karyawan: </span>
+                                    <span className="text-slate-600">{selectedTaxMethodInfo.employeeImpact}</span>
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold text-slate-900">Ke Lembaga: </span>
+                                    <span className="text-slate-600">{selectedTaxMethodInfo.companyImpact}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Banner Catatan Penting HR */}
+                        <div className="p-3 bg-amber-50/90 rounded-lg border border-amber-200/80 text-[11px] text-amber-950 flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                          <p className="leading-relaxed">
+                            <strong>Hal Penting HR:</strong> Dasar Pengenaan Pajak (DPP) dihitung dari penghasilan tunai ditambah premi asuransi kantor (JKK, JKM, BPJS Kes 4%). Potongan bulanan menggunakan persentase TER sesuai status PTKP di atas.
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Ringkasan Estimasi Kompensasi Bulanan & Take Home Pay (Live Preview) */}
                   {(() => {
                     const base = Number(formData.baseSalary) || 0;
                     const pos = Number(formData.allowancePosition) || 0;
@@ -1502,243 +1808,118 @@ export function WizardEmployeeForm({
                     const totalCashGross = base + totalAllowances;
                     const estBpjsKes = Math.round(base * 0.01);
                     const estBpjsTk = Math.round(base * 0.02);
+                    const totalBpjsEmp = estBpjsKes + estBpjsTk;
+
+                    // Hitung PPh 21 TER real-time
+                    const companyBenefit = calculateCompanyTaxableBenefit(base);
+                    const taxableGross = totalCashGross + companyBenefit.totalBenefit;
+                    const pphResult = calculateMonthlyPph21Ter(taxableGross, formData.ptkpStatus);
+                    const pphRatePercent = (pphResult.terRate * 100).toFixed(2);
+                    const estPph21Amount = pphResult.pph21;
+
+                    // Potongan yang memotong gaji tunai:
+                    // GROSS: PPh dipotong dari pegawai
+                    // GROSS_UP / NETT: PPh ditanggung/ditunjang lembaga
+                    const employeeTaxDeduction = formData.taxMethod === "GROSS" ? estPph21Amount : 0;
+                    const estimatedTakeHomePay = Math.max(0, totalCashGross - totalBpjsEmp - employeeTaxDeduction);
 
                     return (
-                      <div className="p-4 bg-sky-50/90 rounded-xl border border-sky-200 text-xs text-sky-950 flex flex-col gap-2.5">
-                        <div className="flex items-center justify-between flex-wrap gap-2">
-                          <span className="font-bold text-[#102E50] flex items-center gap-1.5 text-xs">
+                      <div className="p-4 sm:p-5 bg-gradient-to-br from-sky-50 via-white to-blue-50/70 rounded-xl border border-sky-200/90 text-xs text-sky-950 flex flex-col gap-3 shadow-xs">
+                        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-sky-200/70 pb-2">
+                          <div className="flex items-center gap-2">
                             <Receipt className="w-4 h-4 text-sky-600" />
-                            Ringkasan Estimasi Kompensasi Bulanan (Live Preview):
-                          </span>
-                          <span className="font-mono font-bold text-sm text-[#102E50]">
-                            Total Bruto Tunai: Rp {totalCashGross.toLocaleString("id-ID")}
+                            <span className="font-bold text-[#102E50] text-xs">
+                              Pratinjau Estimasi Kompensasi & Gaji Bersih (Live Preview):
+                            </span>
+                          </div>
+                          <span className="font-bold text-xs text-sky-900 bg-sky-100/80 px-2.5 py-0.5 rounded-full border border-sky-200">
+                            Simulasi Berdasarkan Input Di Atas
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white/80 p-2.5 rounded-lg border border-sky-100 text-[11px]">
-                          <div>
+                        {/* 4 Kartu Breakdown Utama */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-[11px]">
+                          <div className="bg-white p-2.5 rounded-lg border border-sky-100 shadow-2xs">
                             <span className="text-slate-400 block text-[10px] uppercase font-bold">
                               Gaji Pokok:
                             </span>
-                            <span className="font-bold text-slate-800">
-                              Rp {base.toLocaleString("id-ID")}
+                            <span className="font-bold text-slate-800 text-xs block mt-0.5">
+                              {formatRupiah(base)}
                             </span>
                           </div>
-                          <div>
+
+                          <div className="bg-white p-2.5 rounded-lg border border-sky-100 shadow-2xs">
                             <span className="text-slate-400 block text-[10px] uppercase font-bold">
                               Total Tunjangan:
                             </span>
-                            <span className="font-bold text-emerald-700">
-                              + Rp {totalAllowances.toLocaleString("id-ID")}
+                            <span className="font-bold text-emerald-700 text-xs block mt-0.5">
+                              + {formatRupiah(totalAllowances)}
                             </span>
                           </div>
-                          <div>
+
+                          <div className="bg-white p-2.5 rounded-lg border border-sky-100 shadow-2xs">
                             <span className="text-slate-400 block text-[10px] uppercase font-bold">
-                              Estimasi BPJS Pegawai (3%):
+                              Iuran BPJS Pegawai:
                             </span>
-                            <span className="font-semibold text-rose-700">
-                              - Rp {(estBpjsKes + estBpjsTk).toLocaleString("id-ID")}
-                              <span className="text-[10px] text-slate-400 font-normal ml-1">
-                                (Kes 1% + TK 2%)
-                              </span>
+                            <span className="font-semibold text-rose-700 text-xs block mt-0.5">
+                              - {formatRupiah(totalBpjsEmp)}
+                            </span>
+                            <span className="text-[9.5px] text-slate-400 block">
+                              Kes 1% + TK 2%
+                            </span>
+                          </div>
+
+                          <div className="bg-white p-2.5 rounded-lg border border-sky-100 shadow-2xs">
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                              Estimasi PPh 21 TER:
+                            </span>
+                            <span className="font-semibold text-rose-700 text-xs block mt-0.5">
+                              {formData.taxMethod === "GROSS"
+                                ? `- ${formatRupiah(estPph21Amount)}`
+                                : `Rp 0 (${formData.taxMethod})`}
+                            </span>
+                            <span className="text-[9.5px] text-slate-400 block">
+                              {pphResult.terCategory.replace("_", " ")} ({pphRatePercent}%)
                             </span>
                           </div>
                         </div>
 
-                        <p className="text-[10.5px] text-slate-500 italic">
-                          * Potongan PPh 21 akan dihitung otomatis oleh sistem pada Langkah 4 berdasarkan status PTKP pegawai dan Tarif Efektif Rata-Rata (PP 58/2023).
-                        </p>
+                        {/* Banner Highlight Take Home Pay */}
+                        <div className="p-3 bg-gradient-to-r from-[#102E50] to-[#1a4473] rounded-lg text-white flex items-center justify-between flex-wrap gap-2 shadow-xs">
+                          <div>
+                            <span className="text-[10px] uppercase font-bold tracking-wider text-slate-200 block">
+                              Estimasi Gaji Bersih Diterima Pegawai (Take Home Pay / THP):
+                            </span>
+                            <span className="text-[11px] text-slate-300">
+                              Total Bruto Tunai: {formatRupiah(totalCashGross)}
+                            </span>
+                          </div>
+                          <span className="font-mono font-bold text-base text-[#F2AF3E]">
+                            {formatRupiah(estimatedTakeHomePay)} / bulan
+                          </span>
+                        </div>
                       </div>
                     );
                   })()}
                 </div>
               )}
             </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Tanggal Mulai Kontrak <span className="text-[#A8281C]">*</span>
-              </label>
-              <input
-                type="date"
-                name="contractStartDate"
-                value={formData.contractStartDate}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Tanggal Berakhir Kontrak{" "}
-                {formData.employmentType === "FIXED_TERM" && (
-                  <span className="text-[#A8281C]">* (Wajib untuk PKWT)</span>
-                )}
-              </label>
-              <input
-                type="date"
-                name="contractEndDate"
-                value={formData.contractEndDate}
-                onChange={handleChange}
-                required={formData.employmentType === "FIXED_TERM"}
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Sistem akan memicu peringatan otomatis jika masa kontrak tersisa ≤ 30 hari
-              </span>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Nomor Surat Perjanjian / Kontrak Kerja
-              </label>
-              <input
-                type="text"
-                name="contractNumber"
-                value={formData.contractNumber}
-                onChange={handleChange}
-                placeholder="Contoh: 018/PKWT/PSPK/X/2026 atau No. SK Direksi"
-                className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Nomor registrasi resmi dokumen kontrak kerja untuk pengarsipan lembaga
-              </span>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                Catatan Kontrak Kerja
-              </label>
-              <textarea
-                name="contractNotes"
-                value={formData.contractNotes}
-                onChange={handleChange}
-                rows={2}
-                placeholder="Keterangan penugasan khusus atau klausul riset..."
-                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Lampiran Berkas Kontrak Kerja (PDF)
-                </label>
-                <span className="text-[11px] text-slate-400">
-                  Opsional saat pendaftaran • Maksimal 10 MB
-                </span>
-              </div>
-
-              {/* Tampilkan berkas saat ini jika mode edit dan sudah ada berkas */}
-              {formData.contractDocumentKey && !contractFile && (
-                <div className="mb-3 p-3 bg-blue-50/70 border border-blue-200/80 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <FileText className="w-4 h-4 text-blue-600 shrink-0" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-semibold text-blue-900 truncate">
-                        Berkas Kontrak Telah Terunggah
-                      </span>
-                      <span className="text-[11px] text-blue-700 font-mono truncate">
-                        {formData.contractDocumentKey}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <a
-                      href={`/api/documents/${formData.contractDocumentKey}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-2.5 py-1 text-xs font-semibold bg-white text-blue-700 hover:bg-blue-100/60 rounded border border-blue-300 transition-colors inline-flex items-center gap-1 shadow-2xs"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Lihat PDF</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => setFormData((prev) => ({ ...prev, contractDocumentKey: "" }))}
-                      className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
-                      title="Hapus berkas kontrak ini"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Upload file box jika belum ada berkas terpilih atau ingin mengganti */}
-              {(!formData.contractDocumentKey || contractFile) && (
-                <div className="p-4 bg-slate-50/70 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl transition-all">
-                  {!contractFile ? (
-                    <label className="flex flex-col items-center justify-center cursor-pointer py-3">
-                      <UploadCloud className="w-8 h-8 text-slate-400 mb-2 group-hover:text-[#102E50]" />
-                      <span className="text-xs font-bold text-slate-700 mb-0.5">
-                        Pilih atau seret berkas PDF kontrak ke sini
-                      </span>
-                      <span className="text-[11px] text-slate-400">
-                        Hanya format PDF (.pdf), ukuran maksimal 10 MB
-                      </span>
-                      <input
-                        type="file"
-                        accept="application/pdf,.pdf"
-                        onChange={handleContractFileChange}
-                        className="hidden"
-                      />
-                    </label>
-                  ) : (
-                    <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
-                          <FileCheck className="w-5 h-5" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-bold text-slate-800 truncate">
-                            {contractFile.name}
-                          </span>
-                          <span className="text-[11px] text-slate-400">
-                            {(contractFile.size / 1024 / 1024).toFixed(2)} MB • Siap disimpan
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRemoveContractFile}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                        title="Hapus pilihan berkas"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  {contractFileError && (
-                    <p className="text-xs text-rose-600 font-semibold mt-2 flex items-center gap-1.5">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{contractFileError}</span>
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <p className="text-[11px] text-slate-400 mt-2 leading-relaxed">
-                <span className="font-semibold text-slate-600">Alur Berkas Kontrak:</span> Jika berkas draft kontrak belum ditandatangani pegawai baru saat pendaftaran, HR dapat mengosongkan berkas ini terlebih dahulu. Setelah staf baru menandatangani kontrak dan menyerahkannya, HR dapat mengunggah berkas PDF bertandatangan kapan saja melalui tab <strong>Kontrak Kerja</strong> di detail profil pegawai.
-              </p>
-            </div>
           </div>
         )}
 
-        {/* STEP 4: DATA SENSITIF & AKUN */}
+        {/* STEP 4: PERBANKAN & AKUN */}
         {currentStep === 4 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
             <div className="md:col-span-2 pb-2 border-b border-slate-100">
               <h3 className="font-bold text-base text-[#102E50] font-heading">
-                Data Sensitif & Akun Pengguna
+                Perbankan, Data Sensitif & Akun Pengguna
               </h3>
               <p className="text-xs text-slate-500">
-                Nilai data di bawah ini disimpan terenkripsi otomatis (AES-256-GCM) di database
+                Data rekening payroll, dokumen kependudukan resmi terenkripsi (AES-256), dan akun login portal
               </p>
             </div>
 
+            {/* Identitas Resmi Kependudukan (Terenkripsi) */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Nomor Induk Kependudukan (NIK)
@@ -1754,6 +1935,9 @@ export function WizardEmployeeForm({
                 maxLength={20}
                 className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Disimpan terenkripsi otomatis (AES-256-GCM) di database
+              </span>
             </div>
 
             <div>
@@ -1773,184 +1957,12 @@ export function WizardEmployeeForm({
                 maxLength={25}
                 className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Disimpan terenkripsi otomatis (AES-256-GCM) di database
+              </span>
             </div>
 
-            {/* Konfigurasi Pajak Penghasilan PPh 21 (PP 58/2023) */}
-            {(() => {
-              const selectedPtkpInfo = getPtkpExplanation(formData.ptkpStatus);
-              const selectedTaxMethodInfo = getTaxMethodExplanation(formData.taxMethod);
-
-              return (
-                <div className="md:col-span-2 p-4 sm:p-5 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col gap-4">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <Receipt className="w-4 h-4 text-[#102E50]" />
-                      <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
-                        Pengaturan Pajak Penghasilan (PPh 21 — PP 58/2023)
-                      </h4>
-                    </div>
-                    <span className="text-[11px] font-medium text-slate-500 bg-white px-2.5 py-0.5 rounded-full border border-slate-200">
-                      Regulasi PP 58/2023 & PMK 168/2023
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
-                    Status PTKP menentukan lapisan <strong>Tarif Efektif Rata-Rata (TER A, B, atau C)</strong> untuk pemotongan bulanan Januari–November dan rekonsiliasi Pasal 17 UU HPP pada masa Desember.
-                  </p>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                    {/* Kolom 1: Status PTKP */}
-                    <div className="flex flex-col gap-2">
-                      <label className="block text-xs font-semibold text-slate-700">
-                        Status PTKP (Penghasilan Tidak Kena Pajak) <span className="text-[#A8281C]">*</span>
-                      </label>
-                      <select
-                        name="ptkpStatus"
-                        value={formData.ptkpStatus}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
-                      >
-                        <option value="TK_0">TK/0 — Tidak Kawin, 0 Tanggungan (TER A - Rp 54 jt)</option>
-                        <option value="TK_1">TK/1 — Tidak Kawin, 1 Tanggungan (TER A - Rp 58,5 jt)</option>
-                        <option value="TK_2">TK/2 — Tidak Kawin, 2 Tanggungan (TER B - Rp 63 jt)</option>
-                        <option value="TK_3">TK/3 — Tidak Kawin, 3 Tanggungan (TER B - Rp 67,5 jt)</option>
-                        <option value="K_0">K/0 — Kawin, 0 Tanggungan (TER A - Rp 58,5 jt)</option>
-                        <option value="K_1">K/1 — Kawin, 1 Tanggungan (TER B - Rp 63 jt)</option>
-                        <option value="K_2">K/2 — Kawin, 2 Tanggungan (TER B - Rp 67,5 jt)</option>
-                        <option value="K_3">K/3 — Kawin, 3 Tanggungan (TER C - Rp 72 jt)</option>
-                      </select>
-
-                      {/* Keterangan & Rincian Status PTKP yang dipilih */}
-                      {selectedPtkpInfo && (
-                        <div className="p-3.5 rounded-lg bg-sky-50/70 border border-sky-200/90 text-xs flex flex-col gap-2.5 mt-1 shadow-xs">
-                          <div className="flex items-center justify-between gap-2 border-b border-sky-200/60 pb-2">
-                            <div className="flex items-center gap-1.5 font-bold text-[#102E50]">
-                              <Info className="w-4 h-4 text-sky-600 shrink-0" />
-                              <span>{selectedPtkpInfo.statusLabel}</span>
-                            </div>
-                            <span
-                              className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${selectedPtkpInfo.terBadgeClass}`}
-                            >
-                              {selectedPtkpInfo.terCategory}
-                            </span>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 text-[11px] bg-white/90 p-2.5 rounded-md border border-sky-100">
-                            <div>
-                              <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">
-                                Nilai PTKP Setahun:
-                              </span>
-                              <span className="font-bold text-slate-800 text-xs block">
-                                {selectedPtkpInfo.annualPtkp}
-                              </span>
-                              <span className="text-[10px] text-slate-500">
-                                ({selectedPtkpInfo.monthlyPtkp})
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">
-                                Batas Bebas Pajak:
-                              </span>
-                              <span className="font-semibold text-emerald-700 block">
-                                {selectedPtkpInfo.zeroTaxLimit}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="text-[11px] text-slate-700 leading-relaxed">
-                            <span className="font-bold text-[#102E50]">Alur Perhitungan: </span>
-                            {selectedPtkpInfo.calculationDetail}
-                          </div>
-
-                          <div className="text-[10.5px] text-sky-900 bg-sky-100/70 p-2 rounded-md flex items-start gap-1.5 border border-sky-200/50">
-                            <span className="font-bold shrink-0">Catatan HR:</span>
-                            <span>{selectedPtkpInfo.notes}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Kolom 2: Metode Pemotongan Pajak */}
-                    <div className="flex flex-col gap-2">
-                      <label className="block text-xs font-semibold text-slate-700">
-                        Metode Pemotongan Pajak <span className="text-[#A8281C]">*</span>
-                      </label>
-                      <select
-                        name="taxMethod"
-                        value={formData.taxMethod}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-medium"
-                      >
-                        <option value="GROSS">GROSS — Pajak dipotong dari gaji karyawan (Standar)</option>
-                        <option value="GROSS_UP">GROSS UP — Pajak ditunjang penuh oleh lembaga</option>
-                        <option value="NETT">NETT — Gaji diterima bersih tanpa potongan pajak</option>
-                      </select>
-
-                      {/* Keterangan & Rincian Metode Pajak yang dipilih */}
-                      {selectedTaxMethodInfo && (
-                        <div
-                          className={`p-3.5 rounded-lg border text-xs flex flex-col gap-2.5 mt-1 shadow-xs ${selectedTaxMethodInfo.bgClass} ${selectedTaxMethodInfo.borderClass}`}
-                        >
-                          <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
-                            <div className="flex items-center gap-1.5 font-bold text-slate-900">
-                              <Receipt className="w-4 h-4 text-[#102E50] shrink-0" />
-                              <span>{selectedTaxMethodInfo.title}</span>
-                            </div>
-                            <span
-                              className={`px-2 py-0.5 text-[11px] font-bold rounded-md border ${selectedTaxMethodInfo.badgeClass}`}
-                            >
-                              {selectedTaxMethodInfo.badge}
-                            </span>
-                          </div>
-
-                          <div className="text-[11px] text-slate-700 leading-relaxed">
-                            <span className="font-bold text-slate-900">Konsep: </span>
-                            {selectedTaxMethodInfo.summary}
-                          </div>
-
-                          <div className="text-[11px] text-slate-700 leading-relaxed bg-white/90 p-2.5 rounded-md border border-slate-200/60 space-y-1.5">
-                            <div>
-                              <span className="font-semibold text-slate-900">Dampak ke Karyawan: </span>
-                              <span className="text-slate-600">{selectedTaxMethodInfo.employeeImpact}</span>
-                            </div>
-                            <div>
-                              <span className="font-semibold text-slate-900">Dampak ke Lembaga: </span>
-                              <span className="text-slate-600">{selectedTaxMethodInfo.companyImpact}</span>
-                            </div>
-                          </div>
-
-                          <div className="text-[10.5px] text-slate-700 bg-slate-100/80 p-2 rounded-md flex items-start gap-1.5 border border-slate-200/60">
-                            <span className="font-bold text-[#102E50] shrink-0">Peruntukan:</span>
-                            <span>{selectedTaxMethodInfo.bestFor}</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Banner Rangkuman Aturan Penting HR */}
-                  <div className="p-3.5 bg-amber-50/90 rounded-lg border border-amber-200/80 text-xs text-amber-950 flex items-start gap-2.5 mt-1">
-                    <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-                    <div className="space-y-1.5 text-[11px] leading-relaxed w-full">
-                      <p className="font-bold text-amber-950">
-                        Hal Penting untuk HR & Penggajian (PP 58/2023 & PMK 168/2023):
-                      </p>
-                      <ul className="list-disc list-inside space-y-1 text-amber-900">
-                        <li>
-                          <strong>Dasar Bruto Pengenaan Pajak (DPP):</strong> Dihitung dari seluruh penghasilan tunai (gaji pokok, lembur, tunjangan) ditambah <strong>Premi Asuransi Lembaga</strong> (JKK 0,24%–0,54%, JKM 0,30%, BPJS Kesehatan 4%) sebagai objek pajak natura.
-                        </li>
-                        <li>
-                          <strong>Masa Januari – November:</strong> Dipotong otomatis menggunakan persentase Tarif Efektif Rata-Rata (TER) bulanan sesuai status PTKP di atas.
-                        </li>
-                        <li>
-                          <strong>Masa Desember (Akhir Tahun):</strong> Dihitung ulang menggunakan Tarif Progresif Pasal 17 UU HPP atas akumulasi penghasilan neto setahun dikurangi PTKP setahun, lalu dikurangkan dengan akumulasi PPh 21 Jan–Nov.
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-
+            {/* Rekening Bank Payroll */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Nama Bank Payroll
@@ -2119,6 +2131,12 @@ export function WizardEmployeeForm({
               const oth = Number(formData.allowanceOther) || 0;
               const totalAllowances = pos + tra + com + oth;
               const totalGross = base + totalAllowances;
+              const estBpjs = Math.round(base * 0.03);
+              const companyBenefit = calculateCompanyTaxableBenefit(base);
+              const taxableGross = totalGross + companyBenefit.totalBenefit;
+              const pphResult = calculateMonthlyPph21Ter(taxableGross, formData.ptkpStatus);
+              const pphDeduction = formData.taxMethod === "GROSS" ? pphResult.pph21 : 0;
+              const thpFinal = Math.max(0, totalGross - estBpjs - pphDeduction);
               const selectedPtkp = getPtkpExplanation(formData.ptkpStatus);
 
               return (
@@ -2155,27 +2173,33 @@ export function WizardEmployeeForm({
                       </span>
                     </div>
 
-                    {/* Kolom 2: Paket Kompensasi */}
+                    {/* Kolom 2: Paket Kompensasi & Estimasi THP */}
                     <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                        Paket Kompensasi Bulanan
+                        Paket Kompensasi & THP
                       </span>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 text-[11px]">Gaji Pokok:</span>
                         <span className="font-semibold text-slate-900 font-mono text-[11px]">
-                          Rp {base.toLocaleString("id-ID")}
+                          {formatRupiah(base)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500 text-[11px]">Tunjangan:</span>
                         <span className="font-semibold text-emerald-700 font-mono text-[11px]">
-                          + Rp {totalAllowances.toLocaleString("id-ID")}
+                          + {formatRupiah(totalAllowances)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-500 text-[11px]">Total Bruto:</span>
+                        <span className="font-bold text-slate-900 font-mono text-[11px]">
+                          {formatRupiah(totalGross)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
-                        <span className="font-bold text-[#102E50] text-[11px]">Total Bruto:</span>
-                        <span className="font-bold text-[#102E50] font-mono text-xs">
-                          Rp {totalGross.toLocaleString("id-ID")}
+                        <span className="font-bold text-emerald-800 text-[11px]">Est. THP Bersih:</span>
+                        <span className="font-bold text-emerald-700 font-mono text-xs">
+                          {formatRupiah(thpFinal)}
                         </span>
                       </div>
                     </div>
