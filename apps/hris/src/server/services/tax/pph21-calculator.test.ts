@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateAnnualPph21Pasal17,
+  calculateCompanyTaxableBenefit,
   calculateMonthlyPph21Ter,
   calculatePasal17Tax,
   findTerRate,
@@ -251,6 +252,39 @@ describe("PPh 21 Tax Calculation Engine (PP 58/2023 & PMK 168/2023)", () => {
       expect(result.pkp).toBe(0);
       expect(result.annualPph21Payable).toBe(0);
       expect(result.pph21December).toBe(0);
+    });
+  });
+
+  describe("Kalkulasi Premi Asuransi Kantor / Objek Pajak Natura (calculateCompanyTaxableBenefit)", () => {
+    it("menghitung premi kantor tepat Rp 363.200 untuk gaji pokok Rp 8.000.000 (Kasus Budi)", () => {
+      // Budi: Gaji pokok 8.000.000
+      // BPJS Kesehatan kantor (4%): 320.000
+      // JKK kantor (0.24%): 19.200
+      // JKM kantor (0.30%): 24.000
+      // Total: 363.200
+      const benefit = calculateCompanyTaxableBenefit(8_000_000);
+      expect(benefit.bpjsKesehatan).toBe(320_000);
+      expect(benefit.jkk).toBe(19_200);
+      expect(benefit.jkm).toBe(24_000);
+      expect(benefit.totalBenefit).toBe(363_200);
+    });
+
+    it("menerapkan batas maksimal gaji Rp 12.000.000 untuk porsi BPJS Kesehatan lembaga", () => {
+      // Gaji 20 jt:
+      // BPJS Kesehatan kantor: cap di 12 jt * 4% = 480.000
+      // JKK kantor (0.24%): 20 jt * 0.24% = 48.000
+      // JKM kantor (0.30%): 20 jt * 0.30% = 60.000
+      // Total: 480.000 + 48.000 + 60.000 = 588.000
+      const benefit = calculateCompanyTaxableBenefit(20_000_000);
+      expect(benefit.bpjsKesehatan).toBe(480_000);
+      expect(benefit.jkk).toBe(48_000);
+      expect(benefit.jkm).toBe(60_000);
+      expect(benefit.totalBenefit).toBe(588_000);
+    });
+
+    it("mengembalikan 0 untuk gaji pokok <= 0", () => {
+      const benefit = calculateCompanyTaxableBenefit(0);
+      expect(benefit.totalBenefit).toBe(0);
     });
   });
 });

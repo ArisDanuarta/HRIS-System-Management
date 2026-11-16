@@ -201,3 +201,42 @@ export function calculateAnnualPph21Pasal17(
     pph21December,
   };
 }
+
+/**
+ * Parameter dan Perhitungan Premi Asuransi Tanggungan Lembaga
+ * Sebagai Objek PPh 21 (Natura) sesuai PP 44/2015, PP 45/2015, & Perpres 64/2020
+ */
+export const BPJS_KES_COMPANY_RATE = 0.04; // 4.00%
+export const BPJS_KES_MAX_BASE = 12_000_000; // Batas atas dasar upah BPJS Kesehatan (maks Rp 480.000)
+export const BPJS_JKK_COMPANY_RATE = 0.0024; // 0.24% (Tingkat Risiko Sangat Rendah)
+export const BPJS_JKM_COMPANY_RATE = 0.003; // 0.30%
+
+export interface CompanyTaxableBenefitResult {
+  bpjsKesehatan: number;
+  jkk: number;
+  jkm: number;
+  totalBenefit: number;
+}
+
+/**
+ * Menghitung premi asuransi kesehatan & ketenagakerjaan porsi lembaga
+ * yang ditambahkan ke penghasilan bruto sebagai Dasar Pengenaan Pajak (DPP) PPh 21
+ */
+export function calculateCompanyTaxableBenefit(baseSalary: number): CompanyTaxableBenefitResult {
+  if (baseSalary <= 0) {
+    return { bpjsKesehatan: 0, jkk: 0, jkm: 0, totalBenefit: 0 };
+  }
+  const safeBase = Math.round(baseSalary);
+  const kesBase = Math.min(safeBase, BPJS_KES_MAX_BASE);
+  const bpjsKesehatan = Math.round(kesBase * BPJS_KES_COMPANY_RATE);
+  const jkk = Math.round(safeBase * BPJS_JKK_COMPANY_RATE);
+  const jkm = Math.round(safeBase * BPJS_JKM_COMPANY_RATE);
+  const totalBenefit = bpjsKesehatan + jkk + jkm;
+
+  return {
+    bpjsKesehatan,
+    jkk,
+    jkm,
+    totalBenefit,
+  };
+}
