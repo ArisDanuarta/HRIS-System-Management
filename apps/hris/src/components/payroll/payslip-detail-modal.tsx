@@ -21,6 +21,10 @@ export interface PayslipDetailData {
   grossAmount: number;
   totalDeduction: number;
   netAmount: number;
+  taxableGross?: number | null;
+  pph21Amount?: number | null;
+  terCategory?: string | null;
+  terRate?: number | null;
   status: string;
   wageType?: string | null;
   totalHours?: number | null;
@@ -44,6 +48,8 @@ export interface PayslipDetailData {
     fullName: string;
     bankName: string | null;
     bankAccountEnc: string | null;
+    ptkpStatus?: string | null;
+    taxMethod?: string | null;
     currentDepartment: { id: string; name: string } | null;
     currentPosition: { id: string; title: string } | null;
   };
