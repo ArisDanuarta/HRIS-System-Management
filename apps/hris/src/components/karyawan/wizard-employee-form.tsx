@@ -251,9 +251,11 @@ export function WizardEmployeeForm({
     contractDocumentKey: initialActiveContract?.documentKey || "",
     contractNotes: cleanContractNotes(initialActiveContract?.notes),
 
-    // Step 4: Sensitive Data & Account
+    // Step 4: Sensitive Data, Tax & Account
     nik: "",
     npwp: "",
+    ptkpStatus: (initialData?.ptkpStatus as PtkpStatus) || "TK_0",
+    taxMethod: (initialData?.taxMethod as TaxMethod) || "GROSS",
     bankName: initialData?.bankName || "Bank Mandiri",
     bankAccount: "",
     bankAccountName: initialData?.bankAccountName || "",
@@ -594,6 +596,8 @@ export function WizardEmployeeForm({
         contractNotes: formData.contractNotes.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
+        ptkpStatus: formData.ptkpStatus,
+        taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
         bankAccount: formData.bankAccount.trim() || undefined,
         bankAccountName: formData.bankAccountName.trim() || undefined,
@@ -661,6 +665,8 @@ export function WizardEmployeeForm({
         contractNotes: formData.contractNotes?.trim() || undefined,
         nik: formData.nik.trim() || undefined,
         npwp: formData.npwp.trim() || undefined,
+        ptkpStatus: formData.ptkpStatus,
+        taxMethod: formData.taxMethod,
         bankName: formData.bankName.trim() || undefined,
         bankAccount: formData.bankAccount.trim() || undefined,
         bankAccountName: formData.bankAccountName?.trim() || undefined,
@@ -1566,6 +1572,58 @@ export function WizardEmployeeForm({
                 maxLength={25}
                 className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
               />
+            </div>
+
+            {/* Konfigurasi Pajak Penghasilan PPh 21 (PP 58/2023) */}
+            <div className="md:col-span-2 p-4 bg-slate-50/80 rounded-xl border border-slate-200 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Receipt className="w-4 h-4 text-[#102E50]" />
+                <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                  Pengaturan Pajak Penghasilan (PPh 21 — PP 58/2023)
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500">
+                Status PTKP menentukan lapisan Tarif Efektif Rata-Rata (TER A, B, atau C) untuk pemotongan PPh 21 bulanan sesuai PP No. 58/2023.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Status PTKP (Penghasilan Tidak Kena Pajak) <span className="text-[#A8281C]">*</span>
+                  </label>
+                  <select
+                    name="ptkpStatus"
+                    value={formData.ptkpStatus}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  >
+                    <option value="TK_0">TK/0 — Tidak Kawin, 0 Tanggungan (TER A - Rp 54 jt)</option>
+                    <option value="TK_1">TK/1 — Tidak Kawin, 1 Tanggungan (TER A - Rp 58,5 jt)</option>
+                    <option value="TK_2">TK/2 — Tidak Kawin, 2 Tanggungan (TER B - Rp 63 jt)</option>
+                    <option value="TK_3">TK/3 — Tidak Kawin, 3 Tanggungan (TER B - Rp 67,5 jt)</option>
+                    <option value="K_0">K/0 — Kawin, 0 Tanggungan (TER A - Rp 58,5 jt)</option>
+                    <option value="K_1">K/1 — Kawin, 1 Tanggungan (TER B - Rp 63 jt)</option>
+                    <option value="K_2">K/2 — Kawin, 2 Tanggungan (TER B - Rp 67,5 jt)</option>
+                    <option value="K_3">K/3 — Kawin, 3 Tanggungan (TER C - Rp 72 jt)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Metode Pemotongan Pajak <span className="text-[#A8281C]">*</span>
+                  </label>
+                  <select
+                    name="taxMethod"
+                    value={formData.taxMethod}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                  >
+                    <option value="GROSS">GROSS — Pajak dipotong dari gaji karyawan (Standar)</option>
+                    <option value="GROSS_UP">GROSS UP — Pajak ditunjang penuh oleh lembaga</option>
+                    <option value="NETT">NETT — Gaji diterima bersih tanpa potongan pajak</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div>

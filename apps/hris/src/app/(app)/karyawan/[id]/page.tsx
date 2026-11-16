@@ -30,7 +30,7 @@ import {
   getManagerTeamInfo,
 } from "@/server/queries/employee.queries";
 import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
-import { StatusBadge, ContractTypeBadge } from "@/components/karyawan/status-badge";
+import { StatusBadge, ContractTypeBadge, PtkpBadge, TaxMethodBadge } from "@/components/karyawan/status-badge";
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
 import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
 import { EmployeeContractsTable } from "@/components/karyawan/employee-contracts-table";
