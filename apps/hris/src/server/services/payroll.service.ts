@@ -834,6 +834,16 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
     if (comp.code === "BASE_SALARY" || comp.name.toLowerCase().includes("gaji pokok")) {
       continue;
     }
+    // Abaikan master PPh 21 lama karena pajak dihitung otomatis oleh Tax Engine
+    if (
+      comp.code === "POT_PPH21" ||
+      comp.code === "PPH_21" ||
+      comp.code === "PPH21" ||
+      comp.name.toLowerCase().includes("pph 21") ||
+      comp.name.toLowerCase().includes("pph21")
+    ) {
+      continue;
+    }
     // Pegawai per jam tidak mendapatkan tunjangan tetap atau iuran BPJS bulanan kantor
     if (comp.calcType !== "MANUAL") {
       continue;
@@ -852,6 +862,122 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
         label: comp.name,
         type: comp.type,
         amount,
+      });
+    }
+  }
+
+  // 3. Kalkulasi PPh 21 Pegawai Per Jam (Gross Method)
+  const cashEarnings = linesData
+    .filter((l) => l.type === "EARNING")
+    .reduce((sum, l) => sum + l.amount, 0);
+
+  // Untuk pegawai per jam (HOURLY), tidak ada iuran BPJS porsi lembaga bulanan
+  const taxableGross = cashEarnings;
+
+  let pph21 = 0;
+  let terCategory: string | null = null;
+  let terRate: number | null = null;
+
+  if (payslip.period.month <= 11) {
+    const monthlyResult = calculateMonthlyPph21Ter(taxableGross, payslip.employee.ptkpStatus);
+    pph21 = monthlyResult.pph21;
+    terCategory = monthlyResult.terCategory;
+    terRate = monthlyResult.terRate;
+  } else {
+    // Bulan 12
+    const pastSlips = await prisma.payslip.findMany({
+      where: {
+        employeeId: payslip.employeeId,
+        id: { not: payslip.id },
+        period: {
+          year: payslip.period.year,
+          month: { lt: 12 },
+        },
+      },
+      include: { lines: true },
+    });
+
+    let pastTaxableGross = 0;
+    let pastPph21Paid = 0;
+    let pastPensionDeductions = 0;
+
+    for (const p of pastSlips) {
+      pastTaxableGross += p.taxableGross ? Number(p.taxableGross) : Number(p.grossAmount);
+      if (p.pph21Amount) {
+        pastPph21Paid += Number(p.pph21Amount);
+      } else {
+        const pphLine = p.lines
+          .filter(
+            (l) =>
+              l.type === "DEDUCTION" &&
+              (l.label.toLowerCase().includes("pph 21") ||
+                l.label.toLowerCase().includes("pph21")),
+          )
+          .reduce((s, l) => s + Number(l.amount), 0);
+        pastPph21Paid += pphLine;
+      }
+      const pensionLine = p.lines
+        .filter(
+          (l) =>
+            l.type === "DEDUCTION" &&
+            (l.label.toLowerCase().includes("jht") ||
+              l.label.toLowerCase().includes("jp") ||
+              l.label.toLowerCase().includes("pensiun")),
+        )
+        .reduce((s, l) => s + Number(l.amount), 0);
+      pastPensionDeductions += pensionLine;
+    }
+
+    const currentPensionDeductions = linesData
+      .filter(
+        (l) =>
+          l.type === "DEDUCTION" &&
+          (l.label.toLowerCase().includes("jht") ||
+            l.label.toLowerCase().includes("jp") ||
+            l.label.toLowerCase().includes("pensiun")),
+      )
+      .reduce((sum, l) => sum + l.amount, 0);
+
+    const annualResult = calculateAnnualPph21Pasal17({
+      annualTaxableGross: pastTaxableGross + taxableGross,
+      ptkp: payslip.employee.ptkpStatus,
+      annualPensionDeductions: pastPensionDeductions + currentPensionDeductions,
+      monthsWorked: Math.min(12, pastSlips.length + 1),
+      previousPph21Paid: pastPph21Paid,
+    });
+
+    pph21 = Math.max(0, annualResult.pph21December);
+    terCategory = "PASAL_17";
+    terRate = null;
+  }
+
+  const taxMethod = payslip.employee.taxMethod || "GROSS";
+
+  if (pph21 > 0) {
+    const taxLabel =
+      payslip.period.month === 12
+        ? "PPh 21 (Pasal 17 Desember)"
+        : `PPh 21 (${(terCategory ?? "").replace("_", " ")} ${((terRate ?? 0) * 100).toFixed(2).replace(/\.00$/, "")}%)`;
+
+    if (taxMethod === "GROSS") {
+      linesData.push({
+        componentId: null,
+        label: taxLabel,
+        type: "DEDUCTION",
+        amount: pph21,
+      });
+    } else if (taxMethod === "GROSS_UP") {
+      linesData.push({
+        componentId: null,
+        label: "Tunjangan PPh 21 (Gross Up)",
+        type: "EARNING",
+        amount: pph21,
+      });
+      linesData.push({
+        componentId: null,
+        label: taxLabel,
+        type: "DEDUCTION",
+        amount: pph21,
       });
     }
   }
@@ -887,6 +1013,10 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
         grossAmount,
         totalDeduction,
         netAmount,
+        taxableGross,
+        pph21Amount: pph21,
+        terCategory,
+        terRate,
         lines: {
           create: linesData.map((l) => ({
             componentId: l.componentId,
@@ -914,6 +1044,8 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
         hourlyRate: payslip.hourlyRate ? Number(payslip.hourlyRate) : null,
         grossAmount: Number(payslip.grossAmount),
         netAmount: Number(payslip.netAmount),
+        taxableGross: payslip.taxableGross ? Number(payslip.taxableGross) : null,
+        pph21Amount: payslip.pph21Amount ? Number(payslip.pph21Amount) : null,
         timesheetKey: payslip.timesheetKey,
       },
       after: {
@@ -921,6 +1053,8 @@ export async function updatePayslipTimesheet(input: UpdatePayslipTimesheetInput)
         hourlyRate: effectiveHourlyRate,
         grossAmount,
         netAmount,
+        taxableGross,
+        pph21Amount: pph21,
         timesheetKey: finalTimesheetKey,
       },
       ip: input.actor.ip,
