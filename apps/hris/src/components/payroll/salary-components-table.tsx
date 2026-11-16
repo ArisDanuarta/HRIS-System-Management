@@ -14,6 +14,7 @@ import {
   AlertCircle,
   CheckCircle2,
   RefreshCw,
+  Info,
 } from "lucide-react";
 import { SalaryComponentModal, SalaryComponentItem } from "./salary-component-modal";
 import { deleteSalaryComponentAction } from "@/server/actions/payroll.actions";
@@ -34,7 +35,17 @@ export function SalaryComponentsTable({
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
 
-  const items = components.filter((c) => !deletedIds.has(c.id));
+  // Filter komponen: sembunyikan komponen internal sistem (Gaji Pokok & PPh 21 lama) agar tidak membingungkan HR
+  const items = components
+    .filter((c) => !deletedIds.has(c.id))
+    .filter(
+      (c) =>
+        c.code !== "BASE_SALARY" &&
+        c.code !== "DED_PPH21" &&
+        c.code !== "POT_PPH21" &&
+        !c.name.toLowerCase().includes("gaji pokok") &&
+        !c.name.toLowerCase().includes("pph 21"),
+    );
   const earnings = items.filter((c) => c.type === "EARNING");
   const deductions = items.filter((c) => c.type === "DEDUCTION");
 
@@ -148,6 +159,25 @@ export function SalaryComponentsTable({
         </div>
       )}
 
+      {/* Banner Panduan Komponen Gaji bagi HR */}
+      <div className="p-4 bg-sky-50/80 rounded-xl border border-sky-200/80 text-xs text-slate-700 flex items-start gap-3 shadow-2xs">
+        <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0 border border-sky-200 mt-0.5">
+          <Info className="w-4 h-4" />
+        </div>
+        <div className="space-y-1 text-xs leading-relaxed">
+          <p className="font-bold text-[#102E50]">
+            Panduan Pengelolaan Komponen Gaji & Tunjangan PSPK:
+          </p>
+          <p className="text-slate-600">
+            Daftar di bawah ini berfungsi sebagai <strong>katalog resmi nama tunjangan dan potongan</strong> di pembukuan lembaga. 
+            Besaran <strong>Gaji Pokok</strong> dan <strong>Tunjangan Perorangan</strong> (seperti Tunjangan Jabatan, Transport, Komunikasi) diatur langsung secara spesifik untuk setiap staf melalui <strong>Formulir Karyawan (Kontrak & Kompensasi)</strong>, sehingga tidak dipukul rata.
+          </p>
+          <p className="text-slate-600 text-[11px] pt-0.5">
+            💡 <strong>Pajak PPh 21 & BPJS:</strong> Dihitung otomatis oleh sistem sesuai regulasi resmi pemerintah (PP 58/2023 TER bulanan, Pasal 17 akhir tahun, serta BPJS Kesehatan 1% & BPJS Ketenagakerjaan 2%).
+          </p>
+        </div>
+      </div>
+
       {/* Rangkuman Metrik */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs">
@@ -257,7 +287,9 @@ export function SalaryComponentsTable({
                           ? `${c.defaultValue}% dari Pokok`
                           : c.calcType === "MANUAL"
                             ? "Sesuai Input"
-                            : formatRupiah(c.defaultValue)}
+                            : Number(c.defaultValue) === 0
+                              ? "Per Kontrak Pegawai (Rp 0)"
+                              : formatRupiah(c.defaultValue)}
                       </span>
                     </div>
 
@@ -349,7 +381,9 @@ export function SalaryComponentsTable({
                           ? `${c.defaultValue}% dari Pokok`
                           : c.calcType === "MANUAL"
                             ? "Sesuai Input"
-                            : formatRupiah(c.defaultValue)}
+                            : Number(c.defaultValue) === 0
+                              ? "Per Kontrak Pegawai (Rp 0)"
+                              : formatRupiah(c.defaultValue)}
                       </td>
 
                       {/* Status */}

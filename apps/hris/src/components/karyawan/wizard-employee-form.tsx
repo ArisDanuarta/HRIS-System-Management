@@ -117,6 +117,13 @@ export interface InitialEmployeeData {
     documentKey?: string | null;
     employmentTypeMaster?: { id: string; name: string; code: string } | null;
   }[];
+  salaryComponents?: {
+    id: string;
+    componentId: string;
+    code: string;
+    name: string;
+    amount: number;
+  }[];
 }
 
 interface WizardEmployeeFormProps {
@@ -248,7 +255,19 @@ export function WizardEmployeeForm({
     contractEndDate: initialActiveContract?.endDate
       ? toDateString(initialActiveContract.endDate)
       : "",
-    baseSalary: initialActiveContract?.baseSalary ?? 10000000,
+    baseSalary:
+      initialActiveContract?.baseSalary !== undefined && initialActiveContract?.baseSalary !== null
+        ? Number(initialActiveContract.baseSalary)
+        : "",
+    allowancePosition:
+      initialData?.salaryComponents?.find((sc) => sc.code === "ALLOWANCE_POSITION")?.amount ?? "",
+    allowanceTransport:
+      initialData?.salaryComponents?.find((sc) => sc.code === "ALLOWANCE_TRANSPORT")?.amount ?? "",
+    allowanceCommunication:
+      initialData?.salaryComponents?.find((sc) => sc.code === "ALLOWANCE_COMMUNICATION")?.amount ?? "",
+    allowanceOther:
+      initialData?.salaryComponents?.find((sc) => sc.code === "ALLOWANCE_OTHER")?.amount ?? "",
+    allowanceOtherNote: "",
     contractNumber: extractContractNumber(initialActiveContract?.notes),
     contractDocumentKey: initialActiveContract?.documentKey || "",
     contractNotes: cleanContractNotes(initialActiveContract?.notes),
@@ -258,7 +277,7 @@ export function WizardEmployeeForm({
     npwp: "",
     ptkpStatus: (initialData?.ptkpStatus as PtkpStatus) || "TK_0",
     taxMethod: (initialData?.taxMethod as TaxMethod) || "GROSS",
-    bankName: initialData?.bankName || "Bank Mandiri",
+    bankName: initialData?.bankName || "",
     bankAccount: "",
     bankAccountName: initialData?.bankAccountName || "",
     createUserAccount: mode === "create",
@@ -593,6 +612,11 @@ export function WizardEmployeeForm({
         contractStartDate: baseContractStart,
         contractEndDate: formData.contractEndDate || undefined,
         baseSalary: formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0,
+        allowancePosition: Number(formData.allowancePosition) || 0,
+        allowanceTransport: Number(formData.allowanceTransport) || 0,
+        allowanceCommunication: Number(formData.allowanceCommunication) || 0,
+        allowanceOther: Number(formData.allowanceOther) || 0,
+        allowanceOtherNote: formData.allowanceOtherNote?.trim() || undefined,
         contractNumber: formData.contractNumber.trim() || undefined,
         contractDocumentKey: effectiveContractDocumentKey,
         contractNotes: formData.contractNotes.trim() || undefined,
@@ -662,6 +686,11 @@ export function WizardEmployeeForm({
         contractStartDate: baseContractStart,
         contractEndDate: formData.contractEndDate || undefined,
         baseSalary: formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0,
+        allowancePosition: Number(formData.allowancePosition) || 0,
+        allowanceTransport: Number(formData.allowanceTransport) || 0,
+        allowanceCommunication: Number(formData.allowanceCommunication) || 0,
+        allowanceOther: Number(formData.allowanceOther) || 0,
+        allowanceOtherNote: formData.allowanceOtherNote?.trim() || undefined,
         contractNumber: formData.contractNumber.trim() || undefined,
         contractDocumentKey: effectiveContractDocumentKey,
         contractNotes: formData.contractNotes?.trim() || undefined,
@@ -1314,47 +1343,217 @@ export function WizardEmployeeForm({
               )}
             </div>
 
-            {/* Gaji Pokok — hanya tampil untuk tipe MONTHLY */}
-            {formData.wageType !== "HOURLY" && (
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Gaji Pokok (IDR) <span className="text-[#A8281C]">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="baseSalary"
-                  value={formData.baseSalary}
-                  onChange={handleChange}
-                  required
-                  min={0}
-                  className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
-                />
-                <span className="text-[11px] text-slate-400 mt-1 block">
-                  Dasar perhitungan payroll bulanan dan tunjangan fungsional
+            {/* Seksi Struktur Kompensasi & Paket Penggajian (Satu Pintu) */}
+            <div className="md:col-span-2 p-5 bg-gradient-to-br from-slate-50 via-slate-50/90 to-blue-50/20 rounded-xl border border-slate-200/90 flex flex-col gap-4 shadow-2xs">
+              <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200/70">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#102E50]/10 text-[#102E50] flex items-center justify-center font-bold">
+                    <Receipt className="w-4 h-4 text-[#102E50]" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                      Struktur Kompensasi & Paket Penggajian
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Tentukan gaji pokok dan tunjangan tetap yang disepakati dalam surat penawaran / perjanjian kerja.
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
+                  {formData.wageType === "HOURLY" ? "Tipe Per Jam" : "Tipe Gaji Bulanan"}
                 </span>
               </div>
-            )}
 
-            {/* Tarif Per Jam — hanya tampil untuk tipe HOURLY */}
-            {formData.wageType === "HOURLY" && (
-              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-lg">
-                <label className="block text-xs font-semibold text-amber-900 mb-1.5">
-                  Tarif Per Jam (IDR) <span className="text-[#A8281C]">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="hourlyRate"
-                  value={formData.hourlyRate}
-                  onChange={handleChange}
-                  required
-                  min={0}
-                  className="w-full px-3 py-2 text-sm font-mono bg-white border border-amber-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                />
-                <span className="text-[11px] text-amber-700 mt-1.5 block">
-                  Gaji dihitung dari total jam kerja × tarif per jam berdasarkan timesheet bulanan
-                </span>
-              </div>
-            )}
+              {formData.wageType === "HOURLY" ? (
+                <div className="p-4 bg-amber-50/80 border border-amber-200 rounded-xl">
+                  <label className="block text-xs font-semibold text-amber-950 mb-1.5">
+                    Tarif Upah Per Jam (IDR) <span className="text-[#A8281C]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    name="hourlyRate"
+                    value={formData.hourlyRate}
+                    onChange={handleChange}
+                    required
+                    min={0}
+                    placeholder="Contoh: 150000"
+                    className="w-full px-3 py-2 text-sm font-mono bg-white border border-amber-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                  <span className="text-[11px] text-amber-800 mt-1.5 block">
+                    Penghasilan akhir dihitung otomatis berdasarkan total jam kerja terverifikasi pada timesheet bulanan.
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Gaji Pokok Bulanan */}
+                  <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                    <label className="block text-xs font-bold text-slate-800 mb-1">
+                      Gaji Pokok Bulanan (IDR) <span className="text-[#A8281C]">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="baseSalary"
+                      value={formData.baseSalary}
+                      onChange={handleChange}
+                      required
+                      min={0}
+                      placeholder="Contoh: 8000000"
+                      className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50] font-semibold"
+                    />
+                    <span className="text-[11px] text-slate-500 mt-1 block">
+                      Kompensasi dasar bulanan. Dijadikan acuan dasar perhitungan BPJS, upah lembur, dan tunjangan.
+                    </span>
+                  </div>
+
+                  {/* Tunjangan-Tunjangan Tetap Perorangan */}
+                  <div className="p-4 bg-white rounded-xl border border-slate-200 space-y-3 shadow-2xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-1">
+                      <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        Tunjangan Tetap Perorangan (Opsional Sesuai Kontrak)
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Isi 0 jika pegawai tidak mendapatkan tunjangan
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Tunjangan Jabatan & Keahlian (IDR)
+                        </label>
+                        <input
+                          type="number"
+                          name="allowancePosition"
+                          value={formData.allowancePosition}
+                          onChange={handleChange}
+                          min={0}
+                          placeholder="0"
+                          className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                        <span className="text-[10.5px] text-slate-400 mt-0.5 block">
+                          Untuk staf struktural / manajerial / tenaga ahli.
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Tunjangan Transportasi & Mobilitas (IDR)
+                        </label>
+                        <input
+                          type="number"
+                          name="allowanceTransport"
+                          value={formData.allowanceTransport}
+                          onChange={handleChange}
+                          min={0}
+                          placeholder="0"
+                          className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                        <span className="text-[10.5px] text-slate-400 mt-0.5 block">
+                          Bantuan transport / kehadiran kerja bulanan.
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Tunjangan Komunikasi & Internet (IDR)
+                        </label>
+                        <input
+                          type="number"
+                          name="allowanceCommunication"
+                          value={formData.allowanceCommunication}
+                          onChange={handleChange}
+                          min={0}
+                          placeholder="0"
+                          className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                        <span className="text-[10.5px] text-slate-400 mt-0.5 block">
+                          Bantuan pulsa, kuota, atau internet kerja.
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                          Tunjangan Fungsional & Khusus Lainnya (IDR)
+                        </label>
+                        <input
+                          type="number"
+                          name="allowanceOther"
+                          value={formData.allowanceOther}
+                          onChange={handleChange}
+                          min={0}
+                          placeholder="0"
+                          className="w-full px-3 py-2 text-sm font-mono bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                        <span className="text-[10.5px] text-slate-400 mt-0.5 block">
+                          Tunjangan proyek atau penugasan khusus lainnya.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Ringkasan Estimasi Pendapatan Tunai (Live Preview) */}
+                  {(() => {
+                    const base = Number(formData.baseSalary) || 0;
+                    const pos = Number(formData.allowancePosition) || 0;
+                    const tra = Number(formData.allowanceTransport) || 0;
+                    const com = Number(formData.allowanceCommunication) || 0;
+                    const oth = Number(formData.allowanceOther) || 0;
+                    const totalAllowances = pos + tra + com + oth;
+                    const totalCashGross = base + totalAllowances;
+                    const estBpjsKes = Math.round(base * 0.01);
+                    const estBpjsTk = Math.round(base * 0.02);
+
+                    return (
+                      <div className="p-4 bg-sky-50/90 rounded-xl border border-sky-200 text-xs text-sky-950 flex flex-col gap-2.5">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
+                          <span className="font-bold text-[#102E50] flex items-center gap-1.5 text-xs">
+                            <Receipt className="w-4 h-4 text-sky-600" />
+                            Ringkasan Estimasi Kompensasi Bulanan (Live Preview):
+                          </span>
+                          <span className="font-mono font-bold text-sm text-[#102E50]">
+                            Total Bruto Tunai: Rp {totalCashGross.toLocaleString("id-ID")}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-white/80 p-2.5 rounded-lg border border-sky-100 text-[11px]">
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                              Gaji Pokok:
+                            </span>
+                            <span className="font-bold text-slate-800">
+                              Rp {base.toLocaleString("id-ID")}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                              Total Tunjangan:
+                            </span>
+                            <span className="font-bold text-emerald-700">
+                              + Rp {totalAllowances.toLocaleString("id-ID")}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400 block text-[10px] uppercase font-bold">
+                              Estimasi BPJS Pegawai (3%):
+                            </span>
+                            <span className="font-semibold text-rose-700">
+                              - Rp {(estBpjsKes + estBpjsTk).toLocaleString("id-ID")}
+                              <span className="text-[10px] text-slate-400 font-normal ml-1">
+                                (Kes 1% + TK 2%)
+                              </span>
+                            </span>
+                          </div>
+                        </div>
+
+                        <p className="text-[10.5px] text-slate-500 italic">
+                          * Potongan PPh 21 akan dihitung otomatis oleh sistem pada Langkah 4 berdasarkan status PTKP pegawai dan Tarif Efektif Rata-Rata (PP 58/2023).
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">

@@ -224,6 +224,37 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
       },
     });
 
+    // Sinkronisasi komponen tunjangan perorangan (EmployeeSalaryComponent)
+    const allowancesToSync = [
+      { code: "ALLOWANCE_POSITION", amount: Number(data.allowancePosition || 0) },
+      { code: "ALLOWANCE_TRANSPORT", amount: Number(data.allowanceTransport || 0) },
+      { code: "ALLOWANCE_COMMUNICATION", amount: Number(data.allowanceCommunication || 0) },
+      { code: "ALLOWANCE_OTHER", amount: Number(data.allowanceOther || 0) },
+    ];
+
+    const masterSalaryComps = await tx.salaryComponent.findMany({
+      where: {
+        code: { in: allowancesToSync.map((a) => a.code) },
+      },
+    });
+    const masterSalaryCompMap = new Map(masterSalaryComps.map((c) => [c.code, c]));
+
+    for (const alloc of allowancesToSync) {
+      if (alloc.amount > 0) {
+        const comp = masterSalaryCompMap.get(alloc.code);
+        if (comp) {
+          await tx.employeeSalaryComponent.create({
+            data: {
+              employeeId: newEmployee.id,
+              componentId: comp.id,
+              amount: alloc.amount,
+              effectiveFrom: new Date(data.contractStartDate),
+            },
+          });
+        }
+      }
+    }
+
     // Create initial employment history entry
     await tx.employmentHistory.create({
       data: {
@@ -501,6 +532,55 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
           notes: fullContractNotes || "Kontrak kerja diperbarui oleh HR",
         },
       });
+    }
+
+    // Sinkronisasi komponen tunjangan perorangan (EmployeeSalaryComponent)
+    const allowancesToSync = [
+      { code: "ALLOWANCE_POSITION", amount: Number(data.allowancePosition || 0) },
+      { code: "ALLOWANCE_TRANSPORT", amount: Number(data.allowanceTransport || 0) },
+      { code: "ALLOWANCE_COMMUNICATION", amount: Number(data.allowanceCommunication || 0) },
+      { code: "ALLOWANCE_OTHER", amount: Number(data.allowanceOther || 0) },
+    ];
+
+    const masterSalaryComps = await tx.salaryComponent.findMany({
+      where: {
+        code: { in: allowancesToSync.map((a) => a.code) },
+      },
+    });
+    const masterSalaryCompMap = new Map(masterSalaryComps.map((c) => [c.code, c]));
+
+    for (const alloc of allowancesToSync) {
+      const comp = masterSalaryCompMap.get(alloc.code);
+      if (comp) {
+        const existing = await tx.employeeSalaryComponent.findFirst({
+          where: {
+            employeeId: data.id,
+            componentId: comp.id,
+          },
+        });
+
+        if (alloc.amount > 0) {
+          if (existing) {
+            await tx.employeeSalaryComponent.update({
+              where: { id: existing.id },
+              data: { amount: alloc.amount },
+            });
+          } else {
+            await tx.employeeSalaryComponent.create({
+              data: {
+                employeeId: data.id,
+                componentId: comp.id,
+                amount: alloc.amount,
+                effectiveFrom: data.contractStartDate ? new Date(data.contractStartDate) : new Date(),
+              },
+            });
+          }
+        } else if (existing) {
+          await tx.employeeSalaryComponent.delete({
+            where: { id: existing.id },
+          });
+        }
+      }
     }
 
     // Jika atasan langsung berubah:

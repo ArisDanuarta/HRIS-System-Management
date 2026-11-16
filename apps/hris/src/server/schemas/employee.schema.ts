@@ -60,6 +60,11 @@ export const baseEmployeeSchema = z.object({
   contractStartDate: z.string().min(1, "Tanggal mulai kontrak kerja wajib diisi"),
   contractEndDate: z.string().optional().or(z.literal("")),
   baseSalary: z.coerce.number().min(0, "Gaji pokok tidak boleh negatif").optional().nullable(),
+  allowancePosition: z.coerce.number().min(0, "Tunjangan jabatan tidak boleh negatif").optional().default(0),
+  allowanceTransport: z.coerce.number().min(0, "Tunjangan transportasi tidak boleh negatif").optional().default(0),
+  allowanceCommunication: z.coerce.number().min(0, "Tunjangan komunikasi tidak boleh negatif").optional().default(0),
+  allowanceOther: z.coerce.number().min(0, "Tunjangan lainnya tidak boleh negatif").optional().default(0),
+  allowanceOtherNote: z.string().optional().or(z.literal("")),
   contractNotes: z.string().optional(),
   contractNumber: z
     .string()

@@ -289,6 +289,11 @@ export async function getEmployeeById(id: string) {
       documents: {
         orderBy: { createdAt: "desc" },
       },
+      salaryComponents: {
+        include: {
+          component: true,
+        },
+      },
     },
   });
 
@@ -330,6 +335,13 @@ export async function getEmployeeById(id: string) {
     hasNik: !!emp.nikEnc,
     hasNpwp: !!emp.npwpEnc,
     hasBankAccount: !!emp.bankAccountEnc,
+    salaryComponents: emp.salaryComponents.map((sc) => ({
+      id: sc.id,
+      componentId: sc.componentId,
+      code: sc.component.code,
+      name: sc.component.name,
+      amount: Number(sc.amount),
+    })),
     histories: [...emp.histories].sort((a, b) => {
       // Posisi saat ini (endDate null) selalu paling atas
       if (a.endDate === null && b.endDate !== null) return -1;
