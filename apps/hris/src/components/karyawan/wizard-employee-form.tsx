@@ -5204,6 +5204,22 @@ export function WizardEmployeeForm({
                             {formatRupiah(totalGross)}
                           </span>
                         </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">Pot. BPJS (3%):</span>
+                          <span className="font-semibold text-rose-600 font-mono text-[11px]">
+                            - {formatRupiah(estBpjs)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">
+                            Pot. PPh 21 ({formData.taxMethod}):
+                          </span>
+                          <span className="font-semibold text-rose-600 font-mono text-[11px]">
+                            {formData.taxMethod === "GROSS"
+                              ? `- ${formatRupiah(pphDeduction)}`
+                              : `Rp 0 (${formData.taxMethod})`}
+                          </span>
+                        </div>
                         <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
                           <span className="font-bold text-emerald-800 text-[11px]">Est. THP Bersih:</span>
                           <span className="font-bold text-emerald-700 font-mono text-xs">
@@ -5227,6 +5243,12 @@ export function WizardEmployeeForm({
                           <span className="text-slate-500 text-[11px]">Metode:</span>
                           <span className="font-semibold text-[#102E50] text-[11px]">
                             {formData.taxMethod}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-slate-500 text-[11px]">Tarif TER:</span>
+                          <span className="font-semibold text-slate-700 font-mono text-[11px]">
+                            {(pphResult.terRate * 100).toFixed(2)}%
                           </span>
                         </div>
                         <div className="flex items-center justify-between pt-1 border-t border-slate-100 mt-0.5">
