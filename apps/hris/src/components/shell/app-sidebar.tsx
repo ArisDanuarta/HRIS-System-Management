@@ -356,7 +356,7 @@ export function AppSidebar({
                 href="/absensi/rekap"
                 label="Absensi Karyawan"
                 icon={<CalendarCheck className="w-5 h-5 shrink-0" />}
-                isActive={isNavActive("/absensi/rekap")}
+                isActive={isNavActive("/absensi/rekap") || pathname.startsWith("/cuti/persetujuan")}
                 isCollapsed={isCollapsed}
                 badge={
                   pendingLeavesCount > 0 ? (

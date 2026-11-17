@@ -1,12 +1,13 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { getAttendanceRekap } from "@/server/queries/attendance.queries";
 import { getManagerTeamInfo } from "@/server/queries/employee.queries";
 import { AttendanceRekapView } from "@/components/absensi/attendance-rekap-view";
 import { AttendanceLeaveSubnav } from "@/components/shell/attendance-leave-subnav";
 import { prisma } from "@pspk/db";
-import { Building2, ShieldCheck, Users } from "lucide-react";
+import { Building2, ShieldCheck, Users, ClipboardList, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -172,14 +173,27 @@ export default async function AttendanceRekapPage({ searchParams }: RekapPagePro
             </p>
           </div>
 
-          {/* Active Period Summary Box */}
-          <div className="self-stretch sm:self-start md:self-center bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-4 py-2.5 text-left md:text-right shrink-0 w-full sm:w-auto">
-            <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
-              Periode Laporan Aktif
-            </span>
-            <span className="text-sm sm:text-base font-bold text-white whitespace-nowrap">
-              {monthNames[currentMonth - 1]} {currentYear}
-            </span>
+          {/* Active Period Summary Box & Pending Leave Alert */}
+          <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-2 shrink-0 self-stretch sm:self-auto">
+            <div className="bg-white/10 backdrop-blur-xs border border-white/15 rounded-xl px-4 py-2.5 text-left md:text-right w-full sm:w-auto">
+              <span className="text-[10px] uppercase tracking-wider text-[#f2af3e] font-semibold block">
+                Periode Laporan Aktif
+              </span>
+              <span className="text-sm sm:text-base font-bold text-white whitespace-nowrap">
+                {monthNames[currentMonth - 1]} {currentYear}
+              </span>
+            </div>
+
+            {pendingLeavesCount > 0 && (
+              <Link
+                href="/cuti/persetujuan"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#ba1a1a] hover:bg-[#961515] text-white text-xs font-semibold transition-all border border-red-400/30 shadow-xs active:scale-[0.98]"
+              >
+                <ClipboardList className="w-3.5 h-3.5 text-[#f2af3e]" />
+                <span>{pendingLeavesCount} Permohonan Cuti Menunggu</span>
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            )}
           </div>
         </div>
       </div>

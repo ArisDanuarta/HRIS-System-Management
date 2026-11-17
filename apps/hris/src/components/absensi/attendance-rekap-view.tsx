@@ -334,234 +334,279 @@ export function AttendanceRekapView({
   return (
     <div className="flex flex-col gap-6 w-full">
       {/* 1. Aggregate KPI Cards (PSPK Brand Palette) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#102e50]" />
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
-            <span>{isTeamView ? "Total Anggota Tim" : "Total Pegawai Terdata"}</span>
-            <Users className="w-4 h-4 text-[#102e50]" />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-[#102e50] tabular-nums">
-              {employees.length}
-            </span>
-            <span className="text-xs text-slate-500">Pegawai Aktif</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-emerald-600" />
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
-            <span>Hadir Tepat Waktu</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          </div>
-          <div className="flex items-baseline justify-between">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-[#102e50] tabular-nums">
-                {orgStats.totalPresent}
-              </span>
-              <span className="text-xs text-slate-500">Log Hadir</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        {/* Card 1: Total Pegawai */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[#102e50]" />
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1.5">
+              <span>{isTeamView ? "Total Anggota Tim" : "Total Pegawai Terdata"}</span>
+              <div className="w-7 h-7 rounded-lg bg-[#102e50]/5 flex items-center justify-center text-[#102e50]">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-              {orgStats.onTimeRate}% Ketepatan
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#df632f]" />
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
-            <span>Akumulasi Terlambat</span>
-            <AlertTriangle className="w-4 h-4 text-[#df632f]" />
-          </div>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold text-[#df632f] tabular-nums">
-              {orgStats.totalLate}
-            </span>
-            <span className="text-xs text-slate-500">Kejadian Bulan Ini</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#f2af3e]" />
-          <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-2">
-            <span>Izin / Cuti & Alpa</span>
-            <XCircle className="w-4 h-4 text-[#a8281c]" />
-          </div>
-          <div className="flex items-baseline gap-3">
-            <div>
-              <span className="text-2xl font-bold text-[#102e50] tabular-nums">
-                {orgStats.totalLeave}
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl sm:text-3xl font-bold text-[#102e50] tabular-nums font-heading">
+                {employees.length}
               </span>
-              <span className="text-xs text-slate-500 ml-1">Cuti</span>
-            </div>
-            <span className="text-slate-300">•</span>
-            <div>
-              <span className="text-2xl font-bold text-[#a8281c] tabular-nums">
-                {orgStats.totalAbsent}
-              </span>
-              <span className="text-xs text-slate-500 ml-1">Alpa</span>
+              <span className="text-xs font-medium text-slate-500">Pegawai Aktif</span>
             </div>
           </div>
+          <p className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 truncate">
+            {isTeamView ? departmentName || "Divisi Tim" : "Seluruh unit & divisi PSPK"}
+          </p>
+        </div>
+
+        {/* Card 2: Hadir Tepat Waktu */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-emerald-600" />
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1.5">
+              <span>Hadir Tepat Waktu</span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between mt-1 gap-2 flex-wrap">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-bold text-emerald-700 tabular-nums font-heading">
+                  {orgStats.totalPresent}
+                </span>
+                <span className="text-xs font-medium text-slate-500">Log Hadir</span>
+              </div>
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                {orgStats.onTimeRate}% Ketepatan
+              </span>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 truncate">
+            Tingkat kepatuhan jadwal kerja aktif
+          </p>
+        </div>
+
+        {/* Card 3: Akumulasi Terlambat */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[#df632f]" />
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1.5">
+              <span>Akumulasi Terlambat</span>
+              <div className="w-7 h-7 rounded-lg bg-[#df632f]/10 flex items-center justify-center text-[#df632f]">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="flex items-baseline justify-between mt-1 gap-2 flex-wrap">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl sm:text-3xl font-bold text-[#df632f] tabular-nums font-heading">
+                  {orgStats.totalLate}
+                </span>
+                <span className="text-xs font-medium text-slate-500">Kejadian</span>
+              </div>
+              {orgStats.totalLate > 0 && (
+                <span className="text-[10.5px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                  Evaluasi HR
+                </span>
+              )}
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 truncate">
+            Check-in melewati jam toleransi masuk
+          </p>
+        </div>
+
+        {/* Card 4: Izin, Cuti & Alpa */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-[#f2af3e]" />
+          <div>
+            <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1.5">
+              <span>Izin / Cuti & Alpa</span>
+              <div className="w-7 h-7 rounded-lg bg-[#f2af3e]/15 flex items-center justify-center text-[#8e2d3f]">
+                <XCircle className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="flex items-baseline gap-3 mt-1">
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl sm:text-3xl font-bold text-[#102e50] tabular-nums font-heading">
+                  {orgStats.totalLeave}
+                </span>
+                <span className="text-xs font-medium text-slate-500">Cuti</span>
+              </div>
+              <span className="text-slate-300 font-bold">•</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl sm:text-3xl font-bold text-[#a8281c] tabular-nums font-heading">
+                  {orgStats.totalAbsent}
+                </span>
+                <span className="text-xs font-medium text-slate-500">Alpa</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-100 truncate">
+            Rekap ketidakhadiran & izin resmi
+          </p>
         </div>
       </div>
 
-      {/* 2. Interactive Filter & Mode Switcher Toolbar */}
-      <div className="bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3.5 sm:gap-4 text-xs w-full min-w-0">
-        {/* Left: Search & Filters */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
-          {/* Search Input */}
-          <div className="relative flex-1 min-w-0 sm:min-w-[200px] w-full sm:w-auto">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder={
-                isTeamView ? "Cari nama anggota tim atau NIP..." : "Cari nama pegawai atau NIP..."
-              }
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleFilter()}
-              className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none transition-colors"
-            />
-          </div>
+      {/* 2. Structured Filter & Control Toolbar */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs flex flex-col divide-y divide-slate-100 text-xs w-full min-w-0">
+        {/* Tier 1: Pencarian & Filter Data */}
+        <div className="p-3.5 sm:p-4 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-0 sm:min-w-[220px]">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder={
+                  isTeamView ? "Cari nama anggota tim atau NIP..." : "Cari nama pegawai atau NIP..."
+                }
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleFilter()}
+                className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white text-xs focus:ring-2 focus:ring-[#102e50] focus:outline-none transition-colors"
+              />
+            </div>
 
-          {/* Month & Year Selectors */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-            <div className="relative flex items-center flex-1 sm:flex-initial">
-              <Calendar className="w-3.5 h-3.5 text-[#f2af3e] absolute left-3 pointer-events-none" />
+            {/* Month & Year Selectors */}
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="relative flex items-center flex-1 sm:flex-initial">
+                <Calendar className="w-3.5 h-3.5 text-[#f2af3e] absolute left-3 pointer-events-none" />
+                <select
+                  value={month}
+                  onChange={(e) => setMonth(e.target.value)}
+                  className="w-full sm:w-auto pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
+                >
+                  {months.map((m) => (
+                    <option key={m.value} value={m.value}>
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <select
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                className="w-full sm:w-auto pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="flex-1 sm:flex-initial px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
               >
-                {months.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
               </select>
             </div>
 
-            <select
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              className="flex-1 sm:flex-initial px-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer"
-            >
-              <option value="2026">2026</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-            </select>
-          </div>
+            {/* Department Selector */}
+            {isTeamView ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#102e50]/5 border border-[#102e50]/15 text-xs text-[#102e50] font-semibold w-full sm:w-auto">
+                <Building className="w-3.5 h-3.5 text-[#f2af3e] shrink-0" />
+                <span className="truncate">{departmentName || "Divisi Saya"}</span>
+              </div>
+            ) : (
+              <div className="relative flex items-center w-full sm:w-auto">
+                <Building className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none shrink-0" />
+                <select
+                  value={dept}
+                  onChange={(e) => setDept(e.target.value)}
+                  className="w-full sm:w-auto pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer max-w-full sm:max-w-[200px] truncate"
+                >
+                  <option value="ALL">Semua Divisi</option>
+                  {departments.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
-          {/* Department Selector */}
-          {isTeamView ? (
-            <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#102e50]/5 border border-[#102e50]/15 text-xs text-[#102e50] font-semibold w-full sm:w-auto">
-              <Building className="w-3.5 h-3.5 text-[#f2af3e] shrink-0" />
-              <span className="truncate">{departmentName || "Divisi Saya"}</span>
-            </div>
-          ) : (
-            <div className="relative flex items-center w-full sm:w-auto">
-              <Building className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none shrink-0" />
-              <select
-                value={dept}
-                onChange={(e) => setDept(e.target.value)}
-                className="w-full sm:w-auto pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-white text-xs font-medium text-[#102e50] focus:ring-2 focus:ring-[#102e50] focus:outline-none cursor-pointer max-w-full sm:max-w-[200px] truncate"
-              >
-                <option value="ALL">Semua Divisi</option>
-                {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Filter Action Buttons */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={handleFilter}
-              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
-            >
-              <Filter className="w-3.5 h-3.5 text-[#f2af3e]" />
-              <span>Terapkan</span>
-            </button>
-
-            {(searchQuery || selectedDeptId !== "ALL") && (
+            {/* Filter Action Buttons */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
               <button
                 type="button"
-                onClick={handleResetFilter}
-                className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-[#102e50] hover:bg-slate-50 transition-colors cursor-pointer"
-                title="Reset Filter"
+                onClick={handleFilter}
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-[#102e50] text-white hover:bg-[#0b223c] font-semibold transition-all shadow-xs cursor-pointer active:scale-[0.98]"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <Filter className="w-3.5 h-3.5 text-[#f2af3e]" />
+                <span>Terapkan Filter</span>
               </button>
-            )}
+
+              {(searchQuery || selectedDeptId !== "ALL" || currentMonth !== new Date().getMonth() + 1) && (
+                <button
+                  type="button"
+                  onClick={handleResetFilter}
+                  className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:text-[#102e50] hover:bg-slate-50 transition-colors cursor-pointer"
+                  title="Reset Filter ke Bulan Berjalan"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Right: View Switcher (Matrix vs Summary) & Export XLSX */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-2.5 pt-3 xl:pt-0 border-t xl:border-t-0 border-slate-100 w-full xl:w-auto">
-          <div className="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 w-full sm:w-auto justify-between sm:justify-start">
+        {/* Tier 2: Tampilan & Tindakan Utama HR */}
+        <div className="p-3.5 sm:p-4 bg-slate-50/40 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Left: Mode Switcher (Matrix vs Summary) */}
+          <div className="inline-flex p-1 rounded-xl bg-slate-200/70 border border-slate-200 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => setViewMode("matrix")}
-              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === "matrix"
-                  ? "bg-white text-[#102e50] shadow-xs"
+                  ? "bg-white text-[#102e50] shadow-xs font-bold"
                   : "text-slate-600 hover:text-[#102e50]"
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5 text-[#0874aa]" />
-              <span>Matriks 1–{daysInMonth.length}</span>
+              <span>Matriks Kalender (1–{daysInMonth.length})</span>
             </button>
 
             <button
               type="button"
               onClick={() => setViewMode("summary")}
-              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === "summary"
-                  ? "bg-white text-[#102e50] shadow-xs"
+                  ? "bg-white text-[#102e50] shadow-xs font-bold"
                   : "text-slate-600 hover:text-[#102e50]"
               }`}
             >
               <Table2 className="w-3.5 h-3.5 text-[#f2af3e]" />
-              <span>Ringkasan Angka</span>
+              <span>Ringkasan Angka Pegawai</span>
             </button>
           </div>
 
-          {isHrOrAdmin && (
+          {/* Right: Tombol Aksi HR (Lengkapi Check-Out & Ekspor XLSX) */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {isHrOrAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsBulkModalOpen(true)}
+                className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-[#102e50] border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+                title="Lengkapi data check-out yang kosong secara massal untuk periode ini"
+              >
+                <Clock className="w-4 h-4 text-[#0874aa]" />
+                <span>Lengkapi Check-Out</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => setIsBulkModalOpen(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-[#102e50] border border-slate-200 hover:bg-slate-50 transition-all cursor-pointer shadow-xs active:scale-[0.98]"
-              title="Lengkapi data check-out yang kosong secara massal untuk periode ini"
+              onClick={handleExportXlsx}
+              disabled={employees.length === 0 || isExporting}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-[0.98]"
+              title="Unduh rekapitulasi presensi dalam format Excel (.xlsx)"
             >
-              <Clock className="w-4 h-4 text-[#0874aa]" />
-              <span>Lengkapi Check-Out</span>
+              {isExporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 text-[#102e50] animate-spin" />
+                  <span>Mengekspor...</span>
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet className="w-4 h-4 text-[#102e50]" />
+                  <span>Ekspor Rekap (.xlsx)</span>
+                </>
+              )}
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={handleExportXlsx}
-            disabled={employees.length === 0 || isExporting}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-[#f2af3e] text-[#102e50] hover:bg-[#e5a02d] transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-[0.98]"
-            title="Unduh rekapitulasi presensi dalam format Excel (.xlsx)"
-          >
-            {isExporting ? (
-              <>
-                <Loader2 className="w-4 h-4 text-[#102e50] animate-spin" />
-                <span>Membuat Berkas...</span>
-              </>
-            ) : (
-              <>
-                <FileSpreadsheet className="w-4 h-4 text-[#102e50]" />
-                <span>Ekspor Rekap (.xlsx)</span>
-              </>
-            )}
-          </button>
+          </div>
         </div>
       </div>
 
