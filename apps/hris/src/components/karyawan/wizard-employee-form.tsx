@@ -318,6 +318,18 @@ export function WizardEmployeeForm({
     managerId: initialData?.managerId || "",
     joinDate: initialData?.joinDate ? toDateString(initialData.joinDate) : toDateString(new Date()),
     status: initialData?.status || "ACTIVE",
+    workLocationId:
+      initialData?.workLocationId ||
+      workLocations.find((w) => w.isDefault)?.id ||
+      workLocations[0]?.id ||
+      "",
+    legalEntityId:
+      initialData?.legalEntityId ||
+      legalEntities.find((l) => l.isDefault)?.id ||
+      legalEntities[0]?.id ||
+      "",
+    probationEndDate: initialData?.probationEndDate ? toDateString(initialData.probationEndDate) : "",
+    endDate: initialData?.endDate ? toDateString(initialData.endDate) : "",
 
     // Step 3: Contract
     employmentType: initialActiveContract?.type || "PERMANENT",
@@ -455,6 +467,14 @@ export function WizardEmployeeForm({
   const [docCv, setDocCv] = useState<UploadedFileState>({ file: null, status: "idle" });
   const [docDiploma, setDocDiploma] = useState<UploadedFileState>({ file: null, status: "idle" });
   const [docFamilyCard, setDocFamilyCard] = useState<UploadedFileState>({ file: null, status: "idle" });
+  const [docPreviousEmployerLetter, setDocPreviousEmployerLetter] = useState<UploadedFileState>({
+    file: null,
+    status: "idle",
+  });
+  const [docOfferLetter, setDocOfferLetter] = useState<UploadedFileState>({
+    file: null,
+    status: "idle",
+  });
 
   // Helper Perhitungan Usia Otomatis dari Tanggal Lahir
   const calculateAge = (birthDateStr?: string | null): string | null => {
