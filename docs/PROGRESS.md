@@ -3996,6 +3996,23 @@ Implementasi 4 Tabel Dinamis pada Langkah 1 (*Identitas Pribadi*):
 
 ---
 
+## Pembaruan Form Pendaftaran Pegawai Baru (Tahap 6 — Selesai)
+
+1. **Dokumen Legal & Lampiran Tambahan (Langkah 3)**:
+   - **Nomor Surat Perjanjian / SK Kontrak**: Kolom `contractNo` pada model `EmploymentContract`.
+   - **NDA / Pakta Integritas Pegawai**: Komponen upload berkas PDF (maks. 5 MB) dengan kategori `NDA`.
+   - **Buku Nikah / Akta Perkawinan**: Komponen upload berkas kondisional (PDF/JPG/PNG maks. 5 MB) dengan kategori `MARRIAGE_CERT`, aktif secara otomatis apabila pegawai berstatus perkawinan Menikah (`MARRIED`) atau memilih PTKP berstatus kawin (`K/0`, `K/1`, `K/2`, `K/3`). Jika lajang/TK, ditampilkan kartu penjelasan informatif.
+2. **Integrasi Ringkasan & Checklist Kelengkapan Dokumen (Langkah 4)**:
+   - Item `nda` dan `marriage_cert` terintegrasi penuh ke dalam `DocumentChecklistSummary`.
+   - Jump-link *"Lengkapi"* pada checklist mengarahkan user langsung ke Langkah 3.
+3. **Verifikasi Menyeluruh & Definition of Done (Tahap 0 s.d. 6)**:
+   - `pnpm typecheck` di seluruh 9 paket workspace: **Lolos 100% (0 error)**.
+   - `pnpm lint` di seluruh workspace: **Lolos 100% (0 error, 0 warning)**.
+   - Pengujian unit Vitest (`pnpm test`): **46 berkas uji / 337 pengujian lolos 100%**.
+   - Kompilasi produksi Next.js (`next build` standalone): **Sukses terkompilasi (0 error)**.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

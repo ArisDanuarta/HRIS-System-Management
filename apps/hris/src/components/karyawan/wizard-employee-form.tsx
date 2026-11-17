@@ -4420,6 +4420,54 @@ export function WizardEmployeeForm({
                 </div>
               )}
             </div>
+
+            {/* BAGIAN C: DOKUMEN LEGAL & TAMBAHAN KONTRAK */}
+            <div className="md:col-span-2 p-5 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col gap-4">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <FileUp className="w-4 h-4 text-[#102E50]" />
+                  <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
+                    Dokumen Legal & Lampiran Tambahan
+                  </h4>
+                </div>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Dapat Disusulkan
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                Unggah dokumen kerahasiaan lembaga (NDA) serta buku/akta nikah apabila berstatus kawin atau mengambil PTKP Kawin.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <DocumentUploadCard
+                  label="NDA / Pakta Integritas Pegawai"
+                  description="Format PDF maks. 5 MB • Perjanjian kerahasiaan & integritas"
+                  accept="application/pdf,.pdf"
+                  maxSizeMB={5}
+                  value={docNda}
+                  onChange={setDocNda}
+                />
+
+                {(formData.ptkpStatus.startsWith("K_") || formData.maritalStatus === "MARRIED") ? (
+                  <DocumentUploadCard
+                    label="Buku Nikah / Akta Perkawinan"
+                    description="PDF / Gambar maks. 5 MB • Verifikasi status kawin & PTKP"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    maxSizeMB={5}
+                    value={docMarriageCert}
+                    onChange={setDocMarriageCert}
+                  />
+                ) : (
+                  <div className="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-center">
+                    <HeartHandshake className="w-6 h-6 text-slate-300 mb-1" />
+                    <span className="text-xs font-semibold text-slate-500">Buku Nikah / Akta Perkawinan</span>
+                    <span className="text-[11px] text-slate-400 mt-0.5">
+                      Hanya tampil jika Status Pernikahan = Menikah atau PTKP Kawin (K/0 – K/3)
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -5086,6 +5134,24 @@ export function WizardEmployeeForm({
                   isRequired: formData.employmentType === "FIXED_TERM",
                   isUploaded: Boolean(contractFile || formData.contractDocumentKey),
                 },
+                {
+                  id: "nda",
+                  label: "NDA / Pakta Integritas Pegawai",
+                  step: 3,
+                  isRequired: false,
+                  isUploaded: Boolean(docNda.file || initialData?.hasNda),
+                },
+                ...((formData.ptkpStatus.startsWith("K_") || formData.maritalStatus === "MARRIED")
+                  ? [
+                      {
+                        id: "marriage_cert",
+                        label: "Buku Nikah / Akta Perkawinan",
+                        step: 3,
+                        isRequired: false,
+                        isUploaded: Boolean(docMarriageCert.file || initialData?.hasMarriageCert),
+                      },
+                    ]
+                  : []),
               ];
 
               return (
