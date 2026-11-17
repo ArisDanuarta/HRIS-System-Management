@@ -95,6 +95,8 @@ enum FamilyRelation {
 }
 
 enum EducationLevel {
+  SD
+  SMP
   SMA_SMK
   D3
   D4

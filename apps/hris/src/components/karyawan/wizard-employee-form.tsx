@@ -2489,6 +2489,8 @@ export function WizardEmployeeForm({
                         }
                         className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                       >
+                        <option value="SD">SD</option>
+                        <option value="SMP">SMP</option>
                         <option value="SMA_SMK">SMA/SMK</option>
                         <option value="D3">D3</option>
                         <option value="D4">D4</option>
@@ -2632,6 +2634,8 @@ export function WizardEmployeeForm({
                           }
                           className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         >
+                          <option value="SD">SD</option>
+                          <option value="SMP">SMP</option>
                           <option value="SMA_SMK">SMA/SMK</option>
                           <option value="D3">D3</option>
                           <option value="D4">D4</option>
