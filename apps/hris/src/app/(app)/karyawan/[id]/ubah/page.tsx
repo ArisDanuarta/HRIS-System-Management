@@ -54,12 +54,15 @@ export default async function UbahKaryawanPage({ params }: UbahKaryawanPageProps
     redirect(`/karyawan/${id}`);
   }
 
-  const [employee, departments, managers, employmentTypes] = await Promise.all([
-    getEmployeeById(id),
-    getOrgStructureData(),
-    getManagersList(),
-    getActiveEmploymentTypes(),
-  ]);
+  const [employee, departments, managers, employmentTypes, workLocations, legalEntities] =
+    await Promise.all([
+      getEmployeeById(id),
+      getOrgStructureData(),
+      getManagersList(),
+      getActiveEmploymentTypes(),
+      getActiveWorkLocations(),
+      getActiveLegalEntities(),
+    ]);
 
   if (!employee) {
     notFound();
@@ -100,6 +103,8 @@ export default async function UbahKaryawanPage({ params }: UbahKaryawanPageProps
         managers={filteredManagers}
         initialData={employee}
         employmentTypes={employmentTypes}
+        workLocations={workLocations}
+        legalEntities={legalEntities}
       />
     </div>
   );

@@ -147,6 +147,12 @@ export interface InitialEmployeeData {
   hasCv?: boolean;
   hasDiploma?: boolean;
   hasFamilyCard?: boolean;
+  hasPreviousEmployerLetter?: boolean;
+  hasOfferLetter?: boolean;
+  workLocationId?: string | null;
+  legalEntityId?: string | null;
+  probationEndDate?: Date | string | null;
+  endDate?: Date | string | null;
   addresses?: {
     id?: string;
     type: AddressType;
@@ -179,6 +185,21 @@ export interface InitialEmployeeData {
   }[];
 }
 
+export interface WorkLocationOption {
+  id: string;
+  name: string;
+  address?: string | null;
+  isDefault?: boolean;
+}
+
+export interface LegalEntityOption {
+  id: string;
+  name: string;
+  tkuCode?: string | null;
+  npwp?: string | null;
+  isDefault?: boolean;
+}
+
 interface WizardEmployeeFormProps {
   mode: "create" | "edit";
   departments: DepartmentOption[];
@@ -188,6 +209,8 @@ interface WizardEmployeeFormProps {
   initialData?: InitialEmployeeData | null;
   /** Daftar tipe ikatan kerja aktif dari master data (EmploymentTypeMaster) */
   employmentTypes?: EmploymentTypeOption[];
+  workLocations?: WorkLocationOption[];
+  legalEntities?: LegalEntityOption[];
 }
 
 export function WizardEmployeeForm({
@@ -198,6 +221,8 @@ export function WizardEmployeeForm({
   isSuperAdmin = false,
   initialData,
   employmentTypes = [],
+  workLocations = [],
+  legalEntities = [],
 }: WizardEmployeeFormProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
