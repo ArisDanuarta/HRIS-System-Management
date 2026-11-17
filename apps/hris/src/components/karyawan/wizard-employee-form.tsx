@@ -1644,8 +1644,8 @@ export function WizardEmployeeForm({
   return (
     <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
       {/* Stepper Header */}
-      <div className="bg-slate-50/70 border-b border-slate-200 p-4 sm:p-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="bg-slate-50/70 border-b border-slate-200 p-3 sm:p-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           {steps.map((s) => {
             const Icon = s.icon;
             const isDone = currentStep > s.num;
@@ -1657,7 +1657,7 @@ export function WizardEmployeeForm({
                 onClick={() => {
                   if (s.num < currentStep) setCurrentStep(s.num);
                 }}
-                className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all ${
+                className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg border transition-all ${
                   isCurrent
                     ? "bg-white border-[#102E50] shadow-xs"
                     : isDone
@@ -1666,7 +1666,7 @@ export function WizardEmployeeForm({
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-[11px] sm:text-xs shrink-0 ${
                     isCurrent
                       ? "bg-[#102E50] text-white"
                       : isDone
@@ -1674,19 +1674,19 @@ export function WizardEmployeeForm({
                         : "bg-slate-200 text-slate-600"
                   }`}
                 >
-                  {isDone ? <CheckCircle className="w-4 h-4" /> : s.num}
+                  {isDone ? <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : s.num}
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                     Langkah {s.num}
                   </span>
                   <span
-                    className={`text-xs font-semibold truncate flex items-center gap-1.5 ${
+                    className={`text-[11px] sm:text-xs font-semibold truncate flex items-center gap-1 sm:gap-1.5 ${
                       isCurrent ? "text-[#102E50]" : "text-slate-700"
                     }`}
                   >
-                    <Icon className="w-3.5 h-3.5 shrink-0" />
-                    <span>{s.title}</span>
+                    <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    <span className="truncate">{s.title}</span>
                   </span>
                 </div>
               </div>
@@ -1706,7 +1706,7 @@ export function WizardEmployeeForm({
             }
           }
         }}
-        className="p-6 flex flex-col gap-6"
+        className="p-3.5 sm:p-6 flex flex-col gap-5 sm:gap-6"
       >
         {serverError && (
           <div className="p-3 bg-red-50 border border-red-200 text-[#A8281C] text-sm rounded-lg flex items-center gap-2">
@@ -2320,17 +2320,11 @@ export function WizardEmployeeForm({
                     </td>
                   </>
                 )}
-                renderMobileCard={(item, idx, onRemove) => (
-                  <div className="p-3 space-y-2 text-sm">
-                    <div className="flex justify-between items-start">
-                      <span className="font-medium text-slate-800">{item.name || "Anggota baru"}</span>
-                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs text-slate-500">Nama</label>
+                renderMobileCard={(item, idx) => (
+                  <div className="space-y-2.5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Nama Lengkap</label>
                         <input
                           type="text"
                           value={item.name}
@@ -2339,11 +2333,12 @@ export function WizardEmployeeForm({
                               prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x))
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Nama lengkap anggota keluarga"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Hubungan</label>
+                        <label className="text-xs font-semibold text-slate-700">Hubungan Keluarga</label>
                         <select
                           value={item.relation}
                           onChange={(e) =>
@@ -2353,7 +2348,7 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         >
                           <option value="FATHER">Ayah</option>
                           <option value="MOTHER">Ibu</option>
@@ -2364,7 +2359,7 @@ export function WizardEmployeeForm({
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Tanggal Lahir</label>
+                        <label className="text-xs font-semibold text-slate-700">Tanggal Lahir</label>
                         <input
                           type="date"
                           value={item.birthDate ?? ""}
@@ -2375,16 +2370,16 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                         {item.birthDate && calculateAge(item.birthDate) && (
-                          <span className="text-[10px] text-slate-500 block mt-0.5">
+                          <span className="text-[10px] text-slate-500 block mt-1">
                             Usia: {calculateAge(item.birthDate)}
                           </span>
                         )}
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">No. HP</label>
+                        <label className="text-xs font-semibold text-slate-700">No. WhatsApp / HP</label>
                         <input
                           type="tel"
                           value={item.phone ?? ""}
@@ -2393,11 +2388,12 @@ export function WizardEmployeeForm({
                               prev.map((x, i) => (i === idx ? { ...x, phone: e.target.value } : x))
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="08xxxxxxxxxx"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Catatan (opsional)</label>
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700">Catatan (Opsional)</label>
                         <input
                           type="text"
                           value={item.notes ?? ""}
@@ -2407,11 +2403,11 @@ export function WizardEmployeeForm({
                             )
                           }
                           placeholder="Catatan tambahan"
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                     </div>
-                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                    <label className="flex items-center gap-2 text-xs text-slate-700 pt-1 cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={item.isDependent}
@@ -2422,9 +2418,9 @@ export function WizardEmployeeForm({
                             )
                           )
                         }
-                        className="h-4 w-4 rounded border-slate-300 text-[#102E50]"
+                        className="rounded border-slate-300 text-[#102E50] focus:ring-[#102E50] w-4 h-4 cursor-pointer"
                       />
-                      Tanggungan
+                      <span className="font-medium">Tanggungan resmi (diperhitungkan dalam tunjangan / PTKP)</span>
                     </label>
                   </div>
                 )}
@@ -2610,19 +2606,11 @@ export function WizardEmployeeForm({
                     </td>
                   </>
                 )}
-                renderMobileCard={(item, idx, onRemove) => (
-                  <div className="p-3 space-y-2 text-sm">
-                    <div className="flex justify-between items-start">
-                      <span className="font-medium text-slate-800">
-                        {item.institution || "Institusi baru"}
-                      </span>
-                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
+                renderMobileCard={(item, idx) => (
+                  <div className="space-y-2.5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                       <div>
-                        <label className="text-xs text-slate-500">Jenjang</label>
+                        <label className="text-xs font-semibold text-slate-700">Jenjang</label>
                         <select
                           value={item.level}
                           onChange={(e) =>
@@ -2632,7 +2620,7 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         >
                           <option value="SD">SD</option>
                           <option value="SMP">SMP</option>
@@ -2646,7 +2634,7 @@ export function WizardEmployeeForm({
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Tahun Lulus</label>
+                        <label className="text-xs font-semibold text-slate-700">Tahun Lulus</label>
                         <input
                           type="number"
                           min="1950"
@@ -2662,11 +2650,11 @@ export function WizardEmployeeForm({
                             )
                           }
                           placeholder="2020"
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Institusi / Kampus</label>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Institusi / Kampus</label>
                         <input
                           type="text"
                           value={item.institution}
@@ -2678,11 +2666,11 @@ export function WizardEmployeeForm({
                             )
                           }
                           placeholder="Nama kampus / sekolah"
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Jurusan / Prodi</label>
+                      <div>
+                        <label className="text-xs font-semibold text-slate-700">Jurusan / Program Studi</label>
                         <input
                           type="text"
                           value={item.major ?? ""}
@@ -2693,11 +2681,12 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Contoh: Manajemen Pendidikan"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">IPK / Nilai</label>
+                        <label className="text-xs font-semibold text-slate-700">IPK / Nilai</label>
                         <input
                           type="text"
                           value={item.gpa ?? ""}
@@ -2707,15 +2696,17 @@ export function WizardEmployeeForm({
                             )
                           }
                           placeholder="3.75"
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500 block mb-1">Ijazah / Transkrip</label>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">
+                          Berkas Ijazah / Transkrip (Opsional)
+                        </label>
                         {item.certificateFileName ? (
-                          <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1.5 rounded border border-green-200">
-                            <FileCheck className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{item.certificateFileName}</span>
+                          <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
+                            <FileCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+                            <span className="truncate font-medium">{item.certificateFileName}</span>
                             <button
                               type="button"
                               onClick={() =>
@@ -2727,15 +2718,16 @@ export function WizardEmployeeForm({
                                   )
                                 )
                               }
-                              className="ml-auto text-red-500 hover:text-red-700 p-0.5"
+                              className="ml-auto text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
+                              title="Hapus berkas"
                             >
                               <XCircle className="h-4 w-4" />
                             </button>
                           </div>
                         ) : (
-                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded border border-slate-200 transition-colors w-fit">
-                            <UploadCloud className="h-4 w-4 text-slate-500" />
-                            <span>Unggah Ijazah</span>
+                          <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors w-full justify-center">
+                            <UploadCloud className="h-3.5 w-3.5 text-slate-500" />
+                            <span className="font-semibold text-[#102E50]">Unggah Ijazah / Transkrip</span>
                             <input
                               type="file"
                               accept=".pdf,.jpg,.jpeg,.png"
@@ -2944,17 +2936,11 @@ export function WizardEmployeeForm({
                     </td>
                   </>
                 )}
-                renderMobileCard={(item, idx, onRemove) => (
-                  <div className="p-3 space-y-2 text-sm">
-                    <div className="flex justify-between items-start">
-                      <span className="font-medium text-slate-800">{item.name || "Pelatihan baru"}</span>
-                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Nama Pelatihan</label>
+                renderMobileCard={(item, idx) => (
+                  <div className="space-y-2.5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Nama Pelatihan / Seminar</label>
                         <input
                           type="text"
                           value={item.name}
@@ -2963,11 +2949,12 @@ export function WizardEmployeeForm({
                               prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x))
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Nama kegiatan pelatihan"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Jenis Kepesertaan</label>
+                        <label className="text-xs font-semibold text-slate-700">Jenis Kepesertaan</label>
                         <select
                           value={item.participationType ?? ""}
                           onChange={(e) =>
@@ -2977,7 +2964,7 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         >
                           <option value="Peserta">Peserta</option>
                           <option value="Pembicara">Pembicara</option>
@@ -2985,7 +2972,7 @@ export function WizardEmployeeForm({
                         </select>
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Penyelenggara</label>
+                        <label className="text-xs font-semibold text-slate-700">Penyelenggara</label>
                         <input
                           type="text"
                           value={item.organizer ?? ""}
@@ -2996,11 +2983,12 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Lembaga penyelenggara"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Tanggal Mulai</label>
+                        <label className="text-xs font-semibold text-slate-700">Tanggal Mulai</label>
                         <input
                           type="date"
                           value={item.startDate ?? ""}
@@ -3011,11 +2999,11 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Tanggal Selesai</label>
+                        <label className="text-xs font-semibold text-slate-700">Tanggal Selesai</label>
                         <input
                           type="date"
                           value={item.endDate ?? ""}
@@ -3026,11 +3014,11 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Durasi</label>
+                        <label className="text-xs font-semibold text-slate-700">Durasi</label>
                         <input
                           type="text"
                           value={item.duration ?? ""}
@@ -3039,12 +3027,12 @@ export function WizardEmployeeForm({
                               prev.map((x, i) => (i === idx ? { ...x, duration: e.target.value } : x))
                             )
                           }
-                          placeholder="mis. 2 hari"
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="mis. 2 hari / 16 jam"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Tempat</label>
+                        <label className="text-xs font-semibold text-slate-700">Tempat</label>
                         <input
                           type="text"
                           value={item.location ?? ""}
@@ -3054,15 +3042,17 @@ export function WizardEmployeeForm({
                             )
                           }
                           placeholder="Jakarta / Online"
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500 block mb-1">Sertifikat Pelatihan</label>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700 block mb-1">
+                          Sertifikat Pelatihan (Opsional)
+                        </label>
                         {item.certificateFileName ? (
-                          <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1.5 rounded border border-green-200">
-                            <FileCheck className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{item.certificateFileName}</span>
+                          <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50 px-3 py-2 rounded-lg border border-emerald-200">
+                            <FileCheck className="h-4 w-4 shrink-0 text-emerald-600" />
+                            <span className="truncate font-medium">{item.certificateFileName}</span>
                             <button
                               type="button"
                               onClick={() =>
@@ -3074,15 +3064,16 @@ export function WizardEmployeeForm({
                                   )
                                 )
                               }
-                              className="ml-auto text-red-500 hover:text-red-700 p-0.5"
+                              className="ml-auto text-slate-400 hover:text-red-600 p-1 rounded transition-colors"
+                              title="Hapus berkas"
                             >
                               <XCircle className="h-4 w-4" />
                             </button>
                           </div>
                         ) : (
-                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded border border-slate-200 transition-colors w-fit">
-                            <UploadCloud className="h-4 w-4 text-slate-500" />
-                            <span>Unggah Sertifikat</span>
+                          <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors w-full justify-center">
+                            <UploadCloud className="h-3.5 w-3.5 text-slate-500" />
+                            <span className="font-semibold text-[#102E50]">Unggah Sertifikat</span>
                             <input
                               type="file"
                               accept=".pdf,.jpg,.jpeg,.png"
@@ -3265,19 +3256,11 @@ export function WizardEmployeeForm({
                     </td>
                   </>
                 )}
-                renderMobileCard={(item, idx, onRemove) => (
-                  <div className="p-3 space-y-2 text-sm">
-                    <div className="flex justify-between items-start">
-                      <span className="font-medium text-slate-800">
-                        {item.companyName || "Perusahaan baru"}
-                      </span>
-                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Nama Perusahaan</label>
+                renderMobileCard={(item, idx) => (
+                  <div className="space-y-2.5 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Nama Perusahaan / Lembaga</label>
                         <input
                           type="text"
                           value={item.companyName}
@@ -3288,11 +3271,12 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Nama instansi / perusahaan"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Jabatan</label>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Jabatan / Posisi</label>
                         <input
                           type="text"
                           value={item.jobTitle}
@@ -3303,11 +3287,12 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Jabatan atau posisi kerja"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Mulai</label>
+                        <label className="text-xs font-semibold text-slate-700">Bulan & Tahun Mulai</label>
                         <input
                           type="month"
                           value={item.startDate ?? ""}
@@ -3318,11 +3303,11 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-500">Selesai</label>
+                        <label className="text-xs font-semibold text-slate-700">Bulan & Tahun Selesai</label>
                         <input
                           type="month"
                           value={item.endDate ?? ""}
@@ -3335,9 +3320,9 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50] disabled:opacity-50"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] disabled:bg-slate-100 disabled:opacity-60"
                         />
-                        <label className="flex items-center gap-1 mt-1 text-[10px] text-slate-500 cursor-pointer">
+                        <label className="flex items-center gap-1.5 mt-1.5 text-xs text-slate-600 cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={item.isCurrent ?? false}
@@ -3348,13 +3333,13 @@ export function WizardEmployeeForm({
                                 )
                               )
                             }
-                            className="h-3 w-3 rounded border-slate-300 text-[#102E50]"
+                            className="h-3.5 w-3.5 rounded border-slate-300 text-[#102E50] cursor-pointer"
                           />
-                          Masih aktif
+                          <span>Masih aktif bekerja di sini</span>
                         </label>
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Alasan Berhenti</label>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Alasan Berhenti / Pindah</label>
                         <input
                           type="text"
                           value={item.reasonForLeaving ?? ""}
@@ -3365,11 +3350,12 @@ export function WizardEmployeeForm({
                               )
                             )
                           }
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                          placeholder="Alasan pengunduran diri / selesai kontrak"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
-                      <div className="col-span-2">
-                        <label className="text-xs text-slate-500">Uraian Tugas Singkat</label>
+                      <div className="col-span-1 sm:col-span-2">
+                        <label className="text-xs font-semibold text-slate-700">Uraian Tugas Singkat</label>
                         <textarea
                           value={item.description ?? ""}
                           onChange={(e) =>
@@ -3381,7 +3367,7 @@ export function WizardEmployeeForm({
                           }
                           placeholder="Uraian tugas dan tanggung jawab..."
                           rows={2}
-                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50] resize-none"
+                          className="w-full mt-1 px-3 py-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#102E50] resize-none"
                         />
                       </div>
                     </div>
@@ -5280,14 +5266,14 @@ export function WizardEmployeeForm({
         )}
 
         {/* Stepper Navigation Buttons */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-200">
           <div>
             {currentStep > 1 && (
               <button
                 type="button"
                 onClick={handlePrev}
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer active:scale-[0.98]"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 min-h-[42px] rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer active:scale-[0.98]"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Sebelumnya</span>
@@ -5295,12 +5281,12 @@ export function WizardEmployeeForm({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={() => router.push("/karyawan")}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 min-h-[42px] rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-colors cursor-pointer text-center"
             >
               Batal
             </button>
@@ -5310,7 +5296,7 @@ export function WizardEmployeeForm({
                 key="btn-next-step"
                 type="button"
                 onClick={handleNext}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98]"
+                className="flex-2 sm:flex-none inline-flex items-center justify-center gap-1.5 px-5 py-2.5 sm:py-2 min-h-[42px] rounded-lg text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
               >
                 <span>Langkah Selanjutnya</span>
                 <ArrowRight className="w-4 h-4" />
@@ -5320,7 +5306,7 @@ export function WizardEmployeeForm({
                 key="btn-submit-final"
                 type="submit"
                 disabled={isSubmitting || stepCooldown}
-                className="inline-flex items-center gap-1.5 px-6 py-2 rounded-lg text-xs font-semibold bg-[#feba48] text-[#102E50] hover:bg-[#e5a63d] transition-all cursor-pointer active:scale-[0.98] shadow-xs disabled:opacity-50"
+                className="flex-2 sm:flex-none inline-flex items-center justify-center gap-1.5 px-6 py-2.5 sm:py-2 min-h-[42px] rounded-lg text-xs font-semibold bg-[#feba48] text-[#102E50] hover:bg-[#e5a63d] transition-all cursor-pointer active:scale-[0.98] shadow-xs disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 <span>

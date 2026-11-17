@@ -99,7 +99,7 @@ export function DynamicTable<T>({
         <>
           {/* Desktop Table View (md and up) */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full min-w-[720px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
                   <th className="py-2.5 px-3 w-10 text-center">#</th>
@@ -144,21 +144,24 @@ export function DynamicTable<T>({
           </div>
 
           {/* Mobile Card Stacking View (< md) */}
-          <div className="md:hidden p-3 divide-y divide-slate-100 flex flex-col gap-3">
+          <div className="md:hidden p-3 flex flex-col gap-3">
             {items.map((item, index) => (
               <div
                 key={index}
-                className="p-3 rounded-lg border border-slate-200 bg-slate-50/40 flex flex-col gap-2.5 relative"
+                className="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/50 shadow-2xs flex flex-col gap-2.5 relative"
               >
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Data #{index + 1}
-                  </span>
+                <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#102E50]" />
+                    <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                      Data #{index + 1}
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => onRemove(index)}
                     disabled={disabled}
-                    className="text-xs font-semibold text-red-600 hover:text-red-700 flex items-center gap-1"
+                    className="min-h-[36px] px-2.5 text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg flex items-center gap-1 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Hapus</span>
