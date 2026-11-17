@@ -1733,10 +1733,10 @@ export function WizardEmployeeForm({
               </div>
             </div>
 
-            {/* SEKSI 2.1: DATA DIRI */}
+            {/* SEKSI 1.1: DATA DIRI */}
             <FormSection
               id="seksi-data-diri"
-              title="2.1 Data Diri Pegawai"
+              title="1.1 Data Diri Pegawai"
               subtitle="Foto profil, nama lengkap, tempat tanggal lahir, agama, dan status kependudukan"
               icon={User}
               badge={
@@ -1977,8 +1977,6 @@ export function WizardEmployeeForm({
                     >
                       <option value="SINGLE">Belum Menikah</option>
                       <option value="MARRIED">Menikah</option>
-                      <option value="DIVORCED">Cerai Hidup</option>
-                      <option value="WIDOWED">Cerai Mati</option>
                     </select>
                   </div>
 
@@ -2002,10 +2000,10 @@ export function WizardEmployeeForm({
               </div>
             </FormSection>
 
-            {/* SEKSI 2.2: KONTAK */}
+            {/* SEKSI 1.2: KONTAK */}
             <FormSection
               id="seksi-kontak"
-              title="2.2 Informasi Kontak"
+              title="1.2 Informasi Kontak"
               subtitle="Email resmi PSPK, email pribadi untuk akses akun, nomor WhatsApp, dan telepon"
               icon={PhoneCall}
               badge={
@@ -2091,10 +2089,10 @@ export function WizardEmployeeForm({
               </div>
             </FormSection>
 
-            {/* SEKSI 2.3: ALAMAT KEPENDUDUKAN & DOMISILI */}
+            {/* SEKSI 1.3: ALAMAT KEPENDUDUKAN & DOMISILI */}
             <FormSection
               id="seksi-alamat"
-              title="2.3 Alamat KTP & Alamat Domisili"
+              title="1.3 Alamat KTP & Alamat Domisili"
               subtitle="Alamat terdaftar sesuai KTP dan alamat tempat tinggal saat ini"
               icon={Home}
               defaultOpen={true}
@@ -2123,10 +2121,10 @@ export function WizardEmployeeForm({
               </div>
             </FormSection>
 
-            {/* SEKSI 2.4: KONTAK DARURAT */}
+            {/* SEKSI 1.4: KONTAK DARURAT */}
             <FormSection
               id="seksi-kontak-darurat"
-              title="2.4 Kontak Darurat"
+              title="1.4 Kontak Darurat"
               subtitle="Pihak keluarga atau kerabat terdekat yang dapat dihubungi saat keadaan mendesak"
               icon={HeartHandshake}
               defaultOpen={true}
@@ -2182,10 +2180,10 @@ export function WizardEmployeeForm({
               </div>
             </FormSection>
 
-            {/* SEKSI 2.5: DATA KELUARGA */}
+            {/* SEKSI 1.5: DATA KELUARGA */}
             <FormSection
               id="seksi-data-keluarga"
-              title="2.5 Data Keluarga"
+              title="1.5 Data Keluarga"
               subtitle="Anggota keluarga dan tanggungan pegawai (opsional)"
               icon={Users}
               badge={
@@ -2433,10 +2431,10 @@ export function WizardEmployeeForm({
               />
             </FormSection>
 
-            {/* SEKSI 2.6: RIWAYAT PENDIDIKAN */}
+            {/* SEKSI 1.6: RIWAYAT PENDIDIKAN */}
             <FormSection
               id="seksi-pendidikan"
-              title="2.6 Riwayat Pendidikan"
+              title="1.6 Riwayat Pendidikan"
               subtitle="Riwayat pendidikan formal (opsional, dapat disusulkan)"
               icon={GraduationCap}
               badge={
@@ -2759,10 +2757,10 @@ export function WizardEmployeeForm({
               />
             </FormSection>
 
-            {/* SEKSI 2.7: PELATIHAN & SERTIFIKASI */}
+            {/* SEKSI 1.7: PELATIHAN & SERTIFIKASI */}
             <FormSection
               id="seksi-pelatihan"
-              title="2.7 Pelatihan & Sertifikasi"
+              title="1.7 Pelatihan & Sertifikasi"
               subtitle="Riwayat pelatihan, seminar, dan sertifikasi (opsional)"
               icon={Award}
               badge={
@@ -3106,10 +3104,10 @@ export function WizardEmployeeForm({
               />
             </FormSection>
 
-            {/* SEKSI 2.8: PENGALAMAN KERJA SEBELUMNYA */}
+            {/* SEKSI 1.8: PENGALAMAN KERJA SEBELUMNYA */}
             <FormSection
               id="seksi-pengalaman-kerja"
-              title="2.8 Pengalaman Kerja Sebelumnya"
+              title="1.8 Pengalaman Kerja Sebelumnya"
               subtitle="Riwayat pekerjaan di perusahaan/organisasi sebelumnya (opsional)"
               icon={Briefcase}
               badge={
@@ -3388,11 +3386,11 @@ export function WizardEmployeeForm({
               />
             </FormSection>
 
-            {/* SEKSI 2.9: BERKAS DOKUMEN PRIBADI */}
+            {/* SEKSI 1.9: BERKAS DOKUMEN PRIBADI */}
             <FormSection
               id="seksi-dokumen-langkah-1"
-              title="2.9 Berkas Dokumen Pribadi"
-              subtitle="Unggah salinan Curriculum Vitae, ijazah terakhir, dan kartu keluarga"
+              title="1.9 Berkas Dokumen Pribadi"
+              subtitle="Unggah salinan Curriculum Vitae, ijazah terakhir, kartu keluarga, dan buku nikah (jika menikah)"
               icon={FileUp}
               badge={
                 <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
@@ -3401,7 +3399,7 @@ export function WizardEmployeeForm({
               }
               defaultOpen={true}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <DocumentUploadCard
                   label="Curriculum Vitae (CV) / Resume"
                   description="Dokumen riwayat hidup profesional pegawai terbaru"
@@ -3428,6 +3426,19 @@ export function WizardEmployeeForm({
                   value={docFamilyCard}
                   onChange={setDocFamilyCard}
                 />
+
+                {(formData.maritalStatus === "MARRIED" || initialData?.hasMarriageCert) && (
+                  <div className="animate-in fade-in duration-200">
+                    <DocumentUploadCard
+                      label="Buku Nikah / Akta Perkawinan"
+                      description="PDF / Gambar maks. 5 MB • Verifikasi status pernikahan & keluarga"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      maxSizeMB={5}
+                      value={docMarriageCert}
+                      onChange={setDocMarriageCert}
+                    />
+                  </div>
+                )}
               </div>
             </FormSection>
           </div>
@@ -3933,104 +3944,119 @@ export function WizardEmployeeForm({
                 </div>
               </div>
 
-              {/* Lampiran Berkas Kontrak Kerja (PDF) */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-slate-700">
-                    Lampiran Berkas Kontrak Kerja (PDF)
-                  </label>
-                  <span className="text-[11px] text-slate-400">
-                    Opsional saat pendaftaran • Maksimal 10 MB
-                  </span>
-                </div>
-
-                {formData.contractDocumentKey && !contractFile && (
-                  <div className="mb-3 p-3 bg-blue-50/70 border border-blue-200/80 rounded-lg flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <FileText className="w-4 h-4 text-blue-600 shrink-0" />
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-semibold text-blue-900 truncate">
-                          Berkas Kontrak Telah Terunggah
-                        </span>
-                        <span className="text-[11px] text-blue-700 font-mono truncate">
-                          {formData.contractDocumentKey}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <a
-                        href={`/api/documents/${formData.contractDocumentKey}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-2.5 py-1 text-xs font-semibold bg-white text-blue-700 hover:bg-blue-100/60 rounded border border-blue-300 transition-colors inline-flex items-center gap-1 shadow-2xs"
-                      >
-                        <Download className="w-3.5 h-3.5" />
-                        <span>Lihat PDF</span>
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => setFormData((prev) => ({ ...prev, contractDocumentKey: "" }))}
-                        className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
-                        title="Hapus berkas kontrak ini"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {/* Berkas Perjanjian Kerja & Legalitas (Kontrak & NDA) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {/* Kolom 1: Lampiran Berkas Kontrak Kerja (PDF) */}
+                <div className="flex flex-col">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Lampiran Berkas Kontrak Kerja (PDF)
+                    </label>
+                    <span className="text-[11px] text-slate-400">
+                      Opsional saat pendaftaran • Maksimal 10 MB
+                    </span>
                   </div>
-                )}
 
-                {(!formData.contractDocumentKey || contractFile) && (
-                  <div className="p-4 bg-slate-50/70 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl transition-all">
-                    {!contractFile ? (
-                      <label className="flex flex-col items-center justify-center cursor-pointer py-2">
-                        <UploadCloud className="w-7 h-7 text-slate-400 mb-1.5 group-hover:text-[#102E50]" />
-                        <span className="text-xs font-bold text-slate-700 mb-0.5">
-                          Pilih atau seret berkas PDF kontrak ke sini
-                        </span>
-                        <span className="text-[11px] text-slate-400">
-                          Hanya format PDF (.pdf), ukuran maksimal 10 MB
-                        </span>
-                        <input
-                          type="file"
-                          accept="application/pdf,.pdf"
-                          onChange={handleContractFileChange}
-                          className="hidden"
-                        />
-                      </label>
-                    ) : (
-                      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
-                            <FileCheck className="w-5 h-5" />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-bold text-slate-800 truncate">
-                              {contractFile.name}
-                            </span>
-                            <span className="text-[11px] text-slate-400">
-                              {(contractFile.size / 1024 / 1024).toFixed(2)} MB • Siap disimpan
-                            </span>
-                          </div>
+                  {formData.contractDocumentKey && !contractFile && (
+                    <div className="mb-3 p-3 bg-blue-50/70 border border-blue-200/80 rounded-lg flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs font-semibold text-blue-900 truncate">
+                            Berkas Kontrak Telah Terunggah
+                          </span>
+                          <span className="text-[11px] text-blue-700 font-mono truncate">
+                            {formData.contractDocumentKey}
+                          </span>
                         </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={`/api/documents/${formData.contractDocumentKey}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1 text-xs font-semibold bg-white text-blue-700 hover:bg-blue-100/60 rounded border border-blue-300 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Lihat PDF</span>
+                        </a>
                         <button
                           type="button"
-                          onClick={handleRemoveContractFile}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                          title="Hapus pilihan berkas"
+                          onClick={() => setFormData((prev) => ({ ...prev, contractDocumentKey: "" }))}
+                          className="p-1 text-slate-400 hover:text-rose-600 rounded transition-colors"
+                          title="Hapus berkas kontrak ini"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    )}
+                    </div>
+                  )}
 
-                    {contractFileError && (
-                      <p className="text-xs text-rose-600 font-semibold mt-2 flex items-center gap-1.5">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        <span>{contractFileError}</span>
-                      </p>
-                    )}
-                  </div>
-                )}
+                  {(!formData.contractDocumentKey || contractFile) && (
+                    <div className="p-4 bg-slate-50/70 border-2 border-dashed border-slate-200 hover:border-slate-300 rounded-xl transition-all flex-1 flex flex-col justify-center">
+                      {!contractFile ? (
+                        <label className="flex flex-col items-center justify-center cursor-pointer py-2">
+                          <UploadCloud className="w-7 h-7 text-slate-400 mb-1.5 group-hover:text-[#102E50]" />
+                          <span className="text-xs font-bold text-slate-700 mb-0.5 text-center">
+                            Pilih atau seret berkas PDF kontrak ke sini
+                          </span>
+                          <span className="text-[11px] text-slate-400 text-center">
+                            Hanya format PDF (.pdf), ukuran maksimal 10 MB
+                          </span>
+                          <input
+                            type="file"
+                            accept="application/pdf,.pdf"
+                            onChange={handleContractFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                      ) : (
+                        <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-slate-200 shadow-2xs">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg shrink-0">
+                              <FileCheck className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs font-bold text-slate-800 truncate">
+                                {contractFile.name}
+                              </span>
+                              <span className="text-[11px] text-slate-400">
+                                {(contractFile.size / 1024 / 1024).toFixed(2)} MB • Siap disimpan
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemoveContractFile}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                            title="Hapus pilihan berkas"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+
+                      {contractFileError && (
+                        <p className="text-xs text-rose-600 font-semibold mt-2 flex items-center gap-1.5">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>{contractFileError}</span>
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Kolom 2: Dokumen NDA / Pakta Integritas Pegawai */}
+                <div className="flex flex-col">
+                  <DocumentUploadCard
+                    label="NDA / Pakta Integritas Pegawai"
+                    description="Format PDF maks. 5 MB • Perjanjian kerahasiaan & integritas lembaga"
+                    accept="application/pdf,.pdf"
+                    maxSizeMB={5}
+                    value={docNda}
+                    onChange={setDocNda}
+                  />
+                </div>
               </div>
             </div>
 
@@ -4419,54 +4445,6 @@ export function WizardEmployeeForm({
                   })()}
                 </div>
               )}
-            </div>
-
-            {/* BAGIAN C: DOKUMEN LEGAL & TAMBAHAN KONTRAK */}
-            <div className="md:col-span-2 p-5 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col gap-4">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <FileUp className="w-4 h-4 text-[#102E50]" />
-                  <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider">
-                    Dokumen Legal & Lampiran Tambahan
-                  </h4>
-                </div>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                  Dapat Disusulkan
-                </span>
-              </div>
-              <p className="text-xs text-slate-500">
-                Unggah dokumen kerahasiaan lembaga (NDA) serta buku/akta nikah apabila berstatus kawin atau mengambil PTKP Kawin.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <DocumentUploadCard
-                  label="NDA / Pakta Integritas Pegawai"
-                  description="Format PDF maks. 5 MB • Perjanjian kerahasiaan & integritas"
-                  accept="application/pdf,.pdf"
-                  maxSizeMB={5}
-                  value={docNda}
-                  onChange={setDocNda}
-                />
-
-                {(formData.ptkpStatus.startsWith("K_") || formData.maritalStatus === "MARRIED") ? (
-                  <DocumentUploadCard
-                    label="Buku Nikah / Akta Perkawinan"
-                    description="PDF / Gambar maks. 5 MB • Verifikasi status kawin & PTKP"
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    maxSizeMB={5}
-                    value={docMarriageCert}
-                    onChange={setDocMarriageCert}
-                  />
-                ) : (
-                  <div className="p-4 rounded-xl border border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center text-center">
-                    <HeartHandshake className="w-6 h-6 text-slate-300 mb-1" />
-                    <span className="text-xs font-semibold text-slate-500">Buku Nikah / Akta Perkawinan</span>
-                    <span className="text-[11px] text-slate-400 mt-0.5">
-                      Hanya tampil jika Status Pernikahan = Menikah atau PTKP Kawin (K/0 – K/3)
-                    </span>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         )}
@@ -5076,13 +5054,17 @@ export function WizardEmployeeForm({
                   isRequired: false,
                   isUploaded: Boolean(docFamilyCard.file || initialData?.hasFamilyCard),
                 },
-                {
-                  id: "offer_letter",
-                  label: "Offer Letter Ditandatangani",
-                  step: 2,
-                  isRequired: false,
-                  isUploaded: Boolean(docOfferLetter.file || initialData?.hasOfferLetter),
-                },
+                ...((formData.maritalStatus === "MARRIED" || formData.ptkpStatus.startsWith("K_") || initialData?.hasMarriageCert)
+                  ? [
+                      {
+                        id: "marriage_cert",
+                        label: "Buku Nikah / Akta Perkawinan",
+                        step: 1,
+                        isRequired: false,
+                        isUploaded: Boolean(docMarriageCert.file || initialData?.hasMarriageCert),
+                      },
+                    ]
+                  : []),
                 {
                   id: "paklaring",
                   label: "Paklaring / Surat Pengalaman Kerja",
@@ -5091,41 +5073,11 @@ export function WizardEmployeeForm({
                   isUploaded: Boolean(docPreviousEmployerLetter.file || initialData?.hasPreviousEmployerLetter),
                 },
                 {
-                  id: "ktp",
-                  label: isWna ? "No. Paspor / KITAS & Dokumen" : "Foto KTP (Identitas Resmi)",
-                  step: 4,
-                  isRequired: true,
-                  isUploaded: isWna
-                    ? Boolean(formData.passportKitas || docKtp.file || initialData?.hasPassportKitas)
-                    : Boolean(docKtp.file || initialData?.hasNik),
-                },
-                {
-                  id: "bank_book",
-                  label: "Foto Buku Tabungan / Bukti Rekening",
-                  step: 4,
-                  isRequired: true,
-                  isUploaded: Boolean(docBankBook.file || initialData?.hasBankAccount),
-                },
-                {
-                  id: "npwp",
-                  label: "Foto Kartu NPWP",
-                  step: 4,
-                  isRequired: Boolean(formData.npwp && formData.npwp.trim() !== ""),
-                  isUploaded: Boolean(docNpwp.file || initialData?.hasNpwp),
-                },
-                {
-                  id: "bpjs_kes",
-                  label: "Kartu BPJS Kesehatan",
-                  step: 4,
+                  id: "offer_letter",
+                  label: "Offer Letter Ditandatangani",
+                  step: 2,
                   isRequired: false,
-                  isUploaded: Boolean(docBpjsKes.file || initialData?.hasBpjsKes),
-                },
-                {
-                  id: "bpjs_tk",
-                  label: "Kartu BPJS Ketenagakerjaan",
-                  step: 4,
-                  isRequired: false,
-                  isUploaded: Boolean(docBpjsTk.file || initialData?.hasBpjsTk),
+                  isUploaded: Boolean(docOfferLetter.file || initialData?.hasOfferLetter),
                 },
                 {
                   id: "contract",
@@ -5141,17 +5093,43 @@ export function WizardEmployeeForm({
                   isRequired: false,
                   isUploaded: Boolean(docNda.file || initialData?.hasNda),
                 },
-                ...((formData.ptkpStatus.startsWith("K_") || formData.maritalStatus === "MARRIED")
-                  ? [
-                      {
-                        id: "marriage_cert",
-                        label: "Buku Nikah / Akta Perkawinan",
-                        step: 3,
-                        isRequired: false,
-                        isUploaded: Boolean(docMarriageCert.file || initialData?.hasMarriageCert),
-                      },
-                    ]
-                  : []),
+                {
+                  id: "ktp",
+                  label: isWna ? "No. Paspor / KITAS & Dokumen" : "Foto KTP (Identitas Resmi)",
+                  step: 4,
+                  isRequired: true,
+                  isUploaded: isWna
+                    ? Boolean(formData.passportKitas || docKtp.file || initialData?.hasPassportKitas)
+                    : Boolean(docKtp.file || initialData?.hasNik),
+                },
+                {
+                  id: "npwp",
+                  label: "Foto Kartu NPWP",
+                  step: 4,
+                  isRequired: Boolean(formData.npwp && formData.npwp.trim() !== ""),
+                  isUploaded: Boolean(docNpwp.file || initialData?.hasNpwp),
+                },
+                {
+                  id: "bank_book",
+                  label: "Foto Buku Tabungan / Bukti Rekening",
+                  step: 4,
+                  isRequired: true,
+                  isUploaded: Boolean(docBankBook.file || initialData?.hasBankAccount),
+                },
+                {
+                  id: "bpjs_kes",
+                  label: "Kartu BPJS Kesehatan",
+                  step: 4,
+                  isRequired: false,
+                  isUploaded: Boolean(docBpjsKes.file || initialData?.hasBpjsKes),
+                },
+                {
+                  id: "bpjs_tk",
+                  label: "Kartu BPJS Ketenagakerjaan",
+                  step: 4,
+                  isRequired: false,
+                  isUploaded: Boolean(docBpjsTk.file || initialData?.hasBpjsTk),
+                },
               ];
 
               return (
