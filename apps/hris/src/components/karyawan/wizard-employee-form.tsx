@@ -39,7 +39,6 @@ import {
   GraduationCap,
   Award,
   Users,
-  Calendar,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -76,7 +75,7 @@ import { DocumentUploadCard } from "./components/DocumentUploadCard";
 import { DocumentChecklistSummary, ChecklistDocItem } from "./components/DocumentChecklistSummary";
 import { FormSection } from "./components/FormSection";
 import { AddressFields } from "./components/AddressFields";
-import { DynamicTable, DynamicColumn } from "./components/DynamicTable";
+import { DynamicTable } from "./components/DynamicTable";
 import {
   UploadedFileState,
   AdditionalDocumentItem,
@@ -197,6 +196,43 @@ export interface InitialEmployeeData {
     code: string;
     name: string;
     amount: number;
+  }[];
+  familyMembers?: {
+    id?: string;
+    name: string;
+    relation: string;
+    birthDate?: Date | string | null;
+    phone?: string | null;
+    isDependent?: boolean | null;
+    notes?: string | null;
+  }[];
+  educations?: {
+    id?: string;
+    level: string;
+    institution: string;
+    major?: string | null;
+    graduationYear?: number | null;
+    gpa?: { toNumber(): number } | number | string | null;
+  }[];
+  trainings?: {
+    id?: string;
+    name: string;
+    participationType?: string | null;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    duration?: string | null;
+    location?: string | null;
+    organizer?: string | null;
+  }[];
+  workExperiences?: {
+    id?: string;
+    companyName: string;
+    jobTitle: string;
+    startDate?: Date | string | null;
+    endDate?: Date | string | null;
+    isCurrent?: boolean | null;
+    reasonForLeaving?: string | null;
+    description?: string | null;
   }[];
 }
 
@@ -490,6 +526,65 @@ export function WizardEmployeeForm({
     file: null,
     status: "idle",
   });
+
+  // --- Tabel Dinamis: Data Keluarga ---
+  const [familyMembers, setFamilyMembers] = useState<FamilyMemberItem[]>(
+    initialData?.familyMembers?.map((fm) => ({
+      id: fm.id,
+      name: fm.name,
+      relation: fm.relation as FamilyRelation,
+      birthDate: fm.birthDate ? toDateString(fm.birthDate) : "",
+      phone: fm.phone ?? "",
+      isDependent: fm.isDependent ?? false,
+      notes: fm.notes ?? "",
+    })) ?? []
+  );
+
+  // --- Tabel Dinamis: Riwayat Pendidikan ---
+  const [educations, setEducations] = useState<EducationItem[]>(
+    initialData?.educations?.map((edu) => ({
+      id: edu.id,
+      level: edu.level as EducationLevel,
+      institution: edu.institution,
+      major: edu.major ?? "",
+      graduationYear: edu.graduationYear ?? null,
+      gpa: edu.gpa != null ? String(edu.gpa) : "",
+      certificateFile: null,
+      certificateFileName: null,
+      certificateDocKey: null,
+    })) ?? []
+  );
+
+  // --- Tabel Dinamis: Pelatihan / Seminar ---
+  const [trainings, setTrainings] = useState<TrainingItem[]>(
+    initialData?.trainings?.map((tr) => ({
+      id: tr.id,
+      name: tr.name,
+      participationType: tr.participationType ?? "",
+      startDate: tr.startDate ? toDateString(tr.startDate) : "",
+      endDate: tr.endDate ? toDateString(tr.endDate) : "",
+      duration: tr.duration ?? "",
+      location: tr.location ?? "",
+      organizer: tr.organizer ?? "",
+      certificateFile: null,
+      certificateFileName: null,
+      certificateDocKey: null,
+    })) ?? []
+  );
+
+  // --- Tabel Dinamis: Pengalaman Kerja Terdahulu ---
+  const [workExperiences, setWorkExperiences] = useState<WorkExperienceItem[]>(
+    initialData?.workExperiences?.map((we) => ({
+      id: we.id,
+      companyName: we.companyName,
+      jobTitle: we.jobTitle,
+      startDate: we.startDate ? toDateString(we.startDate).slice(0, 7) : "",
+      endDate: we.endDate ? toDateString(we.endDate).slice(0, 7) : "",
+      isCurrent: we.isCurrent ?? false,
+      reasonForLeaving: we.reasonForLeaving ?? "",
+      description: we.description ?? "",
+    })) ?? []
+  );
 
   // Helper Perhitungan Usia Otomatis dari Tanggal Lahir
   const calculateAge = (birthDateStr?: string | null): string | null => {
@@ -938,6 +1033,47 @@ export function WizardEmployeeForm({
         createUserAccount: formData.createUserAccount,
         accountRole: (formData.accountRole || "staff") as
           "staff" | "manager" | "admin_hr" | "admin_it",
+        familyMembers: familyMembers
+          .filter((fm) => fm.name.trim())
+          .map((fm) => ({
+            name: fm.name.trim(),
+            relation: fm.relation,
+            birthDate: fm.birthDate || undefined,
+            phone: fm.phone?.trim() || undefined,
+            isDependent: fm.isDependent,
+            notes: fm.notes?.trim() || undefined,
+          })),
+        educations: educations
+          .filter((edu) => edu.institution.trim())
+          .map((edu) => ({
+            level: edu.level,
+            institution: edu.institution.trim(),
+            major: edu.major?.trim() || undefined,
+            graduationYear: edu.graduationYear || undefined,
+            gpa: edu.gpa || undefined,
+          })),
+        trainings: trainings
+          .filter((tr) => tr.name.trim())
+          .map((tr) => ({
+            name: tr.name.trim(),
+            participationType: tr.participationType?.trim() || undefined,
+            startDate: tr.startDate || undefined,
+            endDate: tr.endDate || undefined,
+            duration: tr.duration?.trim() || undefined,
+            location: tr.location?.trim() || undefined,
+            organizer: tr.organizer?.trim() || undefined,
+          })),
+        workExperiences: workExperiences
+          .filter((we) => we.companyName.trim() && we.jobTitle.trim() && we.startDate)
+          .map((we) => ({
+            companyName: we.companyName.trim(),
+            jobTitle: we.jobTitle.trim(),
+            startDate: `${we.startDate!}-01`,
+            endDate: we.isCurrent ? undefined : we.endDate ? `${we.endDate}-01` : undefined,
+            isCurrent: we.isCurrent,
+            reasonForLeaving: we.reasonForLeaving?.trim() || undefined,
+            description: we.description?.trim() || undefined,
+          })),
       };
 
       const res = await createEmployeeAction(payload);
@@ -1169,6 +1305,47 @@ export function WizardEmployeeForm({
         createUserAccount: formData.createUserAccount,
         accountRole: (formData.accountRole || "staff") as
           "staff" | "manager" | "admin_hr" | "admin_it",
+        familyMembers: familyMembers
+          .filter((fm) => fm.name.trim())
+          .map((fm) => ({
+            name: fm.name.trim(),
+            relation: fm.relation,
+            birthDate: fm.birthDate || undefined,
+            phone: fm.phone?.trim() || undefined,
+            isDependent: fm.isDependent,
+            notes: fm.notes?.trim() || undefined,
+          })),
+        educations: educations
+          .filter((edu) => edu.institution.trim())
+          .map((edu) => ({
+            level: edu.level,
+            institution: edu.institution.trim(),
+            major: edu.major?.trim() || undefined,
+            graduationYear: edu.graduationYear || undefined,
+            gpa: edu.gpa || undefined,
+          })),
+        trainings: trainings
+          .filter((tr) => tr.name.trim())
+          .map((tr) => ({
+            name: tr.name.trim(),
+            participationType: tr.participationType?.trim() || undefined,
+            startDate: tr.startDate || undefined,
+            endDate: tr.endDate || undefined,
+            duration: tr.duration?.trim() || undefined,
+            location: tr.location?.trim() || undefined,
+            organizer: tr.organizer?.trim() || undefined,
+          })),
+        workExperiences: workExperiences
+          .filter((we) => we.companyName.trim() && we.jobTitle.trim() && we.startDate)
+          .map((we) => ({
+            companyName: we.companyName.trim(),
+            jobTitle: we.jobTitle.trim(),
+            startDate: `${we.startDate!}-01`,
+            endDate: we.isCurrent ? undefined : we.endDate ? `${we.endDate}-01` : undefined,
+            isCurrent: we.isCurrent,
+            reasonForLeaving: we.reasonForLeaving?.trim() || undefined,
+            description: we.description?.trim() || undefined,
+          })),
       };
 
       const res = await updateEmployeeAction(payload);
@@ -1882,10 +2059,1049 @@ export function WizardEmployeeForm({
               </div>
             </FormSection>
 
-            {/* SEKSI 2.5: BERKAS DOKUMEN PRIBADI */}
+            {/* SEKSI 2.5: DATA KELUARGA */}
+            <FormSection
+              id="seksi-data-keluarga"
+              title="2.5 Data Keluarga"
+              subtitle="Anggota keluarga dan tanggungan pegawai (opsional)"
+              icon={Users}
+              badge={
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Opsional
+                </span>
+              }
+              defaultOpen={false}
+            >
+              <DynamicTable<FamilyMemberItem>
+                title="Daftar Anggota Keluarga"
+                items={familyMembers}
+                onAdd={() =>
+                  setFamilyMembers((prev) => [
+                    ...prev,
+                    {
+                      name: "",
+                      relation: "SPOUSE" as FamilyRelation,
+                      birthDate: "",
+                      phone: "",
+                      isDependent: false,
+                      notes: "",
+                    },
+                  ])
+                }
+                onRemove={(idx) =>
+                  setFamilyMembers((prev) => prev.filter((_, i) => i !== idx))
+                }
+                addButtonLabel="+ Tambah Anggota Keluarga"
+                emptyMessage="Belum ada data keluarga. Klik tombol di bawah untuk menambahkan."
+                columns={[
+                  { key: "name", label: "Nama", width: "25%" },
+                  { key: "relation", label: "Hubungan", width: "15%" },
+                  { key: "birthDate", label: "Tanggal Lahir", width: "18%" },
+                  { key: "phone", label: "No. HP", width: "17%" },
+                  { key: "isDependent", label: "Tanggungan", width: "10%" },
+                  { key: "notes", label: "Keterangan", width: "15%" },
+                ]}
+                renderDesktopRow={(item, idx) => (
+                  <>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) =>
+                          setFamilyMembers((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x))
+                          )
+                        }
+                        placeholder="Nama lengkap"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <select
+                        value={item.relation}
+                        onChange={(e) =>
+                          setFamilyMembers((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, relation: e.target.value as FamilyRelation } : x
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      >
+                        <option value="FATHER">Ayah</option>
+                        <option value="MOTHER">Ibu</option>
+                        <option value="SPOUSE">Suami / Istri</option>
+                        <option value="CHILD">Anak</option>
+                        <option value="SIBLING">Saudara Kandung</option>
+                        <option value="OTHER">Lainnya</option>
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex flex-col gap-0.5">
+                        <input
+                          type="date"
+                          value={item.birthDate ?? ""}
+                          onChange={(e) =>
+                            setFamilyMembers((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, birthDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                        {item.birthDate && calculateAge(item.birthDate) && (
+                          <span className="text-[10px] text-slate-500">
+                            {calculateAge(item.birthDate)}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="tel"
+                        value={item.phone ?? ""}
+                        onChange={(e) =>
+                          setFamilyMembers((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, phone: e.target.value } : x))
+                          )
+                        }
+                        placeholder="08xx"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={item.isDependent}
+                        onChange={(e) =>
+                          setFamilyMembers((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, isDependent: e.target.checked } : x
+                            )
+                          )
+                        }
+                        className="h-4 w-4 rounded border-slate-300 text-[#102E50] focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.notes ?? ""}
+                        onChange={(e) =>
+                          setFamilyMembers((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, notes: e.target.value } : x))
+                          )
+                        }
+                        placeholder="Catatan (opsional)"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                  </>
+                )}
+                renderMobileCard={(item, idx, onRemove) => (
+                  <div className="p-3 space-y-2 text-sm">
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium text-slate-800">{item.name || "Anggota baru"}</span>
+                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-slate-500">Nama</label>
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) =>
+                            setFamilyMembers((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x))
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Hubungan</label>
+                        <select
+                          value={item.relation}
+                          onChange={(e) =>
+                            setFamilyMembers((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, relation: e.target.value as FamilyRelation } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        >
+                          <option value="FATHER">Ayah</option>
+                          <option value="MOTHER">Ibu</option>
+                          <option value="SPOUSE">Suami / Istri</option>
+                          <option value="CHILD">Anak</option>
+                          <option value="SIBLING">Saudara Kandung</option>
+                          <option value="OTHER">Lainnya</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Tanggal Lahir</label>
+                        <input
+                          type="date"
+                          value={item.birthDate ?? ""}
+                          onChange={(e) =>
+                            setFamilyMembers((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, birthDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">No. HP</label>
+                        <input
+                          type="tel"
+                          value={item.phone ?? ""}
+                          onChange={(e) =>
+                            setFamilyMembers((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, phone: e.target.value } : x))
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={item.isDependent}
+                        onChange={(e) =>
+                          setFamilyMembers((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, isDependent: e.target.checked } : x
+                            )
+                          )
+                        }
+                        className="h-4 w-4 rounded border-slate-300 text-[#102E50]"
+                      />
+                      Tanggungan
+                    </label>
+                  </div>
+                )}
+              />
+            </FormSection>
+
+            {/* SEKSI 2.6: RIWAYAT PENDIDIKAN */}
+            <FormSection
+              id="seksi-pendidikan"
+              title="2.6 Riwayat Pendidikan"
+              subtitle="Riwayat pendidikan formal (opsional, dapat disusulkan)"
+              icon={GraduationCap}
+              badge={
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Opsional
+                </span>
+              }
+              defaultOpen={false}
+            >
+              <DynamicTable<EducationItem>
+                title="Daftar Riwayat Pendidikan"
+                items={educations}
+                onAdd={() =>
+                  setEducations((prev) => [
+                    ...prev,
+                    {
+                      level: "S1" as EducationLevel,
+                      institution: "",
+                      major: "",
+                      graduationYear: null,
+                      gpa: "",
+                      certificateFile: null,
+                      certificateFileName: null,
+                      certificateDocKey: null,
+                    },
+                  ])
+                }
+                onRemove={(idx) =>
+                  setEducations((prev) => prev.filter((_, i) => i !== idx))
+                }
+                addButtonLabel="+ Tambah Riwayat Pendidikan"
+                emptyMessage="Belum ada riwayat pendidikan. Klik tombol di bawah untuk menambahkan."
+                columns={[
+                  { key: "level", label: "Jenjang", width: "12%" },
+                  { key: "institution", label: "Institusi / Kampus", width: "23%" },
+                  { key: "major", label: "Jurusan / Prodi", width: "20%" },
+                  { key: "graduationYear", label: "Lulus", width: "10%" },
+                  { key: "gpa", label: "IPK / Nilai", width: "10%" },
+                  { key: "certificateFile", label: "Ijazah", width: "25%" },
+                ]}
+                renderDesktopRow={(item, idx) => (
+                  <>
+                    <td className="px-3 py-2">
+                      <select
+                        value={item.level}
+                        onChange={(e) =>
+                          setEducations((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, level: e.target.value as EducationLevel } : x
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      >
+                        <option value="SMA_SMK">SMA/SMK</option>
+                        <option value="D3">D3</option>
+                        <option value="D4">D4</option>
+                        <option value="S1">S1</option>
+                        <option value="S2">S2</option>
+                        <option value="S3">S3</option>
+                        <option value="OTHER">Lainnya</option>
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.institution}
+                        onChange={(e) =>
+                          setEducations((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, institution: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Nama kampus / sekolah"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.major ?? ""}
+                        onChange={(e) =>
+                          setEducations((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, major: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Jurusan / prodi"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min="1950"
+                        max={new Date().getFullYear()}
+                        value={item.graduationYear ?? ""}
+                        onChange={(e) =>
+                          setEducations((prev) =>
+                            prev.map((x, i) =>
+                              i === idx
+                                ? { ...x, graduationYear: e.target.value ? Number(e.target.value) : null }
+                                : x
+                            )
+                          )
+                        }
+                        placeholder="2020"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.gpa ?? ""}
+                        onChange={(e) =>
+                          setEducations((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, gpa: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="3.75"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      {item.certificateFileName ? (
+                        <div className="flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
+                          <FileCheck className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="truncate max-w-[120px]">{item.certificateFileName}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEducations((prev) =>
+                                prev.map((x, i) =>
+                                  i === idx
+                                    ? { ...x, certificateFile: null, certificateFileName: null }
+                                    : x
+                                )
+                              )
+                            }
+                            className="ml-auto text-red-500 hover:text-red-700 flex-shrink-0"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-500 hover:text-[#102E50] transition-colors">
+                          <UploadCloud className="h-3.5 w-3.5" />
+                          <span>Unggah ijazah</span>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            className="sr-only"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                setEducations((prev) =>
+                                  prev.map((x, i) =>
+                                    i === idx
+                                      ? { ...x, certificateFile: f, certificateFileName: f.name }
+                                      : x
+                                  )
+                                );
+                            }}
+                          />
+                        </label>
+                      )}
+                    </td>
+                  </>
+                )}
+                renderMobileCard={(item, idx, onRemove) => (
+                  <div className="p-3 space-y-2 text-sm">
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium text-slate-800">
+                        {item.institution || "Institusi baru"}
+                      </span>
+                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs text-slate-500">Jenjang</label>
+                        <select
+                          value={item.level}
+                          onChange={(e) =>
+                            setEducations((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, level: e.target.value as EducationLevel } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        >
+                          <option value="SMA_SMK">SMA/SMK</option>
+                          <option value="D3">D3</option>
+                          <option value="D4">D4</option>
+                          <option value="S1">S1</option>
+                          <option value="S2">S2</option>
+                          <option value="S3">S3</option>
+                          <option value="OTHER">Lainnya</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Tahun Lulus</label>
+                        <input
+                          type="number"
+                          min="1950"
+                          max={new Date().getFullYear()}
+                          value={item.graduationYear ?? ""}
+                          onChange={(e) =>
+                            setEducations((prev) =>
+                              prev.map((x, i) =>
+                                i === idx
+                                  ? { ...x, graduationYear: e.target.value ? Number(e.target.value) : null }
+                                  : x
+                              )
+                            )
+                          }
+                          placeholder="2020"
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Institusi / Kampus</label>
+                        <input
+                          type="text"
+                          value={item.institution}
+                          onChange={(e) =>
+                            setEducations((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, institution: e.target.value } : x
+                              )
+                            )
+                          }
+                          placeholder="Nama kampus / sekolah"
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Jurusan / Prodi</label>
+                        <input
+                          type="text"
+                          value={item.major ?? ""}
+                          onChange={(e) =>
+                            setEducations((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, major: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            </FormSection>
+
+            {/* SEKSI 2.7: PELATIHAN & SERTIFIKASI */}
+            <FormSection
+              id="seksi-pelatihan"
+              title="2.7 Pelatihan & Sertifikasi"
+              subtitle="Riwayat pelatihan, seminar, dan sertifikasi (opsional)"
+              icon={Award}
+              badge={
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Opsional
+                </span>
+              }
+              defaultOpen={false}
+            >
+              <DynamicTable<TrainingItem>
+                title="Daftar Pelatihan & Sertifikasi"
+                items={trainings}
+                onAdd={() =>
+                  setTrainings((prev) => [
+                    ...prev,
+                    {
+                      name: "",
+                      participationType: "Peserta",
+                      startDate: "",
+                      endDate: "",
+                      duration: "",
+                      location: "",
+                      organizer: "",
+                      certificateFile: null,
+                      certificateFileName: null,
+                      certificateDocKey: null,
+                    },
+                  ])
+                }
+                onRemove={(idx) =>
+                  setTrainings((prev) => prev.filter((_, i) => i !== idx))
+                }
+                addButtonLabel="+ Tambah Pelatihan / Sertifikasi"
+                emptyMessage="Belum ada riwayat pelatihan. Klik tombol di bawah untuk menambahkan."
+                columns={[
+                  { key: "name", label: "Nama Pelatihan", width: "22%" },
+                  { key: "participationType", label: "Jenis", width: "12%" },
+                  { key: "startDate", label: "Mulai", width: "10%" },
+                  { key: "endDate", label: "Selesai", width: "10%" },
+                  { key: "duration", label: "Durasi", width: "10%" },
+                  { key: "organizer", label: "Penyelenggara", width: "16%" },
+                  { key: "certificateFile", label: "Sertifikat", width: "20%" },
+                ]}
+                renderDesktopRow={(item, idx) => (
+                  <>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) =>
+                          setTrainings((prev) =>
+                            prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x))
+                          )
+                        }
+                        placeholder="Nama pelatihan / seminar"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <select
+                        value={item.participationType ?? ""}
+                        onChange={(e) =>
+                          setTrainings((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, participationType: e.target.value } : x
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      >
+                        <option value="Peserta">Peserta</option>
+                        <option value="Pembicara">Pembicara</option>
+                        <option value="Panitia">Panitia</option>
+                      </select>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="date"
+                        value={item.startDate ?? ""}
+                        onChange={(e) =>
+                          setTrainings((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, startDate: e.target.value } : x
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="date"
+                        value={item.endDate ?? ""}
+                        onChange={(e) =>
+                          setTrainings((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, endDate: e.target.value } : x
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.duration ?? ""}
+                        onChange={(e) =>
+                          setTrainings((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, duration: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="mis. 2 hari"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.organizer ?? ""}
+                        onChange={(e) =>
+                          setTrainings((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, organizer: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Penyelenggara"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      {item.certificateFileName ? (
+                        <div className="flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
+                          <FileCheck className="h-3.5 w-3.5 flex-shrink-0" />
+                          <span className="truncate max-w-[100px]">{item.certificateFileName}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTrainings((prev) =>
+                                prev.map((x, i) =>
+                                  i === idx
+                                    ? { ...x, certificateFile: null, certificateFileName: null }
+                                    : x
+                                )
+                              )
+                            }
+                            className="ml-auto text-red-500 hover:text-red-700 flex-shrink-0"
+                          >
+                            <XCircle className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-500 hover:text-[#102E50] transition-colors">
+                          <UploadCloud className="h-3.5 w-3.5" />
+                          <span>Unggah sertifikat</span>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            className="sr-only"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f)
+                                setTrainings((prev) =>
+                                  prev.map((x, i) =>
+                                    i === idx
+                                      ? { ...x, certificateFile: f, certificateFileName: f.name }
+                                      : x
+                                  )
+                                );
+                            }}
+                          />
+                        </label>
+                      )}
+                    </td>
+                  </>
+                )}
+                renderMobileCard={(item, idx, onRemove) => (
+                  <div className="p-3 space-y-2 text-sm">
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium text-slate-800">{item.name || "Pelatihan baru"}</span>
+                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Nama Pelatihan</label>
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x))
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Jenis Kepesertaan</label>
+                        <select
+                          value={item.participationType ?? ""}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, participationType: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        >
+                          <option value="Peserta">Peserta</option>
+                          <option value="Pembicara">Pembicara</option>
+                          <option value="Panitia">Panitia</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Penyelenggara</label>
+                        <input
+                          type="text"
+                          value={item.organizer ?? ""}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, organizer: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Tanggal Mulai</label>
+                        <input
+                          type="date"
+                          value={item.startDate ?? ""}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, startDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Tanggal Selesai</label>
+                        <input
+                          type="date"
+                          value={item.endDate ?? ""}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, endDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            </FormSection>
+
+            {/* SEKSI 2.8: PENGALAMAN KERJA SEBELUMNYA */}
+            <FormSection
+              id="seksi-pengalaman-kerja"
+              title="2.8 Pengalaman Kerja Sebelumnya"
+              subtitle="Riwayat pekerjaan di perusahaan/organisasi sebelumnya (opsional)"
+              icon={Briefcase}
+              badge={
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                  Opsional
+                </span>
+              }
+              defaultOpen={false}
+            >
+              <DynamicTable<WorkExperienceItem>
+                title="Daftar Pengalaman Kerja"
+                items={workExperiences}
+                onAdd={() =>
+                  setWorkExperiences((prev) => [
+                    ...prev,
+                    {
+                      companyName: "",
+                      jobTitle: "",
+                      startDate: "",
+                      endDate: "",
+                      isCurrent: false,
+                      reasonForLeaving: "",
+                      description: "",
+                    },
+                  ])
+                }
+                onRemove={(idx) =>
+                  setWorkExperiences((prev) => prev.filter((_, i) => i !== idx))
+                }
+                addButtonLabel="+ Tambah Pengalaman Kerja"
+                emptyMessage="Belum ada riwayat pekerjaan. Klik tombol di bawah untuk menambahkan."
+                columns={[
+                  { key: "companyName", label: "Perusahaan", width: "20%" },
+                  { key: "jobTitle", label: "Jabatan", width: "18%" },
+                  { key: "startDate", label: "Mulai (YYYY-MM)", width: "14%" },
+                  { key: "endDate", label: "Selesai (YYYY-MM)", width: "14%" },
+                  { key: "reasonForLeaving", label: "Alasan Berhenti", width: "17%" },
+                  { key: "description", label: "Uraian Tugas", width: "17%" },
+                ]}
+                renderDesktopRow={(item, idx) => (
+                  <>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.companyName}
+                        onChange={(e) =>
+                          setWorkExperiences((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, companyName: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Nama perusahaan"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.jobTitle}
+                        onChange={(e) =>
+                          setWorkExperiences((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, jobTitle: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Jabatan / posisi"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="month"
+                        value={item.startDate ?? ""}
+                        onChange={(e) =>
+                          setWorkExperiences((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, startDate: e.target.value } : x
+                            )
+                          )
+                        }
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      {item.isCurrent ? (
+                        <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-1 rounded">
+                          Masih Aktif
+                        </span>
+                      ) : (
+                        <input
+                          type="month"
+                          value={item.endDate ?? ""}
+                          min={item.startDate ?? undefined}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, endDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      )}
+                      <label className="flex items-center gap-1 mt-1 text-[10px] text-slate-500 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={item.isCurrent ?? false}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, isCurrent: e.target.checked, endDate: e.target.checked ? "" : x.endDate } : x
+                              )
+                            )
+                          }
+                          className="h-3 w-3 rounded border-slate-300 text-[#102E50]"
+                        />
+                        Masih aktif
+                      </label>
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="text"
+                        value={item.reasonForLeaving ?? ""}
+                        onChange={(e) =>
+                          setWorkExperiences((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, reasonForLeaving: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Alasan berhenti"
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <textarea
+                        value={item.description ?? ""}
+                        onChange={(e) =>
+                          setWorkExperiences((prev) =>
+                            prev.map((x, i) =>
+                              i === idx ? { ...x, description: e.target.value } : x
+                            )
+                          )
+                        }
+                        placeholder="Uraian tugas singkat"
+                        rows={2}
+                        className="w-full px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50] resize-none"
+                      />
+                    </td>
+                  </>
+                )}
+                renderMobileCard={(item, idx, onRemove) => (
+                  <div className="p-3 space-y-2 text-sm">
+                    <div className="flex justify-between items-start">
+                      <span className="font-medium text-slate-800">
+                        {item.companyName || "Perusahaan baru"}
+                      </span>
+                      <button type="button" onClick={onRemove} className="text-red-500 hover:text-red-700">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Nama Perusahaan</label>
+                        <input
+                          type="text"
+                          value={item.companyName}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, companyName: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Jabatan</label>
+                        <input
+                          type="text"
+                          value={item.jobTitle}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, jobTitle: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Mulai</label>
+                        <input
+                          type="month"
+                          value={item.startDate ?? ""}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, startDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Selesai</label>
+                        <input
+                          type="month"
+                          value={item.endDate ?? ""}
+                          min={item.startDate ?? undefined}
+                          disabled={item.isCurrent}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, endDate: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50] disabled:opacity-50"
+                        />
+                        <label className="flex items-center gap-1 mt-1 text-[10px] text-slate-500 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={item.isCurrent ?? false}
+                            onChange={(e) =>
+                              setWorkExperiences((prev) =>
+                                prev.map((x, i) =>
+                                  i === idx ? { ...x, isCurrent: e.target.checked } : x
+                                )
+                              )
+                            }
+                            className="h-3 w-3 rounded border-slate-300 text-[#102E50]"
+                          />
+                          Masih aktif
+                        </label>
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Alasan Berhenti</label>
+                        <input
+                          type="text"
+                          value={item.reasonForLeaving ?? ""}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, reasonForLeaving: e.target.value } : x
+                              )
+                            )
+                          }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            </FormSection>
+
+            {/* SEKSI 2.9: BERKAS DOKUMEN PRIBADI */}
             <FormSection
               id="seksi-dokumen-langkah-1"
-              title="2.5 Berkas Dokumen Pribadi"
+              title="2.9 Berkas Dokumen Pribadi"
               subtitle="Unggah salinan Curriculum Vitae, ijazah terakhir, dan kartu keluarga"
               icon={FileUp}
               badge={
