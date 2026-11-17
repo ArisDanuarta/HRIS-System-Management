@@ -234,6 +234,15 @@ export interface InitialEmployeeData {
     reasonForLeaving?: string | null;
     description?: string | null;
   }[];
+  documents?: {
+    id: string;
+    category: string;
+    title: string;
+    fileName: string;
+    fileKey: string;
+    educationId?: string | null;
+    trainingId?: string | null;
+  }[];
 }
 
 export interface WorkLocationOption {
@@ -542,34 +551,40 @@ export function WizardEmployeeForm({
 
   // --- Tabel Dinamis: Riwayat Pendidikan ---
   const [educations, setEducations] = useState<EducationItem[]>(
-    initialData?.educations?.map((edu) => ({
-      id: edu.id,
-      level: edu.level as EducationLevel,
-      institution: edu.institution,
-      major: edu.major ?? "",
-      graduationYear: edu.graduationYear ?? null,
-      gpa: edu.gpa != null ? String(edu.gpa) : "",
-      certificateFile: null,
-      certificateFileName: null,
-      certificateDocKey: null,
-    })) ?? []
+    initialData?.educations?.map((edu) => {
+      const linkedDoc = initialData.documents?.find((d) => d.educationId === edu.id);
+      return {
+        id: edu.id,
+        level: edu.level as EducationLevel,
+        institution: edu.institution,
+        major: edu.major ?? "",
+        graduationYear: edu.graduationYear ?? null,
+        gpa: edu.gpa != null ? String(edu.gpa) : "",
+        certificateFile: null,
+        certificateFileName: linkedDoc ? linkedDoc.fileName : null,
+        certificateDocKey: linkedDoc ? linkedDoc.fileKey : null,
+      };
+    }) ?? []
   );
 
   // --- Tabel Dinamis: Pelatihan / Seminar ---
   const [trainings, setTrainings] = useState<TrainingItem[]>(
-    initialData?.trainings?.map((tr) => ({
-      id: tr.id,
-      name: tr.name,
-      participationType: tr.participationType ?? "",
-      startDate: tr.startDate ? toDateString(tr.startDate) : "",
-      endDate: tr.endDate ? toDateString(tr.endDate) : "",
-      duration: tr.duration ?? "",
-      location: tr.location ?? "",
-      organizer: tr.organizer ?? "",
-      certificateFile: null,
-      certificateFileName: null,
-      certificateDocKey: null,
-    })) ?? []
+    initialData?.trainings?.map((tr) => {
+      const linkedDoc = initialData.documents?.find((d) => d.trainingId === tr.id);
+      return {
+        id: tr.id,
+        name: tr.name,
+        participationType: tr.participationType ?? "",
+        startDate: tr.startDate ? toDateString(tr.startDate) : "",
+        endDate: tr.endDate ? toDateString(tr.endDate) : "",
+        duration: tr.duration ?? "",
+        location: tr.location ?? "",
+        organizer: tr.organizer ?? "",
+        certificateFile: null,
+        certificateFileName: linkedDoc ? linkedDoc.fileName : null,
+        certificateDocKey: linkedDoc ? linkedDoc.fileKey : null,
+      };
+    }) ?? []
   );
 
   // --- Tabel Dinamis: Pengalaman Kerja Terdahulu ---
@@ -580,7 +595,7 @@ export function WizardEmployeeForm({
       jobTitle: we.jobTitle,
       startDate: we.startDate ? toDateString(we.startDate).slice(0, 7) : "",
       endDate: we.endDate ? toDateString(we.endDate).slice(0, 7) : "",
-      isCurrent: we.isCurrent ?? false,
+      isCurrent: we.isCurrent ?? !we.endDate,
       reasonForLeaving: we.reasonForLeaving ?? "",
       description: we.description ?? "",
     })) ?? []
@@ -1036,6 +1051,7 @@ export function WizardEmployeeForm({
         familyMembers: familyMembers
           .filter((fm) => fm.name.trim())
           .map((fm) => ({
+            id: fm.id,
             name: fm.name.trim(),
             relation: fm.relation,
             birthDate: fm.birthDate || undefined,
@@ -1046,6 +1062,7 @@ export function WizardEmployeeForm({
         educations: educations
           .filter((edu) => edu.institution.trim())
           .map((edu) => ({
+            id: edu.id,
             level: edu.level,
             institution: edu.institution.trim(),
             major: edu.major?.trim() || undefined,
@@ -1055,6 +1072,7 @@ export function WizardEmployeeForm({
         trainings: trainings
           .filter((tr) => tr.name.trim())
           .map((tr) => ({
+            id: tr.id,
             name: tr.name.trim(),
             participationType: tr.participationType?.trim() || undefined,
             startDate: tr.startDate || undefined,
@@ -1066,6 +1084,7 @@ export function WizardEmployeeForm({
         workExperiences: workExperiences
           .filter((we) => we.companyName.trim() && we.jobTitle.trim() && we.startDate)
           .map((we) => ({
+            id: we.id,
             companyName: we.companyName.trim(),
             jobTitle: we.jobTitle.trim(),
             startDate: `${we.startDate!}-01`,
@@ -1082,7 +1101,13 @@ export function WizardEmployeeForm({
         const newEmployeeId = res.data.id;
 
         // Upload semua berkas dokumen yang ter-stage secara paralel
-        const docsToUpload: Array<{ category: DocumentCategory; title: string; file: File }> = [];
+        const docsToUpload: Array<{
+          category: DocumentCategory;
+          title: string;
+          file: File;
+          educationId?: string;
+          trainingId?: string;
+        }> = [];
         if (docCv.file) {
           docsToUpload.push({
             category: "CV",
@@ -1177,6 +1202,28 @@ export function WizardEmployeeForm({
           }
         }
 
+        // Tambahkan berkas dari tabel dinamis Pendidikan (Ijazah)
+        for (const edu of educations) {
+          if (edu.certificateFile) {
+            docsToUpload.push({
+              category: "DIPLOMA",
+              title: `Ijazah - ${edu.institution}${edu.major ? ` (${edu.major})` : ""}`,
+              file: edu.certificateFile,
+            });
+          }
+        }
+
+        // Tambahkan berkas dari tabel dinamis Pelatihan (Sertifikat)
+        for (const tr of trainings) {
+          if (tr.certificateFile) {
+            docsToUpload.push({
+              category: "CERTIFICATE",
+              title: `Sertifikat - ${tr.name}`,
+              file: tr.certificateFile,
+            });
+          }
+        }
+
         if (docsToUpload.length > 0) {
           const uploadPromises = docsToUpload.map(async (docItem) => {
             const fd = new FormData();
@@ -1184,6 +1231,8 @@ export function WizardEmployeeForm({
             fd.append("category", docItem.category);
             fd.append("title", docItem.title);
             fd.append("file", docItem.file);
+            if (docItem.educationId) fd.append("educationId", docItem.educationId);
+            if (docItem.trainingId) fd.append("trainingId", docItem.trainingId);
             const uploadRes = await uploadEmployeeDocumentAction(fd);
             return {
               title: docItem.title,
@@ -1308,6 +1357,7 @@ export function WizardEmployeeForm({
         familyMembers: familyMembers
           .filter((fm) => fm.name.trim())
           .map((fm) => ({
+            id: fm.id,
             name: fm.name.trim(),
             relation: fm.relation,
             birthDate: fm.birthDate || undefined,
@@ -1318,6 +1368,7 @@ export function WizardEmployeeForm({
         educations: educations
           .filter((edu) => edu.institution.trim())
           .map((edu) => ({
+            id: edu.id,
             level: edu.level,
             institution: edu.institution.trim(),
             major: edu.major?.trim() || undefined,
@@ -1327,6 +1378,7 @@ export function WizardEmployeeForm({
         trainings: trainings
           .filter((tr) => tr.name.trim())
           .map((tr) => ({
+            id: tr.id,
             name: tr.name.trim(),
             participationType: tr.participationType?.trim() || undefined,
             startDate: tr.startDate || undefined,
@@ -1338,6 +1390,7 @@ export function WizardEmployeeForm({
         workExperiences: workExperiences
           .filter((we) => we.companyName.trim() && we.jobTitle.trim() && we.startDate)
           .map((we) => ({
+            id: we.id,
             companyName: we.companyName.trim(),
             jobTitle: we.jobTitle.trim(),
             startDate: `${we.startDate!}-01`,
@@ -1352,7 +1405,13 @@ export function WizardEmployeeForm({
 
       if (res.ok) {
         // Upload dokumen baru jika ada yang dipilih saat edit
-        const docsToUpload: Array<{ category: DocumentCategory; title: string; file: File }> = [];
+        const docsToUpload: Array<{
+          category: DocumentCategory;
+          title: string;
+          file: File;
+          educationId?: string;
+          trainingId?: string;
+        }> = [];
         if (docCv.file) {
           docsToUpload.push({
             category: "CV",
@@ -1447,6 +1506,30 @@ export function WizardEmployeeForm({
           }
         }
 
+        // Tambahkan berkas dari tabel dinamis Pendidikan (Ijazah)
+        for (const edu of educations) {
+          if (edu.certificateFile) {
+            docsToUpload.push({
+              category: "DIPLOMA",
+              title: `Ijazah - ${edu.institution}${edu.major ? ` (${edu.major})` : ""}`,
+              file: edu.certificateFile,
+              educationId: edu.id,
+            });
+          }
+        }
+
+        // Tambahkan berkas dari tabel dinamis Pelatihan (Sertifikat)
+        for (const tr of trainings) {
+          if (tr.certificateFile) {
+            docsToUpload.push({
+              category: "CERTIFICATE",
+              title: `Sertifikat - ${tr.name}`,
+              file: tr.certificateFile,
+              trainingId: tr.id,
+            });
+          }
+        }
+
         if (docsToUpload.length > 0) {
           await Promise.allSettled(
             docsToUpload.map((d) => {
@@ -1455,6 +1538,8 @@ export function WizardEmployeeForm({
               fd.append("category", d.category);
               fd.append("title", d.title);
               fd.append("file", d.file);
+              if (d.educationId) fd.append("educationId", d.educationId);
+              if (d.trainingId) fd.append("trainingId", d.trainingId);
               return uploadEmployeeDocumentAction(fd);
             }),
           );
@@ -2256,6 +2341,11 @@ export function WizardEmployeeForm({
                           }
                           className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
+                        {item.birthDate && calculateAge(item.birthDate) && (
+                          <span className="text-[10px] text-slate-500 block mt-0.5">
+                            Usia: {calculateAge(item.birthDate)}
+                          </span>
+                        )}
                       </div>
                       <div>
                         <label className="text-xs text-slate-500">No. HP</label>
@@ -2267,6 +2357,20 @@ export function WizardEmployeeForm({
                               prev.map((x, i) => (i === idx ? { ...x, phone: e.target.value } : x))
                             )
                           }
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Catatan (opsional)</label>
+                        <input
+                          type="text"
+                          value={item.notes ?? ""}
+                          onChange={(e) =>
+                            setFamilyMembers((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, notes: e.target.value } : x))
+                            )
+                          }
+                          placeholder="Catatan tambahan"
                           className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
@@ -2552,6 +2656,65 @@ export function WizardEmployeeForm({
                           className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
+                      <div>
+                        <label className="text-xs text-slate-500">IPK / Nilai</label>
+                        <input
+                          type="text"
+                          value={item.gpa ?? ""}
+                          onChange={(e) =>
+                            setEducations((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, gpa: e.target.value } : x))
+                            )
+                          }
+                          placeholder="3.75"
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500 block mb-1">Ijazah / Transkrip</label>
+                        {item.certificateFileName ? (
+                          <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1.5 rounded border border-green-200">
+                            <FileCheck className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{item.certificateFileName}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEducations((prev) =>
+                                  prev.map((x, i) =>
+                                    i === idx
+                                      ? { ...x, certificateFile: null, certificateFileName: null }
+                                      : x
+                                  )
+                                )
+                              }
+                              className="ml-auto text-red-500 hover:text-red-700 p-0.5"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded border border-slate-200 transition-colors w-fit">
+                            <UploadCloud className="h-4 w-4 text-slate-500" />
+                            <span>Unggah Ijazah</span>
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="sr-only"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f)
+                                  setEducations((prev) =>
+                                    prev.map((x, i) =>
+                                      i === idx
+                                        ? { ...x, certificateFile: f, certificateFileName: f.name }
+                                        : x
+                                    )
+                                  );
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2826,6 +2989,79 @@ export function WizardEmployeeForm({
                           className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
                         />
                       </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Durasi</label>
+                        <input
+                          type="text"
+                          value={item.duration ?? ""}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, duration: e.target.value } : x))
+                            )
+                          }
+                          placeholder="mis. 2 hari"
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-slate-500">Tempat</label>
+                        <input
+                          type="text"
+                          value={item.location ?? ""}
+                          onChange={(e) =>
+                            setTrainings((prev) =>
+                              prev.map((x, i) => (i === idx ? { ...x, location: e.target.value } : x))
+                            )
+                          }
+                          placeholder="Jakarta / Online"
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500 block mb-1">Sertifikat Pelatihan</label>
+                        {item.certificateFileName ? (
+                          <div className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 px-2 py-1.5 rounded border border-green-200">
+                            <FileCheck className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{item.certificateFileName}</span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setTrainings((prev) =>
+                                  prev.map((x, i) =>
+                                    i === idx
+                                      ? { ...x, certificateFile: null, certificateFileName: null }
+                                      : x
+                                  )
+                                )
+                              }
+                              className="ml-auto text-red-500 hover:text-red-700 p-0.5"
+                            >
+                              <XCircle className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded border border-slate-200 transition-colors w-fit">
+                            <UploadCloud className="h-4 w-4 text-slate-500" />
+                            <span>Unggah Sertifikat</span>
+                            <input
+                              type="file"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              className="sr-only"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f)
+                                  setTrainings((prev) =>
+                                    prev.map((x, i) =>
+                                      i === idx
+                                        ? { ...x, certificateFile: f, certificateFileName: f.name }
+                                        : x
+                                    )
+                                  );
+                              }}
+                            />
+                          </label>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -3090,6 +3326,22 @@ export function WizardEmployeeForm({
                             )
                           }
                           className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-xs text-slate-500">Uraian Tugas Singkat</label>
+                        <textarea
+                          value={item.description ?? ""}
+                          onChange={(e) =>
+                            setWorkExperiences((prev) =>
+                              prev.map((x, i) =>
+                                i === idx ? { ...x, description: e.target.value } : x
+                              )
+                            )
+                          }
+                          placeholder="Uraian tugas dan tanggung jawab..."
+                          rows={2}
+                          className="w-full mt-0.5 px-2 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded focus:outline-none focus:ring-2 focus:ring-[#102E50] resize-none"
                         />
                       </div>
                     </div>

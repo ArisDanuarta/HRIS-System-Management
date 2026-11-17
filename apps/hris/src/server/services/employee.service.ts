@@ -734,6 +734,7 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         if (fm.name && fm.name.trim()) {
           await tx.employeeFamilyMember.create({
             data: {
+              id: fm.id || undefined,
               employeeId: data.id,
               name: fm.name.trim(),
               relation: (fm.relation as FamilyRelation) || FamilyRelation.OTHER,
