@@ -707,6 +707,22 @@ export function WizardEmployeeForm({
         setServerError("Pilih posisi/jabatan.");
         return false;
       }
+      if (formData.status === "PROBATION" && formData.probationEndDate && formData.joinDate) {
+        if (new Date(formData.probationEndDate) < new Date(formData.joinDate)) {
+          setServerError("Tanggal akhir masa percobaan tidak boleh mendahului tanggal mulai bergabung.");
+          return false;
+        }
+      }
+      if (
+        (formData.status === "RESIGNED" || formData.status === "TERMINATED") &&
+        formData.endDate &&
+        formData.joinDate
+      ) {
+        if (new Date(formData.endDate) < new Date(formData.joinDate)) {
+          setServerError("Tanggal terakhir kerja tidak boleh mendahului tanggal mulai bergabung.");
+          return false;
+        }
+      }
     } else if (step === 3) {
       if (employmentTypesList.length > 0 && !formData.employmentTypeId) {
         setServerError("Pilih salah satu tipe ikatan kerja terlebih dahulu.");
@@ -875,6 +891,10 @@ export function WizardEmployeeForm({
         managerId: formData.managerId || null,
         joinDate: baseJoinDate,
         status: formData.status as EmployeeStatus,
+        workLocationId: formData.workLocationId?.trim() || undefined,
+        legalEntityId: formData.legalEntityId?.trim() || undefined,
+        probationEndDate: formData.probationEndDate || undefined,
+        endDate: formData.endDate || undefined,
         employmentType: formData.employmentType as EmploymentType,
         employmentTypeId: formData.employmentTypeId || undefined,
         wageType: formData.wageType,
@@ -931,6 +951,20 @@ export function WizardEmployeeForm({
             category: "FAMILY_CARD",
             title: "Kartu Keluarga (KK)",
             file: docFamilyCard.file,
+          });
+        }
+        if (docPreviousEmployerLetter.file) {
+          docsToUpload.push({
+            category: "PREVIOUS_EMPLOYER_LETTER",
+            title: "Surat Pengalaman Kerja / Paklaring",
+            file: docPreviousEmployerLetter.file,
+          });
+        }
+        if (docOfferLetter.file) {
+          docsToUpload.push({
+            category: "OFFER_LETTER",
+            title: "Surat Penawaran Kerja (Signed Offer Letter)",
+            file: docOfferLetter.file,
           });
         }
         if (docKtp.file) {
@@ -1088,6 +1122,10 @@ export function WizardEmployeeForm({
         managerId: formData.managerId || null,
         joinDate: baseJoinDate,
         status: formData.status as EmployeeStatus,
+        workLocationId: formData.workLocationId?.trim() || undefined,
+        legalEntityId: formData.legalEntityId?.trim() || undefined,
+        probationEndDate: formData.probationEndDate || undefined,
+        endDate: formData.endDate || undefined,
         employmentType: formData.employmentType as EmploymentType,
         employmentTypeId: formData.employmentTypeId || undefined,
         wageType: formData.wageType,
@@ -1142,6 +1180,20 @@ export function WizardEmployeeForm({
             category: "FAMILY_CARD",
             title: "Kartu Keluarga (KK)",
             file: docFamilyCard.file,
+          });
+        }
+        if (docPreviousEmployerLetter.file) {
+          docsToUpload.push({
+            category: "PREVIOUS_EMPLOYER_LETTER",
+            title: "Surat Pengalaman Kerja / Paklaring",
+            file: docPreviousEmployerLetter.file,
+          });
+        }
+        if (docOfferLetter.file) {
+          docsToUpload.push({
+            category: "OFFER_LETTER",
+            title: "Surat Penawaran Kerja (Signed Offer Letter)",
+            file: docOfferLetter.file,
           });
         }
         if (docKtp.file) {
@@ -2026,6 +2078,121 @@ export function WizardEmployeeForm({
                 <option value="RESIGNED">Mengundurkan Diri</option>
                 <option value="TERMINATED">Nonaktif / Berhenti</option>
               </select>
+            </div>
+
+            {/* Lokasi Kerja */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Lokasi Kerja
+              </label>
+              <select
+                name="workLocationId"
+                value={formData.workLocationId}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+              >
+                <option value="">Pilih Lokasi Kerja</option>
+                {workLocations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    {loc.name} {loc.isDefault ? "(Default)" : ""}
+                  </option>
+                ))}
+              </select>
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Lokasi kantor fisik atau penugasan kerja utama pegawai.
+              </span>
+            </div>
+
+            {/* TKU / Entitas Hukum */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                TKU / Entitas Hukum
+              </label>
+              <select
+                name="legalEntityId"
+                value={formData.legalEntityId}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+              >
+                <option value="">Pilih Entitas Hukum</option>
+                {legalEntities.map((ent) => (
+                  <option key={ent.id} value={ent.id}>
+                    {ent.name} {ent.tkuCode ? `[TKU: ${ent.tkuCode}]` : ""} {ent.isDefault ? "(Default)" : ""}
+                  </option>
+                ))}
+              </select>
+              <span className="text-[11px] text-slate-400 mt-1 block">
+                Badan hukum resmi yang menaungi penempatan dan kontrak kerja pegawai.
+              </span>
+            </div>
+
+            {/* Tanggal Akhir Masa Percobaan (Kondisional: PROBATION) */}
+            {formData.status === "PROBATION" && (
+              <div className="animate-in fade-in duration-150">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Tanggal Akhir Masa Percobaan (Probation)
+                </label>
+                <input
+                  type="date"
+                  name="probationEndDate"
+                  value={formData.probationEndDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Estimasi tanggal evaluasi probation (misalnya 3 bulan sejak bergabung).
+                </span>
+              </div>
+            )}
+
+            {/* Tanggal Terakhir Kerja (Kondisional: RESIGNED / TERMINATED) */}
+            {(formData.status === "RESIGNED" || formData.status === "TERMINATED") && (
+              <div className="animate-in fade-in duration-150">
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Tanggal Terakhir Kerja (End Date)
+                </label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 text-sm bg-slate-50/70 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Tanggal efektif pegawai berhenti atau mengakhiri masa kerjanya di organisasi.
+                </span>
+              </div>
+            )}
+
+            {/* Dokumen Langkah 2 (Opsional): Paklaring & Offer Letter */}
+            <div className="md:col-span-2 mt-2 pt-4 border-t border-slate-100 flex flex-col gap-3">
+              <div>
+                <h4 className="text-xs font-bold text-[#102E50] uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-[#102E50]" />
+                  <span>Dokumen Penempatan & Pengalaman Kerja (Opsional)</span>
+                </h4>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Unggah surat penawaran kerja (offer letter) bertanda tangan atau surat pengalaman kerja sebelumnya jika ada.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DocumentUploadCard
+                  label="Surat Keterangan Kerja / Paklaring Sebelumnya"
+                  description="Surat pengalaman kerja resmi dari instansi atau perusahaan terdahulu (PDF/JPG maks 5 MB)"
+                  accept="application/pdf,image/jpeg,image/png"
+                  maxSizeMB={5}
+                  value={docPreviousEmployerLetter}
+                  onChange={setDocPreviousEmployerLetter}
+                />
+                <DocumentUploadCard
+                  label="Offer Letter Ditandatangani"
+                  description="Surat penawaran kerja resmi yang telah ditandatangani pegawai (PDF/JPG maks 5 MB)"
+                  accept="application/pdf,image/jpeg,image/png"
+                  maxSizeMB={5}
+                  value={docOfferLetter}
+                  onChange={setDocOfferLetter}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -3316,6 +3483,8 @@ export function WizardEmployeeForm({
               const selectedPtkp = getPtkpExplanation(formData.ptkpStatus);
 
               const isWna = formData.citizenship === "WNA";
+              const selectedLocation = workLocations.find((w) => w.id === formData.workLocationId);
+              const selectedEntity = legalEntities.find((l) => l.id === formData.legalEntityId);
               const checklistItems: ChecklistDocItem[] = [
                 {
                   id: "cv",
@@ -3337,6 +3506,20 @@ export function WizardEmployeeForm({
                   step: 1,
                   isRequired: false,
                   isUploaded: Boolean(docFamilyCard.file || initialData?.hasFamilyCard),
+                },
+                {
+                  id: "offer_letter",
+                  label: "Offer Letter Ditandatangani",
+                  step: 2,
+                  isRequired: false,
+                  isUploaded: Boolean(docOfferLetter.file || initialData?.hasOfferLetter),
+                },
+                {
+                  id: "paklaring",
+                  label: "Paklaring / Surat Pengalaman Kerja",
+                  step: 2,
+                  isRequired: false,
+                  isUploaded: Boolean(docPreviousEmployerLetter.file || initialData?.hasPreviousEmployerLetter),
                 },
                 {
                   id: "ktp",
@@ -3407,10 +3590,10 @@ export function WizardEmployeeForm({
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                      {/* Kolom 1: Profil & Penempatan */}
+                      {/* Kolom 1: Profil & Penempatan Awal */}
                       <div className="p-3 bg-white rounded-lg border border-slate-200/80 flex flex-col gap-1">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                          Identitas & Penempatan
+                          Identitas & Penempatan Awal
                         </span>
                         <span className="font-bold text-slate-900 text-xs truncate">
                           {formData.fullName || "(Belum diisi)"}
@@ -3424,6 +3607,19 @@ export function WizardEmployeeForm({
                         <span className="text-[11px] font-semibold text-[#102E50] truncate">
                           {currentPos?.title || "Posisi belum dipilih"}
                         </span>
+                        <div className="pt-1 mt-0.5 border-t border-slate-100 flex flex-col gap-0.5 text-[10.5px] text-slate-500">
+                          <span>
+                            <strong className="text-slate-700">Mulai:</strong> {formData.joinDate || "-"} ({formData.status})
+                          </span>
+                          <span className="truncate">
+                            <strong className="text-slate-700">Lokasi:</strong> {selectedLocation?.name || "PSPK"}
+                          </span>
+                          {selectedEntity && (
+                            <span className="truncate text-[10px] text-slate-400">
+                              {selectedEntity.name}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {/* Kolom 2: Paket Kompensasi & Estimasi THP */}

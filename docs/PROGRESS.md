@@ -4,6 +4,48 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Pembaruan Formulir Pendaftaran Karyawan Baru & Skema Database Terpadu] — 2026-11-17
+
+- **Status:** Tahap 0 s/d Tahap 4 Selesai Diimplementasikan & Terverifikasi (0 Error Typecheck, 0 Warning Lint, Test 100% Pass)
+- **Scope & Filosofi:**
+  - Menerapkan prinsip *"Agar HR Tidak Kerepotan"*: field wajib seminimal mungkin, non-blocking steps, pencegahan ketik ulang, field kondisional intuitif, kartu upload berkas terintegrasi, dan ringkasan checklist kelengkapan.
+  - Skema database diperluas sekali jalan (*one-shot migration*) untuk seluruh data profil, dokumen, dan relasi multi-tabel baru.
+- **Pekerjaan yang Telah Selesai (Tahap 0 s/d Tahap 4):**
+  1. **Tahap 0 — Migrasi Database Terpadu (One-Shot Migration):**
+     - Enum baru di schema `hris`: `Religion`, `Citizenship`, `BloodType`, `AddressType`, `FamilyRelation`, `EducationLevel`.
+     - Model baru: `WorkLocation`, `LegalEntity`, `EmployeeAddress`, `EmployeeFamilyMember`, `EmployeeEducation`, `EmployeeTraining`, `EmployeeWorkExperience`.
+     - Kolom baru pada `Employee`: `religion`, `citizenship`, `bloodType`, `motherName`, `landlinePhone`, `emergencyContactRelation`, `passportKitasEnc`, `bpjsKesNoEnc`, `bpjsTkNoEnc`, `probationEndDate`, `workLocationId`, `legalEntityId`.
+     - Kolom `contractNo` pada `EmploymentContract` dan relasi berkas `educationId`/`trainingId` pada `EmployeeDocument`.
+     - Migrasi SQL `20261116083420_add_employee_profile_and_docs` dieksekusi dengan aman: backfill 18 alamat ke `EmployeeAddress`, seeding master default `WorkLocation` (PSPK) dan `LegalEntity` (Yayasan PSPK), serta menghubungkan 26 pegawai lama secara otomatis.
+  2. **Tahap 1 — Komponen Reusable UI & Type Definitions:**
+     - `employee-form.types.ts`: Interface dan tipe data terpadu untuk berkas unggahan, alamat, dan item dinamis.
+     - `DocumentUploadCard.tsx`: Komponen kartu upload berkas (drag-and-drop, validasi ukuran & ekstensi, badge status, pratinjau, tombol ganti/hapus).
+     - `DynamicTable.tsx`: Tabel dinamis dengan tampilan tabel di desktop dan kartu di mobile, aksi tambah/hapus baris.
+     - `FormSection.tsx`: Komponen accordion untuk mengelompokkan sub-seksi form agar halaman tidak terlalu panjang.
+     - `AddressFields.tsx`: Komponen form alamat terstruktur (Jalan, Kelurahan, Kecamatan, Kota, Provinsi, Kode Pos) dengan fitur *checkbox auto-sync & lock* "Sama dengan alamat KTP".
+     - `DocumentChecklistSummary.tsx`: Ringkasan checklist kelengkapan berkas di Langkah 4 dengan jump-link ke langkah terkait.
+  3. **Tahap 2 — Langkah 4 (Data Sensitif, Rekening & Dokumen Berpasangan):**
+     - Layout kartu side-by-side untuk data sensitif berpasangan dengan dokumen terenkripsi (NIK/Paspor $\leftrightarrow$ KTP/KITAS, NPWP $\leftrightarrow$ Kartu NPWP, Rekening $\leftrightarrow$ Buku Tabungan, No BPJS $\leftrightarrow$ Kartu BPJS).
+     - Upload paralel multi-berkas dengan `Promise.allSettled` saat submit, sehingga kegagalan satu berkas tidak membatalkan penyimpanan pegawai.
+  4. **Tahap 3 — Langkah 1 (Identitas Pribadi, Kontak, Alamat & Dokumen Pribadi):**
+     - 5 Sub-seksi accordion: Data Diri, Kontak, Alamat KTP & Domisili, Kontak Darurat, dan Berkas Dokumen Pribadi (CV, Ijazah, KK).
+     - Pratinjau foto profil instan dengan validasi ukuran maks 2 MB dan format JPG/PNG/WEBP.
+     - Perhitungan usia otomatis berbasis tanggal lahir (*read-only badge*).
+     - Radio Kewarganegaraan WNI/WNA, Agama, Golongan Darah, Status Pernikahan, Nama Ibu Kandung, Nomor Telepon Rumah, dan Hubungan Kontak Darurat.
+  5. **Tahap 4 — Langkah 2 (Penempatan & Jabatan Organisasi):**
+     - Pilihan Lokasi Kerja terhubung ke master `WorkLocation` (default: Pusat Studi Pendidikan dan Kebijakan Indonesia (PSPK)).
+     - Pilihan TKU / Entitas Hukum terhubung ke master `LegalEntity` (default: YAYASAN PUSAT STUDI PENDIDIKAN DAN KEBIJAKAN INDONESIA, menampilkan badge kode TKU bila ada).
+     - Field kondisional: Tanggal Akhir Masa Percobaan (hanya muncul saat status `PROBATION`) dan Tanggal Terakhir Kerja (hanya muncul saat status `RESIGNED` atau `TERMINATED`).
+     - Kartu upload dokumen penempatan opsional: Surat Keterangan Kerja / Paklaring Sebelumnya (`PREVIOUS_EMPLOYER_LETTER`) dan Signed Offer Letter (`OFFER_LETTER`).
+     - Ringkasan "Penempatan Awal" pada Kartu Konfirmasi Langkah 4 (Divisi, Jabatan, Tanggal Mulai, Status, Lokasi Kerja, Entitas Hukum).
+     - Penambahan item checklist dokumen Langkah 2 (`offer_letter` & `paklaring`) dengan jump-link kembali ke Langkah 2.
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/hris typecheck` $\rightarrow$ Berhasil lolos 100% (0 type error).
+  - `pnpm --filter @pspk/hris lint` $\rightarrow$ Berhasil lolos 100% (0 lint warning/error).
+  - `pnpm vitest run apps/hris/src/server/services/payroll.service.test.ts` $\rightarrow$ 7/7 tes lolos 100%.
+
+---
+
 ## [Implementasi Kompensasi Satu Pintu & Pembersihan Komponen Gaji] — 2026-11-16
 
 - **Status:** Selesai Diimplementasikan & Terverifikasi (Seluruh 6 Task Tuntas 100%, 0 Error)
