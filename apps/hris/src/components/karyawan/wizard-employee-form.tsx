@@ -1746,9 +1746,9 @@ export function WizardEmployeeForm({
               }
               defaultOpen={true}
             >
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-5 w-full min-w-0">
                 {/* Komponen Upload Foto Profil */}
-                <div className="p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                <div className="w-full min-w-0 p-4 rounded-xl bg-slate-50/70 border border-slate-200/80 flex flex-col sm:flex-row items-center sm:items-start gap-4">
                   <div className="relative group shrink-0">
                     <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-slate-300 bg-white overflow-hidden flex items-center justify-center shadow-2xs">
                       {profilePhotoPreview ? (
@@ -2212,15 +2212,16 @@ export function WizardEmployeeForm({
                 onRemove={(idx) =>
                   setFamilyMembers((prev) => prev.filter((_, i) => i !== idx))
                 }
-                addButtonLabel="+ Tambah Anggota Keluarga"
+                addButtonLabel="Tambah Anggota Keluarga"
                 emptyMessage="Belum ada data keluarga. Klik tombol di bawah untuk menambahkan."
+                tableMinWidth="min-w-[860px]"
                 columns={[
-                  { key: "name", label: "Nama", width: "25%" },
-                  { key: "relation", label: "Hubungan", width: "15%" },
-                  { key: "birthDate", label: "Tanggal Lahir", width: "18%" },
-                  { key: "phone", label: "No. HP", width: "17%" },
-                  { key: "isDependent", label: "Tanggungan", width: "10%" },
-                  { key: "notes", label: "Keterangan", width: "15%" },
+                  { key: "name", label: "Nama", width: "24%", minWidth: "160px" },
+                  { key: "relation", label: "Hubungan", width: "18%", minWidth: "135px" },
+                  { key: "birthDate", label: "Tanggal Lahir", width: "18%", minWidth: "140px" },
+                  { key: "phone", label: "No. HP", width: "16%", minWidth: "130px" },
+                  { key: "isDependent", label: "Tanggungan", width: "10%", minWidth: "90px" },
+                  { key: "notes", label: "Keterangan", width: "14%", minWidth: "130px" },
                 ]}
                 renderDesktopRow={(item, idx) => (
                   <>
@@ -2461,15 +2462,16 @@ export function WizardEmployeeForm({
                 onRemove={(idx) =>
                   setEducations((prev) => prev.filter((_, i) => i !== idx))
                 }
-                addButtonLabel="+ Tambah Riwayat Pendidikan"
+                addButtonLabel="Tambah Riwayat Pendidikan"
                 emptyMessage="Belum ada riwayat pendidikan. Klik tombol di bawah untuk menambahkan."
+                tableMinWidth="min-w-[880px]"
                 columns={[
-                  { key: "level", label: "Jenjang", width: "12%" },
-                  { key: "institution", label: "Institusi / Kampus", width: "23%" },
-                  { key: "major", label: "Jurusan / Prodi", width: "20%" },
-                  { key: "graduationYear", label: "Lulus", width: "10%" },
-                  { key: "gpa", label: "IPK / Nilai", width: "10%" },
-                  { key: "certificateFile", label: "Ijazah", width: "25%" },
+                  { key: "level", label: "Jenjang", width: "15%", minWidth: "120px" },
+                  { key: "institution", label: "Institusi / Kampus", width: "23%", minWidth: "180px" },
+                  { key: "major", label: "Jurusan / Prodi", width: "20%", minWidth: "160px" },
+                  { key: "graduationYear", label: "Lulus", width: "10%", minWidth: "95px" },
+                  { key: "gpa", label: "IPK / Nilai", width: "10%", minWidth: "95px" },
+                  { key: "certificateFile", label: "Ijazah", width: "22%", minWidth: "140px" },
                 ]}
                 renderDesktopRow={(item, idx) => (
                   <>
@@ -2789,16 +2791,17 @@ export function WizardEmployeeForm({
                 onRemove={(idx) =>
                   setTrainings((prev) => prev.filter((_, i) => i !== idx))
                 }
-                addButtonLabel="+ Tambah Pelatihan / Sertifikasi"
+                addButtonLabel="Tambah Pelatihan / Sertifikasi"
                 emptyMessage="Belum ada riwayat pelatihan. Klik tombol di bawah untuk menambahkan."
+                tableMinWidth="min-w-[980px]"
                 columns={[
-                  { key: "name", label: "Nama Pelatihan", width: "22%" },
-                  { key: "participationType", label: "Jenis", width: "12%" },
-                  { key: "startDate", label: "Mulai", width: "10%" },
-                  { key: "endDate", label: "Selesai", width: "10%" },
-                  { key: "duration", label: "Durasi", width: "10%" },
-                  { key: "organizer", label: "Penyelenggara", width: "16%" },
-                  { key: "certificateFile", label: "Sertifikat", width: "20%" },
+                  { key: "name", label: "Nama Pelatihan", width: "20%", minWidth: "180px" },
+                  { key: "participationType", label: "Jenis", width: "15%", minWidth: "135px" },
+                  { key: "startDate", label: "Mulai", width: "12%", minWidth: "135px" },
+                  { key: "endDate", label: "Selesai", width: "12%", minWidth: "135px" },
+                  { key: "duration", label: "Durasi", width: "11%", minWidth: "110px" },
+                  { key: "organizer", label: "Penyelenggara", width: "15%", minWidth: "150px" },
+                  { key: "certificateFile", label: "Sertifikat", width: "15%", minWidth: "140px" },
                 ]}
                 renderDesktopRow={(item, idx) => (
                   <>
@@ -3132,15 +3135,16 @@ export function WizardEmployeeForm({
                 onRemove={(idx) =>
                   setWorkExperiences((prev) => prev.filter((_, i) => i !== idx))
                 }
-                addButtonLabel="+ Tambah Pengalaman Kerja"
+                addButtonLabel="Tambah Pengalaman Kerja"
                 emptyMessage="Belum ada riwayat pekerjaan. Klik tombol di bawah untuk menambahkan."
+                tableMinWidth="min-w-[940px]"
                 columns={[
-                  { key: "companyName", label: "Perusahaan", width: "20%" },
-                  { key: "jobTitle", label: "Jabatan", width: "18%" },
-                  { key: "startDate", label: "Mulai (YYYY-MM)", width: "14%" },
-                  { key: "endDate", label: "Selesai (YYYY-MM)", width: "14%" },
-                  { key: "reasonForLeaving", label: "Alasan Berhenti", width: "17%" },
-                  { key: "description", label: "Uraian Tugas", width: "17%" },
+                  { key: "companyName", label: "Perusahaan", width: "20%", minWidth: "170px" },
+                  { key: "jobTitle", label: "Jabatan", width: "18%", minWidth: "150px" },
+                  { key: "startDate", label: "Mulai (YYYY-MM)", width: "14%", minWidth: "135px" },
+                  { key: "endDate", label: "Selesai (YYYY-MM)", width: "14%", minWidth: "140px" },
+                  { key: "reasonForLeaving", label: "Alasan Berhenti", width: "17%", minWidth: "150px" },
+                  { key: "description", label: "Uraian Tugas", width: "17%", minWidth: "170px" },
                 ]}
                 renderDesktopRow={(item, idx) => (
                   <>
@@ -3436,7 +3440,7 @@ export function WizardEmployeeForm({
 
         {/* STEP 2: PENEMPATAN KERJA */}
         {currentStep === 2 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
+          <div className="w-full min-w-0 max-w-full grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
             <div className="md:col-span-2 pb-2 border-b border-slate-100">
               <h3 className="font-bold text-base text-[#102E50] font-heading">
                 Penempatan & Jabatan Organisasi
@@ -3721,7 +3725,7 @@ export function WizardEmployeeForm({
 
         {/* STEP 3: KONTRAK & KOMPENSASI */}
         {currentStep === 3 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
+          <div className="w-full min-w-0 max-w-full grid grid-cols-1 md:grid-cols-2 gap-5 animate-in fade-in duration-200">
             <div className="md:col-span-2 pb-2 border-b border-slate-100">
               <h3 className="font-bold text-base text-[#102E50] font-heading">
                 Kontrak Kerja & Kompensasi
@@ -4441,7 +4445,7 @@ export function WizardEmployeeForm({
 
         {/* STEP 4: PERBANKAN & AKUN */}
         {currentStep === 4 && (
-          <div className="flex flex-col gap-6 animate-in fade-in duration-200">
+          <div className="w-full min-w-0 max-w-full flex flex-col gap-6 animate-in fade-in duration-200">
             {/* Header Seksi */}
             <div className="pb-3 border-b border-slate-100 flex items-start justify-between gap-3">
               <div>
@@ -5266,7 +5270,7 @@ export function WizardEmployeeForm({
         )}
 
         {/* Stepper Navigation Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-200">
+        <div className="w-full min-w-0 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-slate-200">
           <div>
             {currentStep > 1 && (
               <button

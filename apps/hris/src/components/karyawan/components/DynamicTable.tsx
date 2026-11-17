@@ -7,6 +7,7 @@ export interface DynamicColumn {
   key: string;
   label: string;
   width?: string;
+  minWidth?: string;
   className?: string;
 }
 
@@ -24,6 +25,7 @@ interface DynamicTableProps<T> {
   maxRows?: number;
   disabled?: boolean;
   className?: string;
+  tableMinWidth?: string;
 }
 
 export function DynamicTable<T>({
@@ -40,8 +42,10 @@ export function DynamicTable<T>({
   maxRows,
   disabled = false,
   className = "",
+  tableMinWidth = "min-w-[760px]",
 }: DynamicTableProps<T>) {
   const canAdd = !disabled && (!maxRows || items.length < maxRows);
+  const cleanAddLabel = addButtonLabel.replace(/^\+\s*/, "");
 
   return (
     <div className={`w-full min-w-0 max-w-full border border-slate-200/90 rounded-xl overflow-hidden bg-white ${className}`}>
@@ -74,7 +78,7 @@ export function DynamicTable<T>({
           }`}
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>{addButtonLabel.startsWith("+") ? addButtonLabel.replace(/^\+\s*/, "") : addButtonLabel}</span>
+          <span>{cleanAddLabel}</span>
         </button>
       </div>
 
@@ -91,7 +95,7 @@ export function DynamicTable<T>({
               onClick={onAdd}
               className="text-xs font-bold text-[#102E50] hover:underline mt-0.5"
             >
-              + {addButtonLabel.startsWith("+") ? addButtonLabel.replace(/^\+\s*/, "") : addButtonLabel} Sekarang
+              + {cleanAddLabel} Sekarang
             </button>
           )}
         </div>
@@ -99,14 +103,18 @@ export function DynamicTable<T>({
         <>
           {/* Desktop Table View (md and up) */}
           <div className="hidden md:block overflow-x-auto w-full min-w-0">
-            <table className="w-full min-w-[720px] text-left text-xs border-collapse">
+            <table className={`w-full ${tableMinWidth} text-left text-xs border-collapse`}>
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
                   <th className="py-2.5 px-3 w-10 text-center">#</th>
                   {columns.map((col) => (
                     <th
                       key={col.key}
-                      className={`py-2.5 px-3 ${col.width ? col.width : ""} ${
+                      style={{
+                        width: col.width?.includes("%") || col.width?.includes("px") ? col.width : undefined,
+                        minWidth: col.minWidth,
+                      }}
+                      className={`py-2.5 px-3 ${col.width && !col.width.includes("%") ? col.width : ""} ${
                         col.className || ""
                       }`}
                     >
