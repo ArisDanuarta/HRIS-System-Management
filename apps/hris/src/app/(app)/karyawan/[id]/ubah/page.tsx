@@ -9,6 +9,8 @@ import {
   getEmployeeById,
   getOrgStructureData,
   getManagersList,
+  getActiveWorkLocations,
+  getActiveLegalEntities,
 } from "@/server/queries/employee.queries";
 import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";

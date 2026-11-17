@@ -9,6 +9,8 @@ import {
   getOrgStructureData,
   getManagersList,
   getAssignableRoles,
+  getActiveWorkLocations,
+  getActiveLegalEntities,
 } from "@/server/queries/employee.queries";
 import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
 import { WizardEmployeeForm } from "@/components/karyawan/wizard-employee-form";
@@ -38,12 +40,15 @@ export default async function TambahKaryawanPage() {
 
   const isSuperAdmin = roleKeys.includes("super_admin");
 
-  const [departments, managers, roles, employmentTypes] = await Promise.all([
-    getOrgStructureData(),
-    getManagersList(),
-    getAssignableRoles(),
-    getActiveEmploymentTypes(),
-  ]);
+  const [departments, managers, roles, employmentTypes, workLocations, legalEntities] =
+    await Promise.all([
+      getOrgStructureData(),
+      getManagersList(),
+      getAssignableRoles(),
+      getActiveEmploymentTypes(),
+      getActiveWorkLocations(),
+      getActiveLegalEntities(),
+    ]);
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-16">
@@ -83,6 +88,8 @@ export default async function TambahKaryawanPage() {
         roles={roles}
         isSuperAdmin={isSuperAdmin}
         employmentTypes={employmentTypes}
+        workLocations={workLocations}
+        legalEntities={legalEntities}
       />
     </div>
   );

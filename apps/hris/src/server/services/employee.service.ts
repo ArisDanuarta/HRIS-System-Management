@@ -194,7 +194,11 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         bankAccountEnc,
         bankAccountName: data.bankAccountName?.trim() || null,
         joinDate: new Date(data.joinDate),
-        endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
+        endDate: data.endDate
+          ? new Date(data.endDate)
+          : data.contractEndDate
+            ? new Date(data.contractEndDate)
+            : null,
         status: data.status,
         managerId: data.managerId || null,
         religion: data.religion ? (data.religion as Religion) : null,
@@ -554,7 +558,11 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
         bankName: data.bankName?.trim() || null,
         bankAccountEnc,
         bankAccountName: data.bankAccountName?.trim() || null,
-        endDate: data.contractEndDate ? new Date(data.contractEndDate) : null,
+        endDate: data.endDate
+          ? new Date(data.endDate)
+          : data.contractEndDate
+            ? new Date(data.contractEndDate)
+            : null,
         status: data.status,
         managerId: normalizedNewManagerId,
         religion: data.religion ? (data.religion as Religion) : null,

@@ -92,6 +92,7 @@ export const baseEmployeeSchema = z.object({
   workLocationId: z.string().optional().or(z.literal("")),
   legalEntityId: z.string().optional().or(z.literal("")),
   probationEndDate: z.string().optional().or(z.literal("")),
+  endDate: z.string().optional().or(z.literal("")),
   addressKtp: z
     .object({
       street: z.string().default(""),

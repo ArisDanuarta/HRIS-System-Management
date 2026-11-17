@@ -289,6 +289,8 @@ export async function getEmployeeById(id: string) {
       documents: {
         orderBy: { createdAt: "desc" },
       },
+      workLocation: true,
+      legalEntity: true,
       addresses: true,
       familyMembers: true,
       educations: true,
@@ -355,6 +357,8 @@ export async function getEmployeeById(id: string) {
     hasCv: emp.documents.some((d) => d.category === "CV"),
     hasDiploma: emp.documents.some((d) => d.category === "DIPLOMA"),
     hasFamilyCard: emp.documents.some((d) => d.category === "FAMILY_CARD"),
+    hasPreviousEmployerLetter: emp.documents.some((d) => d.category === "PREVIOUS_EMPLOYER_LETTER"),
+    hasOfferLetter: emp.documents.some((d) => d.category === "OFFER_LETTER"),
     salaryComponents: emp.salaryComponents.map((sc) => ({
       id: sc.id,
       componentId: sc.componentId,
@@ -536,4 +540,31 @@ export async function getManagerTeamInfo(employeeId: string) {
     },
   });
   return managerEmployee;
+}
+
+export async function getActiveWorkLocations() {
+  return prisma.workLocation.findMany({
+    where: { isActive: true },
+    orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      address: true,
+      isDefault: true,
+    },
+  });
+}
+
+export async function getActiveLegalEntities() {
+  return prisma.legalEntity.findMany({
+    where: { isActive: true },
+    orderBy: [{ isDefault: "desc" }, { name: "asc" }],
+    select: {
+      id: true,
+      name: true,
+      tkuCode: true,
+      npwp: true,
+      isDefault: true,
+    },
+  });
 }
