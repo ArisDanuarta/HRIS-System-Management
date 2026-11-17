@@ -29,6 +29,46 @@ export const PtkpStatusEnum = z.enum([
 
 export const TaxMethodEnum = z.enum(["GROSS", "GROSS_UP", "NETT"]);
 
+export const employeeFamilyMemberInputSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Nama anggota keluarga wajib diisi"),
+  relation: z.string().min(1, "Pilih hubungan keluarga"),
+  birthDate: z.string().optional().nullable().or(z.literal("")),
+  phone: z.string().optional().nullable().or(z.literal("")),
+  isDependent: z.boolean().optional().default(false),
+  notes: z.string().optional().nullable().or(z.literal("")),
+});
+
+export const employeeEducationInputSchema = z.object({
+  id: z.string().optional(),
+  level: z.string().min(1, "Pilih jenjang pendidikan"),
+  institution: z.string().min(1, "Nama institusi/kampus wajib diisi"),
+  major: z.string().optional().nullable().or(z.literal("")),
+  graduationYear: z.coerce.number().optional().nullable(),
+  gpa: z.string().optional().nullable().or(z.literal("")),
+});
+
+export const employeeTrainingInputSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, "Nama pelatihan/sertifikasi wajib diisi"),
+  participationType: z.string().optional().nullable().or(z.literal("")),
+  startDate: z.string().optional().nullable().or(z.literal("")),
+  endDate: z.string().optional().nullable().or(z.literal("")),
+  duration: z.string().optional().nullable().or(z.literal("")),
+  location: z.string().optional().nullable().or(z.literal("")),
+  organizer: z.string().optional().nullable().or(z.literal("")),
+});
+
+export const employeeWorkExperienceInputSchema = z.object({
+  id: z.string().optional(),
+  companyName: z.string().min(1, "Nama perusahaan wajib diisi"),
+  jobTitle: z.string().min(1, "Jabatan wajib diisi"),
+  startDate: z.string().min(1, "Tanggal mulai kerja wajib diisi"),
+  endDate: z.string().optional().nullable().or(z.literal("")),
+  reasonForLeaving: z.string().optional().nullable().or(z.literal("")),
+  description: z.string().optional().nullable().or(z.literal("")),
+});
+
 export const baseEmployeeSchema = z.object({
   fullName: z.string().min(3, "Nama lengkap minimal 3 karakter"),
   nickname: z.string().optional(),
