@@ -1,4 +1,14 @@
-import { prisma, writeAudit, Religion, Citizenship, BloodType, AddressType } from "@pspk/db";
+import {
+  prisma,
+  writeAudit,
+  Religion,
+  Citizenship,
+  BloodType,
+  AddressType,
+  FamilyRelation,
+  EducationLevel,
+  Prisma,
+} from "@pspk/db";
 import { encryptField, decryptField } from "@pspk/shared";
 import { hashPassword } from "@pspk/auth";
 import {
@@ -275,6 +285,82 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
           postalCode: data.addressDomicile.postalCode?.trim() || null,
         },
       });
+    }
+
+    // Simpan Data Keluarga
+    if (data.familyMembers && data.familyMembers.length > 0) {
+      for (const fm of data.familyMembers) {
+        if (fm.name && fm.name.trim()) {
+          await tx.employeeFamilyMember.create({
+            data: {
+              employeeId: newEmployee.id,
+              name: fm.name.trim(),
+              relation: (fm.relation as FamilyRelation) || FamilyRelation.OTHER,
+              birthDate: fm.birthDate ? new Date(fm.birthDate) : null,
+              phone: fm.phone?.trim() || null,
+              isDependent: Boolean(fm.isDependent),
+              notes: fm.notes?.trim() || null,
+            },
+          });
+        }
+      }
+    }
+
+    // Simpan Riwayat Pendidikan
+    if (data.educations && data.educations.length > 0) {
+      for (const edu of data.educations) {
+        if (edu.institution && edu.institution.trim()) {
+          await tx.employeeEducation.create({
+            data: {
+              employeeId: newEmployee.id,
+              level: (edu.level as EducationLevel) || EducationLevel.OTHER,
+              institution: edu.institution.trim(),
+              major: edu.major?.trim() || null,
+              graduationYear: edu.graduationYear ? Number(edu.graduationYear) : null,
+              gpa: edu.gpa && !isNaN(Number(edu.gpa)) ? new Prisma.Decimal(edu.gpa) : null,
+            },
+          });
+        }
+      }
+    }
+
+    // Simpan Pelatihan & Seminar
+    if (data.trainings && data.trainings.length > 0) {
+      for (const tr of data.trainings) {
+        if (tr.name && tr.name.trim()) {
+          await tx.employeeTraining.create({
+            data: {
+              employeeId: newEmployee.id,
+              name: tr.name.trim(),
+              participationType: tr.participationType?.trim() || null,
+              startDate: tr.startDate ? new Date(tr.startDate) : null,
+              endDate: tr.endDate ? new Date(tr.endDate) : null,
+              duration: tr.duration?.trim() || null,
+              location: tr.location?.trim() || null,
+              organizer: tr.organizer?.trim() || null,
+            },
+          });
+        }
+      }
+    }
+
+    // Simpan Pengalaman Kerja Terdahulu
+    if (data.workExperiences && data.workExperiences.length > 0) {
+      for (const we of data.workExperiences) {
+        if (we.companyName && we.companyName.trim() && we.jobTitle && we.jobTitle.trim()) {
+          await tx.employeeWorkExperience.create({
+            data: {
+              employeeId: newEmployee.id,
+              companyName: we.companyName.trim(),
+              jobTitle: we.jobTitle.trim(),
+              startDate: new Date(we.startDate),
+              endDate: we.endDate ? new Date(we.endDate) : null,
+              reasonForLeaving: we.reasonForLeaving?.trim() || null,
+              description: we.description?.trim() || null,
+            },
+          });
+        }
+      }
     }
 
     // Format full notes including contractNumber if provided
@@ -639,6 +725,89 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
           postalCode: data.addressDomicile.postalCode?.trim() || null,
         },
       });
+    }
+
+    // Sinkronisasi Data Keluarga
+    if (data.familyMembers) {
+      await tx.employeeFamilyMember.deleteMany({ where: { employeeId: data.id } });
+      for (const fm of data.familyMembers) {
+        if (fm.name && fm.name.trim()) {
+          await tx.employeeFamilyMember.create({
+            data: {
+              employeeId: data.id,
+              name: fm.name.trim(),
+              relation: (fm.relation as FamilyRelation) || FamilyRelation.OTHER,
+              birthDate: fm.birthDate ? new Date(fm.birthDate) : null,
+              phone: fm.phone?.trim() || null,
+              isDependent: Boolean(fm.isDependent),
+              notes: fm.notes?.trim() || null,
+            },
+          });
+        }
+      }
+    }
+
+    // Sinkronisasi Riwayat Pendidikan
+    if (data.educations) {
+      await tx.employeeEducation.deleteMany({ where: { employeeId: data.id } });
+      for (const edu of data.educations) {
+        if (edu.institution && edu.institution.trim()) {
+          await tx.employeeEducation.create({
+            data: {
+              id: edu.id || undefined,
+              employeeId: data.id,
+              level: (edu.level as EducationLevel) || EducationLevel.OTHER,
+              institution: edu.institution.trim(),
+              major: edu.major?.trim() || null,
+              graduationYear: edu.graduationYear ? Number(edu.graduationYear) : null,
+              gpa: edu.gpa && !isNaN(Number(edu.gpa)) ? new Prisma.Decimal(edu.gpa) : null,
+            },
+          });
+        }
+      }
+    }
+
+    // Sinkronisasi Pelatihan & Seminar
+    if (data.trainings) {
+      await tx.employeeTraining.deleteMany({ where: { employeeId: data.id } });
+      for (const tr of data.trainings) {
+        if (tr.name && tr.name.trim()) {
+          await tx.employeeTraining.create({
+            data: {
+              id: tr.id || undefined,
+              employeeId: data.id,
+              name: tr.name.trim(),
+              participationType: tr.participationType?.trim() || null,
+              startDate: tr.startDate ? new Date(tr.startDate) : null,
+              endDate: tr.endDate ? new Date(tr.endDate) : null,
+              duration: tr.duration?.trim() || null,
+              location: tr.location?.trim() || null,
+              organizer: tr.organizer?.trim() || null,
+            },
+          });
+        }
+      }
+    }
+
+    // Sinkronisasi Pengalaman Kerja Terdahulu
+    if (data.workExperiences) {
+      await tx.employeeWorkExperience.deleteMany({ where: { employeeId: data.id } });
+      for (const we of data.workExperiences) {
+        if (we.companyName && we.companyName.trim() && we.jobTitle && we.jobTitle.trim()) {
+          await tx.employeeWorkExperience.create({
+            data: {
+              id: we.id || undefined,
+              employeeId: data.id,
+              companyName: we.companyName.trim(),
+              jobTitle: we.jobTitle.trim(),
+              startDate: new Date(we.startDate),
+              endDate: we.endDate ? new Date(we.endDate) : null,
+              reasonForLeaving: we.reasonForLeaving?.trim() || null,
+              description: we.description?.trim() || null,
+            },
+          });
+        }
+      }
     }
 
     // Sinkronisasi data kontrak aktif pegawai

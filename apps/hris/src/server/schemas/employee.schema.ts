@@ -153,10 +153,10 @@ export const baseEmployeeSchema = z.object({
       postalCode: z.string().optional(),
     })
     .optional(),
-  familyMembers: z.array(z.any()).optional(),
-  educations: z.array(z.any()).optional(),
-  trainings: z.array(z.any()).optional(),
-  workExperiences: z.array(z.any()).optional(),
+  familyMembers: z.array(employeeFamilyMemberInputSchema).optional().default([]),
+  educations: z.array(employeeEducationInputSchema).optional().default([]),
+  trainings: z.array(employeeTrainingInputSchema).optional().default([]),
+  workExperiences: z.array(employeeWorkExperienceInputSchema).optional().default([]),
   createUserAccount: z.boolean().optional().default(true),
   accountRole: AccountRoleEnum.optional().default("staff"),
 });
