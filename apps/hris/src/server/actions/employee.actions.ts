@@ -1,5 +1,6 @@
 "use server";
 
+import path from "node:path";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { getSession, getAuthContext } from "@pspk/auth";
@@ -284,7 +285,10 @@ export async function uploadContractFileAction(formData: FormData) {
       return { ok: false as const, error: "Ukuran berkas kontrak maksimal 10 MB." };
     }
 
-    const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const ext = path.extname(file.name) || ".pdf";
+    const rawBaseName = path.basename(file.name, ext);
+    const safeBaseName = (rawBaseName.replace(/[^a-zA-Z0-9_-]/g, "_").replace(/_+/g, "_") || "kontrak").slice(0, 100);
+    const safeFileName = `${safeBaseName}${ext}`;
     const storageKey = `contracts/${employeeId}_${Date.now()}_${safeFileName}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -332,7 +336,10 @@ export async function attachContractDocumentAction(formData: FormData) {
         return { ok: false as const, error: "Ukuran berkas kontrak maksimal 10 MB." };
       }
 
-      const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const ext = path.extname(file.name) || ".pdf";
+      const rawBaseName = path.basename(file.name, ext);
+      const safeBaseName = (rawBaseName.replace(/[^a-zA-Z0-9_-]/g, "_").replace(/_+/g, "_") || "kontrak").slice(0, 100);
+      const safeFileName = `${safeBaseName}${ext}`;
       const storageKey = `contracts/${employeeId}_${Date.now()}_${safeFileName}`;
       const buffer = Buffer.from(await file.arrayBuffer());
 

@@ -35,7 +35,7 @@ export class LocalDiskStorage implements StorageProvider {
    * Sanitizes key to strictly prevent path traversal vulnerabilities.
    */
   private resolveSafePath(key: string, writeMode = false): string {
-    if (!key || key.includes("..") || path.isAbsolute(key)) {
+    if (!key || key.includes("\0") || path.isAbsolute(key) || /(^|[/\\])\.\.([/\\]|$)/.test(key)) {
       throw new Error(`Potensi path traversal terdeteksi pada key: ${key}`);
     }
 

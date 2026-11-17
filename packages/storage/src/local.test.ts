@@ -45,12 +45,26 @@ describe("LocalDiskStorage", () => {
     expect(await storage.exists(key)).toBe(false);
   });
 
+  it("allows valid filenames containing consecutive dots in the name", async () => {
+    const validKey = "contracts/temp_1794899369977_Journal_of_Research..pdf";
+    const content = Buffer.from("%PDF-1.4 sample content", "utf-8");
+
+    const result = await storage.put(validKey, content, { contentType: "application/pdf" });
+    expect(result.key).toBe(validKey);
+
+    const exists = await storage.exists(validKey);
+    expect(exists).toBe(true);
+
+    await storage.delete(validKey);
+  });
+
   it("strictly blocks path traversal attempts", async () => {
     const dangerousKeys = [
       "../outside.txt",
       "hris/../../etc/passwd",
       "/etc/passwd",
       "hris/../../../secret.env",
+      "hris/\0malicious.txt",
     ];
 
     for (const key of dangerousKeys) {
