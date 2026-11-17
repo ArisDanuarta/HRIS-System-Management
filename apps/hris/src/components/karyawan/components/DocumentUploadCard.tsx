@@ -147,7 +147,7 @@ export function DocumentUploadCard({
 
   return (
     <div
-      className={`border rounded-xl transition-all p-3.5 sm:p-4 bg-white flex flex-col gap-2.5 ${
+      className={`w-full min-w-0 max-w-full border rounded-xl transition-all p-3.5 sm:p-4 bg-white flex flex-col gap-2.5 ${
         activeError
           ? "border-red-300 bg-red-50/20 shadow-xs"
           : hasFile

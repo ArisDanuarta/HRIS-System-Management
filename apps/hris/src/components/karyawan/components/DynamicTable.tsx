@@ -44,11 +44,11 @@ export function DynamicTable<T>({
   const canAdd = !disabled && (!maxRows || items.length < maxRows);
 
   return (
-    <div className={`border border-slate-200/90 rounded-xl overflow-hidden bg-white ${className}`}>
+    <div className={`w-full min-w-0 max-w-full border border-slate-200/90 rounded-xl overflow-hidden bg-white ${className}`}>
       {/* Header bar */}
       <div className="p-3.5 sm:p-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-xs font-bold text-slate-800 tracking-tight uppercase">
               {title}
             </h4>
@@ -57,7 +57,7 @@ export function DynamicTable<T>({
             </span>
           </div>
           {description && (
-            <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+            <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2 sm:line-clamp-none">
               {description}
             </p>
           )}
@@ -67,14 +67,14 @@ export function DynamicTable<T>({
           type="button"
           onClick={onAdd}
           disabled={!canAdd}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-colors ${
+          className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-xs transition-colors ${
             canAdd
               ? "bg-[#102E50] text-white hover:bg-[#102E50]/90 active:scale-[0.98]"
               : "bg-slate-200 text-slate-400 cursor-not-allowed"
           }`}
         >
           <Plus className="w-3.5 h-3.5" />
-          <span>{addButtonLabel}</span>
+          <span>{addButtonLabel.startsWith("+") ? addButtonLabel.replace(/^\+\s*/, "") : addButtonLabel}</span>
         </button>
       </div>
 
@@ -91,14 +91,14 @@ export function DynamicTable<T>({
               onClick={onAdd}
               className="text-xs font-bold text-[#102E50] hover:underline mt-0.5"
             >
-              + {addButtonLabel} Sekarang
+              + {addButtonLabel.startsWith("+") ? addButtonLabel.replace(/^\+\s*/, "") : addButtonLabel} Sekarang
             </button>
           )}
         </div>
       ) : (
         <>
           {/* Desktop Table View (md and up) */}
-          <div className="hidden md:block overflow-x-auto">
+          <div className="hidden md:block overflow-x-auto w-full min-w-0">
             <table className="w-full min-w-[720px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
@@ -144,11 +144,11 @@ export function DynamicTable<T>({
           </div>
 
           {/* Mobile Card Stacking View (< md) */}
-          <div className="md:hidden p-3 flex flex-col gap-3">
+          <div className="md:hidden p-3 flex flex-col gap-3 w-full min-w-0">
             {items.map((item, index) => (
               <div
                 key={index}
-                className="p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/50 shadow-2xs flex flex-col gap-2.5 relative"
+                className="w-full min-w-0 p-3.5 rounded-xl border border-slate-200/90 bg-slate-50/50 shadow-2xs flex flex-col gap-2.5 relative"
               >
                 <div className="flex items-center justify-between border-b border-slate-200/70 pb-2">
                   <div className="flex items-center gap-1.5">

@@ -36,7 +36,7 @@ export function DocumentChecklistSummary({
 
   return (
     <div
-      className={`border rounded-xl p-4 sm:p-5 bg-gradient-to-br from-white to-slate-50/60 border-slate-200 shadow-xs flex flex-col gap-4 ${className}`}
+      className={`w-full min-w-0 max-w-full border rounded-xl p-4 sm:p-5 bg-gradient-to-br from-white to-slate-50/60 border-slate-200 shadow-xs flex flex-col gap-4 ${className}`}
     >
       {/* Header Metric */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">

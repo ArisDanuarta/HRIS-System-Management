@@ -40,7 +40,7 @@ export function AddressFields({
 
   return (
     <div
-      className={`border rounded-xl p-4 sm:p-5 bg-white transition-all flex flex-col gap-4 ${
+      className={`w-full min-w-0 max-w-full border rounded-xl p-4 sm:p-5 bg-white transition-all flex flex-col gap-4 ${
         isLocked
           ? "border-slate-200/80 bg-slate-50/40"
           : "border-slate-200 hover:border-slate-300 shadow-2xs"

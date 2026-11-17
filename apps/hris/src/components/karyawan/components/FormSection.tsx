@@ -44,7 +44,7 @@ export function FormSection({
   return (
     <div
       id={id}
-      className={`border border-slate-200/90 rounded-xl bg-white overflow-hidden shadow-xs transition-shadow hover:shadow-sm ${className}`}
+      className={`w-full min-w-0 max-w-full border border-slate-200/90 rounded-xl bg-white overflow-hidden shadow-xs transition-shadow hover:shadow-sm ${className}`}
     >
       {/* Header Button */}
       <button
@@ -90,7 +90,7 @@ export function FormSection({
       {isOpen && (
         <div
           id={`${id}-content`}
-          className="p-4 sm:p-6 border-t border-slate-200/80 bg-white"
+          className="w-full min-w-0 max-w-full p-4 sm:p-6 border-t border-slate-200/80 bg-white overflow-hidden"
         >
           {children}
         </div>

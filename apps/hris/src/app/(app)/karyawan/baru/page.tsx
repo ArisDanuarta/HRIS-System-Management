@@ -51,9 +51,9 @@ export default async function TambahKaryawanPage() {
     ]);
 
   return (
-    <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-16">
+    <div className="w-full min-w-0 max-w-4xl mx-auto pb-16 flex flex-col gap-6">
       {/* Back Button & Header */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 w-full min-w-0">
         <Link
           href="/karyawan"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#102E50] transition-colors w-fit"
@@ -62,16 +62,16 @@ export default async function TambahKaryawanPage() {
           <span>Kembali ke Direktori Pegawai</span>
         </Link>
 
-        <div className="flex items-center justify-between gap-4 pt-1">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center">
+        <div className="flex items-center justify-between gap-4 pt-1 w-full min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-xl bg-[#102E50]/10 text-[#102E50] flex items-center justify-center shrink-0">
               <UserPlus className="w-5 h-5" />
             </div>
-            <div className="flex flex-col">
-              <h1 className="text-2xl font-bold text-[#102E50] font-heading tracking-tight">
+            <div className="flex flex-col min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-[#102E50] font-heading tracking-tight truncate">
                 Pendaftaran Pegawai Baru
               </h1>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 line-clamp-2 sm:line-clamp-none">
                 Isi formulir bertahap untuk mencatat identitas, penempatan tim, kontrak kerja, dan
                 data sensitif pegawai.
               </p>

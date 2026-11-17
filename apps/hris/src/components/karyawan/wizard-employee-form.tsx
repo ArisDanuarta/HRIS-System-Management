@@ -1642,10 +1642,10 @@ export function WizardEmployeeForm({
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
+    <div className="w-full min-w-0 max-w-full bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col">
       {/* Stepper Header */}
-      <div className="bg-slate-50/70 border-b border-slate-200 p-3 sm:p-5">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+      <div className="bg-slate-50/70 border-b border-slate-200 p-3 sm:p-5 w-full min-w-0">
+        <div className="w-full min-w-0 grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           {steps.map((s) => {
             const Icon = s.icon;
             const isDone = currentStep > s.num;
@@ -1657,7 +1657,7 @@ export function WizardEmployeeForm({
                 onClick={() => {
                   if (s.num < currentStep) setCurrentStep(s.num);
                 }}
-                className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg border transition-all ${
+                className={`flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg border transition-all min-w-0 ${
                   isCurrent
                     ? "bg-white border-[#102E50] shadow-xs"
                     : isDone
@@ -1676,8 +1676,8 @@ export function WizardEmployeeForm({
                 >
                   {isDone ? <CheckCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : s.num}
                 </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">
                     Langkah {s.num}
                   </span>
                   <span
@@ -1706,7 +1706,7 @@ export function WizardEmployeeForm({
             }
           }
         }}
-        className="p-3.5 sm:p-6 flex flex-col gap-5 sm:gap-6"
+        className="w-full min-w-0 max-w-full p-3.5 sm:p-6 flex flex-col gap-5 sm:gap-6"
       >
         {serverError && (
           <div className="p-3 bg-red-50 border border-red-200 text-[#A8281C] text-sm rounded-lg flex items-center gap-2">
@@ -1717,7 +1717,7 @@ export function WizardEmployeeForm({
 
         {/* STEP 1: IDENTITAS PRIBADI */}
         {currentStep === 1 && (
-          <div className="flex flex-col gap-5 animate-in fade-in duration-200">
+          <div className="w-full min-w-0 flex flex-col gap-5 animate-in fade-in duration-200">
             {/* Header Pengantar */}
             <div className="pb-2 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
