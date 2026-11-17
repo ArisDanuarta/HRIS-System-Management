@@ -163,6 +163,8 @@ export interface InitialEmployeeData {
   hasFamilyCard?: boolean;
   hasPreviousEmployerLetter?: boolean;
   hasOfferLetter?: boolean;
+  hasNda?: boolean;
+  hasMarriageCert?: boolean;
   workLocationId?: string | null;
   legalEntityId?: string | null;
   probationEndDate?: Date | string | null;
@@ -532,6 +534,14 @@ export function WizardEmployeeForm({
     status: "idle",
   });
   const [docOfferLetter, setDocOfferLetter] = useState<UploadedFileState>({
+    file: null,
+    status: "idle",
+  });
+  const [docNda, setDocNda] = useState<UploadedFileState>({
+    file: null,
+    status: "idle",
+  });
+  const [docMarriageCert, setDocMarriageCert] = useState<UploadedFileState>({
     file: null,
     status: "idle",
   });
@@ -1143,6 +1153,20 @@ export function WizardEmployeeForm({
             file: docOfferLetter.file,
           });
         }
+        if (docNda.file) {
+          docsToUpload.push({
+            category: "NDA",
+            title: "Non-Disclosure Agreement (NDA) / Pakta Integritas",
+            file: docNda.file,
+          });
+        }
+        if (docMarriageCert.file) {
+          docsToUpload.push({
+            category: "MARRIAGE_CERT",
+            title: "Buku Nikah / Akta Perkawinan",
+            file: docMarriageCert.file,
+          });
+        }
         if (docKtp.file) {
           docsToUpload.push({
             category: "KTP",
@@ -1445,6 +1469,20 @@ export function WizardEmployeeForm({
             category: "OFFER_LETTER",
             title: "Surat Penawaran Kerja (Signed Offer Letter)",
             file: docOfferLetter.file,
+          });
+        }
+        if (docNda.file) {
+          docsToUpload.push({
+            category: "NDA",
+            title: "Non-Disclosure Agreement (NDA) / Pakta Integritas",
+            file: docNda.file,
+          });
+        }
+        if (docMarriageCert.file) {
+          docsToUpload.push({
+            category: "MARRIAGE_CERT",
+            title: "Buku Nikah / Akta Perkawinan",
+            file: docMarriageCert.file,
           });
         }
         if (docKtp.file) {

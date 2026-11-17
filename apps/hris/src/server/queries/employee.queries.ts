@@ -359,6 +359,8 @@ export async function getEmployeeById(id: string) {
     hasFamilyCard: emp.documents.some((d) => d.category === "FAMILY_CARD"),
     hasPreviousEmployerLetter: emp.documents.some((d) => d.category === "PREVIOUS_EMPLOYER_LETTER"),
     hasOfferLetter: emp.documents.some((d) => d.category === "OFFER_LETTER"),
+    hasNda: emp.documents.some((d) => d.category === "NDA"),
+    hasMarriageCert: emp.documents.some((d) => d.category === "MARRIAGE_CERT"),
     salaryComponents: emp.salaryComponents.map((sc) => ({
       id: sc.id,
       componentId: sc.componentId,

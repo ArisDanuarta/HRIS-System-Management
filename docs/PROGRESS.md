@@ -3971,6 +3971,31 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## Pembaruan Form Pendaftaran Pegawai Baru (Tahap 5 — Selesai)
+
+Implementasi 4 Tabel Dinamis pada Langkah 1 (*Identitas Pribadi*):
+1. **Data Keluarga (`EmployeeFamilyMember`)**:
+   - Kolom: Nama, Hubungan, Tanggal Lahir (usia otomatis), No. HP, Tanggungan, Catatan.
+   - Sisi mobile card: Kartu responsif dengan kalkulasi usia dan catatan.
+2. **Riwayat Pendidikan (`EmployeeEducation`)**:
+   - Kolom: Jenjang, Institusi/Kampus, Jurusan/Prodi, Tahun Lulus, IPK/Nilai, dan Unggah Ijazah per baris.
+   - Terhubung dengan upload berkas `DIPLOMA` (mendukung `educationId`).
+3. **Pelatihan & Seminar (`EmployeeTraining`)**:
+   - Kolom: Nama Pelatihan, Jenis Kepesertaan, Tanggal Mulai & Selesai, Durasi, Tempat, Penyelenggara, dan Unggah Sertifikat per baris.
+   - Terhubung dengan upload berkas `CERTIFICATE` (mendukung `trainingId`).
+4. **Pengalaman Kerja Sebelumnya (`EmployeeWorkExperience`)**:
+   - Kolom: Nama Perusahaan, Jabatan, Tanggal Mulai (`YYYY-MM`), Tanggal Selesai (`YYYY-MM`), Checkbox "Masih Aktif" (mengunci/mengosongkan tanggal selesai), Alasan Berhenti, Uraian Tugas.
+   - Sisi database: Nullable `endDate` memetakan status masih aktif secara konsisten saat create dan edit.
+5. **Preservasi ID & Sinkronisasi Dokumen**:
+   - Mode edit mempertahankan UUID baris entitas saat update.
+   - Inisialisasi dokumen yang telah tersimpan sebelumnya memuat nama berkas ijazah/sertifikat yang terhubung.
+6. **Verifikasi Teknis**:
+   - `pnpm --filter @pspk/hris typecheck`: Lolos (0 error).
+   - `pnpm --filter @pspk/hris lint`: Lolos (0 error, 0 warning).
+   - Unit test vitest: Lolos 100%.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash
