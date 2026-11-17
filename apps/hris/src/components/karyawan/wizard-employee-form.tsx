@@ -36,6 +36,10 @@ import {
   Home,
   HeartHandshake,
   FileUp,
+  GraduationCap,
+  Award,
+  Users,
+  Calendar,
 } from "lucide-react";
 import {
   createEmployeeAction,
@@ -59,6 +63,8 @@ import {
   Citizenship,
   BloodType,
   AddressType,
+  FamilyRelation,
+  EducationLevel,
 } from "@pspk/db";
 import { toDateString, formatRupiah } from "@pspk/shared";
 import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
@@ -70,7 +76,16 @@ import { DocumentUploadCard } from "./components/DocumentUploadCard";
 import { DocumentChecklistSummary, ChecklistDocItem } from "./components/DocumentChecklistSummary";
 import { FormSection } from "./components/FormSection";
 import { AddressFields } from "./components/AddressFields";
-import { UploadedFileState, AdditionalDocumentItem, AddressData } from "./types/employee-form.types";
+import { DynamicTable, DynamicColumn } from "./components/DynamicTable";
+import {
+  UploadedFileState,
+  AdditionalDocumentItem,
+  AddressData,
+  FamilyMemberItem,
+  EducationItem,
+  TrainingItem,
+  WorkExperienceItem,
+} from "./types/employee-form.types";
 import {
   uploadEmployeeDocumentAction,
   DocumentCategory,
