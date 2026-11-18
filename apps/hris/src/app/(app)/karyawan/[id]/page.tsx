@@ -21,9 +21,9 @@ import {
   FolderArchive,
   Laptop,
   Calendar,
-  AlertCircle,
   Receipt,
   Info,
+  LayoutDashboard,
 } from "lucide-react";
 import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
 import {
@@ -33,7 +33,13 @@ import {
   getManagerTeamInfo,
 } from "@/server/queries/employee.queries";
 import { getActiveEmploymentTypes } from "@/server/queries/employment-type.queries";
-import { StatusBadge, ContractTypeBadge, PtkpBadge, TaxMethodBadge } from "@/components/karyawan/status-badge";
+import { getEmployeeMonthlyAttendanceOverview } from "@/server/queries/attendance.queries";
+import {
+  StatusBadge,
+  ContractTypeBadge,
+  PtkpBadge,
+  TaxMethodBadge,
+} from "@/components/karyawan/status-badge";
 import { SensitiveFieldView } from "@/components/karyawan/sensitive-field-view";
 import { CareerHistoryCard } from "@/components/karyawan/career-history-card";
 import { EmployeeContractsTable } from "@/components/karyawan/employee-contracts-table";
@@ -41,10 +47,14 @@ import { EmployeeAccountRoleCard } from "@/components/karyawan/employee-account-
 import { EmployeeDocumentsCard } from "@/components/karyawan/employee-documents-card";
 import { EmployeeStatusActions } from "@/components/karyawan/employee-status-actions";
 import { EmployeeAvatar } from "@/components/karyawan/employee-avatar";
+import { ExportProfileButton } from "@/components/karyawan/export-profile-button";
 import {
   EmployeeAssetsCard,
   SerializedEmployeeAssetAssignment,
 } from "@/components/karyawan/employee-assets-card";
+import { EmployeeOverviewTab } from "@/components/karyawan/tabs/employee-overview-tab";
+import { EmployeeBiodataTab } from "@/components/karyawan/tabs/employee-biodata-tab";
+import { EmployeeAttendanceTab } from "@/components/karyawan/tabs/employee-attendance-tab";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +67,7 @@ export async function generateMetadata({
   const employee = await getEmployeeById(id).catch(() => null);
   const name = employee?.fullName ?? "Karyawan";
   return {
-    title: `${name} - Profil Karyawan | HRIS PSPK`,
+    title: `${name} - Profil Karyawan 360° | HRIS PSPK`,
     description: `Detail profil karyawan ${name} di sistem HRIS PSPK`,
     robots: { index: false, follow: false },
   };
@@ -68,13 +78,12 @@ interface EmployeeDetailPageProps {
   searchParams: Promise<{ tab?: string }>;
 }
 
-
 export default async function EmployeeDetailPage({
   params,
   searchParams,
 }: EmployeeDetailPageProps) {
   const { id } = await params;
-  const { tab = "biodata" } = await searchParams;
+  const { tab = "ringkasan" } = await searchParams;
 
   const reqHeaders = await headers();
   const session = await getSession(reqHeaders);
@@ -94,14 +103,26 @@ export default async function EmployeeDetailPage({
   const managerTeamInfo =
     isManager && currentActorEmployee ? await getManagerTeamInfo(currentActorEmployee.id) : null;
 
-  const [employee, departments, managers, moduleFlags, activeEmploymentTypes] =
-    await Promise.all([
-      getEmployeeById(id),
-      getOrgStructureData(),
-      getManagersList(),
-      getModuleFlags(prisma),
-      getActiveEmploymentTypes(),
-    ]);
+  // Waktu saat ini untuk absensi & cuti
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const [
+    employee,
+    departments,
+    managers,
+    moduleFlags,
+    activeEmploymentTypes,
+    attendanceOverview,
+  ] = await Promise.all([
+    getEmployeeById(id),
+    getOrgStructureData(),
+    getManagersList(),
+    getModuleFlags(prisma),
+    getActiveEmploymentTypes(),
+    getEmployeeMonthlyAttendanceOverview(id, currentYear, currentMonth),
+  ]);
 
   if (!employee) {
     notFound();
@@ -185,18 +206,32 @@ export default async function EmployeeDetailPage({
     }
   }
 
-  // Sanitasi Tab: Tab data sensitif dan akun hanya diizinkan untuk Admin HR / Super Admin
-  let effectiveTab = tab;
-  if (!isHrOrAdmin && (tab === "sensitif" || tab === "akun")) {
-    effectiveTab = "biodata";
-  } else if (tab === "aset" && !isAssetAssignmentActive) {
-    effectiveTab = "biodata";
+  // Sanitasi Tab: Tab yang valid
+  const VALID_TABS = [
+    "ringkasan",
+    "biodata",
+    "absensi",
+    "kontrak",
+    "jabatan",
+    "dokumen",
+    "aset",
+    "sensitif",
+    "akun",
+  ];
+  let effectiveTab = VALID_TABS.includes(tab) ? tab : "ringkasan";
+
+  if (!isHrOrAdmin && (effectiveTab === "sensitif" || effectiveTab === "akun")) {
+    effectiveTab = "ringkasan";
+  } else if (effectiveTab === "aset" && !isAssetAssignmentActive) {
+    effectiveTab = "ringkasan";
   }
 
   const isTerminated = employee.status === "TERMINATED" || employee.status === "RESIGNED";
   const activeContract =
     employee.contracts.find((c) => c.status === "ACTIVE") ||
     (isTerminated ? employee.contracts[0] : null);
+
+  const primaryLeaveBalance = attendanceOverview.leaveBalances[0] || null;
 
   return (
     <div className="flex flex-col gap-6 w-full min-w-0 max-w-5xl mx-auto pb-16">
@@ -223,7 +258,8 @@ export default async function EmployeeDetailPage({
                 Status: Nonaktif / Berhenti ({employee.status})
               </span>
               <span className="text-xs text-amber-700 mt-0.5 break-words">
-                Pegawai ini saat ini berstatus nonaktif dan akses login akun pengguna terkait telah dinonaktifkan. Seluruh riwayat tetap tersimpan.
+                Pegawai ini saat ini berstatus nonaktif dan akses login akun pengguna terkait telah
+                dinonaktifkan. Seluruh riwayat tetap tersimpan.
               </span>
             </div>
           </div>
@@ -239,9 +275,9 @@ export default async function EmployeeDetailPage({
         </div>
       )}
 
-      {/* Modern Profile Header Card */}
+      {/* Modern Profile Header Card (Hero Card 360°) */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col w-full min-w-0 max-w-full">
-        {/* Subtle Brand Accent Top Bar */}
+        {/* Brand Accent Top Bar */}
         <div className="h-2 bg-gradient-to-r from-[#102E50] via-[#102E50]/90 to-[#F2AF3E]" />
 
         <div className="p-4 sm:p-6 flex flex-col gap-4 w-full min-w-0">
@@ -249,11 +285,12 @@ export default async function EmployeeDetailPage({
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 sm:gap-5 w-full min-w-0">
             {/* Left: Avatar & Identity */}
             <div className="flex flex-col sm:flex-row items-start gap-3.5 sm:gap-5 w-full min-w-0">
-              {/* Photo Avatar or Fallback Initials */}
+              {/* Photo Avatar with Gender Fallback */}
               <div className="shrink-0">
                 <EmployeeAvatar
                   photoKey={employee.photoKey}
                   name={employee.fullName}
+                  gender={employee.gender}
                 />
               </div>
 
@@ -303,9 +340,21 @@ export default async function EmployeeDetailPage({
               </div>
             </div>
 
-            {/* Right: Action Buttons */}
-            {isHrOrAdmin && (
-              <div className="flex items-center gap-2 shrink-0 flex-wrap w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 justify-start sm:justify-end">
+            {/* Right: Action Buttons (Export Profil & Ubah Profil) */}
+            <div className="flex items-center gap-2 shrink-0 flex-wrap w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 justify-start sm:justify-end">
+              {/* Tombol Export Profil (HR / Admin & Manager) */}
+              {(isHrOrAdmin || isManager) && (
+                <ExportProfileButton
+                  employeeId={employee.id}
+                  employeeName={employee.fullName}
+                  employeeNo={employee.employeeNo}
+                  isHrOrAdmin={isHrOrAdmin}
+                  isManager={isManager}
+                />
+              )}
+
+              {/* Status Actions (Nonaktif / Aktifkan Kembali) */}
+              {isHrOrAdmin && (
                 <EmployeeStatusActions
                   employeeId={employee.id}
                   employeeName={employee.fullName}
@@ -313,15 +362,19 @@ export default async function EmployeeDetailPage({
                   isTerminated={isTerminated}
                   variant="header"
                 />
+              )}
+
+              {/* Tombol Ubah Profil (Khusus HR/Admin) */}
+              {isHrOrAdmin && (
                 <Link
                   href={`/karyawan/${employee.id}/ubah`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#102E50] text-white hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#102E50] text-[#ffddb0] hover:bg-[#0c233d] transition-all cursor-pointer active:scale-[0.98] shadow-xs"
                 >
                   <Edit className="w-3.5 h-3.5" />
                   <span>Ubah Profil</span>
                 </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
           {/* Quick Contact & Metadata Strip */}
@@ -354,7 +407,9 @@ export default async function EmployeeDetailPage({
               >
                 <UserCheck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span className="text-slate-500 shrink-0">Atasan:</span>
-                <span className="font-semibold text-slate-800 truncate">{employee.manager.fullName}</span>
+                <span className="font-semibold text-slate-800 truncate">
+                  {employee.manager.fullName}
+                </span>
               </Link>
             )}
 
@@ -369,6 +424,20 @@ export default async function EmployeeDetailPage({
 
       {/* Tabs Navigation (Responsive Horizontal Swipe dengan Proteksi Scroll) */}
       <div className="flex items-center gap-1 sm:gap-1.5 border-b border-slate-200 overflow-x-auto scrollbar-none w-full min-w-0 max-w-full [overscroll-behavior-x:contain] py-0.5">
+        {/* TAB 1: Ringkasan 360° (Default) */}
+        <Link
+          href={`/karyawan/${employee.id}?tab=ringkasan`}
+          className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            effectiveTab === "ringkasan"
+              ? "border-[#102E50] text-[#102E50]"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4 text-[#102E50]" />
+          <span>Ringkasan</span>
+        </Link>
+
+        {/* TAB 2: Biodata & Riwayat Terpadu */}
         <Link
           href={`/karyawan/${employee.id}?tab=biodata`}
           className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
@@ -381,20 +450,20 @@ export default async function EmployeeDetailPage({
           <span>Biodata</span>
         </Link>
 
-        {isHrOrAdmin && (
-          <Link
-            href={`/karyawan/${employee.id}?tab=sensitif`}
-            className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
-              effectiveTab === "sensitif"
-                ? "border-[#102E50] text-[#102E50]"
-                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
-            }`}
-          >
-            <Shield className="w-4 h-4 text-amber-600" />
-            <span>Data Sensitif</span>
-          </Link>
-        )}
+        {/* TAB 3: Absensi & Cuti */}
+        <Link
+          href={`/karyawan/${employee.id}?tab=absensi`}
+          className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+            effectiveTab === "absensi"
+              ? "border-[#102E50] text-[#102E50]"
+              : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+          }`}
+        >
+          <Calendar className="w-4 h-4 text-emerald-600" />
+          <span>Absensi & Cuti</span>
+        </Link>
 
+        {/* TAB 4: Kontrak Kerja */}
         <Link
           href={`/karyawan/${employee.id}?tab=kontrak`}
           className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
@@ -416,6 +485,7 @@ export default async function EmployeeDetailPage({
           </span>
         </Link>
 
+        {/* TAB 5: Jabatan & Tim */}
         <Link
           href={`/karyawan/${employee.id}?tab=jabatan`}
           className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
@@ -439,6 +509,7 @@ export default async function EmployeeDetailPage({
           )}
         </Link>
 
+        {/* TAB 6: Dokumen Digital */}
         <Link
           href={`/karyawan/${employee.id}?tab=dokumen`}
           className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
@@ -460,6 +531,7 @@ export default async function EmployeeDetailPage({
           </span>
         </Link>
 
+        {/* TAB 7: Aset & Fasilitas Kerja (Modular) */}
         {isAssetAssignmentActive && (
           <Link
             href={`/karyawan/${employee.id}?tab=aset`}
@@ -483,6 +555,22 @@ export default async function EmployeeDetailPage({
           </Link>
         )}
 
+        {/* TAB 8: Data Sensitif & Pajak (Khusus HR/Admin) */}
+        {isHrOrAdmin && (
+          <Link
+            href={`/karyawan/${employee.id}?tab=sensitif`}
+            className={`shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold border-b-2 transition-all cursor-pointer ${
+              effectiveTab === "sensitif"
+                ? "border-[#102E50] text-[#102E50]"
+                : "border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300"
+            }`}
+          >
+            <Shield className="w-4 h-4 text-amber-600" />
+            <span>Data Sensitif</span>
+          </Link>
+        )}
+
+        {/* TAB 9: Akun & Hak Akses (Khusus HR/Admin) */}
         {isHrOrAdmin && (
           <Link
             href={`/karyawan/${employee.id}?tab=akun`}
@@ -503,274 +591,108 @@ export default async function EmployeeDetailPage({
         )}
       </div>
 
-      {/* TAB 1: BIODATA & KONTAK */}
+      {/* ===================== TAB CONTENTS ===================== */}
+
+      {/* TAB 1: RINGKASAN 360° (Default Landing Tab) */}
+      {effectiveTab === "ringkasan" && (
+        <EmployeeOverviewTab
+          employee={{
+            id: employee.id,
+            fullName: employee.fullName,
+            employeeNo: employee.employeeNo,
+            status: employee.status,
+            gender: employee.gender,
+            joinDate: employee.joinDate,
+            address: employee.address,
+            phone: employee.phone,
+            personalEmail: employee.personalEmail,
+            emergencyContactName: employee.emergencyContactName,
+            emergencyContactPhone: employee.emergencyContactPhone,
+            hasNik: employee.hasNik,
+            hasNpwp: employee.hasNpwp,
+            hasBankAccount: employee.hasBankAccount,
+            currentPosition: employee.currentPosition,
+            currentDepartment: employee.currentDepartment,
+            manager: employee.manager,
+          }}
+          activeContract={
+            activeContract
+              ? {
+                  id: activeContract.id,
+                  type: activeContract.type,
+                  startDate: activeContract.startDate,
+                  endDate: activeContract.endDate,
+                  status: activeContract.status,
+                  employmentTypeMaster: activeContract.employmentTypeMaster,
+                }
+              : null
+          }
+          attendanceSummary={attendanceOverview.summary}
+          leaveQuota={
+            primaryLeaveBalance
+              ? {
+                  balance: primaryLeaveBalance.remainingDays,
+                }
+              : null
+          }
+          activeAssetsCount={activeAssets.length}
+          documentsCount={employee.documents?.length || 0}
+          familyCount={employee.familyMembers?.length || 0}
+          educationCount={employee.educations?.length || 0}
+          experienceCount={employee.workExperiences?.length || 0}
+          isHrOrAdmin={isHrOrAdmin}
+        />
+      )}
+
+      {/* TAB 2: BIODATA & RIWAYAT TERPADU (Multi-Table Relasional) */}
       {effectiveTab === "biodata" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full min-w-0">
-          {/* Card 1: Data Pribadi */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col gap-4 w-full min-w-0">
-            <h3 className="font-bold text-sm text-[#102E50] font-heading pb-2 border-b border-slate-100">
-              Identitas Pribadi
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3.5 gap-x-3 text-xs w-full min-w-0">
-              <div>
-                <span className="text-slate-400 block mb-0.5">Nama Lengkap</span>
-                <span className="font-semibold text-slate-800 break-words">{employee.fullName}</span>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block mb-0.5">Nama Panggilan</span>
-                <span className="font-semibold text-slate-800 break-words">{employee.nickname || "-"}</span>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block mb-0.5">Jenis Kelamin</span>
-                <span className="font-semibold text-slate-800">
-                  {employee.gender === "MALE"
-                    ? "Laki-laki"
-                    : employee.gender === "FEMALE"
-                      ? "Perempuan"
-                      : "-"}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block mb-0.5">Status Pernikahan</span>
-                <span className="font-semibold text-slate-800">
-                  {employee.maritalStatus === "MARRIED"
-                    ? "Menikah"
-                    : employee.maritalStatus === "SINGLE"
-                      ? "Belum Menikah"
-                      : employee.maritalStatus || "-"}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block mb-0.5">Tempat, Tanggal Lahir</span>
-                <span className="font-semibold text-slate-800 break-words">
-                  {employee.birthPlace || "-"},{" "}
-                  {employee.birthDate ? formatDate(employee.birthDate) : "-"}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-slate-400 block mb-0.5">Tanggal Bergabung</span>
-                <span className="font-semibold text-slate-800 font-mono">
-                  {formatDate(employee.joinDate)}
-                </span>
-              </div>
-
-              <div className="col-span-1 sm:col-span-2">
-                <span className="text-slate-400 block mb-0.5">Alamat Domisili</span>
-                {employee.address ? (
-                  <span className="font-medium text-slate-700 leading-relaxed break-words">
-                    {employee.address}
-                  </span>
-                ) : (
-                  <span className="text-slate-400 italic text-xs">Belum dicantumkan</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Card 2: Kontak & Darurat */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-5 shadow-xs flex flex-col gap-4 w-full min-w-0">
-            <h3 className="font-bold text-sm text-[#102E50] font-heading pb-2 border-b border-slate-100">
-              Informasi Kontak & Darurat
-            </h3>
-
-            <div className="flex flex-col gap-3 text-xs w-full min-w-0">
-              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3 w-full min-w-0">
-                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-[11px] text-slate-400">Email Kantor (Resmi)</span>
-                  <span className="font-semibold text-slate-800 truncate">
-                    {employee.workEmail}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3 w-full min-w-0">
-                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-[11px] text-slate-400">Email Pribadi</span>
-                  <span className="font-semibold text-slate-800 truncate">
-                    {employee.personalEmail || "-"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-lg flex items-center gap-3 w-full min-w-0">
-                <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-[11px] text-slate-400">Nomor Telepon / WhatsApp</span>
-                  <span className="font-semibold text-slate-800 truncate">{employee.phone || "-"}</span>
-                </div>
-              </div>
-
-              <div className="p-3.5 bg-amber-50/50 border border-amber-200/60 rounded-xl flex flex-col gap-1.5 w-full min-w-0">
-                <div className="flex items-center gap-1.5 text-[#805600] font-bold text-xs">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span>Kontak Darurat</span>
-                </div>
-                {employee.emergencyContactName || employee.emergencyContactPhone ? (
-                  <div className="flex justify-between items-center text-xs mt-0.5 flex-wrap gap-2 min-w-0">
-                    <span className="text-slate-700 font-medium truncate">
-                      {employee.emergencyContactName || "Nama tidak dicatat"}
-                    </span>
-                    <span className="font-mono font-bold text-slate-800 shrink-0">
-                      {employee.emergencyContactPhone || "-"}
-                    </span>
-                  </div>
-                ) : (
-                  <span className="text-slate-500 italic text-xs mt-0.5">
-                    Belum ada kontak darurat yang dicantumkan
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <EmployeeBiodataTab
+          employee={{
+            id: employee.id,
+            fullName: employee.fullName,
+            nickname: employee.nickname,
+            employeeNo: employee.employeeNo,
+            gender: employee.gender,
+            birthPlace: employee.birthPlace,
+            birthDate: employee.birthDate,
+            maritalStatus: employee.maritalStatus,
+            religion: employee.religion,
+            bloodType: employee.bloodType,
+            address: employee.address,
+            workEmail: employee.workEmail,
+            personalEmail: employee.personalEmail,
+            phone: employee.phone,
+            emergencyContactName: employee.emergencyContactName,
+            emergencyContactPhone: employee.emergencyContactPhone,
+            emergencyContactRelation: employee.emergencyContactRelation,
+            joinDate: employee.joinDate,
+            workLocation: employee.workLocation,
+            legalEntity: employee.legalEntity,
+          }}
+          addresses={employee.addresses || []}
+          familyMembers={employee.familyMembers || []}
+          educations={employee.educations || []}
+          trainings={employee.trainings || []}
+          workExperiences={employee.workExperiences || []}
+          isHrOrAdmin={isHrOrAdmin}
+        />
       )}
 
-      {/* TAB 2: DATA SENSITIF & BANK */}
-      {isHrOrAdmin && effectiveTab === "sensitif" && (
-        <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-6 shadow-xs flex flex-col gap-5 w-full min-w-0">
-          <div className="flex flex-col min-w-0">
-            <h3 className="font-bold text-base text-[#102E50] font-heading break-words">
-              Data Pribadi Sensitif & Payroll Perbankan
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5 break-words">
-              Nilai di bawah ini dilindungi enkripsi AES-256-GCM. Pembukaan data akan tercatat di
-              sistem audit trail.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-2 w-full min-w-0">
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Nomor Induk Kependudukan (NIK)
-              </span>
-              <SensitiveFieldView
-                employeeId={employee.id}
-                field="nik"
-                fieldLabel="Nomor Induk Kependudukan (NIK)"
-                maskedValue={employee.nikMasked}
-                hasValue={employee.hasNik}
-              />
-            </div>
-
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Nomor Pokok Wajib Pajak (NPWP)
-              </span>
-              <SensitiveFieldView
-                employeeId={employee.id}
-                field="npwp"
-                fieldLabel="Nomor Pokok Wajib Pajak (NPWP)"
-                maskedValue={employee.npwpMasked}
-                hasValue={employee.hasNpwp}
-              />
-            </div>
-
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Bank Payroll Lembaga
-              </span>
-              <span className="font-semibold text-sm text-slate-900 truncate">
-                {employee.bankName || "Bank Mandiri"}
-              </span>
-              <span className="text-[11px] text-slate-500 truncate">
-                Pemilik: {employee.bankAccountName || employee.fullName}
-              </span>
-            </div>
-
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                Nomor Rekening Bank
-              </span>
-              <SensitiveFieldView
-                employeeId={employee.id}
-                field="bankAccount"
-                fieldLabel="Nomor Rekening Bank"
-                maskedValue={employee.bankAccountMasked}
-                hasValue={employee.hasBankAccount}
-              />
-            </div>
-
-            {/* Status Perpajakan PPh 21 */}
-            {(() => {
-              const ptkpInfo = getPtkpExplanation(employee.ptkpStatus);
-              const taxMethodInfo = getTaxMethodExplanation(employee.taxMethod);
-
-              return (
-                <>
-                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                          Status PTKP (PP 58/2023)
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ptkpInfo.terBadgeClass}`}>
-                        {ptkpInfo.terCategory}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <PtkpBadge status={employee.ptkpStatus} size="md" />
-                    </div>
-                    <div className="text-[11px] text-slate-600 space-y-1.5 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
-                      <div className="font-semibold text-slate-800">
-                        {ptkpInfo.annualPtkp} <span className="text-slate-500 font-normal">({ptkpInfo.monthlyPtkp})</span>
-                      </div>
-                      <div className="text-emerald-700 font-medium">
-                        {ptkpInfo.zeroTaxLimit}
-                      </div>
-                      <div className="text-slate-500 text-[10.5px]">
-                        {ptkpInfo.calculationDetail}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Receipt className="w-3.5 h-3.5 text-[#102E50] shrink-0" />
-                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                          Metode Perhitungan Pajak
-                        </span>
-                      </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${taxMethodInfo.badgeClass}`}>
-                        {taxMethodInfo.badge}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 pt-0.5">
-                      <TaxMethodBadge method={employee.taxMethod} size="md" />
-                    </div>
-                    <div className="text-[11px] text-slate-600 space-y-1.5 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
-                      <div className="font-semibold text-slate-800">
-                        {taxMethodInfo.title}
-                      </div>
-                      <div className="text-slate-500 text-[10.5px]">
-                        {taxMethodInfo.howItWorks}
-                      </div>
-                      <div className="text-[10.5px] text-slate-600 font-medium bg-slate-50 p-1.5 rounded border border-slate-100">
-                        Dampak THP: {taxMethodInfo.employeeImpact}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </div>
+      {/* TAB 3: ABSENSI & CUTI */}
+      {effectiveTab === "absensi" && (
+        <EmployeeAttendanceTab
+          employeeId={employee.id}
+          employeeName={employee.fullName}
+          initialOverview={attendanceOverview}
+          initialBalances={attendanceOverview.leaveBalances}
+          isHrOrAdmin={isHrOrAdmin}
+        />
       )}
 
-      {/* TAB 3: KONTRAK KERJA & STRUKTUR KOMPENSASI */}
+      {/* TAB 4: KONTRAK KERJA & KOMPENSASI */}
       {effectiveTab === "kontrak" && (
         <div className="flex flex-col gap-6 w-full min-w-0">
-          {/* Kartu Ringkasan Struktur Kompensasi & Paket Penggajian (Khusus HR / Admin) */}
+          {/* Kartu Ringkasan Struktur Kompensasi (Khusus HR / Admin) */}
           {isHrOrAdmin && (
             <div className="bg-white rounded-xl border border-slate-200/80 p-5 shadow-xs flex flex-col gap-4">
               <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-100">
@@ -781,7 +703,8 @@ export default async function EmployeeDetailPage({
                       Struktur Kompensasi & Paket Penggajian Aktif
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Rincian gaji pokok dan tunjangan bulanan resmi yang melekat pada kontrak kerja staf
+                      Rincian gaji pokok dan tunjangan bulanan resmi yang melekat pada kontrak kerja
+                      staf
                     </p>
                   </div>
                 </div>
@@ -817,7 +740,9 @@ export default async function EmployeeDetailPage({
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between">
                         <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          {activeContract?.wageType === "HOURLY" ? "Tarif Upah Per Jam" : "Gaji Pokok Bulanan"}
+                          {activeContract?.wageType === "HOURLY"
+                            ? "Tarif Upah Per Jam"
+                            : "Gaji Pokok Bulanan"}
                         </span>
                         <div className="mt-2">
                           <span className="text-lg font-bold font-mono text-[#102E50]">
@@ -916,7 +841,9 @@ export default async function EmployeeDetailPage({
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-slate-600">Iuran BPJS Ketenagakerjaan Pegawai (2%):</span>
+                            <span className="text-slate-600">
+                              Iuran BPJS Ketenagakerjaan Pegawai (2%):
+                            </span>
                             <span className="font-mono font-semibold text-rose-600">
                               - {formatRupiah(estBpjsTk)}
                             </span>
@@ -924,8 +851,8 @@ export default async function EmployeeDetailPage({
                           <div className="flex items-center justify-between pt-1 border-t border-slate-100">
                             <span className="text-slate-600">Status PTKP & Kategori TER:</span>
                             <span className="font-semibold text-slate-800">
-                              {employee.ptkpStatus ? employee.ptkpStatus.replace("_", "/") : "TK/0"} (
-                              {getPtkpExplanation(employee.ptkpStatus)?.terCategory || "TER A"})
+                              {employee.ptkpStatus ? employee.ptkpStatus.replace("_", "/") : "TK/0"}{" "}
+                              ({getPtkpExplanation(employee.ptkpStatus)?.terCategory || "TER A"})
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
@@ -937,7 +864,8 @@ export default async function EmployeeDetailPage({
                         </div>
 
                         <div className="mt-auto p-2 bg-slate-50 rounded-lg text-[10.5px] text-slate-500 italic border border-slate-100">
-                          * Pajak PPh 21 dihitung otomatis setiap periode payroll berdasarkan status PTKP & aturan TER (PP 58/2023).
+                          * Pajak PPh 21 dihitung otomatis setiap periode payroll berdasarkan status
+                          PTKP & aturan TER (PP 58/2023).
                         </div>
                       </div>
                     </div>
@@ -969,7 +897,7 @@ export default async function EmployeeDetailPage({
         </div>
       )}
 
-      {/* TAB 4: JABATAN & TIM */}
+      {/* TAB 5: JABATAN & TIM */}
       {effectiveTab === "jabatan" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full min-w-0">
           {/* Card Atasan & Bawahan */}
@@ -1070,21 +998,7 @@ export default async function EmployeeDetailPage({
         </div>
       )}
 
-      {/* TAB 5: AKUN & HAK AKSES */}
-      {isHrOrAdmin && effectiveTab === "akun" && (
-        <EmployeeAccountRoleCard
-          employeeId={employee.id}
-          fullName={employee.fullName}
-          workEmail={employee.workEmail}
-          personalEmail={employee.personalEmail}
-          user={employee.user}
-          isSuperAdmin={isSuperAdmin}
-          isAdminIt={isAdminIt}
-          isAdminHr={isAdminHr}
-        />
-      )}
-
-      {/* TAB 6: DOKUMEN & BERKAS DIGITAL */}
+      {/* TAB 6: DOKUMEN & BERKAS DIGITAL (Dengan Checklist Wajib 7 Berkas) */}
       {effectiveTab === "dokumen" && (
         <EmployeeDocumentsCard
           employeeId={employee.id}
@@ -1103,6 +1017,161 @@ export default async function EmployeeDetailPage({
           activeAssignments={activeAssets}
           returnedAssignments={returnedAssets}
           isHrOrAdmin={isHrOrAdmin}
+        />
+      )}
+
+      {/* TAB 8: DATA SENSITIF & PAJAK (Khusus HR / Admin) */}
+      {isHrOrAdmin && effectiveTab === "sensitif" && (
+        <div className="bg-white rounded-xl border border-slate-200/80 p-4 sm:p-6 shadow-xs flex flex-col gap-5 w-full min-w-0">
+          <div className="flex flex-col min-w-0">
+            <h3 className="font-bold text-base text-[#102E50] font-heading break-words">
+              Data Pribadi Sensitif & Payroll Perbankan
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5 break-words">
+              Nilai di bawah ini dilindungi enkripsi AES-256-GCM. Pembukaan data akan tercatat di
+              sistem audit trail.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-2 w-full min-w-0">
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                Nomor Induk Kependudukan (NIK)
+              </span>
+              <SensitiveFieldView
+                employeeId={employee.id}
+                field="nik"
+                fieldLabel="Nomor Induk Kependudukan (NIK)"
+                maskedValue={employee.nikMasked}
+                hasValue={employee.hasNik}
+              />
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                Nomor Pokok Wajib Pajak (NPWP)
+              </span>
+              <SensitiveFieldView
+                employeeId={employee.id}
+                field="npwp"
+                fieldLabel="Nomor Pokok Wajib Pajak (NPWP)"
+                maskedValue={employee.npwpMasked}
+                hasValue={employee.hasNpwp}
+              />
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                Bank Payroll Lembaga
+              </span>
+              <span className="font-semibold text-sm text-slate-900 truncate">
+                {employee.bankName || "Bank Mandiri"}
+              </span>
+              <span className="text-[11px] text-slate-500 truncate">
+                Pemilik: {employee.bankAccountName || employee.fullName}
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2 w-full min-w-0">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                Nomor Rekening Bank
+              </span>
+              <SensitiveFieldView
+                employeeId={employee.id}
+                field="bankAccount"
+                fieldLabel="Nomor Rekening Bank"
+                maskedValue={employee.bankAccountMasked}
+                hasValue={employee.hasBankAccount}
+              />
+            </div>
+
+            {/* Status Perpajakan PPh 21 */}
+            {(() => {
+              const ptkpInfo = getPtkpExplanation(employee.ptkpStatus);
+              const taxMethodInfo = getTaxMethodExplanation(employee.taxMethod);
+
+              return (
+                <>
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Info className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                          Status PTKP (PP 58/2023)
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border ${ptkpInfo.terBadgeClass}`}
+                      >
+                        {ptkpInfo.terCategory}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <PtkpBadge status={employee.ptkpStatus} size="md" />
+                    </div>
+                    <div className="text-[11px] text-slate-600 space-y-1.5 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
+                      <div className="font-semibold text-slate-800">
+                        {ptkpInfo.annualPtkp}{" "}
+                        <span className="text-slate-500 font-normal">
+                          ({ptkpInfo.monthlyPtkp})
+                        </span>
+                      </div>
+                      <div className="text-emerald-700 font-medium">
+                        {ptkpInfo.zeroTaxLimit}
+                      </div>
+                      <div className="text-slate-500 text-[10.5px]">
+                        {ptkpInfo.calculationDetail}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col gap-2.5 w-full min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Receipt className="w-3.5 h-3.5 text-[#102E50] shrink-0" />
+                        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                          Metode Perhitungan Pajak
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border ${taxMethodInfo.badgeClass}`}
+                      >
+                        {taxMethodInfo.badge}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <TaxMethodBadge method={employee.taxMethod} size="md" />
+                    </div>
+                    <div className="text-[11px] text-slate-600 space-y-1.5 bg-white p-3 rounded-lg border border-slate-200/60 leading-relaxed">
+                      <div className="font-semibold text-slate-800">
+                        {taxMethodInfo.title}
+                      </div>
+                      <div className="text-slate-500 text-[10.5px]">
+                        {taxMethodInfo.howItWorks}
+                      </div>
+                      <div className="text-[10.5px] text-slate-600 font-medium bg-slate-50 p-1.5 rounded border border-slate-100">
+                        Dampak THP: {taxMethodInfo.employeeImpact}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 9: AKUN & HAK AKSES (Khusus HR / Admin) */}
+      {isHrOrAdmin && effectiveTab === "akun" && (
+        <EmployeeAccountRoleCard
+          employeeId={employee.id}
+          fullName={employee.fullName}
+          workEmail={employee.workEmail}
+          personalEmail={employee.personalEmail}
+          user={employee.user}
+          isSuperAdmin={isSuperAdmin}
+          isAdminIt={isAdminIt}
+          isAdminHr={isAdminHr}
         />
       )}
     </div>
