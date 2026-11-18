@@ -340,8 +340,115 @@ export function EmployeeDocumentsCard({
         )}
       </div>
 
-      {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      {/* Panel Checklist 7 Dokumen Wajib Pendaftaran (Responsif untuk Mobile PWA, Tablet, Monitor) */}
+      <div className="bg-slate-50/80 rounded-2xl border border-slate-200/90 p-4 sm:p-5 flex flex-col gap-3.5 w-full min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div
+              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                mandatoryPercentage === 100
+                  ? "bg-emerald-100 text-emerald-700"
+                  : "bg-[#102E50]/10 text-[#102E50]"
+              }`}
+            >
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-bold text-xs sm:text-sm text-[#102E50] font-heading">
+                  Checklist Kelengkapan 7 Dokumen Wajib
+                </h3>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    mandatoryPercentage === 100
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : "bg-amber-50 text-amber-800 border-amber-200"
+                  }`}
+                >
+                  {mandatoryUploadedCount} / {MANDATORY_DOCUMENTS.length} Terunggah ({mandatoryPercentage}%)
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5 truncate">
+                Berkas administratif utama yang dipersyaratkan pada pendaftaran pegawai.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowChecklist(!showChecklist)}
+            className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-[#102E50] cursor-pointer self-start sm:self-auto shrink-0"
+          >
+            <span>{showChecklist ? "Sembunyikan Checklist" : "Tampilkan Checklist"}</span>
+            {showChecklist ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-slate-200/70 h-2 rounded-full overflow-hidden">
+          <div
+            className={`h-full transition-all duration-500 rounded-full ${
+              mandatoryPercentage === 100
+                ? "bg-emerald-600"
+                : "bg-gradient-to-r from-[#102E50] to-[#F2AF3E]"
+            }`}
+            style={{ width: `${mandatoryPercentage}%` }}
+          />
+        </div>
+
+        {/* Grid 7 Dokumen Wajib */}
+        {showChecklist && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1 animate-in fade-in duration-150">
+            {mandatoryStatus.map((item) => (
+              <div
+                key={item.key}
+                className={`p-3 rounded-xl border flex items-start justify-between gap-2 text-xs transition-all ${
+                  item.isUploaded
+                    ? "bg-white border-slate-200 text-slate-800 shadow-2xs"
+                    : "bg-amber-50/50 border-amber-200/80 text-amber-950"
+                }`}
+              >
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  {item.isUploaded ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-semibold text-[11.5px] truncate">{item.label}</span>
+                    <span className="text-[10.5px] text-slate-400 mt-0.5 truncate">
+                      {item.isUploaded ? item.document?.fileName : item.description}
+                    </span>
+                  </div>
+                </div>
+
+                {!item.isUploaded && canUpload && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadCategory(item.key as DocumentCategory);
+                      setUploadTitle(item.label);
+                      setSelectedFile(null);
+                      setIsUploadModalOpen(true);
+                    }}
+                    className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#102E50] text-[#ffddb0] hover:bg-[#0c233d] shrink-0 cursor-pointer transition-colors shadow-2xs"
+                    title={`Unggah ${item.label}`}
+                  >
+                    Unggah
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Category Filter Pills (Mobile Horizontal Scrollable) */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none [overscroll-behavior-x:contain]">
         <button
           type="button"
           onClick={() => setActiveGroup("ALL")}
