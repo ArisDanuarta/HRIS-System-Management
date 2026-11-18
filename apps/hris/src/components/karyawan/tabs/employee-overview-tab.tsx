@@ -31,6 +31,7 @@ export interface EmployeeOverviewTabProps {
     employeeNo: string;
     fullName: string;
     nickname?: string | null;
+    gender?: string | null;
     photoKey?: string | null;
     joinDate: Date | string;
     status: string;

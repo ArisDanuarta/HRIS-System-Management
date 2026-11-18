@@ -28,6 +28,7 @@ import {
 export interface EmployeeBiodataTabProps {
   employee: {
     id: string;
+    employeeNo?: string;
     fullName: string;
     nickname?: string | null;
     gender?: string | null;
