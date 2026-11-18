@@ -589,11 +589,23 @@ export function EmployeeDocumentsCard({
                       {doc.fileName}
                     </p>
 
-                    <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-2">
+                    <div className="flex items-center gap-2 flex-wrap text-[10px] text-slate-400 mt-2">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {formatDate(doc.createdAt)}
                       </span>
+                      {doc.educationId && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                          <GraduationCap className="w-3 h-3 text-purple-600" />
+                          <span>Tertaut Pendidikan</span>
+                        </span>
+                      )}
+                      {doc.trainingId && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-cyan-50 text-cyan-800 border border-cyan-200">
+                          <Award className="w-3 h-3 text-cyan-600" />
+                          <span>Tertaut Pelatihan</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
