@@ -79,17 +79,17 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
   - `getEmployeeLeaveBalances(employeeId: string, year: number): Promise<EmployeeLeaveBalanceData[]>`
   - `calculateProfileCompleteness(employee: any): { percentage: number; missingFields: string[]; completedCount: number; totalCount: number }`
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Cek struktur model `Attendance`, `LeaveBalance`, `LeaveRequest`, `Holiday`, dan `TimesheetSubmission` di `packages/db/prisma/schema/hris.prisma`.
   - Verifikasi query `getEmployeeById` di `apps/hris/src/server/queries/employee.queries.ts` memastikan relasi `addresses`, `familyMembers`, `educations`, `trainings`, dan `workExperiences` sudah dipanggil dengan benar.
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Buat helper kalkulasi kelengkapan profil `calculateProfileCompleteness` di `apps/hris/src/lib/profile-completeness.ts` (memeriksa 12 komponen vital: foto, alamat KTP, domisili, kontak darurat, keluarga, pendidikan, pengalaman kerja, KTP, NPWP, ijazah, CV, rekening bank).
-  - Buat query `getEmployeeMonthlyAttendance` untuk mengambil log kehadiran bulan tertentu, status cuti yang disetujui, hari libur nasional, dan total jam timesheet paruh waktu.
-  - Buat query `getEmployeeLeaveBalances` untuk mengambil sisa saldo kuota cuti tahunan.
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
-  - Jalankan `pnpm --filter @pspk/hris typecheck`.
-  - Pastikan return types aman dan bebas `any` liar.
-  - Verifikasi bahwa fungsi siap dikonsumsi oleh Task 2, 3, dan 4.
+  - Buat query `getEmployeeMonthlyAttendanceOverview` di `apps/hris/src/server/queries/attendance.queries.ts` untuk mengambil log kehadiran bulan tertentu, status cuti yang disetujui, hari libur nasional, total jam timesheet paruh waktu, dan saldo cuti tahunan.
+  - Buat server action `getEmployeeMonthlyAttendanceAction` di `apps/hris/src/server/actions/attendance.actions.ts` dengan otorisasi RBAC ketat.
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+  - Jalankan `pnpm --filter @pspk/hris typecheck` dan `pnpm --filter @pspk/hris lint`.
+  - Buat unit test `apps/hris/src/lib/profile-completeness.test.ts` dan jalankan vitest (semua lolos 100%).
+  - Verifikasi bahwa fungsi siap dikonsumsi oleh Task 2, Task 3, dan Task 4.
 
 ---
 
