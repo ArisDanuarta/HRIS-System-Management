@@ -596,86 +596,16 @@ export default async function EmployeeDetailPage({
       {/* TAB 1: RINGKASAN 360° (Default Landing Tab) */}
       {effectiveTab === "ringkasan" && (
         <EmployeeOverviewTab
-          employee={{
-            id: employee.id,
-            fullName: employee.fullName,
-            employeeNo: employee.employeeNo,
-            status: employee.status,
-            gender: employee.gender,
-            joinDate: employee.joinDate,
-            address: employee.address,
-            phone: employee.phone,
-            personalEmail: employee.personalEmail,
-            emergencyContactName: employee.emergencyContactName,
-            emergencyContactPhone: employee.emergencyContactPhone,
-            hasNik: employee.hasNik,
-            hasNpwp: employee.hasNpwp,
-            hasBankAccount: employee.hasBankAccount,
-            currentPosition: employee.currentPosition,
-            currentDepartment: employee.currentDepartment,
-            manager: employee.manager,
-          }}
-          activeContract={
-            activeContract
-              ? {
-                  id: activeContract.id,
-                  type: activeContract.type,
-                  startDate: activeContract.startDate,
-                  endDate: activeContract.endDate,
-                  status: activeContract.status,
-                  employmentTypeMaster: activeContract.employmentTypeMaster,
-                }
-              : null
-          }
-          attendanceSummary={attendanceOverview.summary}
-          leaveQuota={
-            primaryLeaveBalance
-              ? {
-                  balance: primaryLeaveBalance.remainingDays,
-                }
-              : null
-          }
+          employee={employee}
+          attendanceOverview={attendanceOverview}
           activeAssetsCount={activeAssets.length}
-          documentsCount={employee.documents?.length || 0}
-          familyCount={employee.familyMembers?.length || 0}
-          educationCount={employee.educations?.length || 0}
-          experienceCount={employee.workExperiences?.length || 0}
           isHrOrAdmin={isHrOrAdmin}
         />
       )}
 
       {/* TAB 2: BIODATA & RIWAYAT TERPADU (Multi-Table Relasional) */}
       {effectiveTab === "biodata" && (
-        <EmployeeBiodataTab
-          employee={{
-            id: employee.id,
-            fullName: employee.fullName,
-            nickname: employee.nickname,
-            employeeNo: employee.employeeNo,
-            gender: employee.gender,
-            birthPlace: employee.birthPlace,
-            birthDate: employee.birthDate,
-            maritalStatus: employee.maritalStatus,
-            religion: employee.religion,
-            bloodType: employee.bloodType,
-            address: employee.address,
-            workEmail: employee.workEmail,
-            personalEmail: employee.personalEmail,
-            phone: employee.phone,
-            emergencyContactName: employee.emergencyContactName,
-            emergencyContactPhone: employee.emergencyContactPhone,
-            emergencyContactRelation: employee.emergencyContactRelation,
-            joinDate: employee.joinDate,
-            workLocation: employee.workLocation,
-            legalEntity: employee.legalEntity,
-          }}
-          addresses={employee.addresses || []}
-          familyMembers={employee.familyMembers || []}
-          educations={employee.educations || []}
-          trainings={employee.trainings || []}
-          workExperiences={employee.workExperiences || []}
-          isHrOrAdmin={isHrOrAdmin}
-        />
+        <EmployeeBiodataTab employee={employee} />
       )}
 
       {/* TAB 3: ABSENSI & CUTI */}
@@ -683,9 +613,7 @@ export default async function EmployeeDetailPage({
         <EmployeeAttendanceTab
           employeeId={employee.id}
           employeeName={employee.fullName}
-          initialOverview={attendanceOverview}
-          initialBalances={attendanceOverview.leaveBalances}
-          isHrOrAdmin={isHrOrAdmin}
+          initialData={attendanceOverview}
         />
       )}
 
