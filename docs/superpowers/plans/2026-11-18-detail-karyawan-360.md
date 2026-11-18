@@ -134,10 +134,10 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: `employee.addresses`, `employee.familyMembers`, `employee.educations`, `employee.trainings`, `employee.workExperiences`, dan field pribadi lengkap.
 - Produces: Komponen React `<EmployeeBiodataTab />`.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa struktur kolom `EmployeeAddress`, `EmployeeFamilyMember`, `EmployeeEducation`, `EmployeeTraining`, `EmployeeWorkExperience`.
   - Identifikasi enum bahasa Inggris (`SINGLE`, `MARRIED`, `FATHER`, `MOTHER`, `SPOUSE`, `CHILD`, `SD`..`S3`) dan siapkan pemetaan label bahasa Indonesia.
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Buat pemetaan label kamus enum Indonesia di `apps/hris/src/lib/enum-labels.ts`.
   - Implementasikan Kartu Identitas Pribadi (nama ibu kandung, telepon rumah, agama, kewarganegaraan, gol. darah, kontak darurat + hubungan).
   - Implementasikan Tabel Alamat KTP & Domisili (dengan fallback otomatis ke `employee.address`).
@@ -145,10 +145,12 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
   - Implementasikan Tabel Riwayat Pendidikan Formal & Nilai IPK.
   - Implementasikan Tabel Riwayat Pelatihan & Sertifikasi.
   - Implementasikan Tabel Riwayat Pengalaman Kerja Terdahulu (jika `endDate == null`, tampilkan badge hijau *"Sekarang / Aktif"*).
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
-  - Jalankan `pnpm --filter @pspk/hris typecheck`.
+  - Terapkan standar responsivitas menyeluruh: overflow-x guard untuk PWA/mobile, touch-friendly wrapping, dan tablet grid.
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+  - Jalankan `pnpm --filter @pspk/hris typecheck` dan `pnpm --filter @pspk/hris lint`.
+  - Buat unit test `apps/hris/src/lib/enum-labels.test.ts` dan jalankan vitest (semua lolos 100%).
   - Pastikan kondisi data kosong (array `[]` atau field `null`) menampilkan placeholder ramah ("Belum dicatat") dan tidak merusak layout tabel.
-  - Pastikan terhubung mulus dengan data dari `page.tsx`.
+  - Pastikan terhubung mulus dengan data dari `page.tsx` pada Task 6.
 
 ---
 
