@@ -15,6 +15,11 @@ import {
   X,
   Calendar,
   ExternalLink,
+  GraduationCap,
+  Award,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   uploadEmployeeDocumentAction,
@@ -31,6 +36,8 @@ export interface EmployeeDocumentItem {
   fileSize: number;
   mimeType: string;
   createdAt: Date | string;
+  educationId?: string | null;
+  trainingId?: string | null;
 }
 
 interface EmployeeDocumentsCardProps {
@@ -58,6 +65,11 @@ const CATEGORY_META: Record<
   NPWP: {
     label: "NPWP (Perpajakan)",
     badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    group: "identity",
+  },
+  FAMILY_CARD: {
+    label: "Kartu Keluarga (KK)",
+    badgeClass: "bg-sky-50 text-sky-700 border-sky-200",
     group: "identity",
   },
   BANK_BOOK: {
