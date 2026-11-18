@@ -114,6 +114,16 @@ const CATEGORY_META: Record<
   },
 };
 
+const MANDATORY_DOCUMENTS = [
+  { key: "KTP", label: "Kartu Tanda Penduduk (KTP)", description: "Identitas kependudukan resmi" },
+  { key: "NPWP", label: "Nomor Pokok Wajib Pajak", description: "Dokumen perpajakan nasional" },
+  { key: "FAMILY_CARD", label: "Kartu Keluarga (KK)", description: "Susunan anggota keluarga" },
+  { key: "DIPLOMA", label: "Ijazah & Transkrip", description: "Kelulusan pendidikan formal" },
+  { key: "CV", label: "CV & Resume Lengkap", description: "Rekam jejak karir pegawai" },
+  { key: "BANK_BOOK", label: "Buku Rekening Bank", description: "Buku tabungan bank payroll" },
+  { key: "CONTRACT", label: "Kontrak Kerja (PKWT/SK)", description: "Surat perjanjian kerja fisik" },
+];
+
 export function EmployeeDocumentsCard({
   employeeId,
   employeeName,
@@ -122,9 +132,27 @@ export function EmployeeDocumentsCard({
   canDelete = true,
 }: EmployeeDocumentsCardProps) {
   const [documents, setDocuments] = useState<EmployeeDocumentItem[]>(initialDocuments);
+  const [showChecklist, setShowChecklist] = useState(true);
   const [activeGroup, setActiveGroup] = useState<
     "ALL" | "identity" | "academic" | "contract" | "certificate" | "other"
   >("ALL");
+
+  // Status Checklist 7 Dokumen Wajib
+  const mandatoryStatus = MANDATORY_DOCUMENTS.map((docItem) => {
+    const uploadedDoc = documents.find(
+      (d) => d.category.toUpperCase() === docItem.key.toUpperCase(),
+    );
+    return {
+      ...docItem,
+      isUploaded: Boolean(uploadedDoc),
+      document: uploadedDoc || null,
+    };
+  });
+
+  const mandatoryUploadedCount = mandatoryStatus.filter((d) => d.isUploaded).length;
+  const mandatoryPercentage = Math.round(
+    (mandatoryUploadedCount / MANDATORY_DOCUMENTS.length) * 100,
+  );
 
   // Upload Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
