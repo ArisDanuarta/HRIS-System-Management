@@ -104,10 +104,10 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: Data `employee` dari `getEmployeeById`, data absensi bulan berjalan dari Task 1, data saldo cuti dari Task 1, dan helper `calculateProfileCompleteness`.
 - Produces: Komponen React `<EmployeeOverviewTab />`.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa props yang dibutuhkan oleh komponen overview: `employee`, `attendanceSummary`, `leaveSummary`, `activeAssetsCount`.
   - Pastikan desain kartu KPI selaras dengan palet brand PSPK (`#102E50`, `#F2AF3E`).
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Implementasikan 4 Kartu Skor KPI:
     1. Masa Kerja (format tahun & bulan dari `joinDate`).
     2. Kehadiran Bulan Ini (persentase hadir tepat waktu).
@@ -115,8 +115,8 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
     4. Aset Kantor Aktif (jumlah unit yang dipinjam).
   - Implementasikan Card Kelengkapan Profil (%) dengan progress bar visual dan collapsible checklist bagian yang belum lengkap.
   - Implementasikan Ringkasan Penempatan & Pengingat Akhir Kontrak (peringatan jika kontrak berakhir dalam 30 hari).
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
-  - Jalankan `pnpm --filter @pspk/hris typecheck`.
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+  - Jalankan `pnpm --filter @pspk/hris typecheck` dan `pnpm --filter @pspk/hris lint`.
   - Pastikan kalkulasi masa kerja tepat menangani pegawai baru (< 1 bulan) dan pegawai lama.
   - Pastikan komponen siap dimuat di `page.tsx` pada Task 6.
 
