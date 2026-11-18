@@ -166,19 +166,20 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: Query Task 1 (`getEmployeeMonthlyAttendance`, `getEmployeeLeaveBalances`).
 - Produces: Komponen React `<EmployeeAttendanceTab />`.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa enum `AttendanceStatus` (`PRESENT`, `LATE`, `ABSENT`, `LEAVE`, `HOLIDAY`, `WFH`) dan format tanggal kalender bulanan.
-  - Tentukan mekanisme pergantian bulan (Client state + Server Action atau URL query searchParams).
-- [ ] **Langkah 2 (Implementasi):**
-  - Buat bilah pemilih Bulan & Tahun dinamis dengan tombol *Prev* dan *Next*.
+  - Tentukan mekanisme pergantian bulan (Client state + Server Action `getEmployeeMonthlyAttendanceAction`).
+- [x] **Langkah 2 (Implementasi):**
+  - Buat bilah pemilih Bulan & Tahun dinamis dengan tombol *Prev*, *Next*, dan tombol *"Bulan Ini"*.
   - Buat kartu ringkasan kehadiran bulanan (Hadir, Telat, WFH, Izin, Alpha, % Kehadiran, Jam Timesheet).
-  - Buat visual grid kalender mini 7-hari dengan kode warna status.
-  - Buat tabel detail presensi harian (Tanggal, Hari, Jam Masuk, Jam Pulang, Durasi, Status, Catatan).
+  - Buat visual grid kalender mini 7-hari (Senin s.d. Minggu) dengan kode warna status, indikator hari ini, dan penanda libur nasional.
+  - Buat tabel detail presensi harian (Tanggal, Jam Masuk, Jam Pulang, Durasi, Status, Sumber, Catatan/Koreksi).
   - Buat tabel izin cuti bulan tersebut dan tabel saldo cuti tahunan (`quotaDays`, `usedDays`, sisa).
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
-  - Jalankan `pnpm --filter @pspk/hris typecheck`.
+  - Terapkan standar responsivitas optimal: kontrol tombol ramah sentuhan PWA/mobile, grid kalender elastis, dan horizontal scroll protection pada tabel log presensi.
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+  - Jalankan `pnpm --filter @pspk/hris typecheck` dan `pnpm --filter @pspk/hris lint`.
   - Verifikasi transisi pergantian bulan berjalan mulus tanpa error rendering.
-  - Pastikan data terhubung ke model `Attendance` riil.
+  - Pastikan data terhubung ke model `Attendance` riil dan siap dikonsumsi di `page.tsx` pada Task 6.
 
 ---
 

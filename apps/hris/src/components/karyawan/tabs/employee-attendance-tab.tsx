@@ -115,8 +115,8 @@ export function EmployeeAttendanceTab({
               {isPending && <Loader2 className="w-4 h-4 text-[#F2AF3E] animate-spin" />}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Periode {data.period.monthName} {data.period.year} • {data.stats.workingDaysCount} hari
-              kerja efektif
+              Periode {data.period.monthName} {data.period.year} • {employeeName} (
+              {data.stats.workingDaysCount} hari kerja efektif)
             </p>
           </div>
         </div>
