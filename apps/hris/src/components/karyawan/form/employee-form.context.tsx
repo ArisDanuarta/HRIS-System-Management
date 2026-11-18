@@ -39,7 +39,16 @@ import {
   WorkLocationOption,
   LegalEntityOption,
 } from "./types";
-import { EmployeeStatus, EmploymentType, Gender, MaritalStatus, PtkpStatus, TaxMethod } from "@pspk/db";
+import {
+  EmployeeStatus,
+  EmploymentType,
+  Gender,
+  MaritalStatus,
+  PtkpStatus,
+  TaxMethod,
+  Religion,
+  BloodType,
+} from "@pspk/db";
 
 export interface CreatedCredentialsData {
   id: string;
@@ -117,6 +126,8 @@ interface EmployeeFormContextType {
   setDocSkck: (s: UploadedFileState) => void;
   docHealthCert: UploadedFileState;
   setDocHealthCert: (s: UploadedFileState) => void;
+  docContract: UploadedFileState;
+  setDocContract: (s: UploadedFileState) => void;
   contractFile: File | null;
   setContractFile: (f: File | null) => void;
 
@@ -497,7 +508,7 @@ export function EmployeeFormProvider({
     initialData?.familyMembers?.map((fm) => ({
       id: fm.id,
       name: fm.name,
-      relation: fm.relation as any,
+      relation: fm.relation as FamilyRelation,
       birthDate: fm.birthDate ? toDateString(fm.birthDate) : undefined,
       phone: fm.phone || undefined,
       isDependent: Boolean(fm.isDependent),
@@ -508,7 +519,7 @@ export function EmployeeFormProvider({
   const [educations, setEducations] = useState<EducationItem[]>(
     initialData?.educations?.map((edu) => ({
       id: edu.id,
-      level: edu.level as any,
+      level: edu.level as EducationLevel,
       institution: edu.institution,
       major: edu.major || undefined,
       graduationYear: edu.graduationYear || undefined,
@@ -598,6 +609,10 @@ export function EmployeeFormProvider({
     file: null,
     status: "idle",
   });
+  const [docContract, setDocContract] = useState<UploadedFileState>({
+    file: null,
+    status: initialActiveContract?.documentKey ? "uploaded" : "idle",
+  });
   const [contractFile, setContractFile] = useState<File | null>(null);
 
   // NIP Generation & Availability Check
@@ -630,8 +645,8 @@ export function EmployeeFormProvider({
       const res = await checkEmployeeNoAvailabilityAction(nip.trim());
       if (res.ok) {
         setNipStatus({
-          available: res.data.available,
-          message: res.data.available
+          available: res.available,
+          message: res.available
             ? "NIP dapat digunakan."
             : "NIP sudah terdaftar di sistem. Harap gunakan nomor lain.",
         });
@@ -1279,6 +1294,8 @@ export function EmployeeFormProvider({
         bankName: formData.bankName.trim() || undefined,
         bankAccount: formData.bankAccount.trim() || undefined,
         bankAccountName: formData.bankAccountName.trim() || undefined,
+        createUserAccount: false,
+        accountRole: "staff",
         familyMembers: familyMembers
           .filter((fm) => fm.name.trim())
           .map((fm) => ({
@@ -1413,6 +1430,8 @@ export function EmployeeFormProvider({
         setDocSkck,
         docHealthCert,
         setDocHealthCert,
+        docContract,
+        setDocContract,
         contractFile,
         setContractFile,
 

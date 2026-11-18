@@ -3,6 +3,7 @@
 import React from "react";
 import { AlertCircle, ChevronRight } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";
+import { CreateStepNumber, EditCategoryKey } from "../types";
 
 export function ErrorSummaryBanner() {
   const { errors, serverError, mode, goToStep, setActiveCategory } = useEmployeeForm();
@@ -11,9 +12,9 @@ export function ErrorSummaryBanner() {
 
   const handleJumpToField = (field: string, step: number, category: string) => {
     if (mode === "create") {
-      goToStep(step as any);
+      goToStep(step as CreateStepNumber);
     } else {
-      setActiveCategory(category as any);
+      setActiveCategory(category as EditCategoryKey);
     }
 
     setTimeout(() => {

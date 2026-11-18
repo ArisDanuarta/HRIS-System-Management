@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   GraduationCap,
   Users,
   Award,
   Briefcase,
   FolderArchive,
-  Plus,
   Trash2,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";

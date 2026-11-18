@@ -144,7 +144,12 @@ export function QuickCreateEmploymentTypeModal() {
               <label className="font-bold text-slate-700">Kategori Regulasi</label>
               <select
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value as any })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    category: e.target.value as "PERMANENT" | "FIXED_TERM" | "PART_TIME_PROJECT",
+                  })
+                }
                 className="h-10 px-2.5 rounded-lg border border-slate-200"
               >
                 <option value="FIXED_TERM">PKWT (Tertentu)</option>
@@ -157,7 +162,9 @@ export function QuickCreateEmploymentTypeModal() {
               <label className="font-bold text-slate-700">Skema Pengupahan</label>
               <select
                 value={form.wageType}
-                onChange={(e) => setForm({ ...form, wageType: e.target.value as any })}
+                onChange={(e) =>
+                  setForm({ ...form, wageType: e.target.value as "MONTHLY" | "HOURLY" })
+                }
                 className="h-10 px-2.5 rounded-lg border border-slate-200"
               >
                 <option value="MONTHLY">Bulanan (Monthly)</option>

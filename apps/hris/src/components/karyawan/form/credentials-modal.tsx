@@ -7,8 +7,6 @@ import {
   Copy,
   Check,
   Mail,
-  Key,
-  ShieldCheck,
   ArrowRight,
 } from "lucide-react";
 import { CreatedCredentialsData } from "./employee-form.context";
