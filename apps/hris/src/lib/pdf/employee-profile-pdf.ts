@@ -1,12 +1,121 @@
 import PDFDocument from "pdfkit";
 import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { getStorageProvider } from "@pspk/storage";
 import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
 
+export interface PdfAddressItem {
+  type: string;
+  street?: string | null;
+  kelurahan?: string | null;
+  kecamatan?: string | null;
+  city?: string | null;
+  province?: string | null;
+  postalCode?: string | null;
+}
+
+export interface PdfFamilyItem {
+  name: string;
+  relation: string;
+  birthDate?: Date | string | null;
+  phone?: string | null;
+  isDependent: boolean;
+}
+
+export interface PdfEducationItem {
+  level: string;
+  institution: string;
+  major?: string | null;
+  graduationYear?: number | null;
+  gpa?: unknown;
+}
+
+export interface PdfTrainingItem {
+  name: string;
+  organizer?: string | null;
+  startDate?: Date | string | null;
+  duration?: string | null;
+}
+
+export interface PdfWorkExperienceItem {
+  companyName: string;
+  jobTitle: string;
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
+  reasonForLeaving?: string | null;
+}
+
+export interface PdfContractItem {
+  type: string;
+  wageType?: string | null;
+  baseSalary?: unknown;
+  hourlyRate?: unknown;
+  startDate?: Date | string | null;
+  endDate?: Date | string | null;
+  status: string;
+  notes?: string | null;
+  employmentTypeMaster?: { name: string } | null;
+}
+
+export interface PdfDocumentItem {
+  category: string;
+  title: string;
+  fileName: string;
+  createdAt?: Date | string | null;
+}
+
+export interface PdfEmployeeData {
+  id: string;
+  employeeNo: string;
+  fullName: string;
+  nickname?: string | null;
+  gender?: string | null;
+  maritalStatus?: string | null;
+  birthPlace?: string | null;
+  birthDate?: Date | string | null;
+  religion?: string | null;
+  bloodType?: string | null;
+  citizenship?: string | null;
+  workEmail?: string | null;
+  personalEmail?: string | null;
+  phone?: string | null;
+  landlinePhone?: string | null;
+  emergencyContactName?: string | null;
+  emergencyContactRelation?: string | null;
+  emergencyContactPhone?: string | null;
+  joinDate: Date | string;
+  probationEndDate?: Date | string | null;
+  status: string;
+  photoKey?: string | null;
+  address?: string | null;
+  ptkpStatus?: string | null;
+  taxMethod?: string | null;
+  nikRaw?: string | null;
+  npwpRaw?: string | null;
+  bankAccountRaw?: string | null;
+  nikMasked?: string | null;
+  npwpMasked?: string | null;
+  bankAccountMasked?: string | null;
+  bankName?: string | null;
+  currentPosition?: { title: string } | null;
+  currentDepartment?: { name: string } | null;
+  manager?: { fullName: string; employeeNo: string; currentPosition?: { title: string } | null } | null;
+  workLocation?: { name: string } | null;
+  legalEntity?: { name: string } | null;
+  addresses?: PdfAddressItem[];
+  familyMembers?: PdfFamilyItem[];
+  educations?: PdfEducationItem[];
+  trainings?: PdfTrainingItem[];
+  workExperiences?: PdfWorkExperienceItem[];
+  contracts?: PdfContractItem[];
+  salaryComponents?: Array<{ name: string; amount: number; code?: string }>;
+  documents?: PdfDocumentItem[];
+}
+
 export interface EmployeePdfExportOptions {
-  employee: any;
+  employee: PdfEmployeeData;
   actor: {
     name: string;
     email: string;
@@ -62,7 +171,7 @@ export interface EmployeePdfExportOptions {
 }
 
 // Helper untuk mengonversi Readable stream ke Buffer
-async function streamToBuffer(stream: any): Promise<Buffer> {
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -118,7 +227,7 @@ export async function generateEmployeeProfilePdf(
   });
 
   const buffers: Buffer[] = [];
-  doc.on("data", (chunk) => buffers.push(chunk));
+  doc.on("data", (chunk: Buffer) => buffers.push(chunk));
 
   // Ambil buffer logo & watermark
   const logoPath = resolveImagePath("logo_pspk_horizontal.png");
@@ -210,7 +319,6 @@ export async function generateEmployeeProfilePdf(
     startY: number,
   ): number => {
     let curY = startY;
-    const colWidth = 258;
     const rowHeight = 18;
 
     for (let i = 0; i < items.length; i += 2) {
@@ -305,7 +413,7 @@ export async function generateEmployeeProfilePdf(
     { label: "Masa Kerja", value: formatTenureText(employee.joinDate) },
   ];
 
-  let sideY = y + 47;
+  const sideY = y + 47;
   summarySideItems.forEach((item, idx) => {
     const isCol2 = idx % 2 === 1;
     const colX = isCol2 ? textX + 210 : textX;
@@ -351,10 +459,10 @@ export async function generateEmployeeProfilePdf(
     if (options.address) {
       y = drawSectionHeader("2. Rincian Alamat Lengkap (KTP & Domisili)", y);
 
-      const ktpAddr = employee.addresses?.find((a: any) => a.type === "KTP");
-      const domAddr = employee.addresses?.find((a: any) => a.type === "DOMICILE");
+      const ktpAddr = employee.addresses?.find((a) => a.type === "KTP");
+      const domAddr = employee.addresses?.find((a) => a.type === "DOMICILE");
 
-      const formatFullAddress = (addr: any) => {
+      const formatFullAddress = (addr?: PdfAddressItem) => {
         if (!addr) return employee.address || "Belum dicantumkan";
         return `${addr.street || ""}, Kel. ${addr.kelurahan || "-"}, Kec. ${addr.kecamatan || "-"}, ${addr.city || "-"}, ${addr.province || "-"} ${addr.postalCode ? `(${addr.postalCode})` : ""}`.trim();
       };
@@ -397,7 +505,7 @@ export async function generateEmployeeProfilePdf(
         doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada data keluarga yang dicatatkan.", 44, y + 6);
         y += 24;
       } else {
-        families.forEach((fam: any, idx: number) => {
+        families.forEach((fam, idx: number) => {
           const isZebra = idx % 2 === 1;
           if (isZebra) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
           doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
@@ -443,7 +551,7 @@ export async function generateEmployeeProfilePdf(
       doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada riwayat pendidikan yang dicatatkan.", 44, y + 5);
       y += 24;
     } else {
-      edus.forEach((edu: any, idx: number) => {
+      edus.forEach((edu, idx: number) => {
         if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
         doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
 
@@ -452,7 +560,7 @@ export async function generateEmployeeProfilePdf(
         doc.text(edu.institution || "-", 105, y + 4.5, { width: 175 });
         doc.text(edu.major || "-", 285, y + 4.5, { width: 145 });
         doc.text(String(edu.graduationYear || "-"), 435, y + 4.5, { width: 60, align: "center" });
-        doc.text(edu.gpa ? Number(edu.gpa).toFixed(2) : "-", 500, y + 4.5, { width: 50, align: "center" });
+        doc.text(edu.gpa ? Number(String(edu.gpa)).toFixed(2) : "-", 500, y + 4.5, { width: 50, align: "center" });
         y += 17;
       });
       y += 10;
@@ -475,7 +583,7 @@ export async function generateEmployeeProfilePdf(
       doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada riwayat pelatihan yang dicatatkan.", 44, y + 5);
       y += 24;
     } else {
-      trainings.forEach((tr: any, idx: number) => {
+      trainings.forEach((tr, idx: number) => {
         if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
         doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
 
@@ -506,7 +614,7 @@ export async function generateEmployeeProfilePdf(
       doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada riwayat pengalaman kerja yang dicatatkan.", 44, y + 5);
       y += 24;
     } else {
-      works.forEach((w: any, idx: number) => {
+      works.forEach((w, idx: number) => {
         if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
         doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
 
@@ -564,7 +672,7 @@ export async function generateEmployeeProfilePdf(
         doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada riwayat kontrak.", 44, y + 5);
         y += 24;
       } else {
-        contracts.forEach((c: any, idx: number) => {
+        contracts.forEach((c, idx: number) => {
           if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
           doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
 
@@ -587,11 +695,11 @@ export async function generateEmployeeProfilePdf(
       doc.fillColor(COLORS.slateLight).fontSize(7.5).font("Helvetica-Oblique").text("— INFORMASI STRUKTUR KOMPENSASI DIKUNCI / TIDAK DISERTAKAN DALAM DOKUMEN INI —", 44, y + 6);
       y += 28;
     } else {
-      const activeContract = employee.contracts?.find((c: any) => c.status === "ACTIVE") || employee.contracts?.[0];
+      const activeContract = employee.contracts?.find((c) => c.status === "ACTIVE") || employee.contracts?.[0];
       const baseSalary = activeContract?.wageType === "HOURLY" ? 0 : activeContract?.baseSalary ? Number(activeContract.baseSalary) : 0;
       const hourlyRate = activeContract?.hourlyRate ? Number(activeContract.hourlyRate) : 0;
       const allowances = employee.salaryComponents || [];
-      const totalAllowances = allowances.reduce((acc: number, c: any) => acc + c.amount, 0);
+      const totalAllowances = allowances.reduce((acc: number, c) => acc + c.amount, 0);
 
       const ptkpInfo = getPtkpExplanation(employee.ptkpStatus);
       const taxMethodInfo = getTaxMethodExplanation(employee.taxMethod);
@@ -682,7 +790,7 @@ export async function generateEmployeeProfilePdf(
       doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada catatan presensi dalam rentang tanggal ini.", 44, y + 5);
       y += 24;
     } else {
-      records.slice(0, 16).forEach((rec: any, idx: number) => {
+      records.slice(0, 16).forEach((rec, idx: number) => {
         if (idx % 2 === 1) doc.rect(36, y, 523, 15).fill(COLORS.bgZebra);
         doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 15).lineTo(559, y + 15).stroke();
 
@@ -714,7 +822,7 @@ export async function generateEmployeeProfilePdf(
       doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada data kuota cuti untuk tahun ini.", 44, y + 5);
       y += 24;
     } else {
-      leaveBalances.forEach((lb: any, idx: number) => {
+      leaveBalances.forEach((lb, idx: number) => {
         if (idx % 2 === 1) doc.rect(36, y, 523, 16).fill(COLORS.bgZebra);
         doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 16).lineTo(559, y + 16).stroke();
 
@@ -755,7 +863,7 @@ export async function generateEmployeeProfilePdf(
         doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada dokumen digital yang diunggah ke arsip.", 44, y + 5);
         y += 24;
       } else {
-        docs.forEach((d: any, idx: number) => {
+        docs.forEach((d, idx: number) => {
           if (idx % 2 === 1) doc.rect(36, y, 523, 16).fill(COLORS.bgZebra);
           doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 16).lineTo(559, y + 16).stroke();
 
@@ -788,7 +896,7 @@ export async function generateEmployeeProfilePdf(
         doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada aset kantor yang tercatat dibawa oleh pegawai.", 44, y + 5);
         y += 24;
       } else {
-        activeAssets.forEach((ast: any, idx: number) => {
+        activeAssets.forEach((ast, idx: number) => {
           if (idx % 2 === 1) doc.rect(36, y, 523, 16).fill(COLORS.bgZebra);
           doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 16).lineTo(559, y + 16).stroke();
 
@@ -820,7 +928,6 @@ export async function generateEmployeeProfilePdf(
       year: "numeric",
     });
 
-    const sigColWidth = 240;
     const sigY = y + 26;
 
     // Kolom Kiri: Disiapkan Oleh (HR Administrator)

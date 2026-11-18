@@ -1,19 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import * as archiverModule from "archiver";
+import { Readable } from "node:stream";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma, writeAudit } from "@pspk/db";
 import { decryptField } from "@pspk/shared";
 import { getStorageProvider } from "@pspk/storage";
 import { getEmployeeById, getManagerTeamInfo } from "@/server/queries/employee.queries";
-import { generateEmployeeProfilePdf } from "@/lib/pdf/employee-profile-pdf";
+import {
+  generateEmployeeProfilePdf,
+  PdfEmployeeData,
+} from "@/lib/pdf/employee-profile-pdf";
 
-const createArchive: any = (archiverModule as any).default || archiverModule;
+type ArchiverFunction = (
+  format: "zip" | "tar",
+  options?: archiverModule.ArchiverOptions,
+) => archiverModule.Archiver;
+
+const createArchive: ArchiverFunction =
+  (archiverModule as unknown as { default?: ArchiverFunction }).default ||
+  (archiverModule as unknown as ArchiverFunction);
 
 export const dynamic = "force-dynamic";
 
 // Helper untuk mengubah stream Readable ke Buffer
-async function streamToBuffer(stream: any): Promise<Buffer> {
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
   const chunks: Buffer[] = [];
   for await (const chunk of stream) {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
@@ -144,7 +155,33 @@ export async function GET(
     }
 
     // Ambil data absensi jika diminta
-    let attendanceData: any = undefined;
+    let attendanceData:
+      | {
+          summary: {
+            workingDaysCount: number;
+            presentCount: number;
+            lateCount: number;
+            wfhCount: number;
+            leaveCount: number;
+            absentCount: number;
+            attendanceRate: number;
+          };
+          records: Array<{
+            date: Date;
+            checkInTime: Date | null;
+            checkOutTime: Date | null;
+            status: string;
+            notes: string | null;
+          }>;
+          leaveBalances: Array<{
+            leaveTypeName: string;
+            quotaDays: number;
+            usedDays: number;
+            remainingDays: number;
+          }>;
+        }
+      | undefined = undefined;
+
     if (attendance) {
       const fromDate = attendanceFrom ? new Date(attendanceFrom) : new Date(Date.now() - 30 * 86400000);
       const toDate = attendanceTo ? new Date(attendanceTo) : new Date();
@@ -170,11 +207,15 @@ export async function GET(
         }),
       ]);
 
-      const presentCount = attendances.filter((a: any) => a.status === "PRESENT").length;
-      const lateCount = attendances.filter((a: any) => a.status === "LATE").length;
-      const wfhCount = attendances.filter((a: any) => a.status === "WFH").length;
-      const leaveCount = attendances.filter((a: any) => a.status === "LEAVE").length;
-      const absentCount = attendances.filter((a: any) => a.status === "ABSENT").length;
+      const presentCount = attendances.filter(
+        (a: { status: string }) => a.status === "PRESENT",
+      ).length;
+      const lateCount = attendances.filter((a: { status: string }) => a.status === "LATE").length;
+      const wfhCount = attendances.filter((a: { status: string }) => a.status === "WFH").length;
+      const leaveCount = attendances.filter((a: { status: string }) => a.status === "LEAVE").length;
+      const absentCount = attendances.filter(
+        (a: { status: string }) => a.status === "ABSENT",
+      ).length;
       const recordedDays = attendances.length;
       const effectivePresent = presentCount + lateCount + wfhCount;
       const attendanceRate =
@@ -190,18 +231,35 @@ export async function GET(
           absentCount,
           attendanceRate,
         },
-        records: attendances,
-        leaveBalances: leaveBalances.map((lb: any) => ({
-          leaveTypeName: lb.leaveType.name,
-          quotaDays: lb.quotaDays,
-          usedDays: lb.usedDays,
-          remainingDays: lb.remainingDays,
+        records: attendances.map((a) => ({
+          date: a.date,
+          checkInTime: a.checkInAt,
+          checkOutTime: a.checkOutAt,
+          status: a.status,
+          notes: a.notes,
         })),
+        leaveBalances: leaveBalances.map((lb) => {
+          const usedDaysNum = Number(lb.usedDays);
+          return {
+            leaveTypeName: lb.leaveType.name,
+            quotaDays: lb.quotaDays,
+            usedDays: usedDaysNum,
+            remainingDays: Math.max(0, lb.quotaDays - usedDaysNum),
+          };
+        }),
       };
     }
 
     // Ambil aset inventaris aktif jika diminta
-    let activeAssets: any[] = [];
+    let activeAssets: Array<{
+      assetTag: string;
+      name: string;
+      brand: string | null;
+      model: string | null;
+      assignedAt: Date;
+      conditionOut: string;
+    }> = [];
+
     if (assets) {
       const rawAssets = await prisma.assetAssignment.findMany({
         where: {
@@ -212,24 +270,37 @@ export async function GET(
         orderBy: { assignedAt: "desc" },
       });
 
-      activeAssets = rawAssets.map((a: any) => ({
-        assetTag: a.asset.assetTag,
-        name: a.asset.name,
-        brand: a.asset.brand,
-        model: a.asset.model,
-        assignedAt: a.assignedAt,
-        conditionOut: a.conditionOut || "Baik",
-      }));
+      activeAssets = rawAssets.map(
+        (a: {
+          asset: {
+            assetTag: string;
+            name: string;
+            brand: string | null;
+            model: string | null;
+          };
+          assignedAt: Date;
+          conditionOut: string | null;
+        }) => ({
+          assetTag: a.asset.assetTag,
+          name: a.asset.name,
+          brand: a.asset.brand,
+          model: a.asset.model,
+          assignedAt: a.assignedAt,
+          conditionOut: a.conditionOut || "Baik",
+        }),
+      );
     }
 
     // Hasilkan Buffer PDF Utama
+    const pdfEmployee: PdfEmployeeData = {
+      ...employee,
+      nikRaw,
+      npwpRaw,
+      bankAccountRaw,
+    };
+
     const pdfBuffer = await generateEmployeeProfilePdf({
-      employee: {
-        ...employee,
-        nikRaw,
-        npwpRaw,
-        bankAccountRaw,
-      },
+      employee: pdfEmployee,
       actor: {
         name: actorProfile?.employee?.fullName || session.user.name || "Administrator HR",
         email: session.user.email,
@@ -303,7 +374,7 @@ export async function GET(
     if (format !== "zip") {
       const fileName = `Profil_Lengkap_${employee.employeeNo}_${sanitizedName}.pdf`;
 
-      return new NextResponse(pdfBuffer as any, {
+      return new NextResponse(pdfBuffer as unknown as BodyInit, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
@@ -359,7 +430,7 @@ export async function GET(
     const finalZipBuffer = Buffer.concat(zipBuffers);
     const zipFileName = `Paket_Arsip_Kepegawaian_${employee.employeeNo}_${sanitizedName}.zip`;
 
-    return new NextResponse(finalZipBuffer as any, {
+    return new NextResponse(finalZipBuffer as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
