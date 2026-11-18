@@ -305,17 +305,17 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: Binary stream PDF profil dari Task 8, seluruh file fisik dokumen dari `StorageProvider` berdasarkan `fileKey` di tabel `EmployeeDocument`.
 - Produces: Streaming response file ZIP (`Content-Type: application/zip`).
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa interface `StorageProvider` di `@pspk/storage` untuk membaca buffer file dari `fileKey`.
   - Periksa mekanisme streaming ZIP di Next.js Route Handler agar efisien dan tidak menumpuk di heap memori.
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Jika parameter `packageZip === "true"`:
     1. Render PDF profil utama di memori buffer.
     2. Buat arsip ZIP stream.
     3. Masukkan `[NIP]_[Nama_Karyawan]_Profil.pdf` ke root arsip.
     4. Ambil seluruh berkas dokumen aktif milik karyawan dari storage provider dan masukkan ke dalam subfolder `Dokumen_Lampiran/` dengan nama file yang bersih (`01_KTP_[Nama].pdf`, `02_Ijazah_[Nama].pdf`, dll.).
     5. Kirim response stream dengan header `Content-Type: application/zip` dan `filename="[NIP]_[Nama]_Profil_Lengkap.zip"`.
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
   - Jalankan `pnpm --filter @pspk/hris typecheck`.
   - Uji unduhan ZIP pada karyawan yang memiliki berkas dokumen dan foto, ekstrak berkas hasil unduhan, dan pastikan seluruh isi file utuh tanpa korupsi.
 

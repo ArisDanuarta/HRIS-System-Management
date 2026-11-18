@@ -3,14 +3,33 @@ import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 
-type ArchiverFunction = (
-  format: "zip" | "tar",
-  options?: archiverModule.ArchiverOptions,
-) => archiverModule.Archiver;
+interface ZipOptions {
+  zlib?: { level: number };
+}
 
-const createArchive: ArchiverFunction =
-  (archiverModule as unknown as { default?: ArchiverFunction }).default ||
-  (archiverModule as unknown as ArchiverFunction);
+interface ZipArchiveInstance {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  on(event: string, listener: (...args: any[]) => void): this;
+  append(source: Buffer | Readable | string, data: { name: string }): this;
+  finalize(): Promise<void>;
+}
+
+function createZipArchive(options?: ZipOptions): ZipArchiveInstance {
+  // Dukungan untuk archiver v8.x (ZipArchive class)
+  if ("ZipArchive" in archiverModule && typeof archiverModule.ZipArchive === "function") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new (archiverModule as any).ZipArchive(options);
+  }
+
+  // Dukungan untuk archiver v7.x (callable function)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fn = (archiverModule as any).default || archiverModule;
+  if (typeof fn === "function") {
+    return fn("zip", options);
+  }
+
+  throw new Error("Gagal menginisialisasi pustaka archiver");
+}
 
 // Helper untuk membaca Readable stream ke Buffer
 export async function streamToBuffer(stream: Readable): Promise<Buffer> {
@@ -68,7 +87,7 @@ export async function createEmployeeProfileZip(
   const { employee, pdfBuffer, storageProvider } = options;
   const sanitizedName = employee.fullName.replace(/[^a-zA-Z0-9_-]/g, "_");
 
-  const archive = createArchive("zip", {
+  const archive = createZipArchive({
     zlib: { level: 6 },
   });
 

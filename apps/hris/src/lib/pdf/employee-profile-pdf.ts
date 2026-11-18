@@ -289,7 +289,7 @@ export async function generateEmployeeProfilePdf(
       .fillColor(COLORS.navy)
       .fontSize(10)
       .font("Helvetica-Bold")
-      .text("DOKUMEN REKAM KEPEGAWAIAN 360°", 180, 24, { align: "right", width: 379 });
+      .text("DOKUMEN PROFILE PEGAWAI", 180, 24, { align: "right", width: 379 });
 
     doc
       .fillColor(COLORS.slateMedium)
