@@ -23,6 +23,7 @@ import {
   getMissedCheckOutCount,
   bulkFillMissedCheckOut,
 } from "../services/attendance.service";
+import { getEmployeeMonthlyAttendanceOverview } from "../queries/attendance.queries";
 
 function formatErrorMessage(err: unknown, fallback: string): string {
   if (err instanceof z.ZodError) {
@@ -279,6 +280,65 @@ export async function bulkFillMissedCheckOutAction(input: BulkFillCheckOutInput)
     return {
       success: false,
       message: formatErrorMessage(err, "Gagal melengkapi check-out massal."),
+    };
+  }
+}
+
+/**
+ * Server Action untuk mengambil rekap absensi 360° bulanan seorang pegawai
+ * dengan otorisasi berbasis peran (HR, Super Admin, Manager tim, atau diri sendiri).
+ */
+export async function getEmployeeMonthlyAttendanceAction(
+  employeeId: string,
+  year: number,
+  month: number,
+) {
+  try {
+    const { authCtx, employeeId: actorEmployeeId } = await getAuthenticatedUser(false);
+
+    // Otorisasi: Super Admin atau HR memiliki akses institusi penuh
+    const isHrOrAdmin =
+      can(authCtx, "hris.attendance.read:all") ||
+      can(authCtx, "hris.employee.read:all");
+    const isSelf = actorEmployeeId === employeeId;
+
+    if (!isHrOrAdmin && !isSelf) {
+      // Periksa apakah manajer bawahan langsung atau satu divisi
+      const targetEmp = await prisma.employee.findUnique({
+        where: { id: employeeId },
+        select: { managerId: true, currentDepartmentId: true },
+      });
+
+      const actorEmp = actorEmployeeId
+        ? await prisma.employee.findUnique({
+            where: { id: actorEmployeeId },
+            select: { id: true, currentDepartmentId: true },
+          })
+        : null;
+
+      const isDirectReport = targetEmp?.managerId === actorEmp?.id;
+      const isSameDepartment =
+        Boolean(actorEmp?.currentDepartmentId) &&
+        targetEmp?.currentDepartmentId === actorEmp?.currentDepartmentId;
+
+      if (!isDirectReport && !isSameDepartment) {
+        return {
+          ok: false as const,
+          error: "Anda tidak memiliki hak akses melihat riwayat absensi pegawai ini.",
+        };
+      }
+    }
+
+    const data = await getEmployeeMonthlyAttendanceOverview(employeeId, year, month);
+    return {
+      ok: true as const,
+      data,
+    };
+  } catch (err: unknown) {
+    console.error("getEmployeeMonthlyAttendanceAction error:", err);
+    return {
+      ok: false as const,
+      error: formatErrorMessage(err, "Gagal memuat riwayat presensi bulanan pegawai."),
     };
   }
 }
