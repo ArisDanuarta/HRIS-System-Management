@@ -4,6 +4,40 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Perombakan Total & Redesain UI/UX Formulir Tambah & Ubah Pegawai] — 2026-11-18
+
+- **Status:** Selesai Diimplementasikan & Terverifikasi Penuh (0 Error Typecheck, 0 Warning Lint, Test 155/155 PASS, Production Build 100% Sukses)
+- **Scope & Filosofi:**
+  - Merefaktor monolit raksasa `wizard-employee-form.tsx` (5.674 baris kode) menjadi arsitektur modular bersih di `apps/hris/src/components/karyawan/form/`.
+  - Menerapkan **Dual-Mode Architecture**:
+    1. **Mode Tambah (`/karyawan/baru`):** 5-Step Guided Onboarding Wizard dengan visual progress bar persentase kelengkapan, transisi halus, dan **Langkah 5 Khusus: Review & Konfirmasi 360°** sebelum data disimpan permanen.
+    2. **Mode Ubah (`/karyawan/[id]/ubah`):** Non-linear Category Workspace (Split Layout) dengan sidebar kategori vertikal di kiri (atau horizontal pills di mobile) yang memungkinkan HR melompat bebas ke seksi mana saja, dilengkapi **Dirty State Tracker** dan **Sticky Save Bar** untuk menyimpan perubahan langsung dari tab mana pun tanpa harus melintasi 4 tahap.
+  - **Aksesibilitas & Error Handling WCAG AA:** Banner ringkasan error yang *focusable* (`ErrorSummaryBanner`) dengan tautan klik yang otomatis melakukan *smooth-scroll* dan memfokuskan kursor ke input yang salah.
+  - **Sticky Action Bar:** Mengambang di bagian bawah layar dengan *backdrop-blur* dan *z-index* aman, menjaga tombol aksi selalu dalam jangkauan satu sentuhan di ponsel maupun desktop.
+  - **Checklist Dokumen Terpusat & Simulator PPh 21 TER:** Rekapitulasi berkas kepegawaian dan simulator estimasi THP real-time (PP 58/2023 & BPJS 3%).
+- **Rincian Modul yang Dibuat:**
+  1. `types.ts` & `employee-form.context.tsx`: Context state terpadu, validasi bertahap, deteksi dirty categories, generator NIP otomatis dengan availability check real-time, dan handler submit terisolasi.
+  2. `navigation/wizard-stepper-bar.tsx`: Stepper 5 langkah responsif dengan persentase progres.
+  3. `navigation/edit-category-sidebar.tsx`: Sidebar kategori data dengan badge 'Diubah' pada seksi berstatus *dirty*.
+  4. `navigation/sticky-action-bar.tsx`: Bilah bawah mengambang adaptif untuk navigasi dan simpan data.
+  5. `navigation/error-summary-banner.tsx`: Ringkasan error interaktif ramah pembaca layar (WCAG 3.3.1 & 3.3.3).
+  6. `steps/step-1-identity.tsx`: Foto profil, biodata lengkap, email resmi `@pspk.id`, alamat KTP/domisili, kontak darurat.
+  7. `steps/step-2-history-docs.tsx`: Susunan keluarga/tanggungan, pendidikan formal, sertifikasi, pengalaman kerja, berkas CV/ijazah.
+  8. `steps/step-3-placement.tsx`: NIP generator, struktur divisi & jabatan, atasan langsung, surat penawaran kerja & NDA.
+  9. `steps/step-4-compensation.tsx`: Tipe ikatan kerja, kompensasi bulanan, simulator PPh 21 & BPJS, rekening payroll.
+  10. `steps/step-5-review-confirm.tsx`: Pratinjau 360° sebelum registrasi, checklist berkas, dan aktivasi akun login sistem.
+  11. `quick-create-employment-type-modal.tsx`: Modal tambah cepat tipe ikatan kerja master.
+  12. `credentials-modal.tsx`: Modal kredensial akun pengguna setelah pegawai berhasil didaftarkan.
+  13. `employee-wizard-create.tsx` & `employee-workspace-edit.tsx`: Dua orkestrator terpisah untuk Create dan Edit mode.
+  14. `employee-form-container.tsx` & re-export di `wizard-employee-form.tsx`: Menjaga kompatibilitas mundur 100%.
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/hris typecheck`: Exit status 0 (0 error).
+  - `pnpm --filter @pspk/hris lint`: Exit status 0 (0 error, 0 warning).
+  - `pnpm --filter @pspk/hris exec vitest run`: 23 test files, 155 tests pass (100%).
+  - `pnpm --filter @pspk/hris build`: Berhasil kompilasi standalone production dalam 1.2 detik (0 warning, 0 error).
+
+---
+
 ## [Perombakan Halaman Detail Karyawan 360°, Ekspor PDF Resmi & ZIP Vault] — 2026-11-18
 
 - **Status:** Seluruh 10 Task Selesai Diimplementasikan & Terverifikasi (0 Error Typecheck, 0 Warning Lint, Test 100% Pass, Standalone Build Sukses)
