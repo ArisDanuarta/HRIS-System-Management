@@ -123,7 +123,7 @@ export function WizardStepperBar() {
 
               <div className="flex flex-col min-w-0 flex-1">
                 <span
-                  className={`text-[10px] font-bold uppercase tracking-wider truncate ${
+                  className={`text-[10px] font-bold uppercase tracking-wider truncate inline-flex items-center gap-1 ${
                     isCurrent
                       ? "text-[#102E50]"
                       : isDone
@@ -131,7 +131,8 @@ export function WizardStepperBar() {
                         : "text-slate-400"
                   }`}
                 >
-                  Langkah {s.num}
+                  <Icon className="w-2.5 h-2.5 shrink-0" />
+                  <span>Langkah {s.num}</span>
                 </span>
                 <span
                   className={`text-xs font-bold truncate ${

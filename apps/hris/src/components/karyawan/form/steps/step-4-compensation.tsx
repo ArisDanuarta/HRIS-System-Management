@@ -7,9 +7,6 @@ import {
   CreditCard,
   Shield,
   Plus,
-  Info,
-  DollarSign,
-  TrendingDown,
   Calculator,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";
@@ -25,10 +22,6 @@ export function Step4Compensation() {
     updateField,
     employmentTypesList,
     setIsQuickCreateModalOpen,
-    contractFile,
-    setContractFile,
-    docContract,
-    setDocContract,
     docNpwp,
     setDocNpwp,
     docBankBook,
@@ -44,8 +37,6 @@ export function Step4Compensation() {
   // Calculations
   const baseSalaryNum =
     formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0;
-  const hourlyRateNum =
-    formData.wageType === "HOURLY" ? Number(formData.hourlyRate) || 0 : 0;
   const posAllowance = Number(formData.allowancePosition) || 0;
   const transAllowance = Number(formData.allowanceTransport) || 0;
   const commAllowance = Number(formData.allowanceCommunication) || 0;
@@ -61,7 +52,6 @@ export function Step4Compensation() {
   const estThp = Math.max(0, totalGrossMonthly - totalDeductions);
 
   const ptkpInfo = getPtkpExplanation(formData.ptkpStatus);
-  const taxMethodInfo = getTaxMethodExplanation(formData.taxMethod);
 
   return (
     <div className="w-full flex flex-col gap-6 animate-in fade-in duration-200">

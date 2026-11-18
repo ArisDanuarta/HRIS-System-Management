@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowLeft, Edit, Shield, KeyRound, UserCheck, AlertCircle } from "lucide-react";
+import { ArrowLeft, Edit, Shield, KeyRound } from "lucide-react";
 import { useEmployeeForm } from "./employee-form.context";
 import { EditCategorySidebar } from "./navigation/edit-category-sidebar";
 import { StickyActionBar } from "./navigation/sticky-action-bar";
@@ -18,7 +18,6 @@ import { FormSection } from "../components/FormSection";
 export function EmployeeWorkspaceEdit() {
   const {
     formData,
-    updateField,
     activeCategory,
     docCv,
     setDocCv,

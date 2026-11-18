@@ -9,7 +9,6 @@ import {
   XCircle,
   FileText,
   Building2,
-  MapPin,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";

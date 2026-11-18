@@ -3,22 +3,17 @@
 import React from "react";
 import {
   CheckCircle2,
-  AlertCircle,
   User,
-  Briefcase,
   Receipt,
   FileCheck,
   KeyRound,
   Edit,
   Mail,
   Shield,
-  CreditCard,
-  Building2,
-  Calendar,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";
 import { formatRupiah, formatDate } from "@pspk/shared";
-import { StatusBadge, ContractTypeBadge, PtkpBadge, TaxMethodBadge } from "../../status-badge";
+import { StatusBadge } from "../../status-badge";
 
 export function Step5ReviewConfirm() {
   const {
@@ -39,7 +34,6 @@ export function Step5ReviewConfirm() {
     docBankBook,
     docBpjsKes,
     docBpjsTk,
-    roles,
   } = useEmployeeForm();
 
   const selectedDept = departments.find((d) => d.id === formData.currentDepartmentId);

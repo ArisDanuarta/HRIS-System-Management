@@ -58,10 +58,10 @@ export function Step2HistoryDocs() {
     setFamilyMembers((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpdateFamilyMember = (
+  const handleUpdateFamilyMember = <K extends keyof FamilyMemberItem>(
     index: number,
-    field: keyof FamilyMemberItem,
-    val: any,
+    field: K,
+    val: FamilyMemberItem[K],
   ) => {
     setFamilyMembers((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: val } : item)),
@@ -83,7 +83,11 @@ export function Step2HistoryDocs() {
     setEducations((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpdateEducation = (index: number, field: keyof EducationItem, val: any) => {
+  const handleUpdateEducation = <K extends keyof EducationItem>(
+    index: number,
+    field: K,
+    val: EducationItem[K],
+  ) => {
     setEducations((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: val } : item)),
     );
@@ -103,7 +107,11 @@ export function Step2HistoryDocs() {
     setTrainings((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpdateTraining = (index: number, field: keyof TrainingItem, val: any) => {
+  const handleUpdateTraining = <K extends keyof TrainingItem>(
+    index: number,
+    field: K,
+    val: TrainingItem[K],
+  ) => {
     setTrainings((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: val } : item)),
     );
@@ -125,10 +133,10 @@ export function Step2HistoryDocs() {
     setWorkExperiences((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleUpdateWorkExperience = (
+  const handleUpdateWorkExperience = <K extends keyof WorkExperienceItem>(
     index: number,
-    field: keyof WorkExperienceItem,
-    val: any,
+    field: K,
+    val: WorkExperienceItem[K],
   ) => {
     setWorkExperiences((prev) =>
       prev.map((item, i) => (i === index ? { ...item, [field]: val } : item)),
@@ -173,7 +181,9 @@ export function Step2HistoryDocs() {
               <td className="p-3">
                 <select
                   value={item.relation}
-                  onChange={(e) => handleUpdateFamilyMember(idx, "relation", e.target.value)}
+                  onChange={(e) =>
+                    handleUpdateFamilyMember(idx, "relation", e.target.value as FamilyRelation)
+                  }
                   className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#102E50]"
                 >
                   <option value="SPOUSE">Suami / Istri</option>
@@ -223,7 +233,9 @@ export function Step2HistoryDocs() {
               <div className="grid grid-cols-2 gap-2">
                 <select
                   value={item.relation}
-                  onChange={(e) => handleUpdateFamilyMember(idx, "relation", e.target.value)}
+                  onChange={(e) =>
+                    handleUpdateFamilyMember(idx, "relation", e.target.value as FamilyRelation)
+                  }
                   className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs"
                 >
                   <option value="SPOUSE">Suami/Istri</option>
@@ -270,7 +282,9 @@ export function Step2HistoryDocs() {
               <td className="p-3">
                 <select
                   value={item.level}
-                  onChange={(e) => handleUpdateEducation(idx, "level", e.target.value)}
+                  onChange={(e) =>
+                    handleUpdateEducation(idx, "level", e.target.value as EducationLevel)
+                  }
                   className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
                 >
                   <option value="SMA">SMA / SMK</option>
@@ -328,13 +342,20 @@ export function Step2HistoryDocs() {
                 className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
               />
               <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={item.major || ""}
-                  onChange={(e) => handleUpdateEducation(idx, "major", e.target.value)}
-                  placeholder="Jurusan"
-                  className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
-                />
+                <select
+                  value={item.level}
+                  onChange={(e) =>
+                    handleUpdateEducation(idx, "level", e.target.value as EducationLevel)
+                  }
+                  className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs"
+                >
+                  <option value="SMA">SMA / SMK</option>
+                  <option value="D3">Diploma (D3)</option>
+                  <option value="S1">Sarjana (S1)</option>
+                  <option value="S2">Magister (S2)</option>
+                  <option value="S3">Doktor (S3)</option>
+                  <option value="OTHER">Lainnya</option>
+                </select>
                 <input
                   type="number"
                   value={item.graduationYear || ""}

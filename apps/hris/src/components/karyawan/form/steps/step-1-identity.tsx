@@ -5,7 +5,7 @@ import { User, Phone, Home, HeartHandshake, Camera, Upload, Trash2 } from "lucid
 import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";
 import { AddressFields } from "../../components/AddressFields";
-import { Gender, MaritalStatus, Religion, BloodType, Citizenship } from "@pspk/db";
+import { Gender, MaritalStatus, Religion, BloodType } from "@pspk/db";
 
 export function Step1Identity() {
   const {
