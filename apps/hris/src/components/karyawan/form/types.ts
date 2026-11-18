@@ -9,19 +9,8 @@ import {
   WageType,
   PtkpStatus,
   TaxMethod,
-  FamilyRelation,
-  EducationLevel,
   AddressType,
 } from "@pspk/db";
-import {
-  AddressData,
-  FamilyMemberItem,
-  EducationItem,
-  TrainingItem,
-  WorkExperienceItem,
-  UploadedFileState,
-  AdditionalDocumentItem,
-} from "../types/employee-form.types";
 
 export type FormMode = "create" | "edit";
 

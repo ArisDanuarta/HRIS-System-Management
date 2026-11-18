@@ -13,7 +13,7 @@ import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";
 import { DocumentUploadCard } from "../../components/DocumentUploadCard";
 import { formatRupiah } from "@pspk/shared";
-import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
+import { getPtkpExplanation } from "@/lib/tax-explanation";
 import { PtkpStatus, TaxMethod, WageType, EmploymentType } from "@pspk/db";
 
 export function Step4Compensation() {

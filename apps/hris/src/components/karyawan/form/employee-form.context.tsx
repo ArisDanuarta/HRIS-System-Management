@@ -48,6 +48,8 @@ import {
   TaxMethod,
   Religion,
   BloodType,
+  FamilyRelation,
+  EducationLevel,
 } from "@pspk/db";
 
 export interface CreatedCredentialsData {
