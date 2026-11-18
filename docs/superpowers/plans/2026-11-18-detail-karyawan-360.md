@@ -244,16 +244,16 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: `employeeId`, `employeeName`, `employeeNo`, `userRole` (isHrOrAdmin, isManager).
 - Produces: Komponen modal pemicu unduhan PDF / ZIP ke endpoint `/api/karyawan/[id]/export`.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa spesifikasi modal pada Bagian 3.1 dokumen `rombak_redisgn_detail_karyawan.md`.
   - Pastikan checkbox opsi sensitif & kompensasi otomatis berstatus `disabled` dengan tooltip peringatan jika dibuka oleh pengguna ber-role Manager.
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Implementasikan form checkbox multi-opsi (data pribadi, alamat, keluarga, penempatan, kontrak, absensi, dokumen, aset).
   - Implementasikan date picker rentang tanggal absensi (Dari – Sampai).
   - Implementasikan checkbox data sensitif & kompensasi dengan modal konfirmasi keamanan audit saat dicentang.
   - Implementasikan checkbox **"Unduh sebagai Paket Arsip Lengkap (.ZIP)"** dengan deskripsi bahwa PDF dan berkas dokumen asli akan dikemas bersama.
   - Tambahkan tombol "Unduh Data" yang melakukan request unduhan ke Route Handler export dengan indikator loading status.
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
   - Jalankan `pnpm --filter @pspk/hris typecheck`.
   - Verifikasi interaksi modal: buka/tutup, toggle checkbox, dan peringatan konfirmasi audit.
   - Pastikan payload parameter siap dikirim ke Route Handler pada Task 8 dan 9.
