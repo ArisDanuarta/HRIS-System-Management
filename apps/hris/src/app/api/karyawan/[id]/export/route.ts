@@ -368,47 +368,20 @@ export async function GET(
     // =========================================================================
     // KASUS 2: Unduhan Paket Arsip ZIP (.zip) Lengkap dengan Berkas Lampiran
     // =========================================================================
-    const archive = createArchive("zip", {
-      zlib: { level: 6 },
+    const storage = getStorageProvider();
+    const finalZipBuffer = await createEmployeeProfileZip({
+      employee: {
+        id: employee.id,
+        employeeNo: employee.employeeNo,
+        fullName: employee.fullName,
+        gender: employee.gender,
+        photoKey: employee.photoKey,
+        documents: documents && employee.documents ? employee.documents : [],
+      },
+      pdfBuffer,
+      storageProvider: storage,
     });
 
-    const zipBuffers: Buffer[] = [];
-    archive.on("data", (chunk: Buffer) => zipBuffers.push(chunk));
-
-    // 1. Masukkan PDF Utama ke dalam Root ZIP
-    archive.append(pdfBuffer, {
-      name: `${employee.employeeNo}_${sanitizedName}_Profil_Resmi.pdf`,
-    });
-
-    // 2. Kumpulkan Dokumen Fisik Asli dari Storage ke Folder Dokumen_Lampiran/
-    if (documents && employee.documents && employee.documents.length > 0) {
-      const storage = getStorageProvider();
-
-      for (let i = 0; i < employee.documents.length; i++) {
-        const docItem = employee.documents[i];
-        if (!docItem?.fileKey) continue;
-
-        try {
-          const fileRes = await storage.get(docItem.fileKey);
-          if (fileRes && fileRes.stream) {
-            const fileData = await streamToBuffer(fileRes.stream);
-            const indexPrefix = String(i + 1).padStart(2, "0");
-            const safeCategory = (docItem.category || "DOKUMEN").replace(/[^a-zA-Z0-9_-]/g, "_");
-            const safeFileName = docItem.fileName.replace(/[^a-zA-Z0-9_.-]/g, "_");
-            const zipPath = `Dokumen_Lampiran/${indexPrefix}_${safeCategory}_${safeFileName}`;
-
-            archive.append(fileData, { name: zipPath });
-          }
-        } catch (err) {
-          console.warn(`Gagal menyertakan berkas lampiran ${docItem.fileKey} ke ZIP:`, err);
-        }
-      }
-    }
-
-    // Selesaikan arsip
-    await archive.finalize();
-
-    const finalZipBuffer = Buffer.concat(zipBuffers);
     const zipFileName = `Paket_Arsip_Kepegawaian_${employee.employeeNo}_${sanitizedName}.zip`;
 
     return new NextResponse(finalZipBuffer as unknown as BodyInit, {
