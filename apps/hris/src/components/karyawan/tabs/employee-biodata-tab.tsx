@@ -72,7 +72,7 @@ export interface EmployeeBiodataTabProps {
       institution: string;
       major?: string | null;
       graduationYear?: number | null;
-      gpa?: number | string | null;
+      gpa?: number | string | { toString(): string } | null;
     }>;
     trainings?: Array<{
       id: string;
@@ -514,7 +514,7 @@ export function EmployeeBiodataTab({ employee }: EmployeeBiodataTabProps) {
                       {edu.graduationYear || "-"}
                     </td>
                     <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-800">
-                      {edu.gpa ? Number(edu.gpa).toFixed(2) : "-"}
+                      {edu.gpa ? Number(edu.gpa.toString()).toFixed(2) : "-"}
                     </td>
                   </tr>
                 ))}

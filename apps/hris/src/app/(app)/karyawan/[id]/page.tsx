@@ -231,8 +231,6 @@ export default async function EmployeeDetailPage({
     employee.contracts.find((c) => c.status === "ACTIVE") ||
     (isTerminated ? employee.contracts[0] : null);
 
-  const primaryLeaveBalance = attendanceOverview.leaveBalances[0] || null;
-
   return (
     <div className="flex flex-col gap-6 w-full min-w-0 max-w-5xl mx-auto pb-16">
       {/* Back Link */}
