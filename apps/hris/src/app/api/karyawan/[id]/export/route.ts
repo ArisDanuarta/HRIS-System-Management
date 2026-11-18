@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import * as archiverModule from "archiver";
-import { Readable } from "node:stream";
 import { getSession, getUserProfile } from "@pspk/auth";
 import { prisma, writeAudit } from "@pspk/db";
 import { decryptField } from "@pspk/shared";
@@ -13,25 +11,7 @@ import {
 } from "@/lib/pdf/employee-profile-pdf";
 import { createEmployeeProfileZip } from "@/lib/pdf/employee-zip-export";
 
-type ArchiverFunction = (
-  format: "zip" | "tar",
-  options?: archiverModule.ArchiverOptions,
-) => archiverModule.Archiver;
-
-const createArchive: ArchiverFunction =
-  (archiverModule as unknown as { default?: ArchiverFunction }).default ||
-  (archiverModule as unknown as ArchiverFunction);
-
 export const dynamic = "force-dynamic";
-
-// Helper untuk mengubah stream Readable ke Buffer
-async function streamToBuffer(stream: Readable): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
-}
 
 export async function GET(
   request: NextRequest,
