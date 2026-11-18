@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateEmployeeProfilePdf } from "@/lib/pdf/employee-profile-pdf";
+import { generateEmployeeProfilePdf } from "./employee-profile-pdf";
 
 describe("Employee Profile PDF Generator Engine", () => {
   it("harus menghasilkan buffer PDF yang valid dengan magic byte %PDF-", async () => {
