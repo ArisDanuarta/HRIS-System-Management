@@ -11,6 +11,7 @@ import {
   generateEmployeeProfilePdf,
   PdfEmployeeData,
 } from "@/lib/pdf/employee-profile-pdf";
+import { createEmployeeProfileZip } from "@/lib/pdf/employee-zip-export";
 
 type ArchiverFunction = (
   format: "zip" | "tar",
