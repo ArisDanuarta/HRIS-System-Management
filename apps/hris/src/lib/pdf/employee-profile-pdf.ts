@@ -170,28 +170,16 @@ export interface EmployeePdfExportOptions {
   }>;
 }
 
-// Helper untuk mengonversi Readable stream ke Buffer
-async function streamToBuffer(stream: Readable): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-  }
-  return Buffer.concat(chunks);
-}
-
-// Helper untuk menemukan lokasi berkas gambar statis
-function resolveImagePath(filename: string): string | null {
-  const candidates = [
-    path.join(process.cwd(), "apps/hris/public/images", filename),
-    path.join(process.cwd(), "public/images", filename),
-    path.join(__dirname, "../../../../../apps/hris/public/images", filename),
-    path.join(__dirname, "../../../../public/images", filename),
-  ];
-  for (const c of candidates) {
-    if (fs.existsSync(/*turbopackIgnore: true*/ c)) return c;
-  }
-  return null;
-}
+// ===========================================================================
+// KONSTANTA LAYOUT
+// ===========================================================================
+const PAGE_W = 595.28;
+const MARGIN = 36;
+const CONTENT_W = 523;
+const TOP = 72; // awal area konten (di bawah kop)
+const BOTTOM = 794; // batas bawah area konten (di atas footer)
+const SECTION_H = 20;
+const CITY = "Jakarta"; // kota pada lembar pengesahan
 
 // Palet warna resmi PSPK
 const COLORS = {
@@ -205,12 +193,126 @@ const COLORS = {
   border: "#CBD5E1",
   borderLight: "#E2E8F0",
   bgZebra: "#F8FAFC",
+  rowAlt: "#F1F5F9",
+  tint: "#E6EDF5",
   bgHeader: "#102E50",
   white: "#FFFFFF",
   emerald: "#047857",
+  amber: "#B45309",
   amberBg: "#FEF3C7",
   amberText: "#92400E",
 };
+
+// ===========================================================================
+// HELPER UMUM
+// ===========================================================================
+async function streamToBuffer(stream: Readable): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks);
+}
+
+function resolveImagePath(filename: string): string | null {
+  const candidates = [
+    path.join(process.cwd(), "apps/hris/public/images", filename),
+    path.join(process.cwd(), "public/images", filename),
+    path.join(__dirname, "../../../../../apps/hris/public/images", filename),
+    path.join(__dirname, "../../../../public/images", filename),
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(/*turbopackIgnore: true*/ c)) return c;
+  }
+  return null;
+}
+
+const dash = (v?: string | number | null): string => {
+  if (v === null || v === undefined) return "-";
+  const s = String(v).trim();
+  return s ? s : "-";
+};
+
+const fmtTime = (v?: Date | string | null): string =>
+  v ? new Date(v).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "-";
+
+const ageFrom = (d?: Date | string | null): number | null => {
+  if (!d) return null;
+  const b = new Date(d);
+  if (Number.isNaN(b.getTime())) return null;
+  const n = new Date();
+  let a = n.getFullYear() - b.getFullYear();
+  const m = n.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && n.getDate() < b.getDate())) a--;
+  return a >= 0 ? a : null;
+};
+
+const formatTenureText = (joinDate: Date | string): string => {
+  const start = new Date(joinDate);
+  const now = new Date();
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+  if (now.getDate() < start.getDate()) months--;
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+  if (years <= 0 && months <= 0) return "< 1 Bulan";
+  if (years <= 0) return `${months} Bulan`;
+  return `${years} Tahun ${months} Bulan`;
+};
+
+/** Merapikan catatan presensi: buang tag [WITA], ubah [Out: ...] dst. jadi teks biasa */
+const cleanAttendanceNote = (raw?: string | null): string => {
+  if (!raw) return "-";
+  const s = raw
+    .replace(/\[(WITA|WIB|WIT)\]/g, "")
+    .replace(/\[Out:\s*([^\]]*?)\s*\]/g, (_m, t: string) => (t.trim() ? `Pulang: ${t.trim()}` : ""))
+    .replace(/\[Auto-Out HR:\s*([^\]]*?)\s*\]/g, (_m, t: string) => `Auto-out HR ${t.trim()}`)
+    .replace(/\[WFH\]/g, "WFH")
+    .replace(/\|/g, " · ")
+    .replace(/\s+/g, " ")
+    .replace(/^[·\s]+|[·\s]+$/g, "")
+    .trim();
+  return s || "-";
+};
+
+const stripBrackets = (raw?: string | null): string => {
+  if (!raw) return "-";
+  const s = raw.trim().replace(/^\[(.*)\]$/, "$1").trim();
+  return s || "-";
+};
+
+const EMPLOYEE_STATUS: Record<string, { label: string; bg: string; fg: string }> = {
+  ACTIVE: { label: "AKTIF", bg: "#D1FAE5", fg: "#047857" },
+  PROBATION: { label: "PROBATION", bg: "#FEF3C7", fg: "#92400E" },
+  TERMINATED: { label: "NONAKTIF", bg: "#FEE2E2", fg: "#A8281C" },
+  RESIGNED: { label: "RESIGN", bg: "#FEE2E2", fg: "#A8281C" },
+};
+
+const ATTENDANCE_STATUS: Record<string, { label: string; color: string }> = {
+  PRESENT: { label: "Hadir", color: COLORS.emerald },
+  LATE: { label: "Terlambat", color: COLORS.amber },
+  WFH: { label: "WFH", color: COLORS.navyLight },
+  ABSENT: { label: "Alpa", color: COLORS.maroon },
+  LEAVE: { label: "Cuti", color: "#6D28D9" },
+};
+
+const CONTRACT_STATUS_COLOR: Record<string, string> = {
+  ACTIVE: COLORS.emerald,
+  RENEWED: COLORS.slateMedium,
+  EXPIRED: COLORS.maroon,
+  TERMINATED: COLORS.maroon,
+};
+
+interface Col<T> {
+  header: string;
+  width: number; // bobot relatif, otomatis diskalakan ke lebar konten
+  align?: "left" | "center" | "right";
+  value: (row: T, index: number) => string;
+  color?: (row: T) => string | undefined;
+  bold?: boolean;
+}
 
 /**
  * Menghasilkan Dokumen PDF Rekam Kepegawaian 360° Resmi PSPK
@@ -222,18 +324,28 @@ export async function generateEmployeeProfilePdf(
 
   const doc = new PDFDocument({
     size: "A4",
-    margin: 36,
+    margin: MARGIN,
     bufferPages: true,
+    info: {
+      Title: `Dokumen Rekam Kepegawaian - ${employee.fullName}`,
+      Author: "PSPK HRIS",
+      Subject: "Dokumen Rekam Kepegawaian 360°",
+    },
   });
 
   const buffers: Buffer[] = [];
   doc.on("data", (chunk: Buffer) => buffers.push(chunk));
+  const finished = new Promise<Buffer>((resolve, reject) => {
+    doc.on("end", () => resolve(Buffer.concat(buffers)));
+    doc.on("error", (err: Error) => reject(err));
+  });
 
-  // Ambil buffer logo & watermark
+  // -------------------------------------------------------------------------
+  // Aset gambar
+  // -------------------------------------------------------------------------
   const logoPath = resolveImagePath("logo_pspk_horizontal.png");
   const iconPath = resolveImagePath("icon_pspk.jpg");
 
-  // Ambil foto karyawan atau fallback avatar gender
   let photoBuffer: Buffer | null = null;
   if (employee.photoKey) {
     try {
@@ -248,501 +360,610 @@ export async function generateEmployeeProfilePdf(
   }
 
   if (!photoBuffer) {
-    const isFemale =
-      employee.gender?.toUpperCase() === "FEMALE" ||
-      employee.gender?.toLowerCase() === "perempuan" ||
-      employee.gender?.toLowerCase() === "wanita";
+    const g = employee.gender?.toLowerCase();
+    const isFemale = g === "female" || g === "perempuan" || g === "wanita";
     const avatarPath = resolveImagePath(isFemale ? "Avatar_Wanita.jpg" : "Avatar_Pria.jpg");
-    if (avatarPath && fs.existsSync(/*turbopackIgnore: true*/ avatarPath)) {
+    if (avatarPath) {
       photoBuffer = fs.readFileSync(/*turbopackIgnore: true*/ avatarPath);
     }
   }
 
-  // Helper menggambar Watermark & Header tetap di halaman
-  const drawPageHeaderAndWatermark = () => {
-    // 1. Watermark Transparan 6% di Tengah
-    if (iconPath && fs.existsSync(/*turbopackIgnore: true*/ iconPath)) {
+  // -------------------------------------------------------------------------
+  // Primitif gambar
+  // -------------------------------------------------------------------------
+  let y = TOP;
+
+  const hLine = (yy: number, color = COLORS.borderLight, w = 0.5, x1 = MARGIN, x2 = MARGIN + CONTENT_W) => {
+    doc.save().strokeColor(color).lineWidth(w).moveTo(x1, yy).lineTo(x2, yy).stroke().restore();
+  };
+
+  const tintRect = (x: number, yy: number, w: number, h: number, color: string, opacity = 0.7) => {
+    doc.save();
+    doc.fillOpacity(opacity);
+    doc.rect(x, yy, w, h).fill(color);
+    doc.restore();
+  };
+
+  const textH = (text: string, width: number, font: string, size: number, lineGap = 1): number => {
+    doc.font(font).fontSize(size);
+    return doc.heightOfString(text, { width, lineGap });
+  };
+
+  const pill = (text: string, x: number, yy: number, w: number, bg: string, fg: string) => {
+    doc.save();
+    doc.roundedRect(x, yy, w, 14, 7).fill(bg);
+    doc.restore();
+    doc.fillColor(fg).font("Helvetica-Bold").fontSize(7).text(text, x, yy + 3.7, {
+      width: w,
+      align: "center",
+      lineBreak: false,
+    });
+  };
+
+  // Kop halaman + watermark (digambar otomatis setiap halaman baru, di BAWAH konten)
+  const drawPageChrome = () => {
+    if (iconPath) {
       doc.save();
       doc.opacity(0.06);
-      doc.image(iconPath, 172, 280, { width: 250 });
+      doc.image(iconPath, (PAGE_W - 240) / 2, 300, { width: 240 });
       doc.restore();
     }
 
-    // Jika pegawai berstatus keluar, watermark teks diagonal merah transparan
     if (employee.status === "TERMINATED" || employee.status === "RESIGNED") {
       doc.save();
       doc.opacity(0.12);
       doc.rotate(-30, { origin: [297, 420] });
       doc.fillColor(COLORS.maroon).fontSize(38).font("Helvetica-Bold");
-      doc.text("STATUS: NONAKTIF / TERMINATED", 60, 410, { align: "center", width: 480 });
+      doc.text("STATUS: NONAKTIF / TERMINATED", 60, 410, { align: "center", width: 480, lineBreak: false });
       doc.restore();
     }
 
-    // 2. Header Kop Resmi
-    if (logoPath && fs.existsSync(/*turbopackIgnore: true*/ logoPath)) {
-      doc.image(logoPath, 36, 24, { width: 130 });
+    if (logoPath) {
+      doc.image(logoPath, MARGIN, 24, { width: 130 });
     } else {
-      doc.fillColor(COLORS.navy).fontSize(14).font("Helvetica-Bold").text("PSPK", 36, 26);
+      doc.fillColor(COLORS.navy).fontSize(14).font("Helvetica-Bold").text("PSPK", MARGIN, 26, { lineBreak: false });
     }
 
     doc
       .fillColor(COLORS.navy)
       .fontSize(10)
       .font("Helvetica-Bold")
-      .text("DOKUMEN PROFILE PEGAWAI", 180, 24, { align: "right", width: 379 });
-
+      .text("DOKUMEN REKAM KEPEGAWAIAN 360°", 200, 25, { align: "right", width: 359, lineBreak: false });
     doc
       .fillColor(COLORS.slateMedium)
       .fontSize(7.5)
       .font("Helvetica")
-      .text("Pusat Studi Pendidikan dan Kebijakan (PSPK)", 180, 37, { align: "right", width: 379 });
+      .text("Pusat Studi Pendidikan dan Kebijakan (PSPK)", 200, 39, { align: "right", width: 359, lineBreak: false });
 
-    // Garis Aksen Kop: Navy tebal + Gold tipis
-    doc.strokeColor(COLORS.navy).lineWidth(1.5).moveTo(36, 52).lineTo(559, 52).stroke();
-    doc.strokeColor(COLORS.gold).lineWidth(1).moveTo(36, 55).lineTo(559, 55).stroke();
+    hLine(54, COLORS.navy, 1.5);
+    hLine(57, COLORS.gold, 1);
   };
 
-  // Helper menggambar Header Seksi / Subjudul
-  const drawSectionHeader = (title: string, yPos: number): number => {
-    doc.rect(36, yPos, 523, 18).fill(COLORS.navy);
+  doc.on("pageAdded", drawPageChrome);
+  drawPageChrome();
+
+  // -------------------------------------------------------------------------
+  // Manajemen halaman
+  // -------------------------------------------------------------------------
+  const newPage = () => {
+    doc.addPage(); // kop digambar lewat event pageAdded
+    y = TOP;
+  };
+
+  const ensureSpace = (h: number) => {
+    if (y + h > BOTTOM) newPage();
+  };
+
+  let secNo = 0;
+  const section = (title: string, opts: { subtitle?: string; follow?: number } = {}) => {
+    if (y > TOP) y += 8;
+    ensureSpace(SECTION_H + (opts.follow ?? 46));
+    secNo += 1;
+    doc.rect(MARGIN, y, CONTENT_W, SECTION_H).fill(COLORS.navy);
+    doc.rect(MARGIN, y, 4, SECTION_H).fill(COLORS.gold);
     doc
       .fillColor(COLORS.white)
-      .fontSize(9)
       .font("Helvetica-Bold")
-      .text(title.toUpperCase(), 44, yPos + 4.5);
-    return yPos + 24;
+      .fontSize(8.5)
+      .text(`${secNo}. ${title.toUpperCase()}`, MARGIN + 14, y + 6.2, { width: CONTENT_W - 28, lineBreak: false });
+    if (opts.subtitle) {
+      doc
+        .fillColor(COLORS.gold)
+        .font("Helvetica")
+        .fontSize(7.5)
+        .text(opts.subtitle, MARGIN + 14, y + 6.8, { width: CONTENT_W - 28, align: "right", lineBreak: false });
+    }
+    y += SECTION_H + 6;
   };
 
-  // Helper menggambar Tabel Key-Value 2 Kolom
-  const drawKeyValueGrid = (
-    items: Array<{ label: string; value: string }>,
-    startY: number,
-  ): number => {
-    let curY = startY;
-    const rowHeight = 18;
-
-    for (let i = 0; i < items.length; i += 2) {
-      const left = items[i];
-      const right = items[i + 1];
-      const isZebra = Math.floor(i / 2) % 2 === 1;
-
-      if (isZebra) {
-        doc.rect(36, curY, 523, rowHeight).fill(COLORS.bgZebra);
-      }
-
-      // Border bawah baris
-      doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, curY + rowHeight).lineTo(559, curY + rowHeight).stroke();
-
-      if (left) {
-        doc.fillColor(COLORS.slateLight).fontSize(7.5).font("Helvetica-Bold").text(left.label, 42, curY + 4.5, { width: 95 });
-        doc.fillColor(COLORS.slateDark).fontSize(8).font("Helvetica").text(`: ${left.value}`, 140, curY + 4.5, { width: 145 });
-      }
-
-      if (right) {
-        doc.fillColor(COLORS.slateLight).fontSize(7.5).font("Helvetica-Bold").text(right.label, 305, curY + 4.5, { width: 95 });
-        doc.fillColor(COLORS.slateDark).fontSize(8).font("Helvetica").text(`: ${right.value}`, 405, curY + 4.5, { width: 145 });
-      }
-
-      curY += rowHeight;
-    }
-
-    return curY + 8;
+  const notice = (text: string) => {
+    ensureSpace(26);
+    tintRect(MARGIN, y, CONTENT_W, 22, COLORS.amberBg, 0.8);
+    doc.rect(MARGIN, y, 3, 22).fill(COLORS.gold);
+    doc
+      .fillColor(COLORS.amberText)
+      .font("Helvetica-Oblique")
+      .fontSize(7.5)
+      .text(text, MARGIN + 12, y + 7, { width: CONTENT_W - 20, lineBreak: false });
+    y += 28;
   };
 
-  // Helper menghitung Masa Kerja
-  const formatTenureText = (joinDate: Date | string): string => {
-    const start = new Date(joinDate);
-    const now = new Date();
-    let years = now.getFullYear() - start.getFullYear();
-    let months = now.getMonth() - start.getMonth();
-    if (now.getDate() < start.getDate()) months--;
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-    if (years <= 0 && months <= 0) return "< 1 Bulan";
-    if (years <= 0) return `${months} Bulan`;
-    return `${years} Tahun ${months} Bulan`;
+  const caption = (text: string) => {
+    ensureSpace(14);
+    doc.fillColor(COLORS.slateLight).font("Helvetica-Oblique").fontSize(7).text(text, MARGIN, y, {
+      width: CONTENT_W,
+      lineBreak: false,
+    });
+    y += 14;
   };
 
-  // =========================================================================
-  // HALAMAN 1: SAMPUL PROFIL & RINGKASAN EKSEKUTIF
-  // =========================================================================
-  drawPageHeaderAndWatermark();
+  /** Grid label–nilai. Tinggi baris menyesuaikan teks terpanjang sehingga tidak saling tumpuk. */
+  const kvGrid = (items: Array<{ label: string; value: string }>, perRow: 1 | 2 = 2) => {
+    const colW = CONTENT_W / perRow;
+    const labelW = perRow === 1 ? 110 : 86;
+    const valueW = colW - labelW - 18;
 
-  let y = 68;
+    for (let i = 0; i < items.length; i += perRow) {
+      const cells = items.slice(i, i + perRow);
+      const heights = cells.flatMap((c) => [
+        textH(dash(c.value), valueW, "Helvetica", 8),
+        textH(c.label, labelW - 4, "Helvetica-Bold", 7.2),
+      ]);
+      const rowH = Math.max(20, Math.max(...heights) + 11);
+      ensureSpace(rowH);
 
-  // Kotak Identitas Utama + Pasfoto
-  doc.roundedRect(36, y, 523, 115, 6).strokeColor(COLORS.border).lineWidth(1).stroke();
+      if ((i / perRow) % 2 === 1) tintRect(MARGIN, y, CONTENT_W, rowH, COLORS.rowAlt, 0.7);
 
-  // Pasfoto Profil di Sebelah Kiri
-  if (photoBuffer) {
-    try {
-      doc.image(photoBuffer, 46, y + 10, { width: 75, height: 95 });
-      doc.roundedRect(46, y + 10, 75, 95, 3).strokeColor(COLORS.navyLight).lineWidth(1).stroke();
-    } catch {
-      doc.rect(46, y + 10, 75, 95).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica").text("Foto Pegawai", 50, y + 50, { width: 67, align: "center" });
+      cells.forEach((c, j) => {
+        const x = MARGIN + j * colW + 8;
+        doc
+          .fillColor(COLORS.slateLight)
+          .font("Helvetica-Bold")
+          .fontSize(7.2)
+          .text(c.label, x, y + 6, { width: labelW - 4, lineGap: 1 });
+        doc
+          .fillColor(COLORS.slateDark)
+          .font("Helvetica")
+          .fontSize(8)
+          .text(dash(c.value), x + labelW, y + 5.5, { width: valueW, lineGap: 1 });
+      });
+
+      hLine(y + rowH);
+      y += rowH;
     }
-  } else {
-    doc.rect(46, y + 10, 75, 95).fill(COLORS.bgZebra);
-    doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica").text("Foto Pegawai", 50, y + 50, { width: 67, align: "center" });
+    y += 6;
+  };
+
+  /** Tabel dengan tinggi baris dinamis + header berulang di halaman berikutnya. */
+  function drawTable<T>(cols: Col<T>[], rows: T[], emptyText: string) {
+    const PX = 6;
+    const PY = 5;
+    const total = cols.reduce((a, c) => a + c.width, 0);
+    const ws = cols.map((c) => (c.width / total) * CONTENT_W);
+    const xs: number[] = [];
+    let acc = MARGIN;
+    ws.forEach((w) => {
+      xs.push(acc);
+      acc += w;
+    });
+
+    const headH =
+      Math.max(
+        ...cols.map((c, i) => textH(c.header, (ws[i] ?? 60) - PX * 2, "Helvetica-Bold", 7.2)),
+      ) +
+      PY * 2;
+
+    const drawHead = () => {
+      doc.rect(MARGIN, y, CONTENT_W, headH).fill(COLORS.tint);
+      hLine(y + headH, COLORS.navy, 1);
+      cols.forEach((c, i) => {
+        doc
+          .fillColor(COLORS.navy)
+          .font("Helvetica-Bold")
+          .fontSize(7.2)
+          .text(c.header, (xs[i] ?? MARGIN) + PX, y + PY, {
+            width: (ws[i] ?? 60) - PX * 2,
+            align: c.align ?? "left",
+            lineGap: 1,
+          });
+      });
+      y += headH;
+    };
+
+    const rowHeight = (r: T, idx: number) =>
+      Math.max(
+        20,
+        Math.max(
+          ...cols.map((c, ci) =>
+            textH(c.value(r, idx), (ws[ci] ?? 60) - PX * 2, c.bold ? "Helvetica-Bold" : "Helvetica", 7.5),
+          ),
+        ) +
+          PY * 2,
+      );
+
+    if (rows.length === 0) {
+      ensureSpace(headH + 26);
+      drawHead();
+      tintRect(MARGIN, y, CONTENT_W, 22, COLORS.rowAlt, 0.7);
+      doc
+        .fillColor(COLORS.slateMedium)
+        .font("Helvetica-Oblique")
+        .fontSize(7.5)
+        .text(emptyText, MARGIN + PX + 2, y + 7, { width: CONTENT_W - 20, lineBreak: false });
+      hLine(y + 22);
+      y += 30;
+      return;
+    }
+
+    ensureSpace(headH + rowHeight(rows[0]!, 0));
+    drawHead();
+
+    rows.forEach((r, idx) => {
+      const h = rowHeight(r, idx);
+      if (y + h > BOTTOM) {
+        newPage();
+        drawHead();
+      }
+      if (idx % 2 === 1) tintRect(MARGIN, y, CONTENT_W, h, COLORS.rowAlt, 0.7);
+      cols.forEach((c, ci) => {
+        doc
+          .fillColor(c.color?.(r) ?? COLORS.slateDark)
+          .font(c.bold ? "Helvetica-Bold" : "Helvetica")
+          .fontSize(7.5)
+          .text(c.value(r, idx), (xs[ci] ?? MARGIN) + PX, y + PY, {
+            width: (ws[ci] ?? 60) - PX * 2,
+            align: c.align ?? "left",
+            lineGap: 1,
+          });
+      });
+      hLine(y + h);
+      y += h;
+    });
+    y += 8;
   }
 
-  // Nama & Detail Inti di Sebelah Kanan Foto
-  const textX = 132;
-  doc
-    .fillColor(COLORS.navy)
-    .fontSize(14)
-    .font("Helvetica-Bold")
-    .text(employee.fullName || "-", textX, y + 12, { width: 415 });
+  // ===========================================================================
+  // KARTU IDENTITAS UTAMA
+  // ===========================================================================
+  {
+    const px = MARGIN + 12;
+    const py = y + 12;
+    const pw = 84;
+    const ph = 106;
+    const tx = px + pw + 16;
+    const tw = MARGIN + CONTENT_W - 12 - tx;
 
-  if (employee.nickname) {
-    doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text(`(Panggilan: "${employee.nickname}")`, textX, y + 29);
-  }
+    const st = EMPLOYEE_STATUS[employee.status?.toUpperCase()] ?? {
+      label: dash(employee.status).toUpperCase(),
+      bg: COLORS.tint,
+      fg: COLORS.navy,
+    };
+    const badgeW = 68;
+    const nameW = tw - badgeW - 10;
+    const nameH = textH(dash(employee.fullName), nameW, "Helvetica-Bold", 15, 0);
 
-  doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(textX, y + 42).lineTo(545, y + 42).stroke();
+    let cy = y + 14 + nameH + 3;
+    const nickY = cy;
+    if (employee.nickname) cy += 12;
+    cy += 3;
+    const lineY = cy;
+    cy += 9;
+    const gridY = cy;
+    const ROW = 35;
+    const gridBottom = gridY + ROW * 3;
+    const cardH = Math.max(ph + 24, gridBottom - y + 2);
 
-  // Grid Ringkas di samping foto
-  const summarySideItems = [
-    { label: "Nomor Induk Pegawai", value: employee.employeeNo || "-" },
-    { label: "Jabatan Utama", value: employee.currentPosition?.title || "Belum ada jabatan" },
-    { label: "Divisi / Unit Kerja", value: employee.currentDepartment?.name || "Belum ada divisi" },
-    { label: "Status Kepegawaian", value: employee.status || "-" },
-    { label: "Tanggal Bergabung", value: formatDate(employee.joinDate) },
-    { label: "Masa Kerja", value: formatTenureText(employee.joinDate) },
-  ];
+    // Bingkai kartu
+    doc.save().roundedRect(MARGIN, y, CONTENT_W, cardH, 6).lineWidth(1).strokeColor(COLORS.border).stroke().restore();
+    doc.save().rect(MARGIN + 6, y, CONTENT_W - 12, 2.5).fill(COLORS.gold).restore();
 
-  const sideY = y + 47;
-  summarySideItems.forEach((item, idx) => {
-    const isCol2 = idx % 2 === 1;
-    const colX = isCol2 ? textX + 210 : textX;
-    const curSideY = sideY + Math.floor(idx / 2) * 19;
+    // Pasfoto
+    let photoDrawn = false;
+    if (photoBuffer) {
+      try {
+        doc.save();
+        doc.roundedRect(px, py, pw, ph, 4).clip();
+        doc.image(photoBuffer, px, py, { cover: [pw, ph], align: "center", valign: "center" });
+        doc.restore();
+        photoDrawn = true;
+      } catch {
+        doc.restore();
+      }
+    }
+    if (!photoDrawn) {
+      doc.save().roundedRect(px, py, pw, ph, 4).fill(COLORS.rowAlt).restore();
+      doc
+        .fillColor(COLORS.slateMedium)
+        .font("Helvetica")
+        .fontSize(8)
+        .text("Foto Pegawai", px, py + ph / 2 - 4, { width: pw, align: "center", lineBreak: false });
+    }
+    doc.save().roundedRect(px, py, pw, ph, 4).lineWidth(1).strokeColor(COLORS.navyLight).stroke().restore();
 
-    doc.fillColor(COLORS.slateLight).fontSize(7).font("Helvetica-Bold").text(item.label, colX, curSideY);
-    doc.fillColor(COLORS.slateDark).fontSize(8).font("Helvetica").text(item.value, colX, curSideY + 9, { width: 200 });
-  });
+    // Nama + status
+    doc
+      .fillColor(COLORS.navy)
+      .font("Helvetica-Bold")
+      .fontSize(15)
+      .text(dash(employee.fullName), tx, y + 14, { width: nameW, lineGap: 0 });
+    pill(st.label, tx + tw - badgeW, y + 16, badgeW, st.bg, st.fg);
 
-  y += 126;
+    if (employee.nickname) {
+      doc
+        .fillColor(COLORS.slateMedium)
+        .font("Helvetica-Oblique")
+        .fontSize(8)
+        .text(`Panggilan: "${employee.nickname}"`, tx, nickY, { width: tw, lineBreak: false });
+    }
 
-  // Bagian 1: Data Pribadi & Kontak
-  if (options.personal) {
-    y = drawSectionHeader("1. Data Diri & Informasi Kontak Pegawai", y);
+    hLine(lineY, COLORS.borderLight, 0.5, tx, tx + tw);
 
-    const personalItems = [
-      { label: "Jenis Kelamin", value: employee.gender === "FEMALE" ? "Perempuan" : employee.gender === "MALE" ? "Laki-laki" : "-" },
-      { label: "Status Pernikahan", value: employee.maritalStatus || "-" },
-      { label: "Tempat, Tgl Lahir", value: `${employee.birthPlace || "-"}, ${employee.birthDate ? formatDate(employee.birthDate) : "-"}` },
-      { label: "Agama", value: employee.religion || "-" },
-      { label: "Golongan Darah", value: employee.bloodType || "-" },
-      { label: "Kewarganegaraan", value: employee.citizenship || "WNI" },
-      { label: "Email Kantor", value: employee.workEmail || "-" },
-      { label: "Email Pribadi", value: employee.personalEmail || "-" },
-      { label: "No. HP / WhatsApp", value: employee.phone || "-" },
-      { label: "Telepon Rumah", value: employee.landlinePhone || "-" },
-      { label: "Kontak Darurat", value: employee.emergencyContactName ? `${employee.emergencyContactName} (${employee.emergencyContactRelation || "Kerabat"})` : "-" },
-      { label: "No. HP Darurat", value: employee.emergencyContactPhone || "-" },
+    const summaryItems = [
+      { label: "Nomor Induk Pegawai", value: dash(employee.employeeNo) },
+      { label: "Jabatan Utama", value: employee.currentPosition?.title || "Belum ada jabatan" },
+      { label: "Divisi / Unit Kerja", value: employee.currentDepartment?.name || "Belum ada divisi" },
+      { label: "Tanggal Bergabung", value: formatDate(employee.joinDate) },
+      { label: "Masa Kerja", value: formatTenureText(employee.joinDate) },
+      { label: "Atasan Langsung", value: employee.manager?.fullName || "-" },
     ];
+    const colW2 = tw / 2;
+    summaryItems.forEach((it, idx) => {
+      const x = tx + (idx % 2) * colW2;
+      const yy = gridY + Math.floor(idx / 2) * ROW;
+      doc
+        .fillColor(COLORS.slateLight)
+        .font("Helvetica-Bold")
+        .fontSize(6.5)
+        .text(it.label.toUpperCase(), x, yy, { width: colW2 - 10, lineBreak: false });
+      doc
+        .fillColor(COLORS.slateDark)
+        .font("Helvetica-Bold")
+        .fontSize(8.5)
+        .text(it.value, x, yy + 9.5, { width: colW2 - 12, height: 21, ellipsis: true, lineGap: 0.5 });
+    });
 
-    y = drawKeyValueGrid(personalItems, y);
+    y += cardH + 12;
   }
 
-  // =========================================================================
-  // HALAMAN 2: ALAMAT & SUSUNAN KELUARGA
-  // =========================================================================
-  if (options.address || options.family) {
-    doc.addPage();
-    drawPageHeaderAndWatermark();
-    y = 68;
+  // ===========================================================================
+  // 1. DATA DIRI
+  // ===========================================================================
+  if (options.personal) {
+    section("Data Diri & Informasi Kontak Pegawai");
+    const age = ageFrom(employee.birthDate);
+    kvGrid([
+      { label: "Jenis Kelamin", value: employee.gender === "FEMALE" ? "Perempuan" : employee.gender === "MALE" ? "Laki-laki" : "-" },
+      { label: "Status Pernikahan", value: dash(employee.maritalStatus) },
+      {
+        label: "Tempat, Tgl Lahir",
+        value: `${dash(employee.birthPlace)}, ${employee.birthDate ? formatDate(employee.birthDate) : "-"}${age !== null ? ` (${age} th)` : ""}`,
+      },
+      { label: "Agama", value: dash(employee.religion) },
+      { label: "Golongan Darah", value: dash(employee.bloodType) },
+      { label: "Kewarganegaraan", value: employee.citizenship || "WNI" },
+      { label: "Email Kantor", value: dash(employee.workEmail) },
+      { label: "Email Pribadi", value: dash(employee.personalEmail) },
+      { label: "No. HP / WhatsApp", value: dash(employee.phone) },
+      { label: "Telepon Rumah", value: dash(employee.landlinePhone) },
+      {
+        label: "Kontak Darurat",
+        value: employee.emergencyContactName
+          ? `${employee.emergencyContactName} (${employee.emergencyContactRelation || "Kerabat"})`
+          : "-",
+      },
+      { label: "No. HP Darurat", value: dash(employee.emergencyContactPhone) },
+    ]);
+  }
 
-    // Alamat KTP & Domisili
-    if (options.address) {
-      y = drawSectionHeader("2. Rincian Alamat Lengkap (KTP & Domisili)", y);
+  // ===========================================================================
+  // 2. ALAMAT
+  // ===========================================================================
+  if (options.address) {
+    section("Rincian Alamat (KTP & Domisili)", { follow: 44 });
+    const ktpAddr = employee.addresses?.find((a) => a.type === "KTP");
+    const domAddr = employee.addresses?.find((a) => a.type === "DOMICILE");
 
-      const ktpAddr = employee.addresses?.find((a) => a.type === "KTP");
-      const domAddr = employee.addresses?.find((a) => a.type === "DOMICILE");
+    const formatFullAddress = (addr?: PdfAddressItem): string => {
+      if (!addr) return employee.address || "Belum dicantumkan";
+      const parts = [
+        addr.street,
+        addr.kelurahan ? `Kel. ${addr.kelurahan}` : null,
+        addr.kecamatan ? `Kec. ${addr.kecamatan}` : null,
+        addr.city,
+        addr.province,
+      ].filter((p): p is string => !!p && !!p.trim());
+      const base = parts.join(", ");
+      const full = addr.postalCode ? `${base} ${addr.postalCode}` : base;
+      return full || "Belum dicantumkan";
+    };
 
-      const formatFullAddress = (addr?: PdfAddressItem) => {
-        if (!addr) return employee.address || "Belum dicantumkan";
-        return `${addr.street || ""}, Kel. ${addr.kelurahan || "-"}, Kec. ${addr.kecamatan || "-"}, ${addr.city || "-"}, ${addr.province || "-"} ${addr.postalCode ? `(${addr.postalCode})` : ""}`.trim();
-      };
-
-      const addressItems = [
+    kvGrid(
+      [
         { label: "Alamat Sesuai KTP", value: formatFullAddress(ktpAddr) },
         { label: "Alamat Domisili", value: formatFullAddress(domAddr) },
-      ];
-
-      addressItems.forEach((addr) => {
-        doc.rect(36, y, 523, 26).fill(COLORS.bgZebra);
-        doc.strokeColor(COLORS.borderLight).lineWidth(0.5).rect(36, y, 523, 26).stroke();
-        doc.fillColor(COLORS.slateLight).fontSize(7.5).font("Helvetica-Bold").text(addr.label, 44, y + 4);
-        doc.fillColor(COLORS.slateDark).fontSize(8).font("Helvetica").text(addr.value, 44, y + 14, { width: 505 });
-        y += 31;
-      });
-
-      y += 6;
-    }
-
-    // Susunan Anggota Keluarga
-    if (options.family) {
-      y = drawSectionHeader("3. Susunan Anggota Keluarga & Tanggungan", y);
-
-      const families = employee.familyMembers || [];
-
-      // Tabel Header
-      doc.rect(36, y, 523, 18).fill(COLORS.navyLight);
-      doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-      doc.text("No", 42, y + 5, { width: 20 });
-      doc.text("Nama Anggota Keluarga", 68, y + 5, { width: 140 });
-      doc.text("Hubungan", 215, y + 5, { width: 85 });
-      doc.text("Tgl Lahir / Usia", 305, y + 5, { width: 95 });
-      doc.text("No. Telepon", 405, y + 5, { width: 75 });
-      doc.text("Tanggungan", 485, y + 5, { width: 65, align: "center" });
-      y += 18;
-
-      if (families.length === 0) {
-        doc.rect(36, y, 523, 20).fill(COLORS.bgZebra);
-        doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada data keluarga yang dicatatkan.", 44, y + 6);
-        y += 24;
-      } else {
-        families.forEach((fam, idx: number) => {
-          const isZebra = idx % 2 === 1;
-          if (isZebra) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
-          doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
-
-          doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-          doc.text(String(idx + 1), 42, y + 4.5);
-          doc.text(fam.name || "-", 68, y + 4.5, { width: 140 });
-          doc.text(fam.relation || "-", 215, y + 4.5, { width: 85 });
-          doc.text(fam.birthDate ? formatDate(fam.birthDate) : "-", 305, y + 4.5, { width: 95 });
-          doc.text(fam.phone || "-", 405, y + 4.5, { width: 75 });
-          doc.text(fam.isDependent ? "Ya" : "Tidak", 485, y + 4.5, { width: 65, align: "center" });
-
-          y += 17;
-        });
-        y += 8;
-      }
-    }
+      ],
+      1,
+    );
   }
 
-  // =========================================================================
-  // HALAMAN 3: PENDIDIKAN, PELATIHAN & PENGALAMAN KERJA
-  // =========================================================================
+  // ===========================================================================
+  // 3. KELUARGA
+  // ===========================================================================
+  if (options.family) {
+    section("Susunan Anggota Keluarga & Tanggungan");
+    drawTable(
+      [
+        { header: "No", width: 24, value: (_r, i) => String(i + 1) },
+        { header: "Nama Anggota Keluarga", width: 150, value: (r) => dash(r.name) },
+        { header: "Hubungan", width: 80, value: (r) => dash(r.relation) },
+        {
+          header: "Tgl Lahir / Usia",
+          width: 115,
+          value: (r) => {
+            if (!r.birthDate) return "-";
+            const a = ageFrom(r.birthDate);
+            return `${formatDate(r.birthDate)}${a !== null ? ` (${a} th)` : ""}`;
+          },
+        },
+        { header: "No. Telepon", width: 90, value: (r) => dash(r.phone) },
+        {
+          header: "Tanggungan",
+          width: 64,
+          align: "center",
+          value: (r) => (r.isDependent ? "Ya" : "Tidak"),
+          color: (r) => (r.isDependent ? COLORS.emerald : COLORS.slateLight),
+        },
+      ],
+      employee.familyMembers || [],
+      "Tidak ada data keluarga yang dicatatkan.",
+    );
+  }
+
+  // ===========================================================================
+  // 4–6. PENDIDIKAN, PELATIHAN, PENGALAMAN KERJA
+  // ===========================================================================
   if (options.education) {
-    doc.addPage();
-    drawPageHeaderAndWatermark();
-    y = 68;
+    section("Riwayat Pendidikan Formal");
+    drawTable(
+      [
+        { header: "Jenjang", width: 60, value: (r) => dash(r.level) },
+        { header: "Institusi / Universitas", width: 190, value: (r) => dash(r.institution) },
+        { header: "Program Studi / Jurusan", width: 150, value: (r) => dash(r.major) },
+        { header: "Tahun Lulus", width: 58, align: "center", value: (r) => dash(r.graduationYear) },
+        {
+          header: "IPK / Nilai",
+          width: 55,
+          align: "center",
+          value: (r) => (r.gpa ? Number(String(r.gpa)).toFixed(2) : "-"),
+        },
+      ],
+      employee.educations || [],
+      "Belum ada riwayat pendidikan yang dicatatkan.",
+    );
 
-    // Pendidikan Formal
-    y = drawSectionHeader("4. Riwayat Pendidikan Formal", y);
-    const edus = employee.educations || [];
+    section("Riwayat Pelatihan, Riset & Sertifikasi");
+    drawTable(
+      [
+        { header: "Nama Pelatihan / Sertifikasi", width: 190, value: (r) => dash(r.name) },
+        { header: "Lembaga Penyelenggara", width: 150, value: (r) => dash(r.organizer) },
+        { header: "Periode / Tahun", width: 95, value: (r) => (r.startDate ? formatDate(r.startDate) : "-") },
+        { header: "Durasi Jam", width: 88, align: "center", value: (r) => dash(r.duration) },
+      ],
+      employee.trainings || [],
+      "Belum ada riwayat pelatihan yang dicatatkan.",
+    );
 
-    doc.rect(36, y, 523, 18).fill(COLORS.navyLight);
-    doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-    doc.text("Jenjang", 44, y + 5, { width: 55 });
-    doc.text("Institusi / Universitas", 105, y + 5, { width: 175 });
-    doc.text("Program Studi / Jurusan", 285, y + 5, { width: 145 });
-    doc.text("Tahun Lulus", 435, y + 5, { width: 60, align: "center" });
-    doc.text("IPK / Nilai", 500, y + 5, { width: 50, align: "center" });
-    y += 18;
-
-    if (edus.length === 0) {
-      doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada riwayat pendidikan yang dicatatkan.", 44, y + 5);
-      y += 24;
-    } else {
-      edus.forEach((edu, idx: number) => {
-        if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
-        doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
-
-        doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-        doc.text(edu.level || "-", 44, y + 4.5, { width: 55 });
-        doc.text(edu.institution || "-", 105, y + 4.5, { width: 175 });
-        doc.text(edu.major || "-", 285, y + 4.5, { width: 145 });
-        doc.text(String(edu.graduationYear || "-"), 435, y + 4.5, { width: 60, align: "center" });
-        doc.text(edu.gpa ? Number(String(edu.gpa)).toFixed(2) : "-", 500, y + 4.5, { width: 50, align: "center" });
-        y += 17;
-      });
-      y += 10;
-    }
-
-    // Pelatihan & Sertifikasi
-    y = drawSectionHeader("5. Riwayat Pelatihan, Riset & Sertifikasi", y);
-    const trainings = employee.trainings || [];
-
-    doc.rect(36, y, 523, 18).fill(COLORS.navyLight);
-    doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-    doc.text("Nama Pelatihan / Sertifikasi", 44, y + 5, { width: 180 });
-    doc.text("Lembaga Penyelenggara", 230, y + 5, { width: 150 });
-    doc.text("Periode / Tahun", 385, y + 5, { width: 90 });
-    doc.text("Durasi Jam", 480, y + 5, { width: 70, align: "center" });
-    y += 18;
-
-    if (trainings.length === 0) {
-      doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada riwayat pelatihan yang dicatatkan.", 44, y + 5);
-      y += 24;
-    } else {
-      trainings.forEach((tr, idx: number) => {
-        if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
-        doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
-
-        doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-        doc.text(tr.name || "-", 44, y + 4.5, { width: 180 });
-        doc.text(tr.organizer || "-", 230, y + 4.5, { width: 150 });
-        doc.text(tr.startDate ? formatDate(tr.startDate) : "-", 385, y + 4.5, { width: 90 });
-        doc.text(tr.duration || "-", 480, y + 4.5, { width: 70, align: "center" });
-        y += 17;
-      });
-      y += 10;
-    }
-
-    // Pengalaman Kerja Terdahulu
-    y = drawSectionHeader("6. Riwayat Pengalaman Kerja Terdahulu", y);
-    const works = employee.workExperiences || [];
-
-    doc.rect(36, y, 523, 18).fill(COLORS.navyLight);
-    doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-    doc.text("Perusahaan / Lembaga", 44, y + 5, { width: 150 });
-    doc.text("Posisi / Jabatan", 200, y + 5, { width: 140 });
-    doc.text("Periode Bekerja", 345, y + 5, { width: 110 });
-    doc.text("Alasan Berhenti", 460, y + 5, { width: 95 });
-    y += 18;
-
-    if (works.length === 0) {
-      doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada riwayat pengalaman kerja yang dicatatkan.", 44, y + 5);
-      y += 24;
-    } else {
-      works.forEach((w, idx: number) => {
-        if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
-        doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
-
-        doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-        doc.text(w.companyName || "-", 44, y + 4.5, { width: 150 });
-        doc.text(w.jobTitle || "-", 200, y + 4.5, { width: 140 });
-        doc.text(`${w.startDate ? formatDate(w.startDate) : "-"} s.d. ${w.endDate ? formatDate(w.endDate) : "Sekarang"}`, 345, y + 4.5, { width: 110 });
-        doc.text(w.reasonForLeaving || "-", 460, y + 4.5, { width: 95 });
-        y += 17;
-      });
-      y += 10;
-    }
+    section("Riwayat Pengalaman Kerja Terdahulu");
+    drawTable(
+      [
+        { header: "Perusahaan / Lembaga", width: 150, value: (r) => dash(r.companyName) },
+        { header: "Posisi / Jabatan", width: 130, value: (r) => dash(r.jobTitle) },
+        {
+          header: "Periode Bekerja",
+          width: 150,
+          value: (r) =>
+            `${r.startDate ? formatDate(r.startDate) : "-"} s.d. ${r.endDate ? formatDate(r.endDate) : "Sekarang"}`,
+        },
+        { header: "Alasan Berhenti", width: 93, value: (r) => dash(r.reasonForLeaving) },
+      ],
+      employee.workExperiences || [],
+      "Belum ada riwayat pengalaman kerja yang dicatatkan.",
+    );
   }
 
-  // =========================================================================
-  // HALAMAN 4: PENEMPATAN, KONTRAK & KOMPENSASI
-  // =========================================================================
+  // ===========================================================================
+  // 7. PENEMPATAN
+  // ===========================================================================
+  if (options.employment) {
+    section("Penempatan, Divisi & Jabatan");
+    kvGrid([
+      { label: "Divisi Saat Ini", value: dash(employee.currentDepartment?.name) },
+      { label: "Jabatan Saat Ini", value: dash(employee.currentPosition?.title) },
+      {
+        label: "Atasan Langsung",
+        value: employee.manager?.fullName
+          ? `${employee.manager.fullName} (${employee.manager.employeeNo})`
+          : "Direksi / Mandiri",
+      },
+      { label: "Lokasi Kantor", value: employee.workLocation?.name || "Kantor PSPK Jakarta" },
+      { label: "Entitas Hukum", value: employee.legalEntity?.name || "Yayasan PSPK" },
+      { label: "Akhir Probation", value: employee.probationEndDate ? formatDate(employee.probationEndDate) : "-" },
+    ]);
+  }
+
+  // ===========================================================================
+  // 8. KONTRAK
+  // ===========================================================================
+  if (options.contracts) {
+    section("Riwayat Kontrak Kerja Pegawai (PKWT/SK)");
+    drawTable(
+      [
+        { header: "Jenis Ikatan", width: 150, value: (r) => r.employmentTypeMaster?.name || r.type || "-" },
+        { header: "Mulai Kontrak", width: 78, value: (r) => (r.startDate ? formatDate(r.startDate) : "-") },
+        { header: "Akhir Kontrak", width: 78, value: (r) => (r.endDate ? formatDate(r.endDate) : "Tetap / -") },
+        {
+          header: "Status",
+          width: 62,
+          align: "center",
+          bold: true,
+          value: (r) => dash(r.status),
+          color: (r) => CONTRACT_STATUS_COLOR[r.status?.toUpperCase()] ?? COLORS.slateDark,
+        },
+        { header: "Keterangan", width: 155, value: (r) => stripBrackets(r.notes) },
+      ],
+      employee.contracts || [],
+      "Tidak ada riwayat kontrak.",
+    );
+  }
+
+  // ===========================================================================
+  // 9–10. KOMPENSASI & DATA SENSITIF
+  // ===========================================================================
   if (options.employment || options.contracts || options.compensation || options.sensitive) {
-    doc.addPage();
-    drawPageHeaderAndWatermark();
-    y = 68;
-
-    // Penempatan & Riwayat Jabatan
-    if (options.employment) {
-      y = drawSectionHeader("7. Penempatan, Divisi & Riwayat Jabatan", y);
-
-      const placementItems = [
-        { label: "Divisi Saat Ini", value: employee.currentDepartment?.name || "-" },
-        { label: "Jabatan Saat Ini", value: employee.currentPosition?.title || "-" },
-        { label: "Atasan Langsung", value: employee.manager?.fullName ? `${employee.manager.fullName} (${employee.manager.employeeNo})` : "Direksi / Mandiri" },
-        { label: "Lokasi Kantor", value: employee.workLocation?.name || "Kantor PSPK Jakarta" },
-        { label: "Entitas Hukum", value: employee.legalEntity?.name || "Yayasan PSPK" },
-        { label: "Akhir Probation", value: employee.probationEndDate ? formatDate(employee.probationEndDate) : "-" },
-      ];
-
-      y = drawKeyValueGrid(placementItems, y);
-    }
-
-    // Riwayat Kontrak Kerja
-    if (options.contracts) {
-      y = drawSectionHeader("8. Riwayat Kontrak Kerja Pegawai (PKWT/SK)", y);
-      const contracts = employee.contracts || [];
-
-      doc.rect(36, y, 523, 18).fill(COLORS.navyLight);
-      doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-      doc.text("Jenis Ikatan", 44, y + 5, { width: 120 });
-      doc.text("Mulai Kontrak", 170, y + 5, { width: 85 });
-      doc.text("Akhir Kontrak", 260, y + 5, { width: 85 });
-      doc.text("Status Kontrak", 350, y + 5, { width: 75, align: "center" });
-      doc.text("Keterangan", 430, y + 5, { width: 125 });
-      y += 18;
-
-      if (contracts.length === 0) {
-        doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-        doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada riwayat kontrak.", 44, y + 5);
-        y += 24;
-      } else {
-        contracts.forEach((c, idx: number) => {
-          if (idx % 2 === 1) doc.rect(36, y, 523, 17).fill(COLORS.bgZebra);
-          doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 17).lineTo(559, y + 17).stroke();
-
-          doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-          doc.text(c.employmentTypeMaster?.name || c.type || "-", 44, y + 4.5, { width: 120 });
-          doc.text(c.startDate ? formatDate(c.startDate) : "-", 170, y + 4.5, { width: 85 });
-          doc.text(c.endDate ? formatDate(c.endDate) : "Tetap / -", 260, y + 4.5, { width: 85 });
-          doc.text(c.status || "-", 350, y + 4.5, { width: 75, align: "center" });
-          doc.text(c.notes || "-", 430, y + 4.5, { width: 125 });
-          y += 17;
-        });
-        y += 10;
-      }
-    }
-
-    // Kompensasi & Pajak (Jika Diizinkan)
-    y = drawSectionHeader("9. Struktur Kompensasi & Pajak Penghasilan (PPh 21)", y);
+    section("Struktur Kompensasi & Pajak Penghasilan (PPh 21)", { follow: 40 });
     if (!options.compensation) {
-      doc.rect(36, y, 523, 20).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateLight).fontSize(7.5).font("Helvetica-Oblique").text("— INFORMASI STRUKTUR KOMPENSASI DIKUNCI / TIDAK DISERTAKAN DALAM DOKUMEN INI —", 44, y + 6);
-      y += 28;
+      notice("INFORMASI STRUKTUR KOMPENSASI DIKUNCI / TIDAK DISERTAKAN DALAM DOKUMEN INI");
     } else {
       const activeContract = employee.contracts?.find((c) => c.status === "ACTIVE") || employee.contracts?.[0];
-      const baseSalary = activeContract?.wageType === "HOURLY" ? 0 : activeContract?.baseSalary ? Number(activeContract.baseSalary) : 0;
+      const isHourly = activeContract?.wageType === "HOURLY";
+      const baseSalary = isHourly ? 0 : activeContract?.baseSalary ? Number(activeContract.baseSalary) : 0;
       const hourlyRate = activeContract?.hourlyRate ? Number(activeContract.hourlyRate) : 0;
-      const allowances = employee.salaryComponents || [];
-      const totalAllowances = allowances.reduce((acc: number, c) => acc + c.amount, 0);
+      const totalAllowances = (employee.salaryComponents || []).reduce((acc: number, c) => acc + c.amount, 0);
 
       const ptkpInfo = getPtkpExplanation(employee.ptkpStatus);
       const taxMethodInfo = getTaxMethodExplanation(employee.taxMethod);
 
-      const compItems = [
-        { label: "Gaji Pokok", value: activeContract?.wageType === "HOURLY" ? `${formatRupiah(hourlyRate)} / jam` : formatRupiah(baseSalary) },
+      kvGrid([
+        { label: "Gaji Pokok", value: isHourly ? `${formatRupiah(hourlyRate)} / jam` : formatRupiah(baseSalary) },
         { label: "Total Tunjangan", value: formatRupiah(totalAllowances) },
         { label: "Estimasi Bruto", value: formatRupiah(baseSalary + totalAllowances) },
         { label: "Status PTKP & TER", value: `${employee.ptkpStatus || "TK/0"} (${ptkpInfo?.terCategory || "TER A"})` },
         { label: "Metode Pajak", value: `${employee.taxMethod || "GROSS"} (${taxMethodInfo?.badge || "-"})` },
         { label: "Iuran BPJS Kes (1%)", value: formatRupiah(Math.round(baseSalary * 0.01)) },
-      ];
-
-      y = drawKeyValueGrid(compItems, y);
+      ]);
     }
 
-    // Data Sensitif (Jika Diizinkan)
-    y = drawSectionHeader("10. Identitas Sensitif & Payroll Lembaga", y);
+    section("Identitas Sensitif & Payroll Lembaga", { follow: 40 });
     if (!options.sensitive) {
-      doc.rect(36, y, 523, 20).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateLight).fontSize(7.5).font("Helvetica-Oblique").text("— DATA SENSITIF TERENKRIPSI (NIK, NPWP, BANK) DILINDUNGI & TIDAK DIBUKA —", 44, y + 6);
-      y += 28;
+      notice("DATA SENSITIF TERENKRIPSI (NIK, NPWP, BANK) DILINDUNGI & TIDAK DIBUKA");
     } else {
-      const sensitiveItems = [
-        { label: "Nomor Induk Kependudukan (NIK)", value: employee.nikRaw || employee.nikMasked || "-" },
-        { label: "Nomor Pokok Wajib Pajak (NPWP)", value: employee.npwpRaw || employee.npwpMasked || "-" },
-        { label: "Bank Payroll Lembaga", value: employee.bankName || "Bank Mandiri" },
-        { label: "Nomor Rekening Bank", value: employee.bankAccountRaw || employee.bankAccountMasked || "-" },
-      ];
-
-      y = drawKeyValueGrid(sensitiveItems, y);
+      kvGrid([
+        { label: "NIK", value: employee.nikRaw || employee.nikMasked || "-" },
+        { label: "NPWP", value: employee.npwpRaw || employee.npwpMasked || "-" },
+        { label: "Bank Payroll", value: employee.bankName || "Bank Mandiri" },
+        { label: "No. Rekening", value: employee.bankAccountRaw || employee.bankAccountMasked || "-" },
+      ]);
     }
   }
 
-  // =========================================================================
-  // HALAMAN 5: REKAPITULASI ABSENSI & CUTI
-  // =========================================================================
+  // ===========================================================================
+  // 11–12. PRESENSI & CUTI
+  // ===========================================================================
   if (options.attendance) {
-    doc.addPage();
-    drawPageHeaderAndWatermark();
-    y = 68;
-
-    y = drawSectionHeader(`11. Rekapitulasi Presensi & Kehadiran Pegawai (${options.attendanceFrom || "Awal"} s.d. ${options.attendanceTo || "Akhir"})`, y);
+    const periodText = `${options.attendanceFrom ? formatDate(options.attendanceFrom) : "Awal"} s.d. ${
+      options.attendanceTo ? formatDate(options.attendanceTo) : "Akhir"
+    }`;
+    section("Rekapitulasi Presensi & Kehadiran", { subtitle: periodText, follow: 60 });
 
     const summary = attendanceData?.summary || {
       workingDaysCount: 0,
@@ -754,207 +975,177 @@ export async function generateEmployeeProfilePdf(
       attendanceRate: 100,
     };
 
-    // 4 Kotak KPI Kehadiran
-    const kpiWidth = 125;
-    const kpiY = y;
+    const GAP = 10;
+    const kpiW = (CONTENT_W - GAP * 3) / 4;
     const kpis = [
-      { label: "HARI EFEKTIF", value: `${summary.workingDaysCount} Hari` },
-      { label: "HADIR TEPAT WAKTU", value: `${summary.presentCount} Hari` },
-      { label: "TERLAMBAT / WFH", value: `${summary.lateCount} / ${summary.wfhCount}` },
-      { label: "TINGKAT KEHADIRAN", value: `${summary.attendanceRate}%` },
+      { label: "HARI EFEKTIF", value: `${summary.workingDaysCount} Hari`, accent: COLORS.navy },
+      { label: "HADIR TEPAT WAKTU", value: `${summary.presentCount} Hari`, accent: COLORS.navy },
+      { label: "TERLAMBAT / WFH", value: `${summary.lateCount} / ${summary.wfhCount}`, accent: COLORS.navy },
+      { label: "TINGKAT KEHADIRAN", value: `${summary.attendanceRate}%`, accent: COLORS.emerald },
     ];
-
-    kpis.forEach((kpi, idx) => {
-      const kX = 36 + idx * 133;
-      doc.rect(kX, kpiY, kpiWidth, 34).fill(COLORS.bgZebra);
-      doc.strokeColor(COLORS.borderLight).lineWidth(0.5).rect(kX, kpiY, kpiWidth, 34).stroke();
-      doc.fillColor(COLORS.slateLight).fontSize(7).font("Helvetica-Bold").text(kpi.label, kX + 8, kpiY + 6);
-      doc.fillColor(COLORS.navy).fontSize(12).font("Helvetica-Bold").text(kpi.value, kX + 8, kpiY + 16);
+    ensureSpace(46);
+    kpis.forEach((k, i) => {
+      const x = MARGIN + i * (kpiW + GAP);
+      doc.save().roundedRect(x, y, kpiW, 40, 4).lineWidth(0.7).strokeColor(COLORS.border).stroke().restore();
+      doc.save().rect(x + 4, y, kpiW - 8, 2.5).fill(k.accent).restore();
+      doc.fillColor(COLORS.slateLight).font("Helvetica-Bold").fontSize(6.5).text(k.label, x + 10, y + 9, {
+        width: kpiW - 16,
+        lineBreak: false,
+      });
+      doc.fillColor(k.accent).font("Helvetica-Bold").fontSize(13).text(k.value, x + 10, y + 20, {
+        width: kpiW - 16,
+        lineBreak: false,
+      });
     });
+    y += 40 + 12;
 
-    y += 44;
-
-    // Tabel Log Kehadiran Harian (Maksimal 15 baris terakhir dalam rentang)
-    const records = attendanceData?.records || [];
-    doc.rect(36, y, 523, 16).fill(COLORS.navyLight);
-    doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-    doc.text("Tanggal", 44, y + 4.5, { width: 85 });
-    doc.text("Jam Masuk", 135, y + 4.5, { width: 75 });
-    doc.text("Jam Pulang", 215, y + 4.5, { width: 75 });
-    doc.text("Status Kehadiran", 295, y + 4.5, { width: 95 });
-    doc.text("Catatan Kehadiran", 395, y + 4.5, { width: 160 });
-    y += 16;
-
-    if (records.length === 0) {
-      doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada catatan presensi dalam rentang tanggal ini.", 44, y + 5);
-      y += 24;
-    } else {
-      records.slice(0, 16).forEach((rec, idx: number) => {
-        if (idx % 2 === 1) doc.rect(36, y, 523, 15).fill(COLORS.bgZebra);
-        doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 15).lineTo(559, y + 15).stroke();
-
-        doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-        doc.text(formatDate(rec.date), 44, y + 3.5, { width: 85 });
-        doc.text(rec.checkInTime ? new Date(rec.checkInTime).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "-", 135, y + 3.5, { width: 75 });
-        doc.text(rec.checkOutTime ? new Date(rec.checkOutTime).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "-", 215, y + 3.5, { width: 75 });
-        doc.text(rec.status || "-", 295, y + 3.5, { width: 95 });
-        doc.text(rec.notes || "-", 395, y + 3.5, { width: 160, ellipsis: true });
-        y += 15;
-      });
-      y += 10;
+    const MAX_ATT = 31;
+    const allRecords = attendanceData?.records || [];
+    const records = allRecords.slice(0, MAX_ATT);
+    drawTable(
+      [
+        { header: "Tanggal", width: 82, value: (r) => formatDate(r.date) },
+        { header: "Jam Masuk", width: 58, value: (r) => fmtTime(r.checkInTime) },
+        { header: "Jam Pulang", width: 60, value: (r) => fmtTime(r.checkOutTime) },
+        {
+          header: "Status",
+          width: 62,
+          bold: true,
+          value: (r) => ATTENDANCE_STATUS[r.status?.toUpperCase()]?.label ?? dash(r.status),
+          color: (r) => ATTENDANCE_STATUS[r.status?.toUpperCase()]?.color,
+        },
+        { header: "Catatan", width: 259, value: (r) => cleanAttendanceNote(r.notes) },
+      ],
+      records,
+      "Tidak ada catatan presensi dalam rentang tanggal ini.",
+    );
+    if (allRecords.length > MAX_ATT) {
+      y -= 4;
+      caption(`Menampilkan ${MAX_ATT} dari ${allRecords.length} catatan presensi terbaru.`);
     }
 
-    // Tabel Saldo Cuti Pegawai
-    y = drawSectionHeader("12. Kuota Saldo Cuti Pegawai Tahun Berjalan", y);
-    const leaveBalances = attendanceData?.leaveBalances || [];
-
-    doc.rect(36, y, 523, 16).fill(COLORS.navyLight);
-    doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-    doc.text("Jenis Cuti", 44, y + 4.5, { width: 220 });
-    doc.text("Hak Kuota", 270, y + 4.5, { width: 90, align: "center" });
-    doc.text("Terpakai", 365, y + 4.5, { width: 90, align: "center" });
-    doc.text("Sisa Hari Cuti", 460, y + 4.5, { width: 95, align: "center" });
-    y += 16;
-
-    if (leaveBalances.length === 0) {
-      doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-      doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada data kuota cuti untuk tahun ini.", 44, y + 5);
-      y += 24;
-    } else {
-      leaveBalances.forEach((lb, idx: number) => {
-        if (idx % 2 === 1) doc.rect(36, y, 523, 16).fill(COLORS.bgZebra);
-        doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 16).lineTo(559, y + 16).stroke();
-
-        doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-        doc.text(lb.leaveTypeName || "Cuti Tahunan", 44, y + 4);
-        doc.text(`${lb.quotaDays} Hari`, 270, y + 4, { width: 90, align: "center" });
-        doc.text(`${lb.usedDays} Hari`, 365, y + 4, { width: 90, align: "center" });
-        doc.fillColor(COLORS.emerald).font("Helvetica-Bold").text(`${lb.remainingDays} Hari`, 460, y + 4, { width: 95, align: "center" });
-        y += 16;
-      });
-      y += 10;
-    }
+    section("Kuota & Saldo Cuti Tahun Berjalan");
+    drawTable(
+      [
+        { header: "Jenis Cuti", width: 220, value: (r) => r.leaveTypeName || "Cuti Tahunan" },
+        { header: "Hak Kuota", width: 90, align: "center", value: (r) => `${r.quotaDays} Hari` },
+        { header: "Terpakai", width: 90, align: "center", value: (r) => `${r.usedDays} Hari` },
+        {
+          header: "Sisa Hari Cuti",
+          width: 95,
+          align: "center",
+          bold: true,
+          value: (r) => `${r.remainingDays} Hari`,
+          color: () => COLORS.emerald,
+        },
+      ],
+      attendanceData?.leaveBalances || [],
+      "Tidak ada data kuota cuti untuk tahun ini.",
+    );
   }
 
-  // =========================================================================
-  // HALAMAN 6: DOKUMEN, ASET & PENGESAHAN DOKUMEN
-  // =========================================================================
-  if (options.documents || options.assets) {
-    doc.addPage();
-    drawPageHeaderAndWatermark();
-    y = 68;
-
-    // Dokumen Digital
-    if (options.documents) {
-      y = drawSectionHeader("13. Daftar Inventaris Dokumen Digital Kepegawaian", y);
-      const docs = employee.documents || [];
-
-      doc.rect(36, y, 523, 16).fill(COLORS.navyLight);
-      doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-      doc.text("Kategori Dokumen", 44, y + 4.5, { width: 140 });
-      doc.text("Judul Dokumen", 190, y + 4.5, { width: 175 });
-      doc.text("Nama Berkas Asli", 370, y + 4.5, { width: 110 });
-      doc.text("Tanggal Unggah", 485, y + 4.5, { width: 70, align: "center" });
-      y += 16;
-
-      if (docs.length === 0) {
-        doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-        doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Belum ada dokumen digital yang diunggah ke arsip.", 44, y + 5);
-        y += 24;
-      } else {
-        docs.forEach((d, idx: number) => {
-          if (idx % 2 === 1) doc.rect(36, y, 523, 16).fill(COLORS.bgZebra);
-          doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 16).lineTo(559, y + 16).stroke();
-
-          doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-          doc.text(d.category || "-", 44, y + 4, { width: 140 });
-          doc.text(d.title || "-", 190, y + 4, { width: 175, ellipsis: true });
-          doc.text(d.fileName || "-", 370, y + 4, { width: 110, ellipsis: true });
-          doc.text(d.createdAt ? formatDate(d.createdAt) : "-", 485, y + 4, { width: 70, align: "center" });
-          y += 16;
-        });
-        y += 10;
-      }
-    }
-
-    // Aset Inventaris Kantor
-    if (options.assets) {
-      y = drawSectionHeader("14. Daftar Inventaris Aset Kantor yang Dibawa Pegawai", y);
-
-      doc.rect(36, y, 523, 16).fill(COLORS.navyLight);
-      doc.fillColor(COLORS.white).fontSize(7.5).font("Helvetica-Bold");
-      doc.text("Tag Aset", 44, y + 4.5, { width: 85 });
-      doc.text("Nama Perangkat", 135, y + 4.5, { width: 165 });
-      doc.text("Brand / Model", 305, y + 4.5, { width: 120 });
-      doc.text("Tgl Penyerahan", 430, y + 4.5, { width: 70 });
-      doc.text("Kondisi", 505, y + 4.5, { width: 50, align: "center" });
-      y += 16;
-
-      if (activeAssets.length === 0) {
-        doc.rect(36, y, 523, 18).fill(COLORS.bgZebra);
-        doc.fillColor(COLORS.slateMedium).fontSize(8).font("Helvetica-Oblique").text("Tidak ada aset kantor yang tercatat dibawa oleh pegawai.", 44, y + 5);
-        y += 24;
-      } else {
-        activeAssets.forEach((ast, idx: number) => {
-          if (idx % 2 === 1) doc.rect(36, y, 523, 16).fill(COLORS.bgZebra);
-          doc.strokeColor(COLORS.borderLight).lineWidth(0.5).moveTo(36, y + 16).lineTo(559, y + 16).stroke();
-
-          doc.fillColor(COLORS.slateDark).fontSize(7.5).font("Helvetica");
-          doc.text(ast.assetTag || "-", 44, y + 4, { width: 85 });
-          doc.text(ast.name || "-", 135, y + 4, { width: 165 });
-          doc.text(`${ast.brand || ""} ${ast.model || ""}`.trim() || "-", 305, y + 4, { width: 120 });
-          doc.text(ast.assignedAt ? formatDate(ast.assignedAt) : "-", 430, y + 4, { width: 70 });
-          doc.text(ast.conditionOut || "Baik", 505, y + 4, { width: 50, align: "center" });
-          y += 16;
-        });
-        y += 10;
-      }
-    }
-
-    // =========================================================================
-    // KOLOM PENGESAHAN RESMI (2 Kolom Tanda Tangan)
-    // =========================================================================
-    y = Math.max(y + 10, 640);
-
-    doc.rect(36, y, 523, 140).fill(COLORS.bgZebra);
-    doc.strokeColor(COLORS.border).lineWidth(1).rect(36, y, 523, 140).stroke();
-
-    doc.fillColor(COLORS.navy).fontSize(8.5).font("Helvetica-Bold").text("LEMBAR PENGESAHAN DOKUMEN KEPEGAWAIAN RESMI", 44, y + 8, { align: "center", width: 507 });
-
-    const currentDateStr = new Date().toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-
-    const sigY = y + 26;
-
-    // Kolom Kiri: Disiapkan Oleh (HR Administrator)
-    doc.fillColor(COLORS.slateMedium).fontSize(7.5).font("Helvetica").text(`Jakarta, ${currentDateStr}`, 50, sigY);
-    doc.text("Disiapkan & Dicetak Oleh,", 50, sigY + 10);
-    doc.fillColor(COLORS.navy).font("Helvetica-Bold").text("HR Administrator Lembaga", 50, sigY + 20);
-
-    // Garis tanda tangan kiri
-    doc.strokeColor(COLORS.slateMedium).lineWidth(0.8).moveTo(50, sigY + 75).lineTo(50 + 190, sigY + 75).stroke();
-    doc.fillColor(COLORS.slateDark).fontSize(8).font("Helvetica-Bold").text(actor.name || "Administrator HR", 50, sigY + 80);
-    doc.fillColor(COLORS.slateMedium).fontSize(7).font("Helvetica").text(actor.email, 50, sigY + 91);
-
-    // Kolom Kanan: Diketahui & Disetujui (Atasan Langsung / Direktur)
-    const rightColX = 310;
-    doc.fillColor(COLORS.slateMedium).fontSize(7.5).font("Helvetica").text(`Jakarta, ${currentDateStr}`, rightColX, sigY);
-    doc.text("Mengetahui & Mengesahkan,", rightColX, sigY + 10);
-    doc.fillColor(COLORS.navy).font("Helvetica-Bold").text(employee.manager?.fullName ? "Atasan Langsung Pegawai" : "Pimpinan Lembaga PSPK", rightColX, sigY + 20);
-
-    // Garis tanda tangan kanan
-    doc.strokeColor(COLORS.slateMedium).lineWidth(0.8).moveTo(rightColX, sigY + 75).lineTo(rightColX + 190, sigY + 75).stroke();
-    doc.fillColor(COLORS.slateDark).fontSize(8).font("Helvetica-Bold").text(employee.manager?.fullName || "Direktur Eksekutif PSPK", rightColX, sigY + 80);
-    doc.fillColor(COLORS.slateMedium).fontSize(7).font("Helvetica").text(employee.manager?.currentPosition?.title || "Pusat Studi Pendidikan dan Kebijakan", rightColX, sigY + 91);
+  // ===========================================================================
+  // 13. DOKUMEN DIGITAL
+  // ===========================================================================
+  if (options.documents) {
+    section("Inventaris Dokumen Digital Kepegawaian");
+    drawTable(
+      [
+        { header: "Kategori", width: 85, value: (r) => dash(r.category) },
+        { header: "Judul Dokumen", width: 170, value: (r) => dash(r.title) },
+        { header: "Nama Berkas Asli", width: 175, value: (r) => dash(r.fileName) },
+        { header: "Tanggal Unggah", width: 93, align: "center", value: (r) => (r.createdAt ? formatDate(r.createdAt) : "-") },
+      ],
+      employee.documents || [],
+      "Belum ada dokumen digital yang diunggah ke arsip.",
+    );
   }
 
-  // =========================================================================
-  // FOOTER FORENSIK DI SEMUA HALAMAN (BUFFER PAGES)
-  // =========================================================================
+  // ===========================================================================
+  // 14. ASET KANTOR
+  // ===========================================================================
+  if (options.assets) {
+    section("Inventaris Aset Kantor yang Dibawa Pegawai");
+    drawTable(
+      [
+        { header: "Tag Aset", width: 85, value: (r) => dash(r.assetTag) },
+        { header: "Nama Perangkat", width: 125, value: (r) => dash(r.name) },
+        { header: "Brand / Model", width: 135, value: (r) => `${r.brand || ""} ${r.model || ""}`.trim() || "-" },
+        { header: "Tgl Penyerahan", width: 80, align: "center", value: (r) => (r.assignedAt ? formatDate(r.assignedAt) : "-") },
+        { header: "Kondisi", width: 98, value: (r) => r.conditionOut || "Baik" },
+      ],
+      activeAssets,
+      "Tidak ada aset kantor yang tercatat dibawa oleh pegawai.",
+    );
+  }
+
+  // ===========================================================================
+  // LEMBAR PENGESAHAN (selalu di akhir, tidak terpotong antar halaman)
+  // ===========================================================================
+  {
+    const BOX_H = 128;
+    if (y > TOP) y += 12;
+    ensureSpace(BOX_H);
+
+    doc.save().roundedRect(MARGIN, y, CONTENT_W, BOX_H, 5).lineWidth(0.8).strokeColor(COLORS.border).stroke().restore();
+    tintRect(MARGIN + 1, y + 1, CONTENT_W - 2, 22, COLORS.tint, 0.9);
+    doc
+      .fillColor(COLORS.navy)
+      .font("Helvetica-Bold")
+      .fontSize(8)
+      .text("LEMBAR PENGESAHAN DOKUMEN KEPEGAWAIAN RESMI", MARGIN, y + 8, {
+        width: CONTENT_W,
+        align: "center",
+        lineBreak: false,
+      });
+
+    const dateStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+    const colW = CONTENT_W / 2;
+
+    const signCol = (
+      x: number,
+      lead: string,
+      role: string,
+      name: string,
+      sub: string,
+    ) => {
+      const top = y + 32;
+      doc.fillColor(COLORS.slateMedium).font("Helvetica").fontSize(7.5);
+      doc.text(`${CITY}, ${dateStr}`, x, top, { width: colW - 40, lineBreak: false });
+      doc.text(lead, x, top + 10, { width: colW - 40, lineBreak: false });
+      doc.fillColor(COLORS.navy).font("Helvetica-Bold").text(role, x, top + 20, { width: colW - 40, lineBreak: false });
+      hLine(top + 68, COLORS.slateMedium, 0.8, x, x + colW - 50);
+      doc.fillColor(COLORS.slateDark).font("Helvetica-Bold").fontSize(8).text(name, x, top + 73, {
+        width: colW - 50,
+        lineBreak: false,
+      });
+      doc.fillColor(COLORS.slateMedium).font("Helvetica").fontSize(7).text(sub, x, top + 84, {
+        width: colW - 50,
+        lineBreak: false,
+      });
+    };
+
+    signCol(
+      MARGIN + 18,
+      "Disiapkan & Dicetak Oleh,",
+      "HR Administrator Lembaga",
+      actor.name || "Administrator HR",
+      actor.email,
+    );
+    signCol(
+      MARGIN + colW + 14,
+      "Mengetahui & Mengesahkan,",
+      employee.manager?.fullName ? "Atasan Langsung Pegawai" : "Pimpinan Lembaga PSPK",
+      employee.manager?.fullName || "Direktur Eksekutif PSPK",
+      employee.manager?.currentPosition?.title || "Pusat Studi Pendidikan dan Kebijakan",
+    );
+    y += BOX_H + 6;
+  }
+
+  // ===========================================================================
+  // FOOTER DI SEMUA HALAMAN
+  // Margin bawah di-nol-kan sementara agar teks footer TIDAK memicu halaman kosong baru.
+  // ===========================================================================
   const range = doc.bufferedPageRange();
   const shortDocId = Math.random().toString(36).substring(2, 10).toUpperCase();
   const printTimestamp = new Date().toLocaleString("id-ID", {
@@ -967,40 +1158,27 @@ export async function generateEmployeeProfilePdf(
 
   for (let i = range.start; i < range.start + range.count; i++) {
     doc.switchToPage(i);
+    const prevBottom = doc.page.margins.bottom;
+    doc.page.margins.bottom = 0;
 
-    // Garis pembatas footer
-    doc.strokeColor(COLORS.border).lineWidth(0.5).moveTo(36, 808).lineTo(559, 808).stroke();
+    hLine(803, COLORS.border, 0.5);
+    doc.fillColor(COLORS.slateLight).font("Helvetica").fontSize(6.5);
+    doc.text("DOKUMEN RAHASIA & TERBATAS – INTERNAL PSPK", MARGIN, 810, { width: 320, lineBreak: false });
+    doc.text(`Halaman ${i + 1} dari ${range.count}`, MARGIN, 810, {
+      width: CONTENT_W,
+      align: "right",
+      lineBreak: false,
+    });
+    doc.text(
+      `ID: DOC-${shortDocId} • Dicetak oleh ${actor.name} • ${printTimestamp} WIB`,
+      MARGIN,
+      820,
+      { width: CONTENT_W, lineBreak: false },
+    );
 
-    // Teks kiri
-    doc
-      .fillColor(COLORS.slateLight)
-      .fontSize(6.5)
-      .font("Helvetica")
-      .text("DOKUMEN RAHASIA & TERBATAS – INTERNAL PSPK", 36, 814);
-
-    // Teks tengah
-    doc
-      .fillColor(COLORS.slateLight)
-      .fontSize(6.5)
-      .font("Helvetica")
-      .text(`ID: DOC-${shortDocId} • Cetak: ${actor.name} • ${printTimestamp} WIB`, 36, 814, { align: "center", width: 523 });
-
-    // Teks kanan
-    doc
-      .fillColor(COLORS.slateLight)
-      .fontSize(6.5)
-      .font("Helvetica")
-      .text(`Halaman ${i + 1} dari ${range.count}`, 36, 814, { align: "right", width: 523 });
+    doc.page.margins.bottom = prevBottom;
   }
 
   doc.end();
-
-  return new Promise<Buffer>((resolve, reject) => {
-    doc.on("end", () => {
-      resolve(Buffer.concat(buffers));
-    });
-    doc.on("error", (err) => {
-      reject(err);
-    });
-  });
+  return finished;
 }

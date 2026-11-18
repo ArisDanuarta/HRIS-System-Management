@@ -4,6 +4,57 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Perombakan Halaman Detail Karyawan 360°, Ekspor PDF Resmi & ZIP Vault] — 2026-11-18
+
+- **Status:** Seluruh 10 Task Selesai Diimplementasikan & Terverifikasi (0 Error Typecheck, 0 Warning Lint, Test 100% Pass, Standalone Build Sukses)
+- **Scope & Filosofi:**
+  - Menghubungkan 100% data riil dari database (menghapus seluruh mock data statis).
+  - Tampilan modular 9 tab terpadu dengan default tab "Ringkasan" (Overview 360°).
+  - Engine Ekspor Profil PDF Resmi kecepatan tinggi (~50-100ms) berstandar korporat PSPK (A4, watermark 6%, kop logo horizontal resmi, avatar fallback gender, tabel bergaris formal, 2 kolom tanda tangan resmi, footer audit forensik).
+  - Engine Pengemas ZIP Kepegawaian (`archiver` v8.x) membungkus PDF Profil di root dan seluruh berkas fisik asli dari storage vault ke `Dokumen_Lampiran/` secara non-blocking.
+  - Audit logging forensik terintegrasi (`EXPORT` & `VIEW_SENSITIVE`) mencatat IP, User-Agent, dan rincian data.
+  - Optimalisasi Mobile PWA, Tablet, dan Desktop (Touch target $\ge 44\text{px}$, horizontal scroll guard `[overscroll-behavior-x:contain]`, grid layout adaptif).
+- **Rincian Task yang Telah Selesai (Task 1 s.d. Task 10):**
+  1. **Task 1 — Backend Data Queries & Helper Expansion:**
+     - Menghitung kelengkapan profil 360° (`calculateProfileCompleteness`) di `apps/hris/src/lib/profile-completeness.ts` dengan bobot persentase terstruktur (Biodata 25%, Kontak 15%, Pekerjaan 25%, Dokumen 25%, Rekening 10%).
+     - Menambahkan query kueri matriks kehadiran bulanan `getEmployeeMonthlyAttendanceOverview` di `attendance.queries.ts`.
+  2. **Task 2 — Tab 1 "Ringkasan" (Overview 360° - Default View):**
+     - `employee-overview-tab.tsx`: 4 kartu skor KPI (Masa Kerja dinamis, Kehadiran Bulan Berjalan, Sisa Cuti Tahunan, Aset Inventaris Aktif), kartu Status Kontrak & Penempatan Organisasi, serta Kartu Kelengkapan Profil dengan checklist interaktif.
+  3. **Task 3 — Tab 2 "Biodata & Riwayat Terpadu":**
+     - `employee-biodata-tab.tsx`: 5 seksi riwayat terpadu (Alamat KTP & Domisili, Kontak Darurat, Susunan Keluarga & Tanggungan, Riwayat Pendidikan & GPA, Sertifikasi Pelatihan, Riwayat Pengalaman Kerja).
+     - Labeling enum Bahasa Indonesia di `apps/hris/src/lib/enum-labels.ts`.
+  4. **Task 4 — Tab 3 "Absensi & Cuti":**
+     - `employee-attendance-tab.tsx`: Pemilih bulan/tahun dinamis, kalender matriks warna presensi (Hadir, Terlambat, WFH, Cuti, Alpha), kartu saldo cuti tahun berjalan, dan tabel log presensi harian.
+  5. **Task 5 — Tab 6 "Dokumen Digital" Enhancement:**
+     - `employee-documents-card.tsx`: Checklist 7 berkas wajib organisasi, badge relasi pendidikan/pelatihan, filter pill scrollable, dan kartu pratinjau dokumen.
+  6. **Task 6 — Hero Profile Card & Main Page Integration:**
+     - `employee-avatar.tsx`: Avatar responsif dengan multi-tier fallback (Foto Storage $\rightarrow$ Avatar Resmi Gender PSPK `Avatar_Wanita.jpg`/`Avatar_Pria.jpg` $\rightarrow$ Inisial Nama).
+     - `export-profile-button.tsx`: Trigger modal ekspor di header profil.
+     - `apps/hris/src/app/(app)/karyawan/[id]/page.tsx`: Integrasi 9 tab terpadu, sanitasi tab URL, proteksi hak akses Manager.
+  7. **Task 7 — Modal Ekspor Profil (`ExportProfileModal`):**
+     - `export-profile-modal.tsx`: 9 checkbox modul data, tombol 'Pilih Semua / Batal Semua', proteksi role Manager (field sensitif & kompensasi terkunci dan disabled), opsi arsip ZIP.
+     - Unit test `export-profile-modal.test.ts` (4/4 tests pass).
+  8. **Task 8 — Route Handler Export & PDF Generation Engine:**
+     - `apps/hris/src/lib/pdf/employee-profile-pdf.ts`: PDF generator berkecepatan tinggi berbasis `pdfkit`, kop surat logo resmi, watermark transparan 6%, pasfoto 3x4, struktur multi-halaman formal, 2 kolom tanda tangan resmi, footer forensik audit.
+     - Unit test `employee-profile-pdf.test.ts` (2/2 tests pass).
+  9. **Task 9 — ZIP Packaging Engine:**
+     - `apps/hris/src/lib/pdf/employee-zip-export.ts`: Pengemas ZIP `archiver` v8.x non-blocking (`zlib: { level: 6 }`), PDF resmi di root, berkas asli di `Dokumen_Lampiran/` dengan penanganan graceful jika berkas hilang.
+     - Unit test `employee-zip-export.test.ts` (3/3 tests pass).
+     - Integrasi route handler `apps/hris/src/app/api/karyawan/[id]/export/route.ts` dengan logging audit ke `core.audit_logs`.
+  10. **Task 10 — End-to-End Verification & QA:**
+      - Typecheck lolos 100% (`tsc --noEmit`, 0 error).
+      - Linter lolos 100% (`eslint .`, 0 error/warning).
+      - Vitest test suite lolos 100% (23 test files, 155 tests pass).
+      - Next.js Standalone Build lolos 100% (`next build` compiled in 1.5s, 0 warnings, 0 errors).
+      - Audit responsivitas UI dan touch target lolos di seluruh breakpoint (PWA, mobile, tablet, desktop).
+- **Verifikasi Kualitas:**
+  - `pnpm --filter @pspk/hris typecheck` $\rightarrow$ Lolos 100% (0 error).
+  - `pnpm --filter @pspk/hris lint` $\rightarrow$ Lolos 100% (0 error, 0 warning).
+  - `pnpm --filter @pspk/hris exec vitest run` $\rightarrow$ 23 test suites, 155 tests lolos 100%.
+  - `pnpm --filter @pspk/hris build` $\rightarrow$ Berhasil dikompilasi (Turbopack standalone, 0 warnings, 0 errors).
+
+---
+
 ## [Pembaruan Formulir Pendaftaran Karyawan Baru & Skema Database Terpadu] — 2026-11-17
 
 - **Status:** Tahap 0 s/d Tahap 4 Selesai Diimplementasikan & Terverifikasi (0 Error Typecheck, 0 Warning Lint, Test 100% Pass)
