@@ -194,13 +194,13 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: `documents: EmployeeDocumentItem[]`, kategori dokumen (`KTP`, `NPWP`, `CV`, `DIPLOMA`, `CONTRACT`, dll.).
 - Produces: Tampilan checklist kelengkapan dokumen wajib & tautan sertifikat.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa implementasi eksisting di `apps/hris/src/components/karyawan/employee-documents-card.tsx`.
   - Identifikasi 7 dokumen wajib pendaftaran: KTP, NPWP, Kartu Keluarga, Ijazah, CV, Surat Pengalaman, Kontrak Kerja.
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Tambahkan banner checklist status dokumen wajib di bagian atas kartu dokumen (menampilkan persentase kelengkapan berkas dan indikator mana yang sudah / belum diunggah).
   - Tambahkan penanda badge jika dokumen tertaut ke entitas pendidikan (`educationId`) atau pelatihan (`trainingId`).
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
   - Jalankan `pnpm --filter @pspk/hris typecheck`.
   - Pastikan fungsi upload, preview modal, unduh, dan hapus berkas tetap berfungsi normal tanpa regresi.
 
