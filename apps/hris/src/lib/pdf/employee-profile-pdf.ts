@@ -329,7 +329,7 @@ export async function generateEmployeeProfilePdf(
     info: {
       Title: `Dokumen Rekam Kepegawaian - ${employee.fullName}`,
       Author: "PSPK HRIS",
-      Subject: "Dokumen Rekam Kepegawaian 360°",
+      Subject: "DOKUMEN PROFILE KARYAWAN",
     },
   });
 
@@ -428,7 +428,7 @@ export async function generateEmployeeProfilePdf(
       .fillColor(COLORS.navy)
       .fontSize(10)
       .font("Helvetica-Bold")
-      .text("DOKUMEN REKAM KEPEGAWAIAN 360°", 200, 25, { align: "right", width: 359, lineBreak: false });
+      .text("DOKUMEN PROFILE KARYAWAN", 200, 25, { align: "right", width: 359, lineBreak: false });
     doc
       .fillColor(COLORS.slateMedium)
       .fontSize(7.5)
