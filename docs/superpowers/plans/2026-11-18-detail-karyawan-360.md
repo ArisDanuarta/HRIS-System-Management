@@ -273,11 +273,11 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: Query data lengkap karyawan, request params (bagian yang dicentang, rentang tanggal absensi, opsi sensitif).
 - Produces: Streaming response file PDF (`Content-Type: application/pdf`).
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Cek ketersediaan aset gambar di `apps/hris/public/images/`: `logo_pspk_horizontal.png`, `icon_pspk.jpg`, `Avatar_Wanita.jpg`, `Avatar_Pria.jpg`.
   - Cek otentikasi sesi Better Auth dan hak akses RBAC aktor yang melakukan request di server.
-- [ ] **Langkah 2 (Implementasi):**
-  - Buat template PDF resmi menggunakan `@react-pdf/renderer`:
+- [x] **Langkah 2 (Implementasi):**
+  - Buat template PDF resmi menggunakan PDFKit stream engine:
     - Kop logo horizontal PSPK & watermark logo ikon transparan (6%).
     - Halaman 1: Sampul ringkasan eksekutif, foto profil / fallback avatar gender, data inti, kontak.
     - Halaman 2: Tabel alamat KTP & domisili, tabel susunan anggota keluarga & tanggungan.
@@ -286,7 +286,7 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
     - Halaman 5: Rekapitulasi absensi dalam rentang tanggal & tabel saldo cuti.
     - Halaman 6: Daftar dokumen kepegawaian, aset inventaris kantor, dan 2 kolom tanda tangan resmi (HR Administrator & Atasan Langsung).
   - Terapkan pencatatan log audit: `EXPORT_PROFILE` dan `VIEW_SENSITIVE` (jika data sensitif dibuka) pada `core.audit_logs`.
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
   - Jalankan `pnpm --filter @pspk/hris typecheck`.
   - Uji endpoint ekspor PDF untuk memastikan respon mengalirkan binary PDF yang valid dan dapat dibuka di PDF viewer.
   - Pastikan watermark dan logo muncul dengan tajam dan rapi.

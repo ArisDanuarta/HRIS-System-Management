@@ -4,7 +4,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { formatDate, formatRupiah } from "@pspk/shared";
 import { getStorageProvider } from "@pspk/storage";
-import { getPtkpExplanation, getTaxMethodExplanation } from "@/lib/tax-explanation";
+import { getPtkpExplanation, getTaxMethodExplanation } from "../tax-explanation";
 
 export interface PdfAddressItem {
   type: string;
