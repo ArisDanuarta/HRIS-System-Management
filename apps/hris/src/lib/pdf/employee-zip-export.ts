@@ -49,7 +49,7 @@ function resolveImagePath(filename: string): string | null {
     path.join(__dirname, "../../../../public/images", filename),
   ];
   for (const c of candidates) {
-    if (fs.existsSync(c)) return c;
+    if (fs.existsSync(/*turbopackIgnore: true*/ c)) return c;
   }
   return null;
 }
@@ -123,9 +123,9 @@ export async function createEmployeeProfileZip(
       employee.gender?.toLowerCase() === "perempuan" ||
       employee.gender?.toLowerCase() === "wanita";
     const avatarPath = resolveImagePath(isFemale ? "Avatar_Wanita.jpg" : "Avatar_Pria.jpg");
-    if (avatarPath && fs.existsSync(avatarPath)) {
+    if (avatarPath && fs.existsSync(/*turbopackIgnore: true*/ avatarPath)) {
       try {
-        const avatarBuffer = fs.readFileSync(avatarPath);
+        const avatarBuffer = fs.readFileSync(/*turbopackIgnore: true*/ avatarPath);
         archive.append(avatarBuffer, {
           name: `Dokumen_Lampiran/00_Avatar_Resmi_${isFemale ? "Wanita" : "Pria"}.jpg`,
         });

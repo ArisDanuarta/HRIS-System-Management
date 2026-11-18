@@ -328,9 +328,9 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 **Files:**
 - Seluruh file yang dibuat dan diubah pada Task 1 s.d. Task 9.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Pastikan dev server berjalan tanpa error log.
-- [ ] **Langkah 2 (Eksekusi Pengujian Menyeluruh):**
+- [x] **Langkah 2 (Eksekusi Pengujian Menyeluruh):**
   - Jalankan verifikasi statis proyek:
     ```bash
     pnpm --filter @pspk/hris typecheck
@@ -345,7 +345,7 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
     - Hero Card: Tombol "Export Profil" memicu modal dengan sempurna.
     - Modal Ekspor: Uji ekspor PDF langsung dan uji ekspor paket ZIP.
   - Verifikasi tabel `core.audit_logs` memastikan aktivitas `EXPORT_PROFILE` tercatat rapi.
-- [ ] **Langkah 3 (Crosscheck Final):**
+- [x] **Langkah 3 (Crosscheck Final):**
   - Pastikan seluruh kode bersih, rapi, dan tidak ada file sementara (*scratch*) yang tertinggal.
   - Buat laporan ringkas pencapaian kepada pengguna.
 

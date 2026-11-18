@@ -188,7 +188,7 @@ function resolveImagePath(filename: string): string | null {
     path.join(__dirname, "../../../../public/images", filename),
   ];
   for (const c of candidates) {
-    if (fs.existsSync(c)) return c;
+    if (fs.existsSync(/*turbopackIgnore: true*/ c)) return c;
   }
   return null;
 }
@@ -253,15 +253,15 @@ export async function generateEmployeeProfilePdf(
       employee.gender?.toLowerCase() === "perempuan" ||
       employee.gender?.toLowerCase() === "wanita";
     const avatarPath = resolveImagePath(isFemale ? "Avatar_Wanita.jpg" : "Avatar_Pria.jpg");
-    if (avatarPath && fs.existsSync(avatarPath)) {
-      photoBuffer = fs.readFileSync(avatarPath);
+    if (avatarPath && fs.existsSync(/*turbopackIgnore: true*/ avatarPath)) {
+      photoBuffer = fs.readFileSync(/*turbopackIgnore: true*/ avatarPath);
     }
   }
 
   // Helper menggambar Watermark & Header tetap di halaman
   const drawPageHeaderAndWatermark = () => {
     // 1. Watermark Transparan 6% di Tengah
-    if (iconPath && fs.existsSync(iconPath)) {
+    if (iconPath && fs.existsSync(/*turbopackIgnore: true*/ iconPath)) {
       doc.save();
       doc.opacity(0.06);
       doc.image(iconPath, 172, 280, { width: 250 });
@@ -279,7 +279,7 @@ export async function generateEmployeeProfilePdf(
     }
 
     // 2. Header Kop Resmi
-    if (logoPath && fs.existsSync(logoPath)) {
+    if (logoPath && fs.existsSync(/*turbopackIgnore: true*/ logoPath)) {
       doc.image(logoPath, 36, 24, { width: 130 });
     } else {
       doc.fillColor(COLORS.navy).fontSize(14).font("Helvetica-Bold").text("PSPK", 36, 26);
