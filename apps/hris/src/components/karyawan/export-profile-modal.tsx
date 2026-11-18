@@ -4,12 +4,8 @@ import React, { useState } from "react";
 import {
   Download,
   X,
-  FileText,
   Archive,
   ShieldAlert,
-  Calendar,
-  CheckSquare,
-  Square,
   AlertTriangle,
 } from "lucide-react";
 

@@ -218,15 +218,15 @@ Task 10: End-to-End Verification, Crosscheck & Quality Assurance
 - Consumes: Semua tab dari Task 2, 3, 4, 5, query Task 1, dan modal ekspor dari Task 7.
 - Produces: Halaman detail karyawan 360° yang utuh dan terintegrasi.
 
-- [ ] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
+- [x] **Langkah 1 (Pengecekan Sebelum Pengeditan):**
   - Periksa `page.tsx` saat ini, alur sanitasi tab URL, dan proteksi hak akses berbasis peran (Super Admin, Admin HR, Admin IT, Manager, Staff).
   - Pastikan tab `ringkasan` menjadi default (`const { tab = "ringkasan" } = await searchParams;`).
-- [ ] **Langkah 2 (Implementasi):**
+- [x] **Langkah 2 (Implementasi):**
   - Update `EmployeeAvatar` agar mendukung prop `gender` dan otomatis memanggil fallback avatar (`/images/Avatar_Wanita.jpg` untuk perempuan, `/images/Avatar_Pria.jpg` untuk laki-laki/default) jika foto profil belum diunggah.
   - Pasang tombol **"Export Profil"** di Hero Card di samping tombol "Ubah Profil" (hanya muncul untuk HR/Admin dan Manager yang berhak).
   - Daftarkan tab navigasi lengkap: `Ringkasan` (default), `Biodata`, `Absensi`, `Kontrak`, `Jabatan & Tim`, `Dokumen`, `Aset` (modular), `Data Sensitif` (khusus HR), dan `Akun & Akses` (khusus HR/IT).
   - Hubungkan data server ke masing-masing subkomponen tab.
-- [ ] **Langkah 3 (Crosscheck Setelah Pengeditan):**
+- [x] **Langkah 3 (Crosscheck Setelah Pengeditan):**
   - Jalankan `pnpm --filter @pspk/hris typecheck` dan `pnpm --filter @pspk/hris lint`.
   - Pastikan navigasi antar tab berjalan mulus via URL query `?tab=...`.
   - Pastikan proteksi hak akses Manager tetap aman dan tidak bocor.
