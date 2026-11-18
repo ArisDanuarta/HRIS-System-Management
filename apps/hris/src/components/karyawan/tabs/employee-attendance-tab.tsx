@@ -7,18 +7,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
-  UserCheck,
-  Home,
   CalendarOff,
-  AlertTriangle,
-  Sparkles,
   Loader2,
   CalendarDays,
-  CheckCircle2,
   AlertCircle,
   FileText,
-  MapPin,
-  TrendingUp,
 } from "lucide-react";
 import {
   EmployeeMonthlyAttendanceOverview,
