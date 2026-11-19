@@ -6,13 +6,14 @@ import {
   Users,
   Award,
   Briefcase,
-  FolderArchive,
   Trash2,
+  Upload,
+  X,
+  FileCheck,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";
 import { DynamicTable } from "../../components/DynamicTable";
-import { DocumentUploadCard } from "../../components/DocumentUploadCard";
 import {
   FamilyMemberItem,
   EducationItem,
@@ -23,7 +24,6 @@ import { FamilyRelation, EducationLevel } from "@pspk/db";
 
 export function Step2HistoryDocs() {
   const {
-    formData,
     familyMembers,
     setFamilyMembers,
     educations,
@@ -32,14 +32,6 @@ export function Step2HistoryDocs() {
     setTrainings,
     workExperiences,
     setWorkExperiences,
-    docCv,
-    setDocCv,
-    docDiploma,
-    setDocDiploma,
-    docFamilyCard,
-    setDocFamilyCard,
-    docMarriageCert,
-    setDocMarriageCert,
   } = useEmployeeForm();
 
   // Family Members handlers
@@ -73,8 +65,14 @@ export function Step2HistoryDocs() {
     setEducations((prev) => [
       ...prev,
       {
+        id: crypto.randomUUID(),
         level: "S1" as EducationLevel,
         institution: "",
+        major: "",
+        graduationYear: null,
+        certificateFile: null,
+        certificateFileName: null,
+        certificateDocKey: null,
       },
     ]);
   };
@@ -98,7 +96,13 @@ export function Step2HistoryDocs() {
     setTrainings((prev) => [
       ...prev,
       {
+        id: crypto.randomUUID(),
         name: "",
+        organizer: "",
+        duration: "",
+        certificateFile: null,
+        certificateFileName: null,
+        certificateDocKey: null,
       },
     ]);
   };
@@ -122,9 +126,14 @@ export function Step2HistoryDocs() {
     setWorkExperiences((prev) => [
       ...prev,
       {
+        id: crypto.randomUUID(),
         companyName: "",
         jobTitle: "",
         startDate: "",
+        endDate: "",
+        certificateFile: null,
+        certificateFileName: null,
+        certificateDocKey: null,
       },
     ]);
   };
@@ -218,7 +227,7 @@ export function Step2HistoryDocs() {
                 <button
                   type="button"
                   onClick={onRemove}
-                  className="text-rose-600 hover:text-rose-700 p-1"
+                  className="text-rose-600 hover:text-rose-700 p-1 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -259,8 +268,8 @@ export function Step2HistoryDocs() {
       {/* 2.2 Riwayat Pendidikan */}
       <FormSection
         id="seksi-pendidikan"
-        title="2.2 Riwayat Pendidikan Formal"
-        subtitle="Jenjang pendidikan formal yang pernah ditempuh (SMA, D3, S1, S2, S3)"
+        title="2.2 Riwayat Pendidikan Formal & Ijazah"
+        subtitle="Jenjang pendidikan formal (SD, SMP, SMA/SMK, Diploma, Sarjana, Pascasarjana) beserta unggahan ijazah"
         icon={GraduationCap}
         defaultOpen={true}
       >
@@ -268,106 +277,213 @@ export function Step2HistoryDocs() {
           title="Daftar Riwayat Pendidikan"
           columns={[
             { key: "level", label: "Jenjang", width: "w-28" },
-            { key: "institution", label: "Nama Sekolah / Universitas", width: "w-1/3" },
-            { key: "major", label: "Jurusan / Program Studi", width: "w-1/4" },
-            { key: "year", label: "Tahun Lulus", width: "w-24 text-center" },
+            { key: "institution", label: "Nama Sekolah / Universitas", width: "w-1/4" },
+            { key: "major", label: "Jurusan / Program Studi", width: "w-1/5" },
+            { key: "year", label: "Tahun Lulus", width: "w-20 text-center" },
+            { key: "certificateFile", label: "Berkas Ijazah (PDF/Gbr)", width: "w-44" },
           ]}
           items={educations}
           onAdd={handleAddEducation}
           onRemove={handleRemoveEducation}
           addButtonLabel="+ Tambah Riwayat Pendidikan"
           emptyMessage="Belum ada riwayat pendidikan ditambahkan."
-          renderDesktopRow={(item, idx) => (
-            <>
-              <td className="p-3">
-                <select
-                  value={item.level}
-                  onChange={(e) =>
-                    handleUpdateEducation(idx, "level", e.target.value as EducationLevel)
-                  }
-                  className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
-                >
-                  <option value="SMA">SMA / SMK</option>
-                  <option value="D3">Diploma (D3)</option>
-                  <option value="S1">Sarjana (S1)</option>
-                  <option value="S2">Magister (S2)</option>
-                  <option value="S3">Doktor (S3)</option>
-                  <option value="OTHER">Lainnya</option>
-                </select>
-              </td>
-              <td className="p-3">
+          renderDesktopRow={(item, idx) => {
+            const currentLevel = (item.level === ("SMA" as unknown) ? "SMA_SMK" : item.level) || "S1";
+            return (
+              <>
+                <td className="p-3">
+                  <select
+                    value={currentLevel}
+                    onChange={(e) =>
+                      handleUpdateEducation(idx, "level", e.target.value as EducationLevel)
+                    }
+                    className="w-full h-9 px-2 rounded-lg border border-slate-200 text-xs bg-white font-medium"
+                  >
+                    <option value="SD">SD / Sederajat</option>
+                    <option value="SMP">SMP / MTs</option>
+                    <option value="SMA_SMK">SMA / SMK / MA</option>
+                    <option value="D3">Diploma 3 (D3)</option>
+                    <option value="D4">Sarjana Terapan (D4)</option>
+                    <option value="S1">Sarjana (S1)</option>
+                    <option value="S2">Magister (S2)</option>
+                    <option value="S3">Doktor (S3)</option>
+                    <option value="OTHER">Lainnya</option>
+                  </select>
+                </td>
+                <td className="p-3">
+                  <input
+                    type="text"
+                    value={item.institution}
+                    onChange={(e) => handleUpdateEducation(idx, "institution", e.target.value)}
+                    placeholder="Contoh: Universitas Indonesia"
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                  />
+                </td>
+                <td className="p-3">
+                  <input
+                    type="text"
+                    value={item.major || ""}
+                    onChange={(e) => handleUpdateEducation(idx, "major", e.target.value)}
+                    placeholder="Contoh: Kebijakan Publik"
+                    className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                  />
+                </td>
+                <td className="p-3 text-center">
+                  <input
+                    type="number"
+                    value={item.graduationYear || ""}
+                    onChange={(e) =>
+                      handleUpdateEducation(idx, "graduationYear", parseInt(e.target.value) || null)
+                    }
+                    placeholder="2020"
+                    className="w-full h-9 px-2 text-center rounded-lg border border-slate-200 text-xs bg-white"
+                  />
+                </td>
+                <td className="p-3">
+                  {item.certificateFile || item.certificateDocKey ? (
+                    <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span
+                          className="truncate max-w-[110px] font-medium"
+                          title={item.certificateFile?.name || item.certificateFileName || "Ijazah"}
+                        >
+                          {item.certificateFile?.name || item.certificateFileName || "Ijazah"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateEducation(idx, "certificateFile", null);
+                          handleUpdateEducation(idx, "certificateFileName", null);
+                          handleUpdateEducation(idx, "certificateDocKey", null);
+                        }}
+                        className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer shrink-0"
+                        title="Hapus berkas"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-600 hover:text-[#102E50] hover:border-[#102E50] text-[11px] font-semibold bg-white cursor-pointer transition-colors shadow-2xs">
+                      <Upload className="w-3.5 h-3.5 text-slate-400" />
+                      <span>Unggah Ijazah</span>
+                      <input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleUpdateEducation(idx, "certificateFile", file);
+                            handleUpdateEducation(idx, "certificateFileName", file.name);
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </td>
+              </>
+            );
+          }}
+          renderMobileCard={(item, idx, onRemove) => {
+            const currentLevel = (item.level === ("SMA" as unknown) ? "SMA_SMK" : item.level) || "S1";
+            return (
+              <div className="flex flex-col gap-2.5 p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-slate-800">Pendidikan #{idx + 1}</span>
+                  <button
+                    type="button"
+                    onClick={onRemove}
+                    className="text-rose-600 p-1 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={currentLevel}
+                    onChange={(e) =>
+                      handleUpdateEducation(idx, "level", e.target.value as EducationLevel)
+                    }
+                    className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs font-medium"
+                  >
+                    <option value="SD">SD / Sederajat</option>
+                    <option value="SMP">SMP / MTs</option>
+                    <option value="SMA_SMK">SMA / SMK / MA</option>
+                    <option value="D3">Diploma 3 (D3)</option>
+                    <option value="D4">Sarjana Terapan (D4)</option>
+                    <option value="S1">Sarjana (S1)</option>
+                    <option value="S2">Magister (S2)</option>
+                    <option value="S3">Doktor (S3)</option>
+                    <option value="OTHER">Lainnya</option>
+                  </select>
+                  <input
+                    type="number"
+                    value={item.graduationYear || ""}
+                    onChange={(e) =>
+                      handleUpdateEducation(idx, "graduationYear", parseInt(e.target.value) || null)
+                    }
+                    placeholder="Tahun Lulus"
+                    className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white text-center"
+                  />
+                </div>
                 <input
                   type="text"
                   value={item.institution}
                   onChange={(e) => handleUpdateEducation(idx, "institution", e.target.value)}
-                  placeholder="Contoh: Universitas Indonesia"
-                  className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                  placeholder="Nama Institusi / Sekolah / Universitas"
+                  className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
                 />
-              </td>
-              <td className="p-3">
                 <input
                   type="text"
                   value={item.major || ""}
                   onChange={(e) => handleUpdateEducation(idx, "major", e.target.value)}
-                  placeholder="Contoh: Kebijakan Publik"
-                  className="w-full h-9 px-2.5 rounded-lg border border-slate-200 text-xs bg-white"
+                  placeholder="Jurusan / Program Studi"
+                  className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
                 />
-              </td>
-              <td className="p-3 text-center">
-                <input
-                  type="number"
-                  value={item.graduationYear || ""}
-                  onChange={(e) =>
-                    handleUpdateEducation(idx, "graduationYear", parseInt(e.target.value) || null)
-                  }
-                  placeholder="2020"
-                  className="w-full h-9 px-2 text-center rounded-lg border border-slate-200 text-xs bg-white"
-                />
-              </td>
-            </>
-          )}
-          renderMobileCard={(item, idx, onRemove) => (
-            <div className="flex flex-col gap-2 p-3 bg-slate-50/60 rounded-xl border border-slate-200 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-800">{item.level || "Pendidikan"}</span>
-                <button type="button" onClick={onRemove} className="text-rose-600 p-1">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                <div className="pt-1 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500">Ijazah (PDF/Gbr):</span>
+                  {item.certificateFile || item.certificateDocKey ? (
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="truncate max-w-[120px] font-medium">
+                        {item.certificateFile?.name || item.certificateFileName || "Ijazah"}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateEducation(idx, "certificateFile", null);
+                          handleUpdateEducation(idx, "certificateFileName", null);
+                          handleUpdateEducation(idx, "certificateDocKey", null);
+                        }}
+                        className="text-rose-500 hover:text-rose-700 p-0.5"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-slate-300 text-slate-600 text-[11px] font-semibold bg-white cursor-pointer">
+                      <Upload className="w-3 h-3 text-slate-400" />
+                      <span>Unggah Ijazah</span>
+                      <input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleUpdateEducation(idx, "certificateFile", file);
+                            handleUpdateEducation(idx, "certificateFileName", file.name);
+                          }
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
-              <input
-                type="text"
-                value={item.institution}
-                onChange={(e) => handleUpdateEducation(idx, "institution", e.target.value)}
-                placeholder="Nama Institusi / Universitas"
-                className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={item.level}
-                  onChange={(e) =>
-                    handleUpdateEducation(idx, "level", e.target.value as EducationLevel)
-                  }
-                  className="h-9 px-2 rounded-lg border border-slate-200 bg-white text-xs"
-                >
-                  <option value="SMA">SMA / SMK</option>
-                  <option value="D3">Diploma (D3)</option>
-                  <option value="S1">Sarjana (S1)</option>
-                  <option value="S2">Magister (S2)</option>
-                  <option value="S3">Doktor (S3)</option>
-                  <option value="OTHER">Lainnya</option>
-                </select>
-                <input
-                  type="number"
-                  value={item.graduationYear || ""}
-                  onChange={(e) =>
-                    handleUpdateEducation(idx, "graduationYear", parseInt(e.target.value) || null)
-                  }
-                  placeholder="Tahun Lulus"
-                  className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white text-center"
-                />
-              </div>
-            </div>
-          )}
+            );
+          }}
         />
       </FormSection>
 
@@ -375,16 +491,17 @@ export function Step2HistoryDocs() {
       <FormSection
         id="seksi-pelatihan"
         title="2.3 Pelatihan & Sertifikasi Kompetensi"
-        subtitle="Kursus, sertifikasi profesi, dan workshop relevan"
+        subtitle="Kursus, sertifikasi profesi, dan workshop relevan beserta dokumen sertifikat"
         icon={Award}
         defaultOpen={false}
       >
         <DynamicTable<TrainingItem>
           title="Daftar Pelatihan & Sertifikasi"
           columns={[
-            { key: "name", label: "Nama Pelatihan / Sertifikasi", width: "w-1/2" },
-            { key: "organizer", label: "Penyelenggara", width: "w-1/3" },
-            { key: "duration", label: "Durasi / Tahun", width: "w-28 text-center" },
+            { key: "name", label: "Nama Pelatihan / Sertifikasi", width: "w-1/3" },
+            { key: "organizer", label: "Penyelenggara", width: "w-1/4" },
+            { key: "duration", label: "Durasi / Tahun", width: "w-24 text-center" },
+            { key: "certificateFile", label: "Berkas Sertifikat (PDF/Gbr)", width: "w-44" },
           ]}
           items={trainings}
           onAdd={handleAddTraining}
@@ -420,13 +537,61 @@ export function Step2HistoryDocs() {
                   className="w-full h-9 px-2 text-center rounded-lg border border-slate-200 text-xs bg-white"
                 />
               </td>
+              <td className="p-3">
+                {item.certificateFile || item.certificateDocKey ? (
+                  <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span
+                        className="truncate max-w-[110px] font-medium"
+                        title={item.certificateFile?.name || item.certificateFileName || "Sertifikat"}
+                      >
+                        {item.certificateFile?.name || item.certificateFileName || "Sertifikat"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateTraining(idx, "certificateFile", null);
+                        handleUpdateTraining(idx, "certificateFileName", null);
+                        handleUpdateTraining(idx, "certificateDocKey", null);
+                      }}
+                      className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer shrink-0"
+                      title="Hapus berkas"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-600 hover:text-[#102E50] hover:border-[#102E50] text-[11px] font-semibold bg-white cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Unggah Sertifikat</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleUpdateTraining(idx, "certificateFile", file);
+                          handleUpdateTraining(idx, "certificateFileName", file.name);
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </td>
             </>
           )}
           renderMobileCard={(item, idx, onRemove) => (
-            <div className="flex flex-col gap-2 p-3 bg-slate-50/60 rounded-xl border border-slate-200 text-xs">
+            <div className="flex flex-col gap-2.5 p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800">Sertifikat #{idx + 1}</span>
-                <button type="button" onClick={onRemove} className="text-rose-600 p-1">
+                <button
+                  type="button"
+                  onClick={onRemove}
+                  className="text-rose-600 p-1 cursor-pointer"
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -434,16 +599,64 @@ export function Step2HistoryDocs() {
                 type="text"
                 value={item.name}
                 onChange={(e) => handleUpdateTraining(idx, "name", e.target.value)}
-                placeholder="Nama Pelatihan"
+                placeholder="Nama Pelatihan / Sertifikasi"
                 className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
               />
-              <input
-                type="text"
-                value={item.organizer || ""}
-                onChange={(e) => handleUpdateTraining(idx, "organizer", e.target.value)}
-                placeholder="Penyelenggara"
-                className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
-              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  value={item.organizer || ""}
+                  onChange={(e) => handleUpdateTraining(idx, "organizer", e.target.value)}
+                  placeholder="Penyelenggara"
+                  className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
+                />
+                <input
+                  type="text"
+                  value={item.duration || ""}
+                  onChange={(e) => handleUpdateTraining(idx, "duration", e.target.value)}
+                  placeholder="Durasi / Tahun"
+                  className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white text-center"
+                />
+              </div>
+              <div className="pt-1 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500">Sertifikat:</span>
+                {item.certificateFile || item.certificateDocKey ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="truncate max-w-[120px] font-medium">
+                      {item.certificateFile?.name || item.certificateFileName || "Sertifikat"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateTraining(idx, "certificateFile", null);
+                        handleUpdateTraining(idx, "certificateFileName", null);
+                        handleUpdateTraining(idx, "certificateDocKey", null);
+                      }}
+                      className="text-rose-500 hover:text-rose-700 p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-slate-300 text-slate-600 text-[11px] font-semibold bg-white cursor-pointer">
+                    <Upload className="w-3 h-3 text-slate-400" />
+                    <span>Unggah Sertifikat</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleUpdateTraining(idx, "certificateFile", file);
+                          handleUpdateTraining(idx, "certificateFileName", file.name);
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
             </div>
           )}
         />
@@ -452,17 +665,18 @@ export function Step2HistoryDocs() {
       {/* 2.4 Pengalaman Kerja Sebelumnya */}
       <FormSection
         id="seksi-pengalaman-kerja"
-        title="2.4 Pengalaman Kerja Sebelumnya"
-        subtitle="Riwayat institusi atau perusahaan tempat bekerja sebelum bergabung di PSPK"
+        title="2.4 Pengalaman Kerja Sebelumnya & Berkas"
+        subtitle="Riwayat institusi tempat bekerja sebelumnya beserta surat keterangan kerja / paklaring / portofolio"
         icon={Briefcase}
         defaultOpen={false}
       >
         <DynamicTable<WorkExperienceItem>
           title="Daftar Pengalaman Kerja"
           columns={[
-            { key: "company", label: "Nama Perusahaan / Organisasi", width: "w-1/3" },
-            { key: "jobTitle", label: "Posisi / Jabatan", width: "w-1/3" },
+            { key: "company", label: "Nama Perusahaan / Organisasi", width: "w-1/4" },
+            { key: "jobTitle", label: "Posisi / Jabatan", width: "w-1/4" },
             { key: "period", label: "Periode Kerja", width: "w-1/4" },
+            { key: "certificateFile", label: "Paklaring / Dokumen (PDF/Gbr)", width: "w-44" },
           ]}
           items={workExperiences}
           onAdd={handleAddWorkExperience}
@@ -508,15 +722,63 @@ export function Step2HistoryDocs() {
                   />
                 </div>
               </td>
+              <td className="p-3">
+                {item.certificateFile || item.certificateDocKey ? (
+                  <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <FileCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span
+                        className="truncate max-w-[110px] font-medium"
+                        title={item.certificateFile?.name || item.certificateFileName || "Paklaring"}
+                      >
+                        {item.certificateFile?.name || item.certificateFileName || "Paklaring"}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateWorkExperience(idx, "certificateFile", null);
+                        handleUpdateWorkExperience(idx, "certificateFileName", null);
+                        handleUpdateWorkExperience(idx, "certificateDocKey", null);
+                      }}
+                      className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer shrink-0"
+                      title="Hapus berkas"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-dashed border-slate-300 text-slate-600 hover:text-[#102E50] hover:border-[#102E50] text-[11px] font-semibold bg-white cursor-pointer transition-colors shadow-2xs">
+                    <Upload className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Unggah Berkas</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleUpdateWorkExperience(idx, "certificateFile", file);
+                          handleUpdateWorkExperience(idx, "certificateFileName", file.name);
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </td>
             </>
           )}
           renderMobileCard={(item, idx, onRemove) => (
-            <div className="flex flex-col gap-2 p-3 bg-slate-50/60 rounded-xl border border-slate-200 text-xs">
+            <div className="flex flex-col gap-2.5 p-3.5 bg-slate-50/60 rounded-xl border border-slate-200 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800">
-                  {item.companyName || "Pengalaman Kerja"}
+                  {item.companyName || `Pengalaman #${idx + 1}`}
                 </span>
-                <button type="button" onClick={onRemove} className="text-rose-600 p-1">
+                <button
+                  type="button"
+                  onClick={onRemove}
+                  className="text-rose-600 p-1 cursor-pointer"
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -524,57 +786,58 @@ export function Step2HistoryDocs() {
                 type="text"
                 value={item.companyName}
                 onChange={(e) => handleUpdateWorkExperience(idx, "companyName", e.target.value)}
-                placeholder="Nama Perusahaan"
+                placeholder="Nama Perusahaan / Organisasi"
                 className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
               />
               <input
                 type="text"
                 value={item.jobTitle}
                 onChange={(e) => handleUpdateWorkExperience(idx, "jobTitle", e.target.value)}
-                placeholder="Jabatan"
+                placeholder="Jabatan / Posisi"
                 className="h-9 px-2.5 rounded-lg border border-slate-200 bg-white"
               />
+              <div className="pt-1 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-slate-500">Paklaring / Portofolio:</span>
+                {item.certificateFile || item.certificateDocKey ? (
+                  <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-lg text-xs">
+                    <FileCheck className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="truncate max-w-[120px] font-medium">
+                      {item.certificateFile?.name || item.certificateFileName || "Paklaring"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleUpdateWorkExperience(idx, "certificateFile", null);
+                        handleUpdateWorkExperience(idx, "certificateFileName", null);
+                        handleUpdateWorkExperience(idx, "certificateDocKey", null);
+                      }}
+                      className="text-rose-500 hover:text-rose-700 p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-dashed border-slate-300 text-slate-600 text-[11px] font-semibold bg-white cursor-pointer">
+                    <Upload className="w-3 h-3 text-slate-400" />
+                    <span>Unggah Berkas</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleUpdateWorkExperience(idx, "certificateFile", file);
+                          handleUpdateWorkExperience(idx, "certificateFileName", file.name);
+                        }
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
             </div>
           )}
         />
-      </FormSection>
-
-      {/* 2.5 Berkas Dokumen Profil */}
-      <FormSection
-        id="seksi-berkas-profil"
-        title="2.5 Berkas Dokumen Profil & Ijazah"
-        subtitle="Salinan Curriculum Vitae, Ijazah terakhir, Kartu Keluarga, dan Buku Nikah"
-        icon={FolderArchive}
-        defaultOpen={true}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DocumentUploadCard
-            label="Curriculum Vitae / Resume"
-            description="Format PDF atau gambar resmi (maks. 5MB)"
-            value={docCv}
-            onChange={setDocCv}
-          />
-          <DocumentUploadCard
-            label="Ijazah & Transkrip Terakhir"
-            description="Ijazah pendidikan tertinggi yang diselesaikan"
-            value={docDiploma}
-            onChange={setDocDiploma}
-          />
-          <DocumentUploadCard
-            label="Kartu Keluarga (KK)"
-            description="Salinan Kartu Keluarga resmi dari Disdukcapil"
-            value={docFamilyCard}
-            onChange={setDocFamilyCard}
-          />
-          {formData.maritalStatus === "MARRIED" && (
-            <DocumentUploadCard
-              label="Buku Nikah / Akta Perkawinan"
-              description="Khusus bagi pegawai berstatus menikah"
-              value={docMarriageCert}
-              onChange={setDocMarriageCert}
-            />
-          )}
-        </div>
       </FormSection>
     </div>
   );

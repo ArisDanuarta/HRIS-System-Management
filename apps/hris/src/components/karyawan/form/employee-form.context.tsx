@@ -519,92 +519,163 @@ export function EmployeeFormProvider({
   );
 
   const [educations, setEducations] = useState<EducationItem[]>(
-    initialData?.educations?.map((edu) => ({
-      id: edu.id,
-      level: edu.level as EducationLevel,
-      institution: edu.institution,
-      major: edu.major || undefined,
-      graduationYear: edu.graduationYear || undefined,
-      gpa: edu.gpa ? String(edu.gpa) : undefined,
-    })) || [],
+    initialData?.educations?.map((edu) => {
+      const doc = initialData.documents?.find((d) => d.educationId === edu.id);
+      return {
+        id: edu.id,
+        level:
+          (edu.level as unknown as string) === "SMA"
+            ? ("SMA_SMK" as EducationLevel)
+            : (edu.level as EducationLevel),
+        institution: edu.institution,
+        major: edu.major || undefined,
+        graduationYear: edu.graduationYear || undefined,
+        gpa: edu.gpa ? String(edu.gpa) : undefined,
+        certificateDocKey: doc?.fileKey || null,
+        certificateFileName: doc?.fileName || null,
+      };
+    }) || [],
   );
 
   const [trainings, setTrainings] = useState<TrainingItem[]>(
-    initialData?.trainings?.map((tr) => ({
-      id: tr.id,
-      name: tr.name,
-      participationType: tr.participationType || undefined,
-      startDate: tr.startDate ? toDateString(tr.startDate) : undefined,
-      endDate: tr.endDate ? toDateString(tr.endDate) : undefined,
-      duration: tr.duration || undefined,
-      location: tr.location || undefined,
-      organizer: tr.organizer || undefined,
-    })) || [],
+    initialData?.trainings?.map((tr) => {
+      const doc = initialData.documents?.find((d) => d.trainingId === tr.id);
+      return {
+        id: tr.id,
+        name: tr.name,
+        participationType: tr.participationType || undefined,
+        startDate: tr.startDate ? toDateString(tr.startDate) : undefined,
+        endDate: tr.endDate ? toDateString(tr.endDate) : undefined,
+        duration: tr.duration || undefined,
+        location: tr.location || undefined,
+        organizer: tr.organizer || undefined,
+        certificateDocKey: doc?.fileKey || null,
+        certificateFileName: doc?.fileName || null,
+      };
+    }) || [],
   );
 
   const [workExperiences, setWorkExperiences] = useState<WorkExperienceItem[]>(
-    initialData?.workExperiences?.map((we) => ({
-      id: we.id,
-      companyName: we.companyName,
-      jobTitle: we.jobTitle,
-      startDate: we.startDate ? toDateString(we.startDate).substring(0, 7) : "",
-      endDate: we.endDate ? toDateString(we.endDate).substring(0, 7) : undefined,
-      isCurrent: Boolean(we.isCurrent),
-      reasonForLeaving: we.reasonForLeaving || undefined,
-      description: we.description || undefined,
-    })) || [],
+    initialData?.workExperiences?.map((we) => {
+      const doc = initialData.documents?.find((d) => d.workExperienceId === we.id);
+      return {
+        id: we.id,
+        companyName: we.companyName,
+        jobTitle: we.jobTitle,
+        startDate: we.startDate ? toDateString(we.startDate).substring(0, 7) : "",
+        endDate: we.endDate ? toDateString(we.endDate).substring(0, 7) : undefined,
+        isCurrent: Boolean(we.isCurrent),
+        reasonForLeaving: we.reasonForLeaving || undefined,
+        description: we.description || undefined,
+        certificateDocKey: doc?.fileKey || null,
+        certificateFileName: doc?.fileName || null,
+      };
+    }) || [],
   );
 
   const [additionalDocuments, setAdditionalDocuments] = useState<AdditionalDocumentItem[]>([]);
 
   // Documents
+  const cvDoc = initialData?.documents?.find((d) => d.category === "CV");
+  const diplomaDoc = initialData?.documents?.find((d) => d.category === "DIPLOMA" && !d.educationId);
+  const kkDoc = initialData?.documents?.find((d) => d.category === "FAMILY_CARD");
+  const prevExpDoc = initialData?.documents?.find(
+    (d) => d.category === "PREVIOUS_EMPLOYER_LETTER" && !d.workExperienceId,
+  );
+  const offerDoc = initialData?.documents?.find((d) => d.category === "OFFER_LETTER");
+  const ndaDoc = initialData?.documents?.find((d) => d.category === "NDA");
+  const marriageDoc = initialData?.documents?.find((d) => d.category === "MARRIAGE_CERT");
+  const ktpDoc = initialData?.documents?.find((d) => d.category === "KTP");
+  const npwpDoc = initialData?.documents?.find((d) => d.category === "NPWP");
+  const bankDoc = initialData?.documents?.find((d) => d.category === "BANK_BOOK");
+  const bpjsKesDoc = initialData?.documents?.find(
+    (d) => d.category === "BPJS_KES" || d.category === "BPJS",
+  );
+  const bpjsTkDoc = initialData?.documents?.find((d) => d.category === "BPJS_TK");
+
   const [docCv, setDocCv] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasCv ? "uploaded" : "idle",
+    documentKey: cvDoc?.fileKey || null,
+    fileName: cvDoc?.fileName || null,
+    previewUrl: cvDoc?.fileKey ? `/api/documents/${cvDoc.fileKey}` : null,
+    status: cvDoc || initialData?.hasCv ? "uploaded" : "idle",
   });
   const [docDiploma, setDocDiploma] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasDiploma ? "uploaded" : "idle",
+    documentKey: diplomaDoc?.fileKey || null,
+    fileName: diplomaDoc?.fileName || null,
+    previewUrl: diplomaDoc?.fileKey ? `/api/documents/${diplomaDoc.fileKey}` : null,
+    status: diplomaDoc || initialData?.hasDiploma ? "uploaded" : "idle",
   });
   const [docFamilyCard, setDocFamilyCard] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasFamilyCard ? "uploaded" : "idle",
+    documentKey: kkDoc?.fileKey || null,
+    fileName: kkDoc?.fileName || null,
+    previewUrl: kkDoc?.fileKey ? `/api/documents/${kkDoc.fileKey}` : null,
+    status: kkDoc || initialData?.hasFamilyCard ? "uploaded" : "idle",
   });
   const [docPreviousEmployerLetter, setDocPreviousEmployerLetter] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasPreviousEmployerLetter ? "uploaded" : "idle",
+    documentKey: prevExpDoc?.fileKey || null,
+    fileName: prevExpDoc?.fileName || null,
+    previewUrl: prevExpDoc?.fileKey ? `/api/documents/${prevExpDoc.fileKey}` : null,
+    status: prevExpDoc || initialData?.hasPreviousEmployerLetter ? "uploaded" : "idle",
   });
   const [docOfferLetter, setDocOfferLetter] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasOfferLetter ? "uploaded" : "idle",
+    documentKey: offerDoc?.fileKey || null,
+    fileName: offerDoc?.fileName || null,
+    previewUrl: offerDoc?.fileKey ? `/api/documents/${offerDoc.fileKey}` : null,
+    status: offerDoc || initialData?.hasOfferLetter ? "uploaded" : "idle",
   });
   const [docNda, setDocNda] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasNda ? "uploaded" : "idle",
+    documentKey: ndaDoc?.fileKey || null,
+    fileName: ndaDoc?.fileName || null,
+    previewUrl: ndaDoc?.fileKey ? `/api/documents/${ndaDoc.fileKey}` : null,
+    status: ndaDoc || initialData?.hasNda ? "uploaded" : "idle",
   });
   const [docMarriageCert, setDocMarriageCert] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasMarriageCert ? "uploaded" : "idle",
+    documentKey: marriageDoc?.fileKey || null,
+    fileName: marriageDoc?.fileName || null,
+    previewUrl: marriageDoc?.fileKey ? `/api/documents/${marriageDoc.fileKey}` : null,
+    status: marriageDoc || initialData?.hasMarriageCert ? "uploaded" : "idle",
   });
   const [docKtp, setDocKtp] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasNik ? "uploaded" : "idle",
+    documentKey: ktpDoc?.fileKey || null,
+    fileName: ktpDoc?.fileName || null,
+    previewUrl: ktpDoc?.fileKey ? `/api/documents/${ktpDoc.fileKey}` : null,
+    status: ktpDoc || initialData?.hasNik ? "uploaded" : "idle",
   });
   const [docNpwp, setDocNpwp] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasNpwp ? "uploaded" : "idle",
+    documentKey: npwpDoc?.fileKey || null,
+    fileName: npwpDoc?.fileName || null,
+    previewUrl: npwpDoc?.fileKey ? `/api/documents/${npwpDoc.fileKey}` : null,
+    status: npwpDoc || initialData?.hasNpwp ? "uploaded" : "idle",
   });
   const [docBankBook, setDocBankBook] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasBankAccount ? "uploaded" : "idle",
+    documentKey: bankDoc?.fileKey || null,
+    fileName: bankDoc?.fileName || null,
+    previewUrl: bankDoc?.fileKey ? `/api/documents/${bankDoc.fileKey}` : null,
+    status: bankDoc || initialData?.hasBankAccount ? "uploaded" : "idle",
   });
   const [docBpjsKes, setDocBpjsKes] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasBpjsKes ? "uploaded" : "idle",
+    documentKey: bpjsKesDoc?.fileKey || null,
+    fileName: bpjsKesDoc?.fileName || null,
+    previewUrl: bpjsKesDoc?.fileKey ? `/api/documents/${bpjsKesDoc.fileKey}` : null,
+    status: bpjsKesDoc || initialData?.hasBpjsKes ? "uploaded" : "idle",
   });
   const [docBpjsTk, setDocBpjsTk] = useState<UploadedFileState>({
     file: null,
-    status: initialData?.hasBpjsTk ? "uploaded" : "idle",
+    documentKey: bpjsTkDoc?.fileKey || null,
+    fileName: bpjsTkDoc?.fileName || null,
+    previewUrl: bpjsTkDoc?.fileKey ? `/api/documents/${bpjsTkDoc.fileKey}` : null,
+    status: bpjsTkDoc || initialData?.hasBpjsTk ? "uploaded" : "idle",
   });
   const [docSkck, setDocSkck] = useState<UploadedFileState>({ file: null, status: "idle" });
   const [docHealthCert, setDocHealthCert] = useState<UploadedFileState>({

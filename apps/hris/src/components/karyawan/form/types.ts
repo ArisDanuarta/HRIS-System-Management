@@ -194,6 +194,7 @@ export interface InitialEmployeeData {
     fileKey: string;
     educationId?: string | null;
     trainingId?: string | null;
+    workExperienceId?: string | null;
   }[];
   user?: {
     id: string;
