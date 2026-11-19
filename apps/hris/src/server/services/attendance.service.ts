@@ -279,7 +279,7 @@ export async function getMissedCheckOutCount(filters: {
     },
     checkInAt: { not: null },
     checkOutAt: null,
-    status: { in: ["PRESENT", "LATE", "WFH"] },
+    status: { in: ["PRESENT", "LATE", "WFH", "BUSINESS_TRIP"] },
   };
 
   if (filters.departmentId && filters.departmentId !== "ALL") {
@@ -317,7 +317,7 @@ export async function bulkFillMissedCheckOut(
     },
     checkInAt: { not: null },
     checkOutAt: null,
-    status: { in: ["PRESENT", "LATE", "WFH"] },
+    status: { in: ["PRESENT", "LATE", "WFH", "BUSINESS_TRIP"] },
   };
 
   if (input.departmentId && input.departmentId !== "ALL") {
