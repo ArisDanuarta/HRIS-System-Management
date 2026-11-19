@@ -1,6 +1,10 @@
 import { prisma } from "@pspk/db";
 import { AuthContext, assertCan } from "@pspk/rbac";
 import { toDateString } from "@pspk/shared";
+import {
+  getTodayOutOfOfficeData,
+  type TodayOutOfOfficeData,
+} from "./out-of-office.queries";
 
 export interface HrDashboardData {
   totalActiveEmployees: number;
@@ -49,6 +53,7 @@ export interface HrDashboardData {
     department: string;
     leaveTypeName: string;
   }[];
+  outOfOffice: TodayOutOfOfficeData;
 }
 
 export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData> {
@@ -185,32 +190,13 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
       take: 5,
     }),
 
-    // 8. On leave today
-    prisma.leaveRequest.findMany({
-      where: {
-        status: "APPROVED",
-        startDate: { lte: today },
-        endDate: { gte: today },
-      },
-      include: {
-        employee: {
-          select: {
-            id: true,
-            fullName: true,
-            employeeNo: true,
-            currentPosition: { select: { title: true } },
-            currentDepartment: { select: { name: true } },
-          },
-        },
-        leaveType: { select: { name: true } },
-      },
-      take: 6,
-    }),
+    // 8. Karyawan yang sedang cuti dan sedang perjalanan dinas hari ini lintas divisi
+    getTodayOutOfOfficeData(today),
   ]);
 
   // Calculations
   const presentTodayCount = todayAttendances.filter((a) =>
-    ["PRESENT", "LATE", "WFH"].includes(a.status),
+    ["PRESENT", "LATE", "WFH", "BUSINESS_TRIP"].includes(a.status),
   ).length;
 
   const attendancePercentage =
@@ -241,7 +227,9 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
       return recDate === dateStr;
     });
 
-    const present = dayRecords.filter((r) => r.status === "PRESENT" || r.status === "WFH").length;
+    const present = dayRecords.filter(
+      (r) => r.status === "PRESENT" || r.status === "WFH" || r.status === "BUSINESS_TRIP",
+    ).length;
     const late = dayRecords.filter((r) => r.status === "LATE").length;
     const leave = dayRecords.filter((r) => r.status === "LEAVE").length;
     const absent = dayRecords.filter((r) => r.status === "ABSENT").length;

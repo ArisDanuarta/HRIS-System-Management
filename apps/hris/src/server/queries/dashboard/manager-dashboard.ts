@@ -131,6 +131,7 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
     workSchedule,
     pendingTimesheetReviewsRaw,
     totalPendingTimesheets,
+    outOfOffice,
   ] = await Promise.all([
     // Today's attendance for team
     subordinateIds.length > 0
@@ -228,10 +229,13 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
         status: { in: ["PENDING", "IN_REVIEW"] },
       },
     }),
+
+    // Rekan kerja di luar kantor hari ini (seluruh divisi & karyawan)
+    getTodayOutOfOfficeData(today),
   ]);
 
   const teamPresentCount = todayTeamAttendances.filter((a) =>
-    ["PRESENT", "LATE", "WFH"].includes(a.status),
+    ["PRESENT", "LATE", "WFH", "BUSINESS_TRIP"].includes(a.status),
   ).length;
 
   const formattedManagerBalances = managerBalances;
@@ -298,5 +302,6 @@ export async function getManagerDashboard(ctx: AuthContext): Promise<ManagerDash
         : null,
       leaveBalances: formattedManagerBalances,
     },
+    outOfOffice,
   };
 }
