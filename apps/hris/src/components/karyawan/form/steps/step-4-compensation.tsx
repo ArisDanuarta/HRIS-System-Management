@@ -32,6 +32,10 @@ export function Step4Compensation() {
     setDocBpjsTk,
     docKtp,
     setDocKtp,
+    docFamilyCard,
+    setDocFamilyCard,
+    docMarriageCert,
+    setDocMarriageCert,
   } = useEmployeeForm();
 
   // Calculations
@@ -536,6 +540,20 @@ export function Step4Compensation() {
             value={docBpjsTk}
             onChange={setDocBpjsTk}
           />
+          <DocumentUploadCard
+            label="Kartu Keluarga (KK)"
+            description="Salinan Kartu Keluarga resmi dari Disdukcapil"
+            value={docFamilyCard}
+            onChange={setDocFamilyCard}
+          />
+          {formData.maritalStatus === "MARRIED" && (
+            <DocumentUploadCard
+              label="Buku Nikah / Akta Perkawinan"
+              description="Khusus bagi pegawai berstatus menikah"
+              value={docMarriageCert}
+              onChange={setDocMarriageCert}
+            />
+          )}
         </div>
       </FormSection>
     </div>

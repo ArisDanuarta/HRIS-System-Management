@@ -221,10 +221,8 @@ export function Step1Identity() {
                 onChange={(e) => updateField("maritalStatus", e.target.value as MaritalStatus)}
                 className="h-10 px-3 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
               >
-                <option value="SINGLE">Belum Menikah (Lajang)</option>
                 <option value="MARRIED">Menikah</option>
-                <option value="WIDOWED">Cerai Mati</option>
-                <option value="DIVORCED">Cerai Hidup</option>
+                <option value="SINGLE">Belum Menikah</option>
               </select>
             </div>
 
