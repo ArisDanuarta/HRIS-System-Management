@@ -8,6 +8,7 @@ export interface OutOfOfficePerson {
   nickname?: string | null;
   employeeNo: string;
   photoKey?: string | null;
+  gender?: string | null;
   department: string;
   position: string;
   kind: "LEAVE" | "BUSINESS_TRIP";
@@ -91,6 +92,7 @@ export async function getTodayOutOfOfficeData(targetDate?: Date): Promise<TodayO
             nickname: true,
             employeeNo: true,
             photoKey: true,
+            gender: true,
             currentPosition: { select: { title: true } },
             currentDepartment: { select: { name: true } },
           },
@@ -124,6 +126,7 @@ export async function getTodayOutOfOfficeData(targetDate?: Date): Promise<TodayO
             nickname: true,
             employeeNo: true,
             photoKey: true,
+            gender: true,
             currentPosition: { select: { title: true } },
             currentDepartment: { select: { name: true } },
           },
@@ -142,6 +145,7 @@ export async function getTodayOutOfOfficeData(targetDate?: Date): Promise<TodayO
     nickname: item.employee.nickname,
     employeeNo: item.employee.employeeNo,
     photoKey: item.employee.photoKey,
+    gender: item.employee.gender,
     department: item.employee.currentDepartment?.name || "Lintas Inisiatif",
     position: item.employee.currentPosition?.title || "Staf",
     kind: "LEAVE",
@@ -158,6 +162,7 @@ export async function getTodayOutOfOfficeData(targetDate?: Date): Promise<TodayO
     nickname: item.employee.nickname,
     employeeNo: item.employee.employeeNo,
     photoKey: item.employee.photoKey,
+    gender: item.employee.gender,
     department: item.employee.currentDepartment?.name || "Lintas Inisiatif",
     position: item.employee.currentPosition?.title || "Staf",
     kind: "BUSINESS_TRIP",

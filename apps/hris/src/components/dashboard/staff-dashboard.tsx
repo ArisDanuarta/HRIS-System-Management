@@ -20,6 +20,7 @@ import { formatRupiah } from "@pspk/shared";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
 import { SupervisorProfileModal } from "./supervisor-profile-modal";
+import { OutOfOfficePanel } from "./out-of-office-panel";
 import {
   DashboardHeader,
   Panel,
@@ -256,6 +257,8 @@ export function StaffDashboard({ data, employeeName }: StaffDashboardProps) {
               </button>
             </Panel>
           )}
+
+          <OutOfOfficePanel data={data.outOfOffice} />
 
           <Panel
             title="Dokumen & panduan"
