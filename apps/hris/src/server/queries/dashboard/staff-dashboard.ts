@@ -286,5 +286,6 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
           : null,
       };
     }),
+    outOfOffice,
   };
 }
