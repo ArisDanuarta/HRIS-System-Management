@@ -108,8 +108,8 @@ describe("out-of-office.queries", () => {
         },
       ];
 
-      (prisma.leaveRequest.findMany as any).mockResolvedValue(mockLeaves);
-      (prisma.attendance.findMany as any).mockResolvedValue(mockTrips);
+      vi.mocked(prisma.leaveRequest.findMany).mockResolvedValue(mockLeaves as unknown as Awaited<ReturnType<typeof prisma.leaveRequest.findMany>>);
+      vi.mocked(prisma.attendance.findMany).mockResolvedValue(mockTrips as unknown as Awaited<ReturnType<typeof prisma.attendance.findMany>>);
 
       const target = new Date("2026-11-19T00:00:00.000Z");
       const result = await getTodayOutOfOfficeData(target);

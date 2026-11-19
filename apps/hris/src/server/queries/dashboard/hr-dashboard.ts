@@ -80,7 +80,7 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
     last7DaysAttendances,
     contractsByType,
     pendingLeavesLong,
-    onLeaveTodayList,
+    outOfOffice,
   ] = await Promise.all([
     // 1. Total Active & Probation Employees (aktif bekerja di organisasi)
     prisma.employee.count({
@@ -278,14 +278,15 @@ export async function getHrDashboard(ctx: AuthContext): Promise<HrDashboardData>
       createdAt: pl.createdAt,
       days: Number(pl.days),
     })),
-    onLeaveTodayList: onLeaveTodayList.map((ol) => ({
+    onLeaveTodayList: outOfOffice.leaves.map((ol) => ({
       id: ol.id,
-      employeeId: ol.employee.id,
-      employeeName: ol.employee.fullName,
-      employeeNo: ol.employee.employeeNo,
-      position: ol.employee.currentPosition?.title || "-",
-      department: ol.employee.currentDepartment?.name || "-",
-      leaveTypeName: ol.leaveType.name,
+      employeeId: ol.employeeId,
+      employeeName: ol.fullName,
+      employeeNo: ol.employeeNo,
+      position: ol.position,
+      department: ol.department,
+      leaveTypeName: ol.typeLabel,
     })),
+    outOfOffice,
   };
 }
