@@ -9,11 +9,13 @@ import {
   XCircle,
   FileText,
   Building2,
+  Plus,
+  ShieldCheck,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";
 import { DocumentUploadCard } from "../../components/DocumentUploadCard";
-import { EmployeeStatus } from "@pspk/db";
+import { EmployeeStatus, EmploymentType, WageType } from "@pspk/db";
 
 export function Step3Placement() {
   const {
@@ -23,6 +25,8 @@ export function Step3Placement() {
     managers,
     workLocations,
     legalEntities,
+    employmentTypesList,
+    setIsQuickCreateModalOpen,
     nipChecking,
     nipStatus,
     handleGenerateNip,
@@ -31,8 +35,8 @@ export function Step3Placement() {
     setDocOfferLetter,
     docNda,
     setDocNda,
-    docPreviousEmployerLetter,
-    setDocPreviousEmployerLetter,
+    docContract,
+    setDocContract,
     mode,
   } = useEmployeeForm();
 
@@ -301,15 +305,157 @@ export function Step3Placement() {
         </div>
       </FormSection>
 
-      {/* 3.3 Berkas Dokumen Pra-Kerja */}
+      {/* 3.3 Tipe Ikatan Kerja & Periode Perjanjian */}
       <FormSection
-        id="seksi-dokumen-prakerja"
-        title="3.3 Berkas Dokumen Pra-Kerja (Offer Letter & NDA)"
-        subtitle="Surat Penawaran Kerja resmi yang telah ditandatangani dan Pakta Integritas / NDA"
+        id="seksi-ikatan-kerja"
+        title="3.3 Tipe Ikatan Kerja & Periode Perjanjian"
+        subtitle="Skema hubungan kerja formal, jangka waktu kontrak, dan nomor dokumen perjanjian"
         icon={FileText}
         defaultOpen={true}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+          {/* Tipe Ikatan Kerja */}
+          <div className="sm:col-span-2 flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="employmentTypeId" className="font-bold text-slate-700">
+                Tipe Ikatan Kerja <span className="text-[#A8281C]">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsQuickCreateModalOpen(true)}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#102E50] hover:underline cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tambah Tipe Baru</span>
+              </button>
+            </div>
+
+            <select
+              id="employmentTypeId"
+              required
+              value={formData.employmentTypeId}
+              onChange={(e) => {
+                const selectedId = e.target.value;
+                updateField("employmentTypeId", selectedId);
+                const selected = employmentTypesList.find((t) => t.id === selectedId);
+                if (selected) {
+                  updateField("employmentType", selected.category as EmploymentType);
+                  updateField("wageType", selected.wageType as WageType);
+                  if (selected.defaultHourlyRate && selected.wageType === "HOURLY") {
+                    updateField("hourlyRate", selected.defaultHourlyRate);
+                  }
+                }
+              }}
+              className="h-10 px-3 rounded-lg border border-slate-200 bg-white font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+            >
+              <option value="">Pilih Tipe Ikatan Kerja</option>
+              {employmentTypesList.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name} ({type.category === "PERMANENT" ? "PKWTT Tetap" : "PKWT Tertentu"} ·{" "}
+                  {type.wageType === "MONTHLY" ? "Upah Bulanan" : "Upah Per Jam"})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tipe Upah */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="wageType" className="font-bold text-slate-700">
+              Skema Pengupahan
+            </label>
+            <select
+              id="wageType"
+              value={formData.wageType}
+              onChange={(e) => updateField("wageType", e.target.value as WageType)}
+              className="h-10 px-3 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+            >
+              <option value="MONTHLY">Bulanan (Monthly Salary)</option>
+              <option value="HOURLY">Per Jam (Hourly Rate / Timesheet)</option>
+            </select>
+          </div>
+
+          {/* Tanggal Mulai Kontrak */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="contractStartDate" className="font-bold text-slate-700">
+              Tanggal Mulai Kontrak <span className="text-[#A8281C]">*</span>
+            </label>
+            <input
+              id="contractStartDate"
+              type="date"
+              required
+              value={formData.contractStartDate}
+              onChange={(e) => updateField("contractStartDate", e.target.value)}
+              className="h-10 px-3 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+            />
+          </div>
+
+          {/* Tanggal Berakhir Kontrak */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="contractEndDate" className="font-bold text-slate-700">
+              Tanggal Berakhir Kontrak{" "}
+              {formData.employmentType === "FIXED_TERM" && (
+                <span className="text-[#A8281C]">*</span>
+              )}
+            </label>
+            <input
+              id="contractEndDate"
+              type="date"
+              value={formData.contractEndDate}
+              onChange={(e) => updateField("contractEndDate", e.target.value)}
+              className="h-10 px-3 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+            />
+            {formData.employmentType === "PERMANENT" && (
+              <span className="text-[10px] text-slate-400">Kosongkan untuk pegawai tetap.</span>
+            )}
+          </div>
+
+          {/* Nomor Surat Perjanjian */}
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="contractNumber" className="font-bold text-slate-700">
+              Nomor Dokumen Kontrak / SPK
+            </label>
+            <input
+              id="contractNumber"
+              type="text"
+              value={formData.contractNumber}
+              onChange={(e) => updateField("contractNumber", e.target.value)}
+              placeholder="Contoh: 001/SPK/PSPK/I/2024"
+              className="h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+            />
+          </div>
+
+          {/* Catatan / Klausul Kontrak */}
+          <div className="sm:col-span-3 flex flex-col gap-1.5">
+            <label htmlFor="contractNotes" className="font-bold text-slate-700">
+              Catatan / Klausul Khusus Perjanjian (Opsional)
+            </label>
+            <input
+              id="contractNotes"
+              type="text"
+              value={formData.contractNotes}
+              onChange={(e) => updateField("contractNotes", e.target.value)}
+              placeholder="Misal: Evaluasi kinerja setiap 6 bulan atau klausul remote working"
+              className="h-10 px-3 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+            />
+          </div>
+        </div>
+      </FormSection>
+
+      {/* 3.4 Berkas Dokumen Legalitas Kerja & Pra-Kerja */}
+      <FormSection
+        id="seksi-dokumen-legalitas"
+        title="3.4 Berkas Dokumen Legalitas & Pra-Kerja"
+        subtitle="Dokumen Perjanjian Kerja (PKWT/PKWTT), Surat Penawaran Kerja (Offer Letter), dan Pakta Integritas / NDA"
+        icon={ShieldCheck}
+        defaultOpen={true}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <DocumentUploadCard
+            label="Berkas Dokumen Kontrak Kerja (PKWT / PKWTT)"
+            description="Salinan dokumen kontrak kerja resmi yang telah ditandatangani kedua belah pihak (PDF / Gambar, maks. 10MB)"
+            value={docContract}
+            onChange={setDocContract}
+          />
           <DocumentUploadCard
             label="Surat Penawaran Kerja (Signed Offer Letter)"
             description="Dokumen persetujuan penawaran kerja dari kandidat"
@@ -321,12 +467,6 @@ export function Step3Placement() {
             description="Perjanjian kerahasiaan data riset dan kebijakan PSPK"
             value={docNda}
             onChange={setDocNda}
-          />
-          <DocumentUploadCard
-            label="Surat Pengalaman Kerja / Paklaring (Jika Ada)"
-            description="Surat referensi atau keterangan kerja sebelumnya"
-            value={docPreviousEmployerLetter}
-            onChange={setDocPreviousEmployerLetter}
           />
         </div>
       </FormSection>
