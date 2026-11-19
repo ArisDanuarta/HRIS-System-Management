@@ -751,65 +751,125 @@ export async function updateEmployee(data: UpdateEmployeeInput, actor: ActorCont
       }
     }
 
-    // Sinkronisasi Riwayat Pendidikan
+    // Sinkronisasi Riwayat Pendidikan (Upsert agar relasi dokumen tidak terputus)
     if (data.educations) {
-      await tx.employeeEducation.deleteMany({ where: { employeeId: data.id } });
+      const incomingEduIds = data.educations.map((e) => e.id).filter(Boolean) as string[];
+      await tx.employeeEducation.deleteMany({
+        where: {
+          employeeId: data.id,
+          id: { notIn: incomingEduIds },
+        },
+      });
       for (const edu of data.educations) {
         if (edu.institution && edu.institution.trim()) {
-          await tx.employeeEducation.create({
-            data: {
-              id: edu.id || undefined,
-              employeeId: data.id,
-              level: (edu.level as EducationLevel) || EducationLevel.OTHER,
-              institution: edu.institution.trim(),
-              major: edu.major?.trim() || null,
-              graduationYear: edu.graduationYear ? Number(edu.graduationYear) : null,
-              gpa: edu.gpa && !isNaN(Number(edu.gpa)) ? new Prisma.Decimal(edu.gpa) : null,
-            },
-          });
+          const eduPayload = {
+            level: (edu.level as EducationLevel) || EducationLevel.OTHER,
+            institution: edu.institution.trim(),
+            major: edu.major?.trim() || null,
+            graduationYear: edu.graduationYear ? Number(edu.graduationYear) : null,
+            gpa: edu.gpa && !isNaN(Number(edu.gpa)) ? new Prisma.Decimal(edu.gpa) : null,
+          };
+          if (edu.id) {
+            await tx.employeeEducation.upsert({
+              where: { id: edu.id },
+              create: {
+                id: edu.id,
+                employeeId: data.id,
+                ...eduPayload,
+              },
+              update: eduPayload,
+            });
+          } else {
+            await tx.employeeEducation.create({
+              data: {
+                employeeId: data.id,
+                ...eduPayload,
+              },
+            });
+          }
         }
       }
     }
 
-    // Sinkronisasi Pelatihan & Seminar
+    // Sinkronisasi Pelatihan & Seminar (Upsert agar relasi dokumen tidak terputus)
     if (data.trainings) {
-      await tx.employeeTraining.deleteMany({ where: { employeeId: data.id } });
+      const incomingTrIds = data.trainings.map((t) => t.id).filter(Boolean) as string[];
+      await tx.employeeTraining.deleteMany({
+        where: {
+          employeeId: data.id,
+          id: { notIn: incomingTrIds },
+        },
+      });
       for (const tr of data.trainings) {
         if (tr.name && tr.name.trim()) {
-          await tx.employeeTraining.create({
-            data: {
-              id: tr.id || undefined,
-              employeeId: data.id,
-              name: tr.name.trim(),
-              participationType: tr.participationType?.trim() || null,
-              startDate: tr.startDate ? new Date(tr.startDate) : null,
-              endDate: tr.endDate ? new Date(tr.endDate) : null,
-              duration: tr.duration?.trim() || null,
-              location: tr.location?.trim() || null,
-              organizer: tr.organizer?.trim() || null,
-            },
-          });
+          const trPayload = {
+            name: tr.name.trim(),
+            participationType: tr.participationType?.trim() || null,
+            startDate: tr.startDate ? new Date(tr.startDate) : null,
+            endDate: tr.endDate ? new Date(tr.endDate) : null,
+            duration: tr.duration?.trim() || null,
+            location: tr.location?.trim() || null,
+            organizer: tr.organizer?.trim() || null,
+          };
+          if (tr.id) {
+            await tx.employeeTraining.upsert({
+              where: { id: tr.id },
+              create: {
+                id: tr.id,
+                employeeId: data.id,
+                ...trPayload,
+              },
+              update: trPayload,
+            });
+          } else {
+            await tx.employeeTraining.create({
+              data: {
+                employeeId: data.id,
+                ...trPayload,
+              },
+            });
+          }
         }
       }
     }
 
-    // Sinkronisasi Pengalaman Kerja Terdahulu
+    // Sinkronisasi Pengalaman Kerja Terdahulu (Upsert agar relasi dokumen tidak terputus)
     if (data.workExperiences) {
-      await tx.employeeWorkExperience.deleteMany({ where: { employeeId: data.id } });
+      const incomingWeIds = data.workExperiences.map((w) => w.id).filter(Boolean) as string[];
+      await tx.employeeWorkExperience.deleteMany({
+        where: {
+          employeeId: data.id,
+          id: { notIn: incomingWeIds },
+        },
+      });
       for (const we of data.workExperiences) {
         if (we.companyName && we.companyName.trim() && we.jobTitle && we.jobTitle.trim()) {
-          await tx.employeeWorkExperience.create({
-            data: {
-              id: we.id || undefined,
-              employeeId: data.id,
-              companyName: we.companyName.trim(),
-              jobTitle: we.jobTitle.trim(),
-              startDate: new Date(we.startDate),
-              endDate: we.endDate ? new Date(we.endDate) : null,
-              reasonForLeaving: we.reasonForLeaving?.trim() || null,
-              description: we.description?.trim() || null,
-            },
-          });
+          const wePayload = {
+            companyName: we.companyName.trim(),
+            jobTitle: we.jobTitle.trim(),
+            startDate: new Date(we.startDate),
+            endDate: we.endDate ? new Date(we.endDate) : null,
+            reasonForLeaving: we.reasonForLeaving?.trim() || null,
+            description: we.description?.trim() || null,
+          };
+          if (we.id) {
+            await tx.employeeWorkExperience.upsert({
+              where: { id: we.id },
+              create: {
+                id: we.id,
+                employeeId: data.id,
+                ...wePayload,
+              },
+              update: wePayload,
+            });
+          } else {
+            await tx.employeeWorkExperience.create({
+              data: {
+                employeeId: data.id,
+                ...wePayload,
+              },
+            });
+          }
         }
       }
     }

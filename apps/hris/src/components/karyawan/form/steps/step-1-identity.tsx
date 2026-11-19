@@ -5,6 +5,7 @@ import { User, Phone, Home, HeartHandshake, Camera, Upload, Trash2 } from "lucid
 import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";
 import { AddressFields } from "../../components/AddressFields";
+import { DocumentUploadCard } from "../../components/DocumentUploadCard";
 import { Gender, MaritalStatus, Religion, BloodType } from "@pspk/db";
 
 export function Step1Identity() {
@@ -21,6 +22,8 @@ export function Step1Identity() {
     handleProfilePhotoChange,
     clearProfilePhoto,
     profilePhoto,
+    docCv,
+    setDocCv,
   } = useEmployeeForm();
 
   return (
@@ -34,66 +37,77 @@ export function Step1Identity() {
         defaultOpen={true}
       >
         <div className="flex flex-col gap-5">
-          {/* Photo Uploader Row */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
-            <div className="relative group shrink-0">
-              <div className="w-24 h-24 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-xs">
-                {profilePhotoPreview ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={profilePhotoPreview}
-                    alt="Foto Profil"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-1 text-slate-400">
-                    <Camera className="w-6 h-6" />
-                    <span className="text-[10px] font-bold">Foto</span>
-                  </div>
+          {/* Photo & CV Upload Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Pasfoto Resmi */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
+              <div className="relative group shrink-0">
+                <div className="w-24 h-24 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-xs">
+                  {profilePhotoPreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={profilePhotoPreview}
+                      alt="Foto Profil"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-1 text-slate-400">
+                      <Camera className="w-6 h-6" />
+                      <span className="text-[10px] font-bold">Foto</span>
+                    </div>
+                  )}
+                </div>
+
+                {profilePhotoPreview && (
+                  <button
+                    type="button"
+                    onClick={clearProfilePhoto}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center hover:bg-rose-700 transition-colors shadow-xs cursor-pointer"
+                    title="Hapus foto"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 )}
               </div>
 
-              {profilePhotoPreview && (
-                <button
-                  type="button"
-                  onClick={clearProfilePhoto}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-rose-600 text-white flex items-center justify-center hover:bg-rose-700 transition-colors shadow-xs cursor-pointer"
-                  title="Hapus foto"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
+              <div className="flex flex-col gap-2 min-w-0 text-center sm:text-left flex-1">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-800 tracking-tight">
+                    Unggah Pasfoto Resmi
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Format JPG, PNG, atau WEBP. Maksimal 2 MB dengan rasio 1:1.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
+                  <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-[#102E50] transition-colors cursor-pointer shadow-2xs">
+                    <Upload className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Pilih Berkas Foto</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleProfilePhotoChange}
+                    />
+                  </label>
+                </div>
+
+                {profilePhoto.error && (
+                  <span className="text-[11px] text-rose-600 font-medium">
+                    {profilePhoto.error}
+                  </span>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2 min-w-0 text-center sm:text-left flex-1">
-              <div>
-                <h4 className="text-xs font-bold text-slate-800 tracking-tight">
-                  Unggah Pasfoto Resmi
-                </h4>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Format JPG, PNG, atau WEBP. Ukuran maksimal 2 MB dengan rasio persegi (1:1).
-                </p>
-              </div>
-
-              <div className="flex items-center justify-center sm:justify-start gap-2 pt-1">
-                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-[#102E50] transition-colors cursor-pointer shadow-2xs">
-                  <Upload className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Pilih Berkas Foto</span>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    className="hidden"
-                    onChange={handleProfilePhotoChange}
-                  />
-                </label>
-              </div>
-
-              {profilePhoto.error && (
-                <span className="text-[11px] text-rose-600 font-medium">
-                  {profilePhoto.error}
-                </span>
-              )}
-            </div>
+            {/* Curriculum Vitae (CV) */}
+            <DocumentUploadCard
+              label="Curriculum Vitae (CV) / Resume"
+              description="Salinan CV atau resume terbaru (Format PDF / Gambar, maks. 5MB)"
+              value={docCv}
+              onChange={setDocCv}
+            />
           </div>
 
           {/* Fields Grid */}
