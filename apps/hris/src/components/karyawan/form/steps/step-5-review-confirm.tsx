@@ -24,6 +24,7 @@ export function Step5ReviewConfirm() {
     managers,
     employmentTypesList,
     goToStep,
+    educations,
     docCv,
     docDiploma,
     docFamilyCard,
@@ -53,7 +54,15 @@ export function Step5ReviewConfirm() {
   // Documents checklist
   const docsList = [
     { label: "Curriculum Vitae (CV)", has: Boolean(docCv.file || docCv.status === "uploaded"), required: true },
-    { label: "Ijazah Terakhir", has: Boolean(docDiploma.file || docDiploma.status === "uploaded"), required: true },
+    {
+      label: "Ijazah Pendidikan",
+      has: Boolean(
+        docDiploma.file ||
+          docDiploma.status === "uploaded" ||
+          educations.some((e) => e.certificateFile || e.certificateDocKey),
+      ),
+      required: false,
+    },
     { label: "Kartu Tanda Penduduk (KTP)", has: Boolean(docKtp.file || docKtp.status === "uploaded"), required: true },
     { label: "Surat Penawaran Kerja (Offer Letter)", has: Boolean(docOfferLetter.file || docOfferLetter.status === "uploaded"), required: true },
     { label: "Pakta Integritas / NDA", has: Boolean(docNda.file || docNda.status === "uploaded"), required: true },
