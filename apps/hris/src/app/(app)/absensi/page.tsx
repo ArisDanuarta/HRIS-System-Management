@@ -342,7 +342,7 @@ export default async function AbsensiPage({ searchParams }: AbsensiPageProps) {
                 <strong className="text-emerald-700">Hadir Tepat Waktu</strong>.
               </p>
               <p>
-                Pastikan Anda memilih mode kerja (<strong>WFO</strong> atau <strong>WFH</strong>)
+                Pastikan Anda memilih mode kehadiran (<strong>WFO</strong>, <strong>WFH</strong>, atau <strong>Perjalanan Dinas</strong>)
                 yang sesuai dan melakukan <strong>Check-Out</strong> saat mengakhiri jam kerja agar
                 akumulasi jam kerja bulanan tercatat secara akurat.
               </p>

@@ -15,6 +15,7 @@ import {
   X,
   Building2,
   Home,
+  Plane,
 } from "lucide-react";
 import { checkInAction, checkOutAction } from "@/server/actions/attendance.actions";
 import {
@@ -89,7 +90,7 @@ export function TodayAttendanceCard({
   const [shiftProgress, setShiftProgress] = useState<number>(0);
 
   // Form & Action state
-  const [workMode, setWorkMode] = useState<"WFO" | "WFH">("WFO");
+  const [workMode, setWorkMode] = useState<"WFO" | "WFH" | "DINAS">("WFO");
   const [notes, setNotes] = useState<string>("");
   const [showNotesInput, setShowNotesInput] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -249,13 +250,16 @@ export function TodayAttendanceCard({
   const hasCheckedOut = !!todayAttendance?.checkOutAt;
 
   // Detect recorded work mode from existing notes if already checked in
-  const recordedMode = todayAttendance?.notes?.includes("[WFH]")
-    ? "WFH"
-    : todayAttendance?.notes?.includes("[WFO]")
-      ? "WFO"
-      : todayAttendance?.status === "WFH"
+  const recordedMode =
+    todayAttendance?.notes?.includes("[DINAS]") ||
+    todayAttendance?.notes?.includes("[BUSINESS_TRIP]") ||
+    todayAttendance?.status === "BUSINESS_TRIP"
+      ? "DINAS"
+      : todayAttendance?.notes?.includes("[WFH]") || todayAttendance?.status === "WFH"
         ? "WFH"
-        : null;
+        : todayAttendance?.notes?.includes("[WFO]")
+          ? "WFO"
+          : null;
 
   // Time formatters for attendance logs
   const formatAttendanceTime = (d: Date | null | undefined, tz: string = effectiveTz) => {
@@ -409,13 +413,23 @@ export function TodayAttendanceCard({
           {/* Right Status Badge */}
           <div className="flex items-center gap-2">
             {recordedMode && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#102e50]/5 text-[#102e50] border border-[#102e50]/15">
-                {recordedMode === "WFH" ? (
+              <span
+                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border ${
+                  recordedMode === "DINAS"
+                    ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                    : recordedMode === "WFH"
+                      ? "bg-[#0874aa]/10 text-[#0874aa] border-[#0874aa]/20"
+                      : "bg-[#102e50]/5 text-[#102e50] border-[#102e50]/15"
+                }`}
+              >
+                {recordedMode === "DINAS" ? (
+                  <Plane className="w-3 h-3 text-indigo-600" />
+                ) : recordedMode === "WFH" ? (
                   <Home className="w-3 h-3 text-[#0874aa]" />
                 ) : (
                   <Building2 className="w-3 h-3 text-[#102e50]" />
                 )}
-                {recordedMode}
+                <span>{recordedMode === "DINAS" ? "Perjalanan Dinas" : recordedMode}</span>
               </span>
             )}
 
@@ -601,12 +615,12 @@ export function TodayAttendanceCard({
 
             {!hasCheckedIn ? (
               <>
-                {/* Work Mode Radio Selector (WFO vs WFH) */}
+                {/* Work Mode Radio Selector (WFO vs WFH vs Perjalanan Dinas) */}
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
                     Mode Kehadiran Hari Ini
                   </label>
-                  <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200/70">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-1.5 bg-slate-100 rounded-xl border border-slate-200/70">
                     <button
                       type="button"
                       onClick={() => setWorkMode("WFO")}
@@ -640,6 +654,26 @@ export function TodayAttendanceCard({
                       />
                       <span>WFH / Remote</span>
                     </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWorkMode("DINAS");
+                        setShowNotesInput(true);
+                      }}
+                      className={`flex items-center justify-center gap-2 py-2.5 px-3 min-h-[44px] rounded-lg text-xs font-semibold transition-all cursor-pointer active:scale-[0.98] ${
+                        workMode === "DINAS"
+                          ? "bg-white text-indigo-900 shadow-xs border border-indigo-200/80"
+                          : "text-slate-600 hover:text-indigo-900"
+                      }`}
+                    >
+                      <Plane
+                        className={`w-4 h-4 ${
+                          workMode === "DINAS" ? "text-indigo-600" : "text-slate-400"
+                        }`}
+                      />
+                      <span>Perjalanan Dinas</span>
+                    </button>
                   </div>
                 </div>
 
@@ -648,7 +682,11 @@ export function TodayAttendanceCard({
                   <div className="relative animate-in fade-in duration-150">
                     <input
                       type="text"
-                      placeholder="Catatan agenda atau lokasi tugas (opsional)..."
+                      placeholder={
+                        workMode === "DINAS"
+                          ? "Kota tujuan / agenda dinas luar (opsional, misal: Riset Lapangan Lombok)..."
+                          : "Catatan agenda atau lokasi tugas (opsional)..."
+                      }
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="w-full pl-3 pr-8 py-2.5 text-sm sm:text-xs rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#102e50] min-h-[44px]"
