@@ -103,6 +103,7 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
     const file = formData.get("file") as File | null;
     const educationId = ((formData.get("educationId") as string) || "").trim() || null;
     const trainingId = ((formData.get("trainingId") as string) || "").trim() || null;
+    const workExperienceId = ((formData.get("workExperienceId") as string) || "").trim() || null;
 
     if (!employeeId) {
       return { success: false, message: "ID pegawai tidak valid." };
@@ -183,6 +184,7 @@ export async function uploadEmployeeDocumentAction(formData: FormData) {
         uploadedById: userId,
         educationId,
         trainingId,
+        workExperienceId,
       },
     });
 
