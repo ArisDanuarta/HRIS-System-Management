@@ -14,6 +14,7 @@ import {
   AlertCircle,
   MapPin,
   CheckCircle2,
+  FileCheck,
 } from "lucide-react";
 import {
   getGenderLabel,
@@ -92,6 +93,15 @@ export interface EmployeeBiodataTabProps {
       endDate?: Date | string | null;
       reasonForLeaving?: string | null;
       description?: string | null;
+    }>;
+    documents?: Array<{
+      id: string;
+      category: string;
+      fileKey: string;
+      fileName: string;
+      educationId?: string | null;
+      trainingId?: string | null;
+      workExperienceId?: string | null;
     }>;
   };
 }
@@ -496,28 +506,48 @@ export function EmployeeBiodataTab({ employee }: EmployeeBiodataTabProps) {
                   <th className="py-2.5 px-3">Jurusan / Program Studi</th>
                   <th className="py-2.5 px-3 text-center">Tahun Lulus</th>
                   <th className="py-2.5 px-3 text-center">Nilai / IPK</th>
+                  <th className="py-2.5 px-3 text-center">Berkas Ijazah</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {educations.map((edu) => (
-                  <tr key={edu.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-2.5 px-3">
-                      <span className="font-bold text-slate-800 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
-                        {getEducationLevelLabel(edu.level)}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 font-semibold text-slate-800">
-                      {edu.institution}
-                    </td>
-                    <td className="py-2.5 px-3">{edu.major || "-"}</td>
-                    <td className="py-2.5 px-3 text-center font-mono">
-                      {edu.graduationYear || "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-800">
-                      {edu.gpa ? Number(edu.gpa.toString()).toFixed(2) : "-"}
-                    </td>
-                  </tr>
-                ))}
+                {educations.map((edu) => {
+                  const doc = employee.documents?.find((d) => d.educationId === edu.id);
+                  return (
+                    <tr key={edu.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-2.5 px-3">
+                        <span className="font-bold text-slate-800 px-2 py-0.5 rounded bg-slate-100 border border-slate-200">
+                          {getEducationLevelLabel(edu.level)}
+                        </span>
+                      </td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">
+                        {edu.institution}
+                      </td>
+                      <td className="py-2.5 px-3">{edu.major || "-"}</td>
+                      <td className="py-2.5 px-3 text-center font-mono">
+                        {edu.graduationYear || "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-center font-mono font-bold text-slate-800">
+                        {edu.gpa ? Number(edu.gpa.toString()).toFixed(2) : "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {doc ? (
+                          <a
+                            href={`/api/documents/${doc.fileKey}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                            title={doc.fileName}
+                          >
+                            <FileCheck className="w-3 h-3 text-emerald-600" />
+                            <span>Lihat Ijazah</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -552,21 +582,41 @@ export function EmployeeBiodataTab({ employee }: EmployeeBiodataTabProps) {
                   <th className="py-2.5 px-3">Periode</th>
                   <th className="py-2.5 px-3">Durasi</th>
                   <th className="py-2.5 px-3">Lokasi</th>
+                  <th className="py-2.5 px-3 text-center">Sertifikat</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {trainings.map((trn) => (
-                  <tr key={trn.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-2.5 px-3 font-semibold text-slate-800">{trn.name}</td>
-                    <td className="py-2.5 px-3">{trn.organizer || "-"}</td>
-                    <td className="py-2.5 px-3 text-[11px]">
-                      {trn.startDate ? formatDate(trn.startDate) : "-"}
-                      {trn.endDate ? ` s.d. ${formatDate(trn.endDate)}` : ""}
-                    </td>
-                    <td className="py-2.5 px-3 font-mono">{trn.duration || "-"}</td>
-                    <td className="py-2.5 px-3 text-slate-500">{trn.location || "-"}</td>
-                  </tr>
-                ))}
+                {trainings.map((trn) => {
+                  const doc = employee.documents?.find((d) => d.trainingId === trn.id);
+                  return (
+                    <tr key={trn.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">{trn.name}</td>
+                      <td className="py-2.5 px-3">{trn.organizer || "-"}</td>
+                      <td className="py-2.5 px-3 text-[11px]">
+                        {trn.startDate ? formatDate(trn.startDate) : "-"}
+                        {trn.endDate ? ` s.d. ${formatDate(trn.endDate)}` : ""}
+                      </td>
+                      <td className="py-2.5 px-3 font-mono">{trn.duration || "-"}</td>
+                      <td className="py-2.5 px-3 text-slate-500">{trn.location || "-"}</td>
+                      <td className="py-2.5 px-3 text-center">
+                        {doc ? (
+                          <a
+                            href={`/api/documents/${doc.fileKey}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                            title={doc.fileName}
+                          >
+                            <FileCheck className="w-3 h-3 text-emerald-600" />
+                            <span>Lihat Sertifikat</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -601,34 +651,54 @@ export function EmployeeBiodataTab({ employee }: EmployeeBiodataTabProps) {
                   <th className="py-2.5 px-3">Periode Kerja</th>
                   <th className="py-2.5 px-3">Alasan Berhenti</th>
                   <th className="py-2.5 px-3">Keterangan / Uraian Tugas</th>
+                  <th className="py-2.5 px-3 text-center">Paklaring / Berkas</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {workExperiences.map((exp) => (
-                  <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="py-2.5 px-3 font-semibold text-slate-800">
-                      {exp.companyName}
-                    </td>
-                    <td className="py-2.5 px-3 font-medium text-slate-700">{exp.jobTitle}</td>
-                    <td className="py-2.5 px-3 whitespace-nowrap">
-                      <span>{formatDate(exp.startDate)}</span>
-                      <span className="text-slate-400 mx-1">s/d</span>
-                      {exp.endDate ? (
-                        <span>{formatDate(exp.endDate)}</span>
-                      ) : (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Sekarang / Aktif
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-500 max-w-[150px] truncate">
-                      {exp.reasonForLeaving || "-"}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-500 max-w-[200px] truncate">
-                      {exp.description || "-"}
-                    </td>
-                  </tr>
-                ))}
+                {workExperiences.map((exp) => {
+                  const doc = employee.documents?.find((d) => d.workExperienceId === exp.id);
+                  return (
+                    <tr key={exp.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">
+                        {exp.companyName}
+                      </td>
+                      <td className="py-2.5 px-3 font-medium text-slate-700">{exp.jobTitle}</td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span>{formatDate(exp.startDate)}</span>
+                        <span className="text-slate-400 mx-1">s/d</span>
+                        {exp.endDate ? (
+                          <span>{formatDate(exp.endDate)}</span>
+                        ) : (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            Sekarang / Aktif
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-500 max-w-[150px] truncate">
+                        {exp.reasonForLeaving || "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-slate-500 max-w-[200px] truncate">
+                        {exp.description || "-"}
+                      </td>
+                      <td className="py-2.5 px-3 text-center">
+                        {doc ? (
+                          <a
+                            href={`/api/documents/${doc.fileKey}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                            title={doc.fileName}
+                          >
+                            <FileCheck className="w-3 h-3 text-emerald-600" />
+                            <span>Lihat Berkas</span>
+                          </a>
+                        ) : (
+                          <span className="text-slate-400 italic text-[11px]">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

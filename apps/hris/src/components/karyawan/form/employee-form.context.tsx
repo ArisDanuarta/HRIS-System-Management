@@ -1141,6 +1141,9 @@ export function EmployeeFormProvider({
           category: DocumentCategory;
           title: string;
           file: File;
+          educationId?: string;
+          trainingId?: string;
+          workExperienceId?: string;
         }> = [];
         if (docCv.file)
           docsToUpload.push({
@@ -1230,6 +1233,39 @@ export function EmployeeFormProvider({
             file: docHealthCert.file,
           });
 
+        for (const edu of educations) {
+          if (edu.certificateFile) {
+            docsToUpload.push({
+              category: "DIPLOMA",
+              title: `Ijazah ${edu.level || ""} - ${edu.institution}`.trim(),
+              file: edu.certificateFile,
+              educationId: edu.id,
+            });
+          }
+        }
+
+        for (const tr of trainings) {
+          if (tr.certificateFile) {
+            docsToUpload.push({
+              category: "CERTIFICATE",
+              title: `Sertifikat - ${tr.name}`.trim(),
+              file: tr.certificateFile,
+              trainingId: tr.id,
+            });
+          }
+        }
+
+        for (const we of workExperiences) {
+          if (we.certificateFile) {
+            docsToUpload.push({
+              category: "PREVIOUS_EMPLOYER_LETTER",
+              title: `Paklaring - ${we.companyName}`.trim(),
+              file: we.certificateFile,
+              workExperienceId: we.id,
+            });
+          }
+        }
+
         for (const addDoc of additionalDocuments) {
           if (addDoc.file) {
             docsToUpload.push({
@@ -1247,6 +1283,9 @@ export function EmployeeFormProvider({
             fd.append("category", docItem.category);
             fd.append("title", docItem.title);
             fd.append("file", docItem.file);
+            if (docItem.educationId) fd.append("educationId", docItem.educationId);
+            if (docItem.trainingId) fd.append("trainingId", docItem.trainingId);
+            if (docItem.workExperienceId) fd.append("workExperienceId", docItem.workExperienceId);
             const uploadRes = await uploadEmployeeDocumentAction(fd);
             return {
               title: docItem.title,
@@ -1419,12 +1458,149 @@ export function EmployeeFormProvider({
       const res = await updateEmployeeAction(payload);
 
       if (res.ok) {
+        const targetId = initialData.id;
+
+        // Upload any newly staged documents in edit mode
+        const docsToUpload: Array<{
+          category: DocumentCategory;
+          title: string;
+          file: File;
+          educationId?: string;
+          trainingId?: string;
+          workExperienceId?: string;
+        }> = [];
+
+        if (docCv.file)
+          docsToUpload.push({
+            category: "CV",
+            title: "Curriculum Vitae / Resume",
+            file: docCv.file,
+          });
+        if (docDiploma.file)
+          docsToUpload.push({
+            category: "DIPLOMA",
+            title: "Ijazah & Transkrip Terakhir",
+            file: docDiploma.file,
+          });
+        if (docFamilyCard.file)
+          docsToUpload.push({
+            category: "FAMILY_CARD",
+            title: "Kartu Keluarga (KK)",
+            file: docFamilyCard.file,
+          });
+        if (docPreviousEmployerLetter.file)
+          docsToUpload.push({
+            category: "PREVIOUS_EMPLOYER_LETTER",
+            title: "Surat Pengalaman Kerja / Paklaring",
+            file: docPreviousEmployerLetter.file,
+          });
+        if (docOfferLetter.file)
+          docsToUpload.push({
+            category: "OFFER_LETTER",
+            title: "Surat Penawaran Kerja (Signed Offer Letter)",
+            file: docOfferLetter.file,
+          });
+        if (docNda.file)
+          docsToUpload.push({
+            category: "NDA",
+            title: "Non-Disclosure Agreement (NDA) / Pakta Integritas",
+            file: docNda.file,
+          });
+        if (docMarriageCert.file)
+          docsToUpload.push({
+            category: "MARRIAGE_CERT",
+            title: "Buku Nikah / Akta Perkawinan",
+            file: docMarriageCert.file,
+          });
+        if (docKtp.file)
+          docsToUpload.push({
+            category: "KTP",
+            title:
+              formData.citizenship === "WNA"
+                ? "Paspor / KITAS WNA"
+                : "Kartu Tanda Penduduk (KTP)",
+            file: docKtp.file,
+          });
+        if (docNpwp.file)
+          docsToUpload.push({
+            category: "NPWP",
+            title: "Nomor Pokok Wajib Pajak (NPWP)",
+            file: docNpwp.file,
+          });
+        if (docBankBook.file)
+          docsToUpload.push({
+            category: "BANK_BOOK",
+            title: "Buku Tabungan / Rekening Payroll",
+            file: docBankBook.file,
+          });
+        if (docBpjsKes.file)
+          docsToUpload.push({
+            category: "BPJS_KES",
+            title: "Kartu BPJS Kesehatan",
+            file: docBpjsKes.file,
+          });
+        if (docBpjsTk.file)
+          docsToUpload.push({
+            category: "BPJS_TK",
+            title: "Kartu BPJS Ketenagakerjaan",
+            file: docBpjsTk.file,
+          });
+
+        for (const edu of educations) {
+          if (edu.certificateFile) {
+            docsToUpload.push({
+              category: "DIPLOMA",
+              title: `Ijazah ${edu.level || ""} - ${edu.institution}`.trim(),
+              file: edu.certificateFile,
+              educationId: edu.id,
+            });
+          }
+        }
+
+        for (const tr of trainings) {
+          if (tr.certificateFile) {
+            docsToUpload.push({
+              category: "CERTIFICATE",
+              title: `Sertifikat - ${tr.name}`.trim(),
+              file: tr.certificateFile,
+              trainingId: tr.id,
+            });
+          }
+        }
+
+        for (const we of workExperiences) {
+          if (we.certificateFile) {
+            docsToUpload.push({
+              category: "PREVIOUS_EMPLOYER_LETTER",
+              title: `Paklaring - ${we.companyName}`.trim(),
+              file: we.certificateFile,
+              workExperienceId: we.id,
+            });
+          }
+        }
+
+        if (docsToUpload.length > 0) {
+          await Promise.allSettled(
+            docsToUpload.map(async (docItem) => {
+              const fd = new FormData();
+              fd.append("employeeId", targetId);
+              fd.append("category", docItem.category);
+              fd.append("title", docItem.title);
+              fd.append("file", docItem.file);
+              if (docItem.educationId) fd.append("educationId", docItem.educationId);
+              if (docItem.trainingId) fd.append("trainingId", docItem.trainingId);
+              if (docItem.workExperienceId) fd.append("workExperienceId", docItem.workExperienceId);
+              return uploadEmployeeDocumentAction(fd);
+            }),
+          );
+        }
+
         // Upload photo if changed
         if (profilePhoto.file) {
           try {
             const photoFd = new FormData();
             photoFd.append("file", profilePhoto.file);
-            await uploadEmployeePhotoAction(initialData.id, photoFd);
+            await uploadEmployeePhotoAction(targetId, photoFd);
           } catch (photoErr) {
             console.error("Gagal memperbarui foto profil:", photoErr);
           }
