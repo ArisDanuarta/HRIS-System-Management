@@ -23,25 +23,25 @@ const STEPS: StepConfig[] = [
   {
     num: 1,
     title: "Identitas & Kontak",
-    subtitle: "Data diri, kontak & alamat",
+    subtitle: "Data diri, NIK, KTP & CV",
     icon: User,
   },
   {
     num: 2,
-    title: "Riwayat & Berkas",
-    subtitle: "Pendidikan, pengalaman & CV",
+    title: "Riwayat & Keluarga",
+    subtitle: "Keluarga, KK, ijazah & karir",
     icon: GraduationCap,
   },
   {
     num: 3,
-    title: "Penempatan Kerja",
-    subtitle: "NIP, divisi, jabatan & atasan",
+    title: "Penempatan & Kontrak",
+    subtitle: "NIP, divisi, jabatan & SPK",
     icon: Briefcase,
   },
   {
     num: 4,
-    title: "Kontrak & Pajak",
-    subtitle: "Gaji, tunjangan & rekening",
+    title: "Kompensasi & Pajak",
+    subtitle: "Gaji, pajak, BPJS & rekening",
     icon: FileText,
   },
   {

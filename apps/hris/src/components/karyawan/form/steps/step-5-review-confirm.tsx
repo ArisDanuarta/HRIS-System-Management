@@ -4,6 +4,8 @@ import React from "react";
 import {
   CheckCircle2,
   User,
+  GraduationCap,
+  Briefcase,
   Receipt,
   FileCheck,
   KeyRound,
@@ -20,16 +22,24 @@ export function Step5ReviewConfirm() {
     formData,
     updateField,
     profilePhotoPreview,
+    profilePhoto,
     departments,
     managers,
     employmentTypesList,
+    workLocations,
+    legalEntities,
     goToStep,
+    familyMembers,
     educations,
+    trainings,
+    workExperiences,
     docCv,
     docDiploma,
     docFamilyCard,
+    docMarriageCert,
     docOfferLetter,
     docNda,
+    docContract,
     docKtp,
     docNpwp,
     docBankBook,
@@ -41,6 +51,8 @@ export function Step5ReviewConfirm() {
   const selectedPos = selectedDept?.positions.find((p) => p.id === formData.currentPositionId);
   const selectedMgr = managers.find((m) => m.id === formData.managerId);
   const selectedEmpType = employmentTypesList.find((t) => t.id === formData.employmentTypeId);
+  const selectedLocation = workLocations.find((l) => l.id === formData.workLocationId);
+  const selectedEntity = legalEntities.find((e) => e.id === formData.legalEntityId);
 
   const baseSalaryNum =
     formData.wageType === "HOURLY" ? 0 : Number(formData.baseSalary) || 0;
@@ -51,11 +63,42 @@ export function Step5ReviewConfirm() {
   const totalAllowances = posAllowance + transAllowance + commAllowance + otherAllowance;
   const totalGross = baseSalaryNum + totalAllowances;
 
-  // Documents checklist
+  // Documents checklist across all 4 domains
   const docsList = [
-    { label: "Curriculum Vitae (CV)", has: Boolean(docCv.file || docCv.status === "uploaded"), required: true },
+    // 1. Identitas
     {
-      label: "Ijazah Pendidikan",
+      label: "Pasfoto Resmi",
+      has: Boolean(profilePhotoPreview || profilePhoto.file),
+      required: false,
+    },
+    {
+      label: "Curriculum Vitae (CV) / Resume",
+      has: Boolean(docCv.file || docCv.status === "uploaded"),
+      required: true,
+    },
+    {
+      label: "Kartu Tanda Penduduk (KTP / Paspor)",
+      has: Boolean(docKtp.file || docKtp.status === "uploaded"),
+      required: true,
+    },
+
+    // 2. Keluarga & Kualifikasi
+    {
+      label: "Kartu Keluarga (KK)",
+      has: Boolean(docFamilyCard.file || docFamilyCard.status === "uploaded"),
+      required: false,
+    },
+    ...(formData.maritalStatus === "MARRIED"
+      ? [
+          {
+            label: "Buku Nikah / Akta Perkawinan",
+            has: Boolean(docMarriageCert.file || docMarriageCert.status === "uploaded"),
+            required: false,
+          },
+        ]
+      : []),
+    {
+      label: "Ijazah & Transkrip Pendidikan",
       has: Boolean(
         docDiploma.file ||
           docDiploma.status === "uploaded" ||
@@ -63,14 +106,59 @@ export function Step5ReviewConfirm() {
       ),
       required: false,
     },
-    { label: "Kartu Tanda Penduduk (KTP)", has: Boolean(docKtp.file || docKtp.status === "uploaded"), required: true },
-    { label: "Surat Penawaran Kerja (Offer Letter)", has: Boolean(docOfferLetter.file || docOfferLetter.status === "uploaded"), required: true },
-    { label: "Pakta Integritas / NDA", has: Boolean(docNda.file || docNda.status === "uploaded"), required: true },
-    { label: "Buku Tabungan Payroll", has: Boolean(docBankBook.file || docBankBook.status === "uploaded"), required: false },
-    { label: "Kartu NPWP", has: Boolean(docNpwp.file || docNpwp.status === "uploaded"), required: false },
-    { label: "Kartu BPJS Kesehatan", has: Boolean(docBpjsKes.file || docBpjsKes.status === "uploaded"), required: false },
-    { label: "Kartu BPJS Ketenagakerjaan", has: Boolean(docBpjsTk.file || docBpjsTk.status === "uploaded"), required: false },
-    { label: "Kartu Keluarga (KK)", has: Boolean(docFamilyCard.file || docFamilyCard.status === "uploaded"), required: false },
+    {
+      label: "Sertifikat Pelatihan / Kompetensi",
+      has: Boolean(trainings.some((t) => t.certificateFile || t.certificateDocKey)),
+      required: false,
+    },
+    {
+      label: "Surat Pengalaman Kerja / Paklaring",
+      has: Boolean(workExperiences.some((w) => w.certificateFile || w.certificateDocKey)),
+      required: false,
+    },
+
+    // 3. Legalitas Kerja
+    {
+      label: "Berkas Kontrak Kerja (PKWT/PKWTT)",
+      has: Boolean(
+        docContract.file ||
+          docContract.status === "uploaded" ||
+          formData.contractDocumentKey,
+      ),
+      required: false,
+    },
+    {
+      label: "Surat Penawaran Kerja (Offer Letter)",
+      has: Boolean(docOfferLetter.file || docOfferLetter.status === "uploaded"),
+      required: true,
+    },
+    {
+      label: "Pakta Integritas / NDA",
+      has: Boolean(docNda.file || docNda.status === "uploaded"),
+      required: true,
+    },
+
+    // 4. Finansial & Jaminan Sosial
+    {
+      label: "Kartu NPWP",
+      has: Boolean(docNpwp.file || docNpwp.status === "uploaded"),
+      required: false,
+    },
+    {
+      label: "Kartu BPJS Kesehatan",
+      has: Boolean(docBpjsKes.file || docBpjsKes.status === "uploaded"),
+      required: false,
+    },
+    {
+      label: "Kartu BPJS Ketenagakerjaan",
+      has: Boolean(docBpjsTk.file || docBpjsTk.status === "uploaded"),
+      required: false,
+    },
+    {
+      label: "Buku Tabungan Payroll",
+      has: Boolean(docBankBook.file || docBankBook.status === "uploaded"),
+      required: false,
+    },
   ];
 
   const totalUploadedDocs = docsList.filter((d) => d.has).length;
@@ -87,20 +175,20 @@ export function Step5ReviewConfirm() {
             Pratinjau & Konfirmasi Pendaftaran Pegawai
           </h3>
           <p className="text-xs text-amber-800 leading-relaxed">
-            Harap tinjau kembali data di bawah ini. Anda dapat mengklik tombol <strong>Ubah</strong> pada masing-masing bagian jika terdapat data yang perlu dikoreksi sebelum pendaftaran diproses permanen.
+            Harap tinjau kembali data 4 domain di bawah ini. Anda dapat mengklik tombol <strong>Ubah</strong> pada masing-masing bagian jika terdapat data yang perlu dikoreksi sebelum pendaftaran diproses permanen.
           </p>
         </div>
       </div>
 
-      {/* Grid Kartu Ringkasan */}
+      {/* Grid Kartu Ringkasan 4 Domain */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full">
-        {/* KARTU 1: IDENTITAS & PENEMPATAN */}
+        {/* KARTU 1: IDENTITAS & BIODATA POKOK */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col">
           <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-[#102E50]" />
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
-                Identitas & Penempatan Tim
+                1. Data Diri & Identitas Pokok
               </h4>
             </div>
             <button
@@ -133,49 +221,190 @@ export function Step5ReviewConfirm() {
                   {formData.fullName || "Belum ada nama"}
                 </h3>
                 <span className="text-[11px] text-slate-500 font-medium">
-                  {selectedPos?.title || "Belum ada jabatan"} · {selectedDept?.name || "Divisi"}
+                  {formData.nickname ? `Panggilan: "${formData.nickname}"` : "Tanpa nama panggilan"} ·{" "}
+                  {formData.gender === "MALE" ? "Laki-laki" : "Perempuan"}
                 </span>
                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
                   <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700">
-                    NIP: {formData.employeeNo || "—"}
+                    NIK: {formData.nik || "—"}
                   </span>
-                  <StatusBadge status={formData.status} size="sm" />
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    {formData.maritalStatus === "MARRIED" ? "Menikah" : "Belum Menikah"}
+                  </span>
                 </div>
               </div>
             </div>
 
             <div className="divide-y divide-slate-100 pt-2 border-t border-slate-100">
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Email Kantor:</span>
+                <span className="text-slate-500">Email Kantor Resmi:</span>
                 <span className="font-semibold text-slate-900 font-mono">{formData.workEmail}</span>
+              </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Email Pribadi:</span>
+                <span className="font-semibold text-slate-800 font-mono">{formData.personalEmail || "—"}</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
                 <span className="text-slate-500">Nomor WhatsApp:</span>
                 <span className="font-semibold text-slate-800">{formData.phone || "—"}</span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Atasan Langsung:</span>
-                <span className="font-semibold text-slate-800">
-                  {selectedMgr?.fullName || "Tanpa Atasan"}
+                <span className="text-slate-500">Kewarganegaraan:</span>
+                <span className="font-semibold text-slate-800">{formData.citizenship || "WNI"}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* KARTU 2: RIWAYAT KARIR & KELUARGA */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col">
+          <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-[#102E50]" />
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                2. Riwayat Karir & Keluarga
+              </h4>
+            </div>
+            <button
+              type="button"
+              onClick={() => goToStep(2)}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#102E50] hover:underline cursor-pointer"
+            >
+              <Edit className="w-3 h-3" />
+              <span>Ubah</span>
+            </button>
+          </div>
+
+          <div className="p-5 flex flex-col gap-4 text-xs">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Anggota Keluarga
+                </span>
+                <span className="text-lg font-bold font-mono text-[#102E50] mt-0.5">
+                  {familyMembers.length} Orang
+                </span>
+                <span className="text-[10.5px] text-slate-500 mt-0.5">
+                  {familyMembers.filter((f) => f.isDependent).length} tanggungan resmi
                 </span>
               </div>
-              <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Mulai Bergabung:</span>
+
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Pendidikan Formal
+                </span>
+                <span className="text-lg font-bold font-mono text-[#102E50] mt-0.5">
+                  {educations.length} Jenjang
+                </span>
+                <span className="text-[10.5px] text-slate-500 mt-0.5">
+                  {educations[0]?.level || "Belum ada"} {educations[0]?.major ? `· ${educations[0].major}` : ""}
+                </span>
+              </div>
+            </div>
+
+            <div className="divide-y divide-slate-100 pt-1">
+              <div className="py-2 flex items-center justify-between">
+                <span className="text-slate-500">Pelatihan & Sertifikasi:</span>
                 <span className="font-semibold text-slate-800">
-                  {formData.joinDate ? formatDate(formData.joinDate) : "—"}
+                  {trainings.length > 0 ? `${trainings.length} Sertifikat Pelatihan` : "Belum ditambahkan"}
+                </span>
+              </div>
+              <div className="py-2 flex items-center justify-between">
+                <span className="text-slate-500">Pengalaman Kerja Sebelumnya:</span>
+                <span className="font-semibold text-slate-800">
+                  {workExperiences.length > 0
+                    ? `${workExperiences.length} Riwayat Organisasi/Perusahaan`
+                    : "Belum ditambahkan"}
+                </span>
+              </div>
+              <div className="py-2 flex items-center justify-between">
+                <span className="text-slate-500">Lampiran Ijazah & Sertifikat:</span>
+                <span className="font-semibold text-emerald-700">
+                  {educations.filter((e) => e.certificateFile || e.certificateDocKey).length +
+                    trainings.filter((t) => t.certificateFile || t.certificateDocKey).length +
+                    workExperiences.filter((w) => w.certificateFile || w.certificateDocKey).length}{" "}
+                  berkas terlampir
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* KARTU 2: KOMPENSASI & KONTRAK */}
+        {/* KARTU 3: PENEMPATAN & PERJANJIAN KERJA */}
+        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col">
+          <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4 text-[#102E50]" />
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
+                3. Penempatan & Legalitas Hubungan Kerja
+              </h4>
+            </div>
+            <button
+              type="button"
+              onClick={() => goToStep(3)}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#102E50] hover:underline cursor-pointer"
+            >
+              <Edit className="w-3 h-3" />
+              <span>Ubah</span>
+            </button>
+          </div>
+
+          <div className="p-5 flex flex-col gap-4 text-xs">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  NIP & Status Pegawai
+                </span>
+                <span className="text-base font-bold font-mono text-[#102E50]">
+                  {formData.employeeNo || "—"}
+                </span>
+                <span className="text-[10.5px] text-slate-500">
+                  Mulai Bergabung: {formData.joinDate ? formatDate(formData.joinDate) : "—"}
+                </span>
+              </div>
+              <div className="text-right">
+                <StatusBadge status={formData.status} size="sm" />
+                <span className="text-[10.5px] font-semibold text-slate-600 block mt-1">
+                  {selectedEmpType?.name || formData.employmentType}
+                </span>
+              </div>
+            </div>
+
+            <div className="divide-y divide-slate-100">
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Divisi / Departemen:</span>
+                <span className="font-semibold text-slate-900">{selectedDept?.name || "—"}</span>
+              </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Posisi / Jabatan:</span>
+                <span className="font-semibold text-slate-900">{selectedPos?.title || "—"}</span>
+              </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Atasan Langsung:</span>
+                <span className="font-semibold text-slate-800">{selectedMgr?.fullName || "Tanpa Atasan"}</span>
+              </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Nomor Kontrak:</span>
+                <span className="font-semibold font-mono text-slate-800">{formData.contractNumber || "—"}</span>
+              </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Periode Perjanjian:</span>
+                <span className="font-semibold text-slate-800">
+                  {formData.contractStartDate ? formatDate(formData.contractStartDate) : "—"} s/d{" "}
+                  {formData.contractEndDate ? formatDate(formData.contractEndDate) : "Selesai"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* KARTU 4: KOMPENSASI & REKENING PAYROLL */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col">
           <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Receipt className="w-4 h-4 text-[#102E50]" />
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-tight">
-                Paket Kompensasi & Kontrak
+                4. Paket Kompensasi & Rekening Payroll
               </h4>
             </div>
             <button
@@ -200,17 +429,17 @@ export function Step5ReviewConfirm() {
               </div>
               <div className="text-right">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Ikatan Kerja
+                  Metode Pajak
                 </span>
                 <span className="font-semibold text-slate-800">
-                  {selectedEmpType?.name || formData.employmentType}
+                  {formData.ptkpStatus.replace("_", "/")} · {formData.taxMethod}
                 </span>
               </div>
             </div>
 
             <div className="divide-y divide-slate-100">
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Gaji Pokok:</span>
+                <span className="text-slate-500">Gaji Pokok / Upah:</span>
                 <span className="font-semibold font-mono text-slate-900">
                   {formData.wageType === "HOURLY"
                     ? `${formatRupiah(Number(formData.hourlyRate) || 0)}/jam`
@@ -218,19 +447,23 @@ export function Step5ReviewConfirm() {
                 </span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Total Tunjangan:</span>
+                <span className="text-slate-500">Total Tunjangan Bulanan:</span>
                 <span className="font-semibold font-mono text-emerald-700">
                   + {formatRupiah(totalAllowances)}
                 </span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Status PTKP & Pajak:</span>
-                <span className="font-semibold text-slate-800">
-                  {formData.ptkpStatus.replace("_", "/")} · {formData.taxMethod}
+                <span className="text-slate-500">Nomor NPWP:</span>
+                <span className="font-semibold font-mono text-slate-800">{formData.npwp || "—"}</span>
+              </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">BPJS Kes / Ketenagakerjaan:</span>
+                <span className="font-semibold font-mono text-slate-800">
+                  {formData.bpjsKesehatanNo || "—"} / {formData.bpjsKetenagakerjaanNo || "—"}
                 </span>
               </div>
               <div className="py-1.5 flex items-center justify-between">
-                <span className="text-slate-500">Bank Payroll:</span>
+                <span className="text-slate-500">Bank & Rekening Payroll:</span>
                 <span className="font-semibold text-slate-800">
                   {formData.bankName || "Mandiri"}{" "}
                   {formData.bankAccount && `(${formData.bankAccount})`}
@@ -240,7 +473,7 @@ export function Step5ReviewConfirm() {
           </div>
         </div>
 
-        {/* KARTU 3: KELENGKAPAN BERKAS DOKUMEN */}
+        {/* KARTU 5: REKAPITULASI KELENGKAPAN BERKAS */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col md:col-span-2">
           <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -288,7 +521,7 @@ export function Step5ReviewConfirm() {
           </div>
         </div>
 
-        {/* KARTU 4: PEMBUATAN AKUN SISTEM */}
+        {/* KARTU 6: PEMBUATAN AKUN SISTEM */}
         <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden flex flex-col md:col-span-2">
           <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
