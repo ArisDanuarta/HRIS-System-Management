@@ -8,10 +8,10 @@ allowBuilds:
   prisma: true
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - '@turbo/darwin-64@2.11.11'
-  - '@turbo/darwin-arm64@2.11.11'
-  - '@turbo/linux-64@2.11.11'
-  - '@turbo/linux-arm64@2.11.11'
-  - '@turbo/windows-64@2.11.11'
-  - '@turbo/windows-arm64@2.11.11'
-  - turbo@2.11.11
+  - '@turbo/darwin-64@2.11.11 || 2.11.13'
+  - '@turbo/darwin-arm64@2.11.11 || 2.11.13'
+  - '@turbo/linux-64@2.11.11 || 2.11.13'
+  - '@turbo/linux-arm64@2.11.11 || 2.11.13'
+  - '@turbo/windows-64@2.11.11 || 2.11.13'
+  - '@turbo/windows-arm64@2.11.11 || 2.11.13'
+  - turbo@2.11.11 || 2.11.13
