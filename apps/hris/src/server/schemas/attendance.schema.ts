@@ -7,6 +7,7 @@ export const attendanceStatusEnum = z.enum([
   "LEAVE",
   "HOLIDAY",
   "WFH",
+  "BUSINESS_TRIP",
 ]);
 
 export const checkInSchema = z.object({

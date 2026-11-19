@@ -59,8 +59,9 @@ export async function recordCheckIn(employeeId: string, notes?: string, userId?:
   const cutoffTotalMinutes = startTotalMinutes + (schedule.gracePeriodMins || 0);
   const currentTotalMinutes = hour * 60 + minute;
 
-  const isLate = !schedule.isFlexible && currentTotalMinutes > cutoffTotalMinutes;
-  const status = isLate ? "LATE" : "PRESENT";
+  const isDinas = notes?.includes("[DINAS]") || notes?.includes("[BUSINESS_TRIP]");
+  const isLate = !isDinas && !schedule.isFlexible && currentTotalMinutes > cutoffTotalMinutes;
+  const status = isDinas ? "BUSINESS_TRIP" : isLate ? "LATE" : "PRESENT";
 
   const attendance = await prisma.$transaction(async (tx) => {
     const record = await tx.attendance.upsert({

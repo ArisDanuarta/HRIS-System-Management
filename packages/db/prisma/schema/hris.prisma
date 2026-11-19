@@ -139,6 +139,7 @@ enum AttendanceStatus {
   LEAVE
   HOLIDAY
   WFH
+  BUSINESS_TRIP
 
   @@schema("hris")
 }

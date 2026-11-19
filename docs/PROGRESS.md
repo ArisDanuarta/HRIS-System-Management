@@ -4,6 +4,43 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Restrukturisasi Formulir Pegawai & Distribusi Berkas Tematik (Opsi 3)] — 2026-11-19
+
+- **Status:** Selesai Diimplementasikan & Terverifikasi Penuh (0 Error Typecheck, 0 Warning Lint, Test 51/51 Files 352/352 PASS)
+- **Scope & Filosofi:**
+  - Menata ulang alur registrasi & ubah pegawai ke dalam **Opsi 3: Kluster Tematik / Domain-Driven Steps** sehingga tidak ada dokumen atau isian formulir yang terpencar atau duplikat, serta menjamin integritas data 100% tanpa ada data yang hilang.
+  - **Langkah 1 (Identitas & Kontak):**
+    - Pasfoto Resmi (1:1), CV/Resume (`docCv`), dan Kartu Tanda Penduduk / Paspor (`docKtp`) disatukan pada kartu unggah di awal.
+    - Kolom NIK (Nomor Induk Kependudukan) dipindahkan dari Langkah 4 ke Langkah 1 berdampingan dengan Nama Lengkap dan Jenis Kelamin.
+  - **Langkah 2 (Riwayat & Keluarga):**
+    - Seksi 2.1 Anggota Keluarga dilengkapi dengan unggah Kartu Keluarga (KK) (`docFamilyCard`) dan Buku Nikah / Akta Perkawinan (`docMarriageCert`, jika status menikah).
+    - Seksi 2.2 Pendidikan Formal mendukung jenjang SD hingga S3 beserta unggahan ijazah per baris tabel dinamis.
+    - Seksi 2.3 Pelatihan & Sertifikasi mendukung unggahan sertifikat per baris.
+    - Seksi 2.4 Pengalaman Kerja mendukung unggahan surat referensi / paklaring per baris pengalaman.
+    - Menghapus seksi dokumen profil terpisah yang sebelumnya menjadi duplikasi.
+  - **Langkah 3 (Penempatan & Kontrak):**
+    - NIP Generator otomatis, tanggal bergabung, status kepegawaian, masa probation/tanggal selesai.
+    - Penempatan struktur hierarki (Divisi, Posisi, Atasan Langsung, Entitas Hukum, Lokasi Kerja).
+    - Tipe Ikatan Kerja & Kontrak (dipindahkan dari Langkah 4): Tipe ikatan kerja, skema pengupahan (Bulanan/Per Jam), tanggal mulai kontrak, tanggal berakhir kontrak (PKWT), nomor SPK/kontrak, dan catatan klausul.
+    - Berkas legalitas kerja terpadu: Dokumen Kontrak Kerja (PKWT/PKWTT) (`docContract`), Surat Penawaran Kerja (Offer Letter) (`docOfferLetter`), dan Pakta Integritas / NDA (`docNda`).
+    - Menghapus kartu unggah paklaring terpisah di Langkah 3 yang sebelumnya duplikat dengan tabel pengalaman kerja.
+  - **Langkah 4 (Kompensasi & Pajak):**
+    - Murni 100% domain finansial, payroll, dan jaminan sosial.
+    - Seksi 4.1: Gaji pokok/upah per jam, tunjangan jabatan/transport/komunikasi/lainnya, strip kalkulator THP dan estimasi potongan BPJS.
+    - Seksi 4.2: Identitas perpajakan PPh 21 (Status PTKP TER A/B/C, metode pajak GROSS/NETT/GROSS UP, nomor NPWP) + kartu unggah Kartu NPWP.
+    - Seksi 4.3: Kepesertaan Jaminan Sosial (Nomor BPJS Kes + kartu unggah BPJS Kesehatan, Nomor BPJS TK + kartu unggah BPJS Ketenagakerjaan).
+    - Seksi 4.4: Rekening bank penyaluran gaji (Nama bank, nomor rekening, nama pemilik rekening) + kartu unggah Buku Tabungan Payroll.
+    - Seluruh berkas KTP, KK, dan Buku Nikah tidak lagi bersarang di Langkah 4.
+  - **Langkah 5 (Review & Konfirmasi):**
+    - Ringkasan review diperbarui menjadi 4 kartu domain sesuai Langkah 1 s.d. 4.
+    - Rekapitulasi berkas checklist dokumen mencakup 12 kategori dokumen lengkap lintas domain.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: 9 packages sukses (0 error).
+  - `pnpm lint`: 0 error, 0 warning.
+  - `pnpm test`: 51 test files, 352 tests pass (100%).
+
+---
+
 ## [Perombakan Total & Redesain UI/UX Formulir Tambah & Ubah Pegawai] — 2026-11-18
 
 - **Status:** Selesai Diimplementasikan & Terverifikasi Penuh (0 Error Typecheck, 0 Warning Lint, Test 155/155 PASS, Production Build 100% Sukses)
