@@ -397,18 +397,21 @@ model EmployeeDocument {
   fileSize     Int      @map("file_size")
   mimeType     String   @map("mime_type")
   uploadedById String   @map("uploaded_by_id")
-  educationId  String?  @map("education_id")
-  trainingId   String?  @map("training_id")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  educationId      String?  @map("education_id")
+  trainingId       String?  @map("training_id")
+  workExperienceId String?  @map("work_experience_id")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  employee  Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  education EmployeeEducation? @relation(fields: [educationId], references: [id], onDelete: SetNull)
-  training  EmployeeTraining?  @relation(fields: [trainingId], references: [id], onDelete: SetNull)
+  employee       Employee                @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  education      EmployeeEducation?      @relation(fields: [educationId], references: [id], onDelete: SetNull)
+  training       EmployeeTraining?       @relation(fields: [trainingId], references: [id], onDelete: SetNull)
+  workExperience EmployeeWorkExperience? @relation(fields: [workExperienceId], references: [id], onDelete: SetNull)
 
   @@index([employeeId])
   @@index([category])
   @@index([educationId])
   @@index([trainingId])
+  @@index([workExperienceId])
   @@map("employee_documents")
   @@schema("hris")
 }
@@ -1081,7 +1084,8 @@ model EmployeeFamilyMember {
   createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee  Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  documents EmployeeDocument[]
 
   @@index([employeeId])
   @@map("employee_family_members")
@@ -1140,7 +1144,8 @@ model EmployeeWorkExperience {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee  Employee           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  documents EmployeeDocument[]
 
   @@index([employeeId])
   @@map("employee_work_experiences")

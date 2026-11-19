@@ -159,6 +159,7 @@ export function EmployeeTable({
                       <EmployeeAvatar
                         photoKey={emp.photoKey}
                         name={emp.fullName}
+                        gender={emp.gender}
                         sizeClassName="w-10 h-10"
                         roundedClassName="rounded-full"
                         textClassName="text-xs"
@@ -296,6 +297,7 @@ export function EmployeeTable({
                           <EmployeeAvatar
                             photoKey={emp.photoKey}
                             name={emp.fullName}
+                            gender={emp.gender}
                             sizeClassName="w-9 h-9"
                             roundedClassName="rounded-full"
                             textClassName="text-xs"

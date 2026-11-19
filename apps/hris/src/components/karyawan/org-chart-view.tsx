@@ -562,6 +562,7 @@ function TreeNode({
             <EmployeeAvatar
               avatarUrl={node.avatarUrl}
               name={node.fullName}
+              gender={node.gender}
               sizeClassName="w-12 h-12"
               roundedClassName="rounded-xl"
               textClassName="text-base"

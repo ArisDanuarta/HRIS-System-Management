@@ -8,6 +8,7 @@ export interface OrgChartNode {
   workEmail: string;
   phone: string | null;
   avatarUrl: string | null;
+  gender?: string | null;
   status: string;
   departmentId: string | null;
   departmentName: string;
@@ -48,6 +49,7 @@ export async function getOrgChartData(): Promise<OrgChartData> {
       workEmail: true,
       phone: true,
       photoKey: true,
+      gender: true,
       status: true,
       managerId: true,
       currentDepartment: {
@@ -113,6 +115,7 @@ export async function getOrgChartData(): Promise<OrgChartData> {
       workEmail: emp.workEmail,
       phone: emp.phone,
       avatarUrl,
+      gender: emp.gender,
       status: emp.status,
       departmentId: emp.currentDepartment?.id || null,
       departmentName: emp.currentDepartment?.name || "Umum & Organisasi",
