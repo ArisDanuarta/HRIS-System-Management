@@ -21,10 +21,10 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
   { key: "identitas", label: "Identitas & Kontak", icon: User },
-  { key: "riwayat", label: "Keluarga & Pendidikan", icon: GraduationCap },
-  { key: "penempatan", label: "Penempatan & Jabatan", icon: Briefcase },
-  { key: "kompensasi", label: "Kontrak & Kompensasi", icon: FileText },
-  { key: "pajak_bank", label: "Pajak, BPJS & Rekening", icon: Receipt },
+  { key: "riwayat", label: "Keluarga & Riwayat", icon: GraduationCap },
+  { key: "penempatan", label: "Penempatan & Kontrak", icon: Briefcase },
+  { key: "kompensasi", label: "Kompensasi & Pajak", icon: Receipt },
+  { key: "pajak_bank", label: "Pajak, BPJS & Bank", icon: FileText },
   { key: "berkas", label: "Dokumen Pegawai", icon: FolderArchive },
   { key: "akun", label: "Akun Pengguna Sistem", icon: KeyRound },
 ];

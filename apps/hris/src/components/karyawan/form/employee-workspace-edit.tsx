@@ -29,6 +29,8 @@ export function EmployeeWorkspaceEdit() {
     setDocOfferLetter,
     docNda,
     setDocNda,
+    docContract,
+    setDocContract,
     docMarriageCert,
     setDocMarriageCert,
     docKtp,
@@ -157,6 +159,11 @@ export function EmployeeWorkspaceEdit() {
                     label="Pakta Integritas / NDA"
                     value={docNda}
                     onChange={setDocNda}
+                  />
+                  <DocumentUploadCard
+                    label="Berkas Dokumen Kontrak Kerja (PKWT/PKWTT)"
+                    value={docContract}
+                    onChange={setDocContract}
                   />
                   <DocumentUploadCard
                     label="Surat Pengalaman Kerja / Paklaring"
