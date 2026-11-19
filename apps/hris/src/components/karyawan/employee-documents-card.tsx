@@ -38,6 +38,7 @@ export interface EmployeeDocumentItem {
   createdAt: Date | string;
   educationId?: string | null;
   trainingId?: string | null;
+  workExperienceId?: string | null;
 }
 
 interface EmployeeDocumentsCardProps {

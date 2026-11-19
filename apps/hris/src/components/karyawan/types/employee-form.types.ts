@@ -99,6 +99,9 @@ export interface WorkExperienceItem {
   isCurrent?: boolean;
   reasonForLeaving?: string;
   description?: string;
+  certificateFile?: File | null;
+  certificateFileName?: string | null;
+  certificateDocKey?: string | null;
 }
 
 export interface UploadedFileState {

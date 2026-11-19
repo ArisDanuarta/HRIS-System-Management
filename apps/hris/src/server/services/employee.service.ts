@@ -312,6 +312,7 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         if (edu.institution && edu.institution.trim()) {
           await tx.employeeEducation.create({
             data: {
+              id: edu.id || undefined,
               employeeId: newEmployee.id,
               level: (edu.level as EducationLevel) || EducationLevel.OTHER,
               institution: edu.institution.trim(),
@@ -330,6 +331,7 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         if (tr.name && tr.name.trim()) {
           await tx.employeeTraining.create({
             data: {
+              id: tr.id || undefined,
               employeeId: newEmployee.id,
               name: tr.name.trim(),
               participationType: tr.participationType?.trim() || null,
@@ -350,6 +352,7 @@ export async function createEmployee(data: CreateEmployeeInput, actor: ActorCont
         if (we.companyName && we.companyName.trim() && we.jobTitle && we.jobTitle.trim()) {
           await tx.employeeWorkExperience.create({
             data: {
+              id: we.id || undefined,
               employeeId: newEmployee.id,
               companyName: we.companyName.trim(),
               jobTitle: we.jobTitle.trim(),
