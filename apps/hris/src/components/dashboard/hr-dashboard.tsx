@@ -10,7 +10,6 @@ import {
   Clock,
   AlertTriangle,
   ShieldCheck,
-  CalendarDays,
   ExternalLink,
   ShieldAlert,
   BarChart3,
@@ -20,6 +19,7 @@ import { HrDashboardData } from "@/server/queries/dashboard/hr-dashboard";
 import type { StaffDashboardData } from "@/server/queries/dashboard/staff-dashboard";
 import { TodayAttendanceCard } from "@/components/absensi/today-attendance-card";
 import { LeaveBalanceCards } from "@/components/cuti/leave-balance-cards";
+import { OutOfOfficePanel } from "./out-of-office-panel";
 import {
   DashboardHeader,
   Panel,
@@ -357,32 +357,8 @@ export function HrDashboard({
 
         {/* Kolom samping */}
         <div className="flex flex-col gap-6">
-          <Panel
-            title="Sedang cuti hari ini"
-            icon={CalendarDays}
-            badge={<Pill tone="slate">{data.onLeaveTodayList.length}</Pill>}
-            padded={false}
-          >
-            {data.onLeaveTodayList.length === 0 ? (
-              <p className="px-5 py-8 text-center text-xs italic text-slate-400">
-                Tidak ada pegawai yang tercatat cuti hari ini.
-              </p>
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {data.onLeaveTodayList.map((ol) => (
-                  <li key={ol.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-800">
-                        {ol.employeeName}
-                      </p>
-                      <p className="truncate text-[11px] text-slate-400">{ol.department}</p>
-                    </div>
-                    <Pill tone="blue">{ol.leaveTypeName}</Pill>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
+          {/* Rekan kerja di luar kantor hari ini (Cuti & Perjalanan Dinas lintas divisi) */}
+          <OutOfOfficePanel data={data.outOfOffice} />
 
           <Panel
             title="Komposisi kepegawaian"

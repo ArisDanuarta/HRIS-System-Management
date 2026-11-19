@@ -4135,6 +4135,30 @@ Implementasi 4 Tabel Dinamis pada Langkah 1 (*Identitas Pribadi*):
 
 ---
 
+## Pembaruan Dashboard HRIS: Daftar Karyawan Cuti & Perjalanan Dinas Lintas Divisi (19 November 2026 — Selesai)
+
+1. **Shared Query Layer (`apps/hris/src/server/queries/dashboard/out-of-office.queries.ts`)**:
+   - Fungsi `getTodayOutOfOfficeData()` mengambil karyawan aktif berstatus Cuti (`APPROVED`, rentang `startDate <= today <= endDate`) dan Perjalanan Dinas (`Attendance[BUSINESS_TRIP]` hari ini).
+   - Memanfaatkan indeks PostgreSQL `Attendance[date, status]` dan `LeaveRequest[status, startDate, endDate]` untuk performa tinggi tanpa query berulang.
+   - Ekstraksi kota/agenda dinas dari catatan dan format rentang tanggal cuti UTC-aware.
+   - Menghubungkan data ini ke seluruh data loader: `staff-dashboard.ts`, `manager-dashboard.ts`, dan `hr-dashboard.ts`.
+2. **Komponen UI Shared (`apps/hris/src/components/dashboard/out-of-office-panel.tsx`)**:
+   - Desain segmented control interaktif: Tab **Cuti (`N`)** vs Tab **Dinas Luar (`N`)** dengan touch target $\ge 44\text{px}$.
+   - Quick search instan sisi client untuk mencari nama/divisi.
+   - Integrasi `EmployeeAvatar` dengan fallback ilustrasi gender resmi PSPK.
+   - Kontainer scrollable responsif `max-h-[380px]` dan ramah perangkat seluler.
+3. **Integrasi Menyeluruh di 3 Dashboard**:
+   - **Staf (`staff-dashboard.tsx`)**: Ditampilkan pada sidebar samping di antara Atasan Langsung dan Dokumen & Panduan.
+   - **Lead / Manajer (`manager-dashboard.tsx`)**: Ditampilkan pada sidebar samping di bawah Jadwal Tim Pekan Ini untuk visibilitas lintas divisi sebelum melakukan approval cuti tim.
+   - **HR (`hr-dashboard.tsx`)**: Menggantikan panel cuti lama dengan panel terpadu Cuti & Dinas Luar, serta memperbarui metrik persentase kehadiran organisasi agar menghitung personil dinas secara akurat.
+4. **Verifikasi Teknis & Definition of Done**:
+   - `pnpm typecheck`: **9/9 paket sukses (0 error)**.
+   - `pnpm lint`: **Lolos (0 error, 0 warning)**.
+   - `pnpm test`: **52 test files / 359 tests lolos 100%**.
+   - `next build` (@pspk/hris): **Sukses terkompilasi (0 error)**.
+
+---
+
 ## Cara Menjalankan Lingkungan Lokal
 
 ```bash

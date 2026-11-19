@@ -48,7 +48,7 @@
 - Modify: `apps/hris/src/server/queries/dashboard/hr-dashboard.ts`
 
 **Steps:**
-- [ ] Buat interface `OutOfOfficePerson` dan `TodayOutOfOfficeData`:
+- [x] Buat interface `OutOfOfficePerson` dan `TodayOutOfOfficeData`:
   ```ts
   export interface OutOfOfficePerson {
     id: string;
@@ -67,13 +67,13 @@
     checkInAt?: Date | null;
   }
   ```
-- [ ] Implementasikan fungsi `getTodayOutOfOfficeData()`:
+- [x] Implementasikan fungsi `getTodayOutOfOfficeData()`:
   - Query 1: `LeaveRequest` dengan `status: "APPROVED"`, `startDate <= today && endDate >= today`, include data pegawai (`status: { in: ["ACTIVE", "PROBATION"] }`, `deletedAt: null`).
   - Query 2: `Attendance` dengan `date: today`, `status: "BUSINESS_TRIP"`, include data pegawai (`status: { in: ["ACTIVE", "PROBATION"] }`, `deletedAt: null`).
-- [ ] Hubungkan ke loader `getStaffDashboard`, `getManagerDashboard`, dan `getHrDashboard`.
-- [ ] Perbarui formula penghitungan kehadiran di `manager-dashboard.ts` dan `hr-dashboard.ts` agar menyertakan `BUSINESS_TRIP` sebagai bagian dari presensi aktif.
-- [ ] Tulis unit test di `out-of-office.queries.test.ts` untuk menguji skenario cuti dan dinas.
-- [ ] Jalankan verifikasi: `pnpm typecheck` dan `pnpm test`.
+- [x] Hubungkan ke loader `getStaffDashboard`, `getManagerDashboard`, dan `getHrDashboard`.
+- [x] Perbarui formula penghitungan kehadiran di `manager-dashboard.ts` dan `hr-dashboard.ts` agar menyertakan `BUSINESS_TRIP` sebagai bagian dari presensi aktif.
+- [x] Tulis unit test di `out-of-office.queries.test.ts` untuk menguji skenario cuti dan dinas.
+- [x] Jalankan verifikasi: `pnpm typecheck` dan `pnpm test`.
 
 ---
 
@@ -84,7 +84,7 @@
 - Modify: `apps/hris/src/components/dashboard/staff-dashboard.tsx`
 
 **Steps:**
-- [ ] Implementasikan `OutOfOfficePanel`:
+- [x] Implementasikan `OutOfOfficePanel`:
   - Tab 1: **Cuti Hari Ini** (badge pill jumlah cuti, ikon `CalendarDays` / `Palmtree`).
   - Tab 2: **Perjalanan Dinas** (badge pill jumlah dinas, ikon `Plane`, palet indigo).
   - Quick Search input (otomatis muncul jika salah satu list $> 3$ pegawai untuk memfilter nama/divisi dengan cepat).
@@ -94,8 +94,8 @@
     - Sub-keterangan: tanggal cuti untuk Cuti; teks agenda/tujuan dari `notes` untuk Perjalanan Dinas.
   - Empty state ramah ketika tidak ada yang cuti/dinas.
   - Scrollable container dengan `max-h-[360px] overflow-y-auto` agar tidak memakan ruang berlebih.
-- [ ] Integrasikan `OutOfOfficePanel` ke `staff-dashboard.tsx` di kolom samping antara "Atasan langsung" dan "Dokumen & panduan".
-- [ ] Jalankan verifikasi: `pnpm typecheck`, `pnpm lint`, `pnpm test`.
+- [x] Integrasikan `OutOfOfficePanel` ke `staff-dashboard.tsx` di kolom samping antara "Atasan langsung" dan "Dokumen & panduan".
+- [x] Jalankan verifikasi: `pnpm typecheck`, `pnpm lint`, `pnpm test`.
 
 ---
 
@@ -105,12 +105,12 @@
 - Modify: `apps/hris/src/components/dashboard/manager-dashboard.tsx`
 
 **Steps:**
-- [ ] Pasang `OutOfOfficePanel` pada kolom samping `manager-dashboard.tsx` (di bawah "Jadwal tim pekan ini").
-- [ ] Sesuaikan heading kolom samping agar jelas membedakan antara:
+- [x] Pasang `OutOfOfficePanel` pada kolom samping `manager-dashboard.tsx` (di bawah "Jadwal tim pekan ini").
+- [x] Sesuaikan heading kolom samping agar jelas membedakan antara:
   1. *Jadwal tim pekan ini* (khusus bawahan langsung manajer).
   2. *Di luar kantor hari ini* (seluruh divisi & seluruh karyawan PSPK).
-- [ ] Periksa responsivitas pada layar smartphone, tablet, dan desktop.
-- [ ] Jalankan verifikasi: `pnpm typecheck`, `pnpm lint`, `pnpm test`.
+- [x] Periksa responsivitas pada layar smartphone, tablet, dan desktop.
+- [x] Jalankan verifikasi: `pnpm typecheck`, `pnpm lint`, `pnpm test`.
 
 ---
 
@@ -120,10 +120,10 @@
 - Modify: `apps/hris/src/components/dashboard/hr-dashboard.tsx`
 
 **Steps:**
-- [ ] Ganti panel lama *"Sedang cuti hari ini"* (yang tadinya dibatasi 6 baris) dengan `OutOfOfficePanel` yang baru dan komprehensif.
-- [ ] Pastikan badge metrik persentase kehadiran HR di strip atas merefleksikan jumlah hadir termasuk dinas secara akurat.
-- [ ] Lakukan pengujian multi-peran pada role preview switch Super Admin (`pspk_role_view` cookie: staff, manager, admin_hr).
-- [ ] Jalankan verifikasi akhir:
+- [x] Ganti panel lama *"Sedang cuti hari ini"* (yang tadinya dibatasi 6 baris) dengan `OutOfOfficePanel` yang baru dan komprehensif.
+- [x] Pastikan badge metrik persentase kehadiran HR di strip atas merefleksikan jumlah hadir termasuk dinas secara akurat.
+- [x] Lakukan pengujian multi-peran pada role preview switch Super Admin (`pspk_role_view` cookie: staff, manager, admin_hr).
+- [x] Jalankan verifikasi akhir:
   - `pnpm typecheck` (9/9 packages lolos)
   - `pnpm lint` (0 error, 0 warning)
   - `pnpm test` (seluruh suite test lolos)

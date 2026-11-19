@@ -32,6 +32,7 @@ import {
   btnPrimary,
   btnSecondary,
 } from "./dashboard-ui";
+import { OutOfOfficePanel } from "./out-of-office-panel";
 
 interface ManagerDashboardProps {
   data: ManagerDashboardData;
@@ -358,7 +359,7 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
           )}
         </div>
 
-        {/* Kolom samping: jadwal tim */}
+        {/* Kolom samping: jadwal tim & rekan di luar kantor hari ini */}
         <div className="flex flex-col gap-6">
           <Panel
             title="Jadwal tim pekan ini"
@@ -426,6 +427,9 @@ export function ManagerDashboard({ data, managerName }: ManagerDashboardProps) {
               )}
             </div>
           </Panel>
+
+          {/* Rekan kerja di luar kantor hari ini (seluruh divisi & seluruh karyawan PSPK) */}
+          <OutOfOfficePanel data={data.outOfOffice} />
         </div>
       </div>
 
