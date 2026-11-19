@@ -3,6 +3,10 @@ import { AuthContext, assertCan } from "@pspk/rbac";
 import { toDateString } from "@pspk/shared";
 import { getActiveWorkSchedule } from "../../services/work-schedule.service";
 import { getEmployeeLeaveBalances } from "../leave.queries";
+import {
+  getTodayOutOfOfficeData,
+  type TodayOutOfOfficeData,
+} from "./out-of-office.queries";
 
 export interface StaffDashboardData {
   todayAttendance: {
@@ -84,6 +88,7 @@ export interface StaffDashboardData {
       mimeType: string;
     } | null;
   }[];
+  outOfOffice: TodayOutOfOfficeData;
 }
 
 export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboardData> {
@@ -115,6 +120,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
     workSchedule,
     employeeInfo,
     rawDocuments,
+    outOfOffice,
   ] = await Promise.all([
     prisma.attendance.findFirst({
       where: {
@@ -199,6 +205,7 @@ export async function getStaffDashboard(ctx: AuthContext): Promise<StaffDashboar
       orderBy: { updatedAt: "desc" },
       take: 5,
     }),
+    getTodayOutOfOfficeData(todayDate),
   ]);
 
   return {
