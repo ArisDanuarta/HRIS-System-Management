@@ -30,6 +30,7 @@ export interface EmployeeListItem {
   workEmail: string;
   phone: string | null;
   photoKey: string | null;
+  gender?: string | null;
   status: string;
   joinDate: Date;
   endDate: Date | null;

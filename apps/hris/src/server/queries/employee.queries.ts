@@ -202,6 +202,7 @@ export async function getEmployeesDirectory(params: GetEmployeesParams) {
       workEmail: emp.workEmail,
       phone: emp.phone,
       photoKey: emp.photoKey,
+      gender: emp.gender,
       status: emp.status,
       joinDate: emp.joinDate,
       endDate: emp.endDate,
