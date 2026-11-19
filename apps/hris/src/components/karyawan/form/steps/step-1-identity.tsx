@@ -24,6 +24,8 @@ export function Step1Identity() {
     profilePhoto,
     docCv,
     setDocCv,
+    docKtp,
+    setDocKtp,
   } = useEmployeeForm();
 
   return (
@@ -32,15 +34,15 @@ export function Step1Identity() {
       <FormSection
         id="seksi-data-diri"
         title="1.1 Data Diri & Identitas Pokok"
-        subtitle="Foto profil, nama lengkap, tempat tanggal lahir, agama, dan status personal"
+        subtitle="Foto profil, CV, KTP, nama lengkap, NIK, tempat tanggal lahir, agama, dan status personal"
         icon={User}
         defaultOpen={true}
       >
         <div className="flex flex-col gap-5">
-          {/* Photo & CV Upload Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Photo, CV & KTP Upload Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Pasfoto Resmi */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
+            <div className="flex flex-col items-center sm:items-start gap-4 p-4 rounded-xl bg-slate-50/70 border border-slate-200/80">
               <div className="relative group shrink-0">
                 <div className="w-24 h-24 rounded-2xl bg-white border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden shadow-xs">
                   {profilePhotoPreview ? (
@@ -108,6 +110,22 @@ export function Step1Identity() {
               value={docCv}
               onChange={setDocCv}
             />
+
+            {/* Kartu Tanda Penduduk (KTP / Paspor) */}
+            <DocumentUploadCard
+              label={
+                formData.citizenship === "WNA"
+                  ? "Paspor / KITAS Resmi (WNA)"
+                  : "Kartu Tanda Penduduk (KTP)"
+              }
+              description={
+                formData.citizenship === "WNA"
+                  ? "Salinan paspor atau kartu izin tinggal resmi yang masih berlaku"
+                  : "Salinan KTP elektronik asli jelas dan terbaca (PDF / Gambar, maks. 5MB)"
+              }
+              value={docKtp}
+              onChange={setDocKtp}
+            />
           </div>
 
           {/* Fields Grid */}
@@ -141,6 +159,25 @@ export function Step1Identity() {
                 placeholder="Contoh: Kartini"
                 className="h-10 px-3 rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
               />
+            </div>
+
+            {/* NIK (Nomor Induk Kependudukan) */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="nik" className="font-bold text-slate-700">
+                Nomor Induk Kependudukan (NIK)
+              </label>
+              <input
+                id="nik"
+                type="text"
+                value={formData.nik}
+                onChange={(e) => updateField("nik", e.target.value)}
+                placeholder="16 digit nomor NIK sesuai KTP"
+                maxLength={20}
+                className="h-10 px-3 rounded-lg border border-slate-200 bg-white font-mono focus:outline-none focus:ring-2 focus:ring-[#102E50]/20 focus:border-[#102E50] transition-all"
+              />
+              <span className="text-[10.5px] text-slate-400">
+                16 digit angka sesuai identitas KTP.
+              </span>
             </div>
 
             {/* Jenis Kelamin */}

@@ -14,6 +14,7 @@ import {
 import { useEmployeeForm } from "../employee-form.context";
 import { FormSection } from "../../components/FormSection";
 import { DynamicTable } from "../../components/DynamicTable";
+import { DocumentUploadCard } from "../../components/DocumentUploadCard";
 import {
   FamilyMemberItem,
   EducationItem,
@@ -24,6 +25,7 @@ import { FamilyRelation, EducationLevel } from "@pspk/db";
 
 export function Step2HistoryDocs() {
   const {
+    formData,
     familyMembers,
     setFamilyMembers,
     educations,
@@ -32,6 +34,10 @@ export function Step2HistoryDocs() {
     setTrainings,
     workExperiences,
     setWorkExperiences,
+    docFamilyCard,
+    setDocFamilyCard,
+    docMarriageCert,
+    setDocMarriageCert,
   } = useEmployeeForm();
 
   // Family Members handlers
@@ -263,6 +269,34 @@ export function Step2HistoryDocs() {
             </div>
           )}
         />
+
+        {/* Berkas Dokumen Keluarga (KK & Buku Nikah) */}
+        <div className="pt-4 border-t border-slate-100 flex flex-col gap-2.5">
+          <div>
+            <h4 className="text-xs font-bold text-slate-800 tracking-tight">
+              Berkas Dokumen Keluarga
+            </h4>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Salinan Kartu Keluarga (KK) dan Buku Nikah (bagi yang berstatus menikah) untuk verifikasi data tanggungan BPJS & PTKP.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <DocumentUploadCard
+              label="Kartu Keluarga (KK)"
+              description="Salinan Kartu Keluarga resmi dari Disdukcapil (Format PDF / Gambar, maks. 5MB)"
+              value={docFamilyCard}
+              onChange={setDocFamilyCard}
+            />
+            {formData.maritalStatus === "MARRIED" && (
+              <DocumentUploadCard
+                label="Buku Nikah / Akta Perkawinan"
+                description="Khusus bagi pegawai dengan status menikah (Format PDF / Gambar, maks. 5MB)"
+                value={docMarriageCert}
+                onChange={setDocMarriageCert}
+              />
+            )}
+          </div>
+        </div>
       </FormSection>
 
       {/* 2.2 Riwayat Pendidikan */}
