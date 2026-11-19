@@ -394,6 +394,12 @@ export function Step5ReviewConfirm() {
                   {formData.contractEndDate ? formatDate(formData.contractEndDate) : "Selesai"}
                 </span>
               </div>
+              <div className="py-1.5 flex items-center justify-between">
+                <span className="text-slate-500">Entitas & Lokasi:</span>
+                <span className="font-semibold text-slate-800">
+                  {selectedEntity?.name || "PSPK"} · {selectedLocation?.name || "Kantor Pusat"}
+                </span>
+              </div>
             </div>
           </div>
         </div>

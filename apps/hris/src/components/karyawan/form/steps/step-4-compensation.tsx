@@ -5,7 +5,6 @@ import {
   Receipt,
   CreditCard,
   Calculator,
-  Shield,
   HeartPulse,
 } from "lucide-react";
 import { useEmployeeForm } from "../employee-form.context";

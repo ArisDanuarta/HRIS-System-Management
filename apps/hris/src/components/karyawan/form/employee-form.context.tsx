@@ -351,6 +351,7 @@ export function EmployeeFormProvider({
           "emergencyContactName",
           "emergencyContactPhone",
           "emergencyContactRelation",
+          "nik",
         ].includes(key)
       ) {
         cat = "identitas";
@@ -366,31 +367,30 @@ export function EmployeeFormProvider({
           "legalEntityId",
           "probationEndDate",
           "endDate",
+          "employmentType",
+          "employmentTypeId",
+          "contractStartDate",
+          "contractEndDate",
+          "contractNumber",
+          "contractNotes",
         ].includes(key)
       ) {
         cat = "penempatan";
       } else if (
         [
-          "employmentType",
-          "employmentTypeId",
           "wageType",
           "hourlyRate",
-          "contractStartDate",
-          "contractEndDate",
           "baseSalary",
           "allowancePosition",
           "allowanceTransport",
           "allowanceCommunication",
           "allowanceOther",
           "allowanceOtherNote",
-          "contractNumber",
-          "contractNotes",
         ].includes(key)
       ) {
         cat = "kompensasi";
       } else if (
         [
-          "nik",
           "npwp",
           "passportKitas",
           "bpjsKesehatanNo",
@@ -829,14 +829,13 @@ export function EmployeeFormProvider({
             });
           }
         }
-      } else if (step === 4) {
         if (employmentTypesList.length > 0 && !formData.employmentTypeId) {
           newErrors.push({
             field: "employmentTypeId",
             label: "Tipe Ikatan Kerja",
             message: "Pilih salah satu tipe ikatan kerja terlebih dahulu.",
-            step: 4,
-            category: "kompensasi",
+            step: 3,
+            category: "penempatan",
           });
         }
         if (!formData.contractStartDate) {
@@ -844,8 +843,8 @@ export function EmployeeFormProvider({
             field: "contractStartDate",
             label: "Tanggal Mulai Kontrak",
             message: "Tanggal mulai kontrak wajib diisi.",
-            step: 4,
-            category: "kompensasi",
+            step: 3,
+            category: "penempatan",
           });
         }
         if (formData.employmentType === "FIXED_TERM" && !formData.contractEndDate) {
@@ -853,10 +852,12 @@ export function EmployeeFormProvider({
             field: "contractEndDate",
             label: "Tanggal Berakhir Kontrak",
             message: "Kontrak PKWT Waktu Tertentu wajib memiliki tanggal berakhir.",
-            step: 4,
-            category: "kompensasi",
+            step: 3,
+            category: "penempatan",
           });
         }
+      } else if (step === 4) {
+        // Step 4 is compensation & tax (validations handled via form inputs)
       }
 
       setErrors(newErrors);
@@ -934,15 +935,13 @@ export function EmployeeFormProvider({
         category: "penempatan",
       });
     }
-
-    // Step 4 (Compensation)
     if (employmentTypesList.length > 0 && !formData.employmentTypeId) {
       allErrors.push({
         field: "employmentTypeId",
         label: "Tipe Ikatan Kerja",
         message: "Pilih salah satu tipe ikatan kerja terlebih dahulu.",
-        step: 4,
-        category: "kompensasi",
+        step: 3,
+        category: "penempatan",
       });
     }
     if (!formData.contractStartDate) {
@@ -950,8 +949,8 @@ export function EmployeeFormProvider({
         field: "contractStartDate",
         label: "Tanggal Mulai Kontrak",
         message: "Tanggal mulai kontrak wajib diisi.",
-        step: 4,
-        category: "kompensasi",
+        step: 3,
+        category: "penempatan",
       });
     }
 
@@ -1001,9 +1000,10 @@ export function EmployeeFormProvider({
     setServerError(null);
 
     let effectiveContractDocumentKey = formData.contractDocumentKey || undefined;
-    if (contractFile) {
+    const contractToUpload = contractFile || docContract.file;
+    if (contractToUpload) {
       const fileData = new FormData();
-      fileData.append("file", contractFile);
+      fileData.append("file", contractToUpload);
       fileData.append("employeeId", mode === "edit" && initialData?.id ? initialData.id : "temp");
       const uploadRes = await uploadContractFileAction(fileData);
 
