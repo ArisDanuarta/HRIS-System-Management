@@ -46,7 +46,7 @@ export function OutOfOfficePanel({ data, className }: OutOfOfficePanelProps) {
 
   return (
     <Panel
-      title="Di luar kantor hari ini"
+      title="Tidak Hadir"
       icon={Users}
       badge={<Pill tone="slate">{data.totalCount} orang</Pill>}
       action={{ href: "/kalender", label: "Kalender" }}

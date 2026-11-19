@@ -11,10 +11,16 @@ const isOutdated = (client?: PrismaClient): boolean => {
   const runtimeModel = (client as unknown as {
     _runtimeDataModel?: {
       models?: Record<string, { fields?: Array<{ name: string }> }>;
+      enums?: Record<string, { values?: Array<{ name: string }> }>;
     };
   })?._runtimeDataModel;
   const leaveTypeFields = runtimeModel?.models?.LeaveType?.fields;
   if (leaveTypeFields && !leaveTypeFields.some((f) => f.name === "applicableGender")) {
+    return true;
+  }
+
+  const attendanceStatusValues = runtimeModel?.enums?.AttendanceStatus?.values;
+  if (attendanceStatusValues && !attendanceStatusValues.some((v) => v.name === "BUSINESS_TRIP")) {
     return true;
   }
 
