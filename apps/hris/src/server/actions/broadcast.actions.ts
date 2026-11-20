@@ -20,6 +20,8 @@ import {
   resendFailedRecipients,
   deleteBroadcastAttachment,
   cancelScheduledBroadcast,
+  markBroadcastAsRead,
+  remindUnreadRecipients,
   BroadcastSenderContext,
 } from "../services/broadcast-email.service";
 
@@ -440,4 +442,86 @@ export async function cancelScheduledBroadcastAction(broadcastId: string): Promi
     return { success: false, error: errorMsg };
   }
 }
+
+/**
+ * Server action untuk menandai penerima telah membaca pengumuman broadcast di portal HRIS.
+ */
+export async function markBroadcastAsReadAction(broadcastId: string): Promise<{
+  success: boolean;
+  readAt?: Date;
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi telah berakhir. Harap login kembali." };
+    }
+
+    const ip =
+      reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const res = await markBroadcastAsRead(session.user.id, broadcastId, {
+      ip,
+      userAgent,
+    });
+
+    revalidatePath(`/pengumuman/${broadcastId}`);
+    revalidatePath("/komunikasi/riwayat");
+
+    return {
+      success: true,
+      readAt: res.readAt,
+    };
+  } catch (err: unknown) {
+    const errorMsg =
+      err instanceof Error
+        ? err.message
+        : "Gagal mengonfirmasi pembacaan pengumuman.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Server action untuk mengirimkan notifikasi in-app pengingat kepada penerima yang belum membaca pengumuman.
+ */
+export async function remindUnreadRecipientsAction(broadcastId: string): Promise<{
+  success: boolean;
+  remindedCount?: number;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi telah berakhir. Harap login kembali." };
+    }
+
+    const ip =
+      reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const res = await remindUnreadRecipients(session.user.id, broadcastId, {
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/komunikasi/riwayat");
+
+    return {
+      success: true,
+      remindedCount: res.remindedCount,
+      message: res.message,
+    };
+  } catch (err: unknown) {
+    const errorMsg =
+      err instanceof Error ? err.message : "Gagal mengirimkan pengingat.";
+    return { success: false, error: errorMsg };
+  }
+}
+
 

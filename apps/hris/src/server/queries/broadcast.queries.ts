@@ -6,12 +6,21 @@ import {
 } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
+import {
+  BroadcastCategory,
+  BroadcastPriority,
+  BROADCAST_CATEGORIES,
+} from "../schemas/broadcast.schema";
 
 export interface BroadcastHistoryItem {
   id: string;
   subject: string;
   contentSnippet: string;
   contentHtml: string;
+  category?: BroadcastCategory | null;
+  priority?: BroadcastPriority;
+  requireReadReceipt?: boolean;
+  readCount?: number;
   senderUserId: string;
   senderName: string;
   senderEmail: string;
@@ -39,6 +48,7 @@ export interface BroadcastRecipientDetail {
   status: BroadcastDeliveryStatus;
   errorMessage: string | null;
   sentAt: Date | null;
+  readAt?: Date | null;
 }
 
 export interface BroadcastDetailItem extends BroadcastHistoryItem {
@@ -69,6 +79,7 @@ export interface GetBroadcastHistoryParams {
   search?: string;
   scope?: string;
   status?: string;
+  category?: string;
   page?: number;
   pageSize?: number;
 }
@@ -128,6 +139,14 @@ export async function getBroadcastHistory(
       ? { status: params.status as BroadcastStatus }
       : {};
 
+  // Filter kategori
+  const categoryFilter =
+    params?.category &&
+    params.category !== "ALL" &&
+    (BROADCAST_CATEGORIES as readonly string[]).includes(params.category)
+      ? { category: params.category }
+      : {};
+
   // Otorisasi cakupan data:
   // - Super Admin & Admin HR: dapat melihat seluruh riwayat broadcast institusi
   // - Manajer: melihat broadcast yang dikirim dirinya sendiri atau ditujukan ke timnya
@@ -153,6 +172,7 @@ export async function getBroadcastHistory(
     ...searchFilter,
     ...scopeFilter,
     ...statusFilter,
+    ...categoryFilter,
     ...roleWhere,
   };
 
@@ -195,6 +215,20 @@ export async function getBroadcastHistory(
     depts.forEach((d) => deptMap.set(d.id, d.name));
   }
 
+  const broadcastIds = rawItems.map((b) => b.id);
+  const readCountMap = new Map<string, number>();
+  if (broadcastIds.length > 0) {
+    const readCounts = await prisma.emailBroadcastRecipient.groupBy({
+      by: ["broadcastId"],
+      where: {
+        broadcastId: { in: broadcastIds },
+        readAt: { not: null },
+      },
+      _count: { id: true },
+    });
+    readCounts.forEach((rc) => readCountMap.set(rc.broadcastId, rc._count.id));
+  }
+
   const items: BroadcastHistoryItem[] = rawItems.map((b) => {
     let targetDepartmentName = b.targetDepartment?.name || null;
     if (b.targetDepartmentIds && b.targetDepartmentIds.length > 0) {
@@ -218,6 +252,10 @@ export async function getBroadcastHistory(
           ? `${b.contentText.slice(0, 137)}...`
           : b.contentText,
       contentHtml: b.contentHtml,
+      category: (b.category as BroadcastCategory) || null,
+      priority: (b.priority as BroadcastPriority) || "NORMAL",
+      requireReadReceipt: b.requireReadReceipt || false,
+      readCount: readCountMap.get(b.id) || 0,
       senderUserId: b.senderUserId,
       senderName: b.senderName,
       senderEmail: b.senderEmail,
@@ -351,6 +389,10 @@ export async function getBroadcastDetail(
     subject: broadcast.subject,
     contentSnippet: broadcast.contentText,
     contentHtml: broadcast.contentHtml,
+    category: (broadcast.category as BroadcastCategory) || null,
+    priority: (broadcast.priority as BroadcastPriority) || "NORMAL",
+    requireReadReceipt: broadcast.requireReadReceipt || false,
+    readCount: broadcast.recipients.filter((r) => r.readAt !== null).length,
     senderUserId: broadcast.senderUserId,
     senderName: broadcast.senderName,
     senderEmail: broadcast.senderEmail,
@@ -387,6 +429,7 @@ export async function getBroadcastDetail(
       status: r.status,
       errorMessage: r.errorMessage,
       sentAt: r.sentAt,
+      readAt: r.readAt,
     })),
   };
 }

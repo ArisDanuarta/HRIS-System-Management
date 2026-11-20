@@ -8,6 +8,9 @@ import {
   SendBroadcastInput,
   SendTestBroadcastInput,
   ReplyToMode,
+  BroadcastCategory,
+  BroadcastPriority,
+  BROADCAST_CATEGORY_LABELS,
   BroadcastSenderContext,
   resolveSenderIdentity,
   hasDeliverableEmail,
@@ -416,6 +419,11 @@ export function renderBroadcastEmailHtml(params: {
   isPersonal?: boolean;
   replyToMode?: ReplyToMode;
   replyToEmail?: string;
+  category?: string | null;
+  priority?: string;
+  requireReadReceipt?: boolean;
+  broadcastId?: string;
+  sendInApp?: boolean;
   attachments?: Array<{ fileName: string; sizeBytes: number }>;
   year?: number;
 }): string {
@@ -429,11 +437,23 @@ export function renderBroadcastEmailHtml(params: {
     isPersonal = true,
     replyToMode = "NO_REPLY",
     replyToEmail,
+    category,
+    priority = "NORMAL",
+    requireReadReceipt = false,
+    broadcastId,
+    sendInApp = false,
     attachments = [],
     year = new Date().getFullYear(),
   } = params;
 
   const isNoReply = replyToMode === "NO_REPLY";
+  const isPriorityImportant = priority === "PENTING";
+  const categoryLabel = category && category in BROADCAST_CATEGORY_LABELS
+    ? BROADCAST_CATEGORY_LABELS[category as BroadcastCategory]
+    : category || null;
+
+  const hrisBaseUrl = (process.env.HRIS_URL || "http://localhost:3001").replace(/\/$/, "");
+  const readerPortalUrl = broadcastId ? `${hrisBaseUrl}/pengumuman/${broadcastId}` : null;
 
   return `
 <!DOCTYPE html>
@@ -449,8 +469,10 @@ export function renderBroadcastEmailHtml(params: {
     .email-header h1 { margin: 0; color: #ffffff; font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
     .email-header p { margin: 6px 0 0 0; color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
     .email-body { padding: 32px 28px; }
-    .badge-bar { margin-bottom: 20px; display: inline-block; }
-    .badge { background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 9999px; letter-spacing: 0.5px; }
+    .badge-bar { margin-bottom: 20px; }
+    .badge { display: inline-block; background-color: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 9999px; letter-spacing: 0.5px; margin-right: 6px; margin-bottom: 6px; }
+    .badge-priority { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .badge-category { background-color: #f8fafc; color: #334155; border: 1px solid #cbd5e1; }
     .sender-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; color: #475569; }
     .sender-name { font-weight: 700; color: #0f172a; }
     .greeting { font-size: 15px; font-weight: 600; color: #102E50; margin-bottom: 16px; }
@@ -462,6 +484,8 @@ export function renderBroadcastEmailHtml(params: {
     .content-area blockquote { border-left: 3px solid #F2AF3E; background-color: #fffdf7; margin: 16px 0; padding: 10px 14px; color: #475569; font-style: italic; border-radius: 0 6px 6px 0; }
     .content-area a { color: #102E50; text-decoration: underline; font-weight: 600; }
     .content-area img { max-width: 100%; height: auto; border-radius: 8px; margin: 16px 0; border: 1px solid #e2e8f0; }
+    .portal-cta-box { margin-top: 26px; padding: 16px 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; text-align: center; }
+    .portal-cta-btn { display: inline-block; background-color: #102E50; color: #ffffff !important; text-decoration: none !important; font-size: 12.5px; font-weight: 700; padding: 9px 18px; border-radius: 6px; border: 1px solid #0c233d; margin-top: 8px; }
     .reply-box { margin-top: 32px; padding: 14px 16px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 12.5px; color: #166534; line-height: 1.5; }
     .reply-box-noreply { background-color: #f8fafc; border: 1px solid #cbd5e1; color: #475569; }
     .email-footer { background-color: #f8fafc; padding: 22px 24px; text-align: center; font-size: 11.5px; color: #64748b; border-top: 1px solid #e2e8f0; line-height: 1.6; }
@@ -476,6 +500,8 @@ export function renderBroadcastEmailHtml(params: {
     <div class="email-body">
       <div class="badge-bar">
         <span class="badge">${escapeHtml(scopeBadge)}</span>
+        ${isPriorityImportant ? `<span class="badge badge-priority">⚠️ PENTING</span>` : ""}
+        ${categoryLabel ? `<span class="badge badge-category">${escapeHtml(categoryLabel)}</span>` : ""}
       </div>
 
       <div class="sender-card">
@@ -504,6 +530,23 @@ export function renderBroadcastEmailHtml(params: {
             )
             .join("")}
         </ul>
+      </div>`
+          : ""
+      }
+
+      ${
+        sendInApp && readerPortalUrl
+          ? `<div class="portal-cta-box">
+        <p style="margin: 0; font-size: 12.5px; color: #166534; font-weight: 500;">
+          ${
+            requireReadReceipt
+              ? "Pengumuman ini memerlukan konfirmasi pembacaan dari Anda di Portal HRIS."
+              : "Pengumuman ini juga dapat Anda akses dan arsipkan melalui Portal HRIS."
+          }
+        </p>
+        <a href="${escapeHtml(readerPortalUrl)}" class="portal-cta-btn">
+          ${requireReadReceipt ? "Buka &amp; Konfirmasi Dibaca &rarr;" : "Baca di Portal HRIS &rarr;"}
+        </a>
       </div>`
           : ""
       }
@@ -571,6 +614,7 @@ export function createTransporter(): Transporter | null {
  */
 export function buildEmailForRecipient(
   broadcast: {
+    id?: string;
     subject: string;
     contentHtml: string;
     contentText: string;
@@ -579,6 +623,10 @@ export function buildEmailForRecipient(
     replyToEmail: string;
     replyToMode?: string | null;
     targetScope: string;
+    category?: string | null;
+    priority?: string;
+    requireReadReceipt?: boolean;
+    sendInApp?: boolean;
   },
   recipient: {
     recipientName: string;
@@ -611,6 +659,7 @@ export function buildEmailForRecipient(
 
   const isPersonal = broadcast.replyToMode === "SENDER_PERSONAL";
   const mode = (broadcast.replyToMode as ReplyToMode) || "NO_REPLY";
+  const isPriorityImportant = broadcast.priority === "PENTING";
 
   let replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
   if (mode === "ORGANIZATION_HR") {
@@ -637,6 +686,11 @@ export function buildEmailForRecipient(
     isPersonal,
     replyToMode: mode,
     replyToEmail: broadcast.replyToEmail,
+    category: broadcast.category,
+    priority: broadcast.priority,
+    requireReadReceipt: broadcast.requireReadReceipt,
+    broadcastId: broadcast.id,
+    sendInApp: broadcast.sendInApp,
     attachments: attachmentsMetadata,
   });
 
@@ -645,16 +699,26 @@ export function buildEmailForRecipient(
       ? `Pengumuman resmi dari: ${broadcast.senderName}\nEmail ini bersifat satu arah.`
       : `Pengumuman dari: ${broadcast.senderName} (${broadcast.senderDisplayTitle || "Pengirim"})\nBalas email ini untuk berdiskusi dengan pengirim.`;
 
+  const finalSubject = isPriorityImportant
+    ? `[PENTING] [PSPK HRIS] ${personalizedSubject}`
+    : `[PSPK HRIS] ${personalizedSubject}`;
+
   return {
     from: smtpFrom,
     to: recipient.email,
     replyTo: replyToHeader,
-    subject: `[PSPK HRIS] ${personalizedSubject}`,
+    subject: finalSubject,
     text: `Halo ${recipient.recipientName},\n\n${personalizedContentText}${plainTextAttachments}\n\n${plainTextFooter}`,
     html: personalizedHtml,
     attachments: attachments && attachments.length > 0 ? attachments : undefined,
     headers: {
       "X-Mailer": "PSPK-Broadcast-Mailer",
+      ...(isPriorityImportant
+        ? {
+            "X-Priority": "1",
+            Importance: "high",
+          }
+        : {}),
     },
   };
 }
@@ -673,6 +737,9 @@ export async function enqueueBroadcast(
   const {
     subject,
     contentHtml: rawContentHtml,
+    category,
+    priority = "NORMAL",
+    requireReadReceipt = false,
     targetScope = "TEAM",
     targetDepartmentId,
     targetDepartmentIds = [],
@@ -686,6 +753,12 @@ export async function enqueueBroadcast(
     attachmentIds = [],
     scheduledAt: rawScheduledAt,
   } = input;
+
+  if (category === "DARURAT" && !senderCtx.canSendAll) {
+    throw new Error(
+      "Akses ditolak: Kategori Darurat hanya dapat dikirimkan oleh Admin HR atau Direksi.",
+    );
+  }
 
   const isScheduled = !!rawScheduledAt;
   let scheduledDate: Date | null = null;
@@ -797,6 +870,9 @@ export async function enqueueBroadcast(
       subject,
       contentHtml: sanitizedContent,
       contentText: plainTextContent,
+      category: category || null,
+      priority: priority || "NORMAL",
+      requireReadReceipt: Boolean(requireReadReceipt),
       senderUserId: senderCtx.userId,
       senderEmployeeId: senderCtx.employeeId,
       senderName: resolvedSender.displayName,
@@ -851,6 +927,9 @@ export async function enqueueBroadcast(
     after: {
       broadcastId: broadcast.id,
       subject,
+      category: category || null,
+      priority: priority || "NORMAL",
+      requireReadReceipt: Boolean(requireReadReceipt),
       targetScope,
       targetDepartmentIds: effectiveDepartmentIds,
       customEmployeeIdsCount: customEmployeeIds.length,
@@ -977,13 +1056,15 @@ export async function processBroadcast(
           const personalizedSubj = replacePersonalizationVariables(broadcast.subject, {
             recipientName: r.recipientName,
           });
+          const notifTitlePrefix = broadcast.priority === "PENTING" ? "[PENTING] " : "";
+          const notifType = broadcast.requireReadReceipt ? "ACTION_REQUIRED" : "INFO";
           return {
             userId: r.employee!.userId!,
-            title: `Pengumuman: ${personalizedSubj}`,
+            title: `${notifTitlePrefix}Pengumuman: ${personalizedSubj}`,
             message: `${broadcast.senderName}: "${snippet}"`,
-            type: "INFO",
+            type: notifType,
             category: "SYSTEM",
-            link: "/notifikasi",
+            link: `/pengumuman/${broadcastId}`,
           };
         }),
       });
@@ -1256,6 +1337,8 @@ export async function sendTestBroadcast(
   const {
     subject,
     contentHtml: rawContentHtml,
+    category,
+    priority = "NORMAL",
     senderPersona = "ORGANIZATION",
     customSenderName,
     replyToMode = "NO_REPLY",
@@ -1384,8 +1467,10 @@ export async function sendTestBroadcast(
           .join("\n")
       : "";
 
+  const isPriorityImportant = priority === "PENTING";
+
   const personalizedHtml = renderBroadcastEmailHtml({
-    subject: `[TES] ${personalizedSubj}`,
+    subject: isPriorityImportant ? `[TES] [PENTING] ${personalizedSubj}` : `[TES] ${personalizedSubj}`,
     contentHtml: emailContentHtml,
     recipientName: senderCtx.userName,
     senderName: resolvedSender.displayName,
@@ -1394,6 +1479,8 @@ export async function sendTestBroadcast(
     isPersonal: resolvedSender.isPersonal,
     replyToMode: resolvedSender.replyToMode,
     replyToEmail: resolvedSender.replyToEmail,
+    category,
+    priority,
     attachments: testAttachmentsMetadata,
   });
 
@@ -1402,16 +1489,26 @@ export async function sendTestBroadcast(
   const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
 
   if (transporter) {
+    const testEmailSubject = isPriorityImportant
+      ? `[TES] [PENTING] [PSPK HRIS] ${personalizedSubj}`
+      : `[TES] [PSPK HRIS] ${personalizedSubj}`;
+
     await transporter.sendMail({
       from: smtpFrom,
       to: senderCtx.userEmail,
       replyTo: resolvedSender.replyToHeader,
-      subject: `[TES] [PSPK HRIS] ${personalizedSubj}`,
+      subject: testEmailSubject,
       text: `[EMAIL UJI]\n\nHalo ${senderCtx.userName},\n\nIni adalah email uji pengumuman. Pesan ini hanya dikirimkan ke Anda.\n\n${personalizedPlainText}${plainTextAttachments}\n\nPengumuman dari: ${resolvedSender.displayName}`,
       html: personalizedHtml,
       attachments: testAttachmentBuffers.length > 0 ? testAttachmentBuffers : undefined,
       headers: {
         "X-Mailer": "PSPK-Broadcast-Mailer",
+        ...(isPriorityImportant
+          ? {
+              "X-Priority": "1",
+              Importance: "high",
+            }
+          : {}),
       },
     });
   }
@@ -1426,6 +1523,8 @@ export async function sendTestBroadcast(
     entityId: "test-broadcast",
     after: {
       subject,
+      category: category || null,
+      priority,
       targetEmail: senderCtx.userEmail,
       senderPersona,
       senderDisplayName: resolvedSender.displayName,
@@ -1891,5 +1990,183 @@ export async function cancelScheduledBroadcast(
   return {
     success: true,
     message: "Jadwal pengiriman pengumuman berhasil dibatalkan.",
+  };
+}
+
+/**
+ * 8. Menandai bahwa penerima telah membaca pengumuman broadcast tertentu di portal HRIS.
+ */
+export async function markBroadcastAsRead(
+  userId: string,
+  broadcastId: string,
+  reqMeta?: { ip?: string; userAgent?: string },
+): Promise<{ success: boolean; readAt: Date }> {
+  const broadcast = await prisma.emailBroadcast.findUnique({
+    where: { id: broadcastId },
+    select: { id: true, subject: true },
+  });
+
+  if (!broadcast) {
+    throw new Error("Pengumuman tidak ditemukan.");
+  }
+
+  const [employee, user] = await Promise.all([
+    prisma.employee.findFirst({
+      where: { userId },
+      select: { id: true, workEmail: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    }),
+  ]);
+
+  const recipient = await prisma.emailBroadcastRecipient.findFirst({
+    where: {
+      broadcastId,
+      OR: [
+        ...(employee ? [{ employeeId: employee.id }] : []),
+        ...(employee?.workEmail ? [{ email: employee.workEmail }] : []),
+        ...(user?.email ? [{ email: user.email }] : []),
+      ],
+    },
+  });
+
+  if (!recipient) {
+    throw new Error("Anda tidak terdaftar sebagai penerima pengumuman ini.");
+  }
+
+  // Idempoten: jika sudah pernah tercatat dibaca, kembalikan readAt lama
+  if (recipient.readAt) {
+    return {
+      success: true,
+      readAt: recipient.readAt,
+    };
+  }
+
+  const now = new Date();
+  const updated = await prisma.emailBroadcastRecipient.update({
+    where: { id: recipient.id },
+    data: { readAt: now },
+  });
+
+  await writeAudit({
+    actorUserId: userId,
+    actorEmail: user?.email || recipient.email,
+    app: "hris",
+    action: "BROADCAST_READ",
+    entityType: "EmailBroadcastRecipient",
+    entityId: recipient.id,
+    after: {
+      broadcastId,
+      recipientId: recipient.id,
+      readAt: now.toISOString(),
+    },
+    ip: reqMeta?.ip || "127.0.0.1",
+    userAgent: reqMeta?.userAgent || "unknown",
+  });
+
+  return {
+    success: true,
+    readAt: updated.readAt || now,
+  };
+}
+
+/**
+ * 9. Mengirimkan notifikasi in-app pengingat kepada penerima yang belum membaca pengumuman.
+ */
+export async function remindUnreadRecipients(
+  userId: string,
+  broadcastId: string,
+  reqMeta?: { ip?: string; userAgent?: string },
+): Promise<{ success: boolean; remindedCount: number; message: string }> {
+  const broadcast = await prisma.emailBroadcast.findUnique({
+    where: { id: broadcastId },
+    include: {
+      recipients: {
+        where: {
+          status: "SENT",
+          readAt: null,
+        },
+        include: {
+          employee: {
+            select: { userId: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!broadcast) {
+    throw new Error("Pengumuman tidak ditemukan.");
+  }
+
+  const authCtx = await getAuthContext(userId);
+  if (!authCtx) {
+    throw new Error("Sesi pengguna tidak valid.");
+  }
+
+  const isSuperAdmin = authCtx.roles.includes("super_admin");
+  const isAdminHr = authCtx.roles.includes("admin_hr");
+  const canSendAll = isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+  const isAuthor = broadcast.senderUserId === userId;
+
+  if (!isAuthor && !canSendAll) {
+    throw new Error(
+      "Akses ditolak: Hanya pengirim pengumuman atau Admin HR yang dapat mengirim pengingat.",
+    );
+  }
+
+  const unreadRecipientsWithUser = broadcast.recipients.filter(
+    (r) => Boolean(r.employee?.userId),
+  );
+
+  if (unreadRecipientsWithUser.length === 0) {
+    return {
+      success: true,
+      remindedCount: 0,
+      message:
+        "Seluruh penerima pengumuman ini telah membaca atau tidak memiliki akun portal HRIS aktif.",
+    };
+  }
+
+  const actorUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+
+  const notifType = broadcast.requireReadReceipt ? "ACTION_REQUIRED" : "INFO";
+
+  await prisma.notification.createMany({
+    data: unreadRecipientsWithUser.map((r) => ({
+      userId: r.employee!.userId!,
+      title: `Pengingat: ${broadcast.subject}`,
+      message: `${broadcast.senderName}: Mohon periksa pengumuman ini. Anda belum membaca/mengonfirmasi pembacaan.`,
+      type: notifType,
+      category: "SYSTEM",
+      link: `/pengumuman/${broadcastId}`,
+    })),
+  });
+
+  await writeAudit({
+    actorUserId: userId,
+    actorEmail: actorUser?.email || broadcast.senderEmail || "unknown",
+    app: "hris",
+    action: "BROADCAST_REMIND_UNREAD",
+    entityType: "EmailBroadcast",
+    entityId: broadcastId,
+    after: {
+      broadcastId,
+      remindedCount: unreadRecipientsWithUser.length,
+      timestamp: new Date().toISOString(),
+    },
+    ip: reqMeta?.ip || "127.0.0.1",
+    userAgent: reqMeta?.userAgent || "unknown",
+  });
+
+  return {
+    success: true,
+    remindedCount: unreadRecipientsWithUser.length,
+    message: `Pengingat in-app berhasil dikirimkan ke ${unreadRecipientsWithUser.length} penerima yang belum membaca.`,
   };
 }
