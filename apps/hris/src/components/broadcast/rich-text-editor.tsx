@@ -128,11 +128,12 @@ export function RichTextEditor({
             const data = await res.json();
             if (res.ok && data.url) {
               editor.chain().focus().setImage({ src: data.url, alt: file.name }).run();
+              setUploadError(null);
             } else {
-              alert(data.error || "Gagal mengunggah gambar dari clipboard.");
+              setUploadError(data.error || "Gagal mengunggah gambar dari clipboard.");
             }
           } catch {
-            alert("Terjadi kesalahan jaringan saat mengunggah gambar.");
+            setUploadError("Terjadi kesalahan jaringan saat mengunggah gambar.");
           } finally {
             setIsUploadingImage(false);
           }
@@ -472,6 +473,23 @@ export function RichTextEditor({
           </div>
         )}
       </div>
+
+      {uploadError && !showImageModal && (
+        <div className="flex items-center justify-between gap-2 px-3 py-2 bg-amber-50 border-b border-amber-200 text-amber-800 text-xs">
+          <div className="flex items-center gap-1.5">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+            <span>{uploadError}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUploadError(null)}
+            className="text-amber-600 hover:text-amber-800 font-semibold px-1 cursor-pointer"
+            aria-label="Tutup pesan error"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* --- WRITING SURFACE --- */}
       <div

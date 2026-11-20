@@ -16,6 +16,60 @@ const ALLOWED_MIME_TYPES = new Set([
 
 const MAX_IMAGE_SIZE_BYTES = 3 * 1024 * 1024; // 3 MB
 
+/**
+ * Validasi biner magic bytes untuk gambar JPG, PNG, GIF, dan WebP (AUDIT-03).
+ */
+export function isValidImageMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  if (buffer.length < 12) return false;
+
+  // JPEG: FF D8 FF
+  if (mimeType === "image/jpeg") {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (mimeType === "image/png") {
+    return (
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    );
+  }
+
+  // GIF: GIF87a atau GIF89a (47 49 46 38 37/39 61)
+  if (mimeType === "image/gif") {
+    return (
+      buffer[0] === 0x47 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x38 &&
+      (buffer[4] === 0x37 || buffer[4] === 0x39) &&
+      buffer[5] === 0x61
+    );
+  }
+
+  // WebP: RIFF....WEBP (52 49 46 46 .... 57 45 42 50)
+  if (mimeType === "image/webp") {
+    return (
+      buffer[0] === 0x52 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x46 &&
+      buffer[8] === 0x57 &&
+      buffer[9] === 0x45 &&
+      buffer[10] === 0x42 &&
+      buffer[11] === 0x50
+    );
+  }
+
+  return false;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const reqHeaders = await headers();
@@ -84,6 +138,16 @@ export async function POST(request: NextRequest) {
 
     const storage = getStorageProvider();
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    if (!isValidImageMagicBytes(buffer, file.type)) {
+      return Response.json(
+        {
+          error:
+            "Isi berkas tidak valid sebagai gambar resmi (verifikasi signature/magic bytes biner gagal).",
+        },
+        { status: 400 },
+      );
+    }
 
     const result = await storage.put(storageKey, buffer, {
       contentType: file.type,

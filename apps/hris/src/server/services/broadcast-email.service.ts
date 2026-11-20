@@ -332,6 +332,39 @@ export function sanitizeBroadcastContent(html: string): string {
       span: ["class", "style"],
       blockquote: ["class", "style"],
     },
+    allowedStyles: {
+      "*": {
+        color: [
+          /^#(0x)?[0-9a-f]{3,8}$/i,
+          /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i,
+          /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/i,
+        ],
+        "background-color": [
+          /^#(0x)?[0-9a-f]{3,8}$/i,
+          /^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i,
+          /^rgba\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(0|1|0?\.\d+)\s*\)$/i,
+        ],
+        "text-align": [/^left$/, /^right$/, /^center$/, /^justify$/],
+        "font-size": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        "font-weight": [/^\d{3}$/, /^bold$/, /^normal$/],
+        "font-style": [/^italic$/, /^normal$/],
+        "text-decoration": [/^underline$/, /^line-through$/, /^none$/],
+        margin: [/^\d+(\.\d+)?(px|em|rem|%|auto)(\s+\d+(\.\d+)?(px|em|rem|%|auto)){0,3}$/],
+        "margin-top": [/^\d+(\.\d+)?(px|em|rem|%|auto)$/],
+        "margin-bottom": [/^\d+(\.\d+)?(px|em|rem|%|auto)$/],
+        "margin-left": [/^\d+(\.\d+)?(px|em|rem|%|auto)$/],
+        "margin-right": [/^\d+(\.\d+)?(px|em|rem|%|auto)$/],
+        padding: [/^\d+(\.\d+)?(px|em|rem|%)(\s+\d+(\.\d+)?(px|em|rem|%)){0,3}$/],
+        "padding-top": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        "padding-bottom": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        "padding-left": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        "padding-right": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        "border-radius": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        "max-width": [/^\d+(\.\d+)?(px|em|rem|%)$/],
+        width: [/^\d+(\.\d+)?(px|em|rem|%|auto)$/],
+        height: [/^\d+(\.\d+)?(px|em|rem|%|auto)$/],
+      },
+    },
     allowedSchemes: ["http", "https", "mailto"],
     allowedSchemesByTag: { img: ["http", "https"] },
     allowProtocolRelative: false,
@@ -606,6 +639,10 @@ export function createTransporter(): Transporter | null {
       user: smtpUser,
       pass: smtpPass,
     },
+    // Timeout soket agar transmisi SMTP tidak menggantung jika koneksi jaringan terputus (AUDIT-04)
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+    socketTimeout: 30000,
   });
 }
 
@@ -662,10 +699,13 @@ export function buildEmailForRecipient(
   const isPriorityImportant = broadcast.priority === "PENTING";
 
   let replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
+  const cleanSenderName = (broadcast.senderName || "PSPK")
+    .replace(/[\r\n"\\<>]/g, "")
+    .trim();
   if (mode === "ORGANIZATION_HR") {
     replyToHeader = `"Tim People & Culture PSPK" <hr@pspk.id>`;
   } else if (mode === "SENDER_PERSONAL" || mode === "CUSTOM") {
-    replyToHeader = `"${broadcast.senderName}" <${broadcast.replyToEmail || "no-reply@pspk.id"}>`;
+    replyToHeader = `"${cleanSenderName}" <${broadcast.replyToEmail || "no-reply@pspk.id"}>`;
   }
 
   const plainTextAttachments =
@@ -1085,6 +1125,51 @@ export async function processBroadcast(
     : 200;
 
   const transporter = createTransporter();
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!transporter && isProduction) {
+    // AUDIT-01: Di lingkungan produksi, dilarang menjalankan mode simulasi
+    // yang dapat menandai broadcast sebagai SENT padahal email tidak dikirimkan.
+    await prisma.emailBroadcast.update({
+      where: { id: broadcastId },
+      data: {
+        status: "FAILED",
+        finishedAt: new Date(),
+      },
+    });
+
+    await prisma.emailBroadcastRecipient.updateMany({
+      where: { broadcastId, status: "PENDING" },
+      data: {
+        status: "FAILED",
+        errorMessage: "Layanan SMTP belum dikonfigurasi di server produksi.",
+        lastAttemptAt: new Date(),
+      },
+    });
+
+    await writeAudit({
+      actorUserId: broadcast.senderUserId,
+      actorEmail: broadcast.senderEmail,
+      app: "hris",
+      action: "BROADCAST_PROCESS_FAILED",
+      entityType: "EmailBroadcast",
+      entityId: broadcastId,
+      after: {
+        broadcastId,
+        error: "SMTP unconfigured in production environment",
+      },
+    });
+
+    return {
+      processed: false,
+      broadcastId,
+      sentCount: broadcast.sentCount,
+      failedCount: broadcast.totalRecipients,
+      finalStatus: "FAILED",
+      reason: "SMTP_UNCONFIGURED_IN_PRODUCTION",
+    };
+  }
+
   const isSimulated = !transporter;
 
   // Muat berkas lampiran sekali ke dalam memori (caching buffer) selama proses berlangsung
@@ -1485,6 +1570,14 @@ export async function sendTestBroadcast(
   });
 
   const transporter = createTransporter();
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!transporter && isProduction) {
+    throw new Error(
+      "Layanan SMTP belum dikonfigurasi di server produksi. Email uji tidak dapat dikirim.",
+    );
+  }
+
   const isSimulated = !transporter;
   const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
 

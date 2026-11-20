@@ -16,7 +16,7 @@ export interface BroadcastHistoryItem {
   id: string;
   subject: string;
   contentSnippet: string;
-  contentHtml: string;
+  contentHtml?: string;
   category?: BroadcastCategory | null;
   priority?: BroadcastPriority;
   requireReadReceipt?: boolean;
@@ -179,7 +179,29 @@ export async function getBroadcastHistory(
   const [rawItems, total, allStats] = await Promise.all([
     prisma.emailBroadcast.findMany({
       where: whereClause,
-      include: {
+      select: {
+        id: true,
+        subject: true,
+        contentText: true,
+        category: true,
+        priority: true,
+        requireReadReceipt: true,
+        senderUserId: true,
+        senderName: true,
+        senderEmail: true,
+        replyToEmail: true,
+        targetScope: true,
+        targetDepartmentId: true,
+        targetDepartmentIds: true,
+        customEmployeeIds: true,
+        excludedEmployeeIds: true,
+        totalRecipients: true,
+        sentCount: true,
+        failedCount: true,
+        sendInApp: true,
+        status: true,
+        createdAt: true,
+        scheduledAt: true,
         targetDepartment: {
           select: { name: true },
         },
@@ -251,7 +273,6 @@ export async function getBroadcastHistory(
         b.contentText.length > 140
           ? `${b.contentText.slice(0, 137)}...`
           : b.contentText,
-      contentHtml: b.contentHtml,
       category: (b.category as BroadcastCategory) || null,
       priority: (b.priority as BroadcastPriority) || "NORMAL",
       requireReadReceipt: b.requireReadReceipt || false,

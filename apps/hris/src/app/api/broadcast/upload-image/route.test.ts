@@ -151,6 +151,34 @@ describe("POST /api/broadcast/upload-image", () => {
     expect(json.error).toContain("Ukuran gambar terlalu besar");
   });
 
+  it("harus menolak (400) jika isi biner file bukan gambar valid (magic bytes gagal)", async () => {
+    vi.mocked(getSession).mockResolvedValue({
+      user: { id: "user-hr", email: "hr@pspk.id", name: "Admin HR" },
+      session: { id: "sess-2", userId: "user-hr", expiresAt: new Date() },
+    } as unknown as MockSession);
+
+    vi.mocked(getAuthContext).mockResolvedValue({
+      userId: "user-hr",
+      employeeId: "emp-hr",
+      roles: ["admin_hr"],
+      permissions: new Set(["hris.broadcast.send:all"]),
+    });
+
+    const formData = new FormData();
+    const fakeImageBlob = new Blob(["<html>script malicious</html>"], { type: "image/png" });
+    formData.append("file", fakeImageBlob, "exploit.png");
+
+    const req = new NextRequest("http://localhost:3001/api/broadcast/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.error).toContain("magic bytes biner gagal");
+  });
+
   it("harus berhasil mengunggah gambar (200) untuk Admin HR dan mencatat audit log", async () => {
     vi.mocked(getSession).mockResolvedValue({
       user: { id: "user-hr", email: "hr@pspk.id", name: "Admin HR" },
@@ -171,7 +199,11 @@ describe("POST /api/broadcast/upload-image", () => {
     });
 
     const formData = new FormData();
-    const imageBlob = new Blob(["dummy image bytes"], { type: "image/png" });
+    // Valid PNG magic bytes: 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A
+    const validPngBytes = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+    ]);
+    const imageBlob = new Blob([validPngBytes], { type: "image/png" });
     formData.append("file", imageBlob, "diagram-organisasi.png");
 
     const req = new NextRequest("http://localhost:3001/api/broadcast/upload-image", {
@@ -215,7 +247,11 @@ describe("POST /api/broadcast/upload-image", () => {
     });
 
     const formData = new FormData();
-    const imageBlob = new Blob(["dummy image bytes"], { type: "image/jpeg" });
+    // Valid JPEG magic bytes: 0xFF, 0xD8, 0xFF
+    const validJpgBytes = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    ]);
+    const imageBlob = new Blob([validJpgBytes], { type: "image/jpeg" });
     formData.append("file", imageBlob, "alur-kerja.jpg");
 
     const req = new NextRequest("http://localhost:3001/api/broadcast/upload-image", {

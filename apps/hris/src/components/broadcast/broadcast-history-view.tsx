@@ -133,6 +133,10 @@ export function BroadcastHistoryView({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [notification, setNotification] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const updateUrl = (updates: {
     q?: string;
@@ -306,17 +310,26 @@ export function BroadcastHistoryView({
     try {
       const res = await cancelScheduledBroadcastAction(broadcastId);
       if (res.success) {
-        alert("Jadwal pengiriman pengumuman berhasil dibatalkan.");
+        setNotification({
+          type: "success",
+          message: "Jadwal pengiriman pengumuman berhasil dibatalkan.",
+        });
         if (selectedBroadcastId === broadcastId) {
           handleCloseDetail();
         }
         router.refresh();
       } else {
-        alert(res.error || "Gagal membatalkan jadwal pengumuman.");
+        setNotification({
+          type: "error",
+          message: res.error || "Gagal membatalkan jadwal pengumuman.",
+        });
       }
     } catch (err: unknown) {
       console.error("Gagal membatalkan jadwal:", err);
-      alert("Terjadi kesalahan saat membatalkan jadwal pengumuman.");
+      setNotification({
+        type: "error",
+        message: "Terjadi kesalahan saat membatalkan jadwal pengumuman.",
+      });
     } finally {
       setIsCancelingSchedule(false);
     }
@@ -390,6 +403,7 @@ export function BroadcastHistoryView({
   const formatDateTime = (date: Date | string) => {
     const d = new Date(date);
     return new Intl.DateTimeFormat("id-ID", {
+      timeZone: "Asia/Jakarta",
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -404,6 +418,34 @@ export function BroadcastHistoryView({
 
   return (
     <div className="space-y-6">
+      {notification && (
+        <div
+          role="alert"
+          className={`p-4 rounded-xl border flex items-center justify-between gap-3 text-sm shadow-xs ${
+            notification.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-rose-50 border-rose-200 text-rose-800"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {notification.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+            ) : (
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            )}
+            <span>{notification.message}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            className="text-slate-400 hover:text-slate-600 font-bold p-1 rounded transition-colors cursor-pointer"
+            aria-label="Tutup notifikasi"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* --- STATS SUMMARY CARDS --- */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-xs flex items-center gap-3">
