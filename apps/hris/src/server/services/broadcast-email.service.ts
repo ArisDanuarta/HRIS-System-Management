@@ -369,14 +369,7 @@ export function replacePersonalizationVariables(
     .replace(/\{\{\s*nama_depan\s*\}\}/gi, escapeHtml(firstName));
 }
 
-/**
- * Mengganti variabel personalisasi dengan contoh ("Budi Santoso" / "Budi") untuk pratinjau.
- */
-export function interpolatePreviewVariables(text: string): string {
-  return text
-    .replace(/\{\{\s*nama\s*\}\}/gi, "Budi Santoso")
-    .replace(/\{\{\s*nama_depan\s*\}\}/gi, "Budi");
-}
+export { interpolatePreviewVariables } from "../../components/broadcast/broadcast-form-utils";
 
 /**
  * Menghasilkan teks polos tanpa tag HTML untuk fallback email klien lama.

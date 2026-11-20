@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import sanitizeHtml from "sanitize-html";
 import type { ResolvedSenderIdentity } from "../../server/schemas/broadcast.schema";
-import { interpolatePreviewVariables } from "../../server/services/broadcast-email.service";
+import { interpolatePreviewVariables } from "./broadcast-form-utils";
 
 export interface BroadcastEmailPreviewProps {
   subject: string;

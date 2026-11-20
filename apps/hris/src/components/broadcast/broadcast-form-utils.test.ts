@@ -3,6 +3,7 @@ import {
   getReplyToDisplayLabel,
   isBulkBroadcast,
   extractContentSummary,
+  interpolatePreviewVariables,
   BULK_CONFIRM_THRESHOLD,
 } from "./broadcast-form-utils";
 
@@ -64,6 +65,19 @@ describe("broadcast-form-utils.ts", () => {
     it("harus menangani input HTML kosong dengan aman", () => {
       expect(extractContentSummary("")).toEqual({ snippet: "", imageCount: 0 });
       expect(extractContentSummary("   ")).toEqual({ snippet: "", imageCount: 0 });
+    });
+  });
+
+  describe("interpolatePreviewVariables", () => {
+    it("harus menginterpolasi {{nama}} dan {{nama_depan}} dengan nama contoh Budi Santoso", () => {
+      const template = "Halo {{nama}}, sapaan singkatmu {{nama_depan}}!";
+      expect(interpolatePreviewVariables(template)).toBe(
+        "Halo Budi Santoso, sapaan singkatmu Budi!",
+      );
+    });
+
+    it("harus menangani teks kosong tanpa error", () => {
+      expect(interpolatePreviewVariables("")).toBe("");
     });
   });
 });

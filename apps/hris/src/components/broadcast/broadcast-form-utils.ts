@@ -70,3 +70,14 @@ export function extractContentSummary(html: string): {
 
   return { snippet, imageCount };
 }
+
+/**
+ * Mengganti variabel personalisasi dengan contoh ("Budi Santoso" / "Budi") untuk pratinjau langsung di UI.
+ * Bersifat murni (pure function) agar aman dijalankan di client browser maupun lingkungan SSR.
+ */
+export function interpolatePreviewVariables(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/\{\{\s*nama\s*\}\}/gi, "Budi Santoso")
+    .replace(/\{\{\s*nama_depan\s*\}\}/gi, "Budi");
+}
