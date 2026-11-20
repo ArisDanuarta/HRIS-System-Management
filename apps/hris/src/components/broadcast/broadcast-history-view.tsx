@@ -19,6 +19,9 @@ import {
   ChevronRight,
   Loader2,
   RotateCcw,
+  FileText,
+  Download,
+  Paperclip,
 } from "lucide-react";
 import {
   BroadcastHistoryItem,
@@ -583,6 +586,15 @@ export function BroadcastHistoryView({
                         </span>
                       </>
                     )}
+                    {item.attachmentCount !== undefined && item.attachmentCount > 0 && (
+                      <>
+                        <span>•</span>
+                        <span className="text-slate-700 font-medium flex items-center gap-1">
+                          <Paperclip className="w-3.5 h-3.5 text-slate-500" />
+                          <span>{item.attachmentCount} Lampiran PDF</span>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -751,6 +763,42 @@ export function BroadcastHistoryView({
                     />
                   </div>
 
+                  {/* Lampiran Dokumen PDF (jika ada) */}
+                  {activeDetail.attachments && activeDetail.attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5 text-navy-800" />
+                        <span>Lampiran Dokumen PDF ({activeDetail.attachments.length} berkas):</span>
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {activeDetail.attachments.map((att) => (
+                          <a
+                            key={att.id}
+                            href={att.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs transition-colors group cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                              <div className="p-2 bg-red-50 text-red-600 rounded-lg shrink-0">
+                                <FileText className="w-4 h-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-semibold text-slate-900 group-hover:text-navy-900 truncate block">
+                                  {att.fileName}
+                                </span>
+                                <span className="text-slate-500 text-xs block">
+                                  {(att.sizeBytes / (1024 * 1024)).toFixed(2)} MB
+                                </span>
+                              </div>
+                            </div>
+                            <Download className="w-4 h-4 text-slate-400 group-hover:text-navy-900 shrink-0" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Log Rincian Penerima */}
                   <div className="space-y-3 pt-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
@@ -845,7 +893,7 @@ export function BroadcastHistoryView({
                                       <span>Gagal</span>
                                     </span>
                                     {rcpt.errorMessage && (
-                                      <p className="text-[11px] text-red-600 font-normal leading-tight max-w-xs break-words">
+                                      <p className="text-xs text-red-600 font-normal leading-tight max-w-xs break-words">
                                         {rcpt.errorMessage}
                                       </p>
                                     )}

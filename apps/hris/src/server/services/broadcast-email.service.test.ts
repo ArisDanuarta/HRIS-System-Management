@@ -15,6 +15,8 @@ import {
   escapeHtml,
   replacePersonalizationVariables,
   interpolatePreviewVariables,
+  buildEmailForRecipient,
+  deleteBroadcastAttachment,
 } from "./broadcast-email.service";
 
 vi.mock("@pspk/auth", () => ({
@@ -63,8 +65,24 @@ vi.mock("@pspk/db", () => ({
     notification: {
       createMany: vi.fn(),
     },
+    emailBroadcastAttachment: {
+      findMany: vi.fn(),
+      updateMany: vi.fn(),
+      findUnique: vi.fn(),
+      delete: vi.fn(),
+    },
   },
   writeAudit: vi.fn(async () => {}),
+}));
+
+const mockStorageGetBuffer = vi.fn(async () => Buffer.from("%PDF-1.4 mock buffer"));
+const mockStorageDelete = vi.fn(async () => {});
+
+vi.mock("@pspk/storage", () => ({
+  getStorageProvider: () => ({
+    getBuffer: mockStorageGetBuffer,
+    delete: mockStorageDelete,
+  }),
 }));
 
 import { getAuthContext } from "@pspk/auth";
@@ -1026,6 +1044,141 @@ describe("broadcast-email.service.ts", () => {
       const template = "Yth. {{nama}}, terima kasih atas kerja keras Anda, {{nama_depan}}.";
       const preview = interpolatePreviewVariables(template);
       expect(preview).toBe("Yth. Budi Santoso, terima kasih atas kerja keras Anda, Budi.");
+    });
+  });
+
+  describe("Lampiran Dokumen PDF", () => {
+    it("renderBroadcastEmailHtml harus menyertakan daftar lampiran berkas jika disediakan", () => {
+      const html = renderBroadcastEmailHtml({
+        subject: "Surat Edaran",
+        contentHtml: "<p>Silakan unduh lampiran terlampir.</p>",
+        recipientName: "Budi",
+        senderName: "Admin HR",
+        senderTitle: "Head of People",
+        scopeBadge: "PENGUMUMAN ORGANISASI",
+        isPersonal: false,
+        replyToMode: "NO_REPLY",
+        attachments: [
+          { fileName: "Kebijakan_Cuti_2026.pdf", sizeBytes: 204800 },
+          { fileName: "Formulir_Reimbursement.pdf", sizeBytes: 102400 },
+        ],
+      });
+
+      expect(html).toContain("Lampiran Dokumen (2 berkas):");
+      expect(html).toContain("Kebijakan_Cuti_2026.pdf");
+      expect(html).toContain("200 KB");
+      expect(html).toContain("Formulir_Reimbursement.pdf");
+      expect(html).toContain("100 KB");
+    });
+
+    it("buildEmailForRecipient harus menyertakan lampiran Buffer dan metadata teks polos", () => {
+      const broadcast = {
+        subject: "Pengumuman Lampiran",
+        contentHtml: "<p>Isi pengumuman</p>",
+        contentText: "Isi pengumuman",
+        senderName: "HR PSPK",
+        senderDisplayTitle: "Divisi SDM",
+        replyToEmail: "hr@pspk.id",
+        replyToMode: "ORGANIZATION_HR",
+        targetScope: "ALL_EMPLOYEES",
+      };
+
+      const recipient = {
+        recipientName: "Ahmad",
+        email: "ahmad@pspk.id",
+      };
+
+      const attachmentsBuffer = [
+        {
+          filename: "Panduan.pdf",
+          content: Buffer.from("%PDF-mocked"),
+          contentType: "application/pdf",
+        },
+      ];
+
+      const attachmentsMetadata = [
+        {
+          fileName: "Panduan.pdf",
+          sizeBytes: 1024,
+        },
+      ];
+
+      const emailPayload = buildEmailForRecipient(
+        broadcast,
+        recipient,
+        attachmentsBuffer,
+        attachmentsMetadata,
+      );
+
+      expect(emailPayload.attachments).toHaveLength(1);
+      expect(emailPayload.attachments?.[0]?.filename).toBe("Panduan.pdf");
+      expect(emailPayload.text).toContain("Lampiran Dokumen (1 berkas):");
+      expect(emailPayload.text).toContain("Panduan.pdf (1 KB)");
+      expect(emailPayload.html).toContain("Lampiran Dokumen (1 berkas):");
+      expect(emailPayload.html).toContain("Panduan.pdf");
+    });
+
+    it("deleteBroadcastAttachment harus menghapus berkas lampiran yang belum tertaut broadcast", async () => {
+      vi.mocked(prisma.emailBroadcastAttachment.findUnique).mockResolvedValue({
+        id: "att-1",
+        uploadedBy: "user-1",
+        broadcastId: null,
+        key: "broadcast-attachments/file-1.pdf",
+        fileName: "Dokumen.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 1000,
+        sha256: "hash-1",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        draftId: null,
+      });
+
+      await deleteBroadcastAttachment("user-1", "att-1");
+
+      expect(mockStorageDelete).toHaveBeenCalledWith("broadcast-attachments/file-1.pdf");
+      expect(prisma.emailBroadcastAttachment.delete).toHaveBeenCalledWith({
+        where: { id: "att-1" },
+      });
+    });
+
+    it("deleteBroadcastAttachment harus menolak penghapusan lampiran milik user lain atau yang sudah tertaut broadcast", async () => {
+      // 1. Bukan pemilik
+      vi.mocked(prisma.emailBroadcastAttachment.findUnique).mockResolvedValueOnce({
+        id: "att-2",
+        uploadedBy: "user-other",
+        broadcastId: null,
+        key: "broadcast-attachments/file-2.pdf",
+        fileName: "Dokumen.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 1000,
+        sha256: "hash-2",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        draftId: null,
+      });
+
+      await expect(deleteBroadcastAttachment("user-1", "att-2")).rejects.toThrow(
+        "Akses ditolak: Anda bukan pengunggah berkas ini",
+      );
+
+      // 2. Sudah tertaut broadcast
+      vi.mocked(prisma.emailBroadcastAttachment.findUnique).mockResolvedValueOnce({
+        id: "att-3",
+        uploadedBy: "user-1",
+        broadcastId: "bc-sent-123",
+        key: "broadcast-attachments/file-3.pdf",
+        fileName: "Dokumen.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 1000,
+        sha256: "hash-3",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        draftId: null,
+      });
+
+      await expect(deleteBroadcastAttachment("user-1", "att-3")).rejects.toThrow(
+        "Berkas lampiran tidak dapat dihapus karena sudah tertaut",
+      );
     });
   });
 });

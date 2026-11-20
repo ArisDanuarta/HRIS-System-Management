@@ -24,6 +24,9 @@ import {
   Sparkles,
   Bookmark,
   FileText,
+  Paperclip,
+  Trash2,
+  UploadCloud,
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";
@@ -41,6 +44,7 @@ import {
 import {
   sendBroadcastAction,
   sendTestBroadcastAction,
+  deleteBroadcastAttachmentAction,
   BroadcastFormData,
 } from "../../server/actions/broadcast.actions";
 import {
@@ -58,6 +62,10 @@ import {
   hasDeliverableEmail,
   BroadcastDraftItem,
   BroadcastTemplateItem,
+  BroadcastAttachmentItem,
+  MAX_ATTACHMENT_SIZE_BYTES,
+  MAX_ATTACHMENTS_COUNT,
+  MAX_TOTAL_ATTACHMENT_SIZE_BYTES,
 } from "../../server/schemas/broadcast.schema";
 
 interface BroadcastCreateFormProps {
@@ -121,6 +129,16 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
 
+  // Lampiran PDF State
+  const [attachments, setAttachments] = useState<BroadcastAttachmentItem[]>([]);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+
+  const totalAttachmentSize = attachments.reduce(
+    (sum, a) => sum + a.sizeBytes,
+    0,
+  );
+
   // Inisialisasi daftar draf dan template saat komponen dimuat
   useEffect(() => {
     let isMounted = true;
@@ -166,6 +184,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           replyToMode,
           customReplyToEmail: customReplyToEmail.trim() || undefined,
           sendInApp,
+          attachmentIds: attachments.map((a) => a.id),
         });
 
         if (res.success && res.data) {
@@ -193,6 +212,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     replyToMode,
     customReplyToEmail,
     sendInApp,
+    attachments,
   ]);
 
   const handleSaveDraft = async (customTitle?: string) => {
@@ -212,6 +232,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         replyToMode,
         customReplyToEmail: customReplyToEmail.trim() || undefined,
         sendInApp,
+        attachmentIds: attachments.map((a) => a.id),
       });
 
       if (res.success && res.data) {
@@ -290,6 +311,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     setReplyToMode(draft.replyToMode);
     setCustomReplyToEmail(draft.customReplyToEmail || "");
     setSendInApp(draft.sendInApp);
+    setAttachments(draft.attachments || []);
 
     // Filter staf yang sudah tidak aktif
     const activeEmpIds = new Set(employees.map((e) => e.id));
@@ -366,6 +388,105 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     } catch (e) {
       console.error(e);
       alert("Terjadi kesalahan saat menghapus template.");
+    }
+  };
+
+  const handleUploadAttachment = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setAttachmentError(null);
+    const fileList = Array.from(files);
+
+    if (attachments.length + fileList.length > MAX_ATTACHMENTS_COUNT) {
+      setAttachmentError(`Maksimal ${MAX_ATTACHMENTS_COUNT} berkas lampiran PDF.`);
+      if (e.target) e.target.value = "";
+      return;
+    }
+
+    const currentTotalSize = attachments.reduce(
+      (sum, a) => sum + a.sizeBytes,
+      0,
+    );
+    const newFilesTotalSize = fileList.reduce((sum, f) => sum + f.size, 0);
+
+    if (currentTotalSize + newFilesTotalSize > MAX_TOTAL_ATTACHMENT_SIZE_BYTES) {
+      setAttachmentError(
+        `Total ukuran seluruh lampiran tidak boleh melebihi 10 MB (total saat ini akan menjadi ${(
+          (currentTotalSize + newFilesTotalSize) /
+          (1024 * 1024)
+        ).toFixed(1)} MB).`,
+      );
+      if (e.target) e.target.value = "";
+      return;
+    }
+
+    for (const f of fileList) {
+      if (
+        f.type !== "application/pdf" &&
+        !f.name.toLowerCase().endsWith(".pdf")
+      ) {
+        setAttachmentError(`Berkas "${f.name}" bukan berkas PDF.`);
+        if (e.target) e.target.value = "";
+        return;
+      }
+      if (f.size > MAX_ATTACHMENT_SIZE_BYTES) {
+        setAttachmentError(
+          `Ukuran berkas "${f.name}" (${(f.size / (1024 * 1024)).toFixed(1)} MB) melebihi batas 5 MB.`,
+        );
+        if (e.target) e.target.value = "";
+        return;
+      }
+    }
+
+    setIsUploadingAttachment(true);
+    try {
+      const uploadedItems: BroadcastAttachmentItem[] = [];
+      for (const file of fileList) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/broadcast/upload-attachment", {
+          method: "POST",
+          body: formData,
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.success) {
+          throw new Error(
+            json.error || `Gagal mengunggah berkas "${file.name}".`,
+          );
+        }
+
+        uploadedItems.push(json.attachment);
+      }
+
+      setAttachments((prev) => [...prev, ...uploadedItems]);
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Gagal mengunggah berkas lampiran.";
+      setAttachmentError(msg);
+    } finally {
+      setIsUploadingAttachment(false);
+      if (e.target) e.target.value = "";
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      const res = await deleteBroadcastAttachmentAction(attachmentId);
+      if (res.success) {
+        setAttachments((prev) => prev.filter((a) => a.id !== attachmentId));
+      } else {
+        setAttachmentError(res.error || "Gagal menghapus berkas lampiran.");
+      }
+    } catch (err: unknown) {
+      console.error("Gagal menghapus berkas lampiran:", err);
+      setAttachmentError("Terjadi kesalahan saat menghapus lampiran.");
     }
   };
 
@@ -526,6 +647,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         customSenderName: senderPersona === "CUSTOM" ? customSenderName.trim() : undefined,
         replyToMode,
         customReplyToEmail: replyToMode === "CUSTOM" ? customReplyToEmail.trim() : undefined,
+        attachmentIds: attachments.map((a) => a.id),
       });
 
       if (res.success) {
@@ -548,6 +670,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
 
         setSubject("");
         setContentHtml("");
+        setAttachments([]);
       } else {
         setShowConfirmModal(false);
         setFeedback({
@@ -612,6 +735,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         customSenderName: customSenderName.trim() || undefined,
         replyToMode,
         customReplyToEmail: customReplyToEmail.trim() || undefined,
+        attachmentIds: attachments.map((a) => a.id),
       });
 
       if (res.success) {
@@ -1396,7 +1520,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     type="button"
                     onClick={handleSendTestEmail}
                     disabled={isSubmitting || isSendingTest}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-navy-900 bg-navy-50 hover:bg-navy-100 border border-navy-200 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-navy-900 bg-navy-50 hover:bg-navy-100 border border-navy-200 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                     title={`Kirim email uji ke ${senderCtx.userEmail}`}
                   >
                     {isSendingTest ? (
@@ -1418,8 +1542,110 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   targetScope={targetScope}
                   previewSender={previewSender}
                   recipientCount={recipientSummary.count}
+                  attachments={attachments}
                 />
               </div>
+            </div>
+
+            {/* LAMPIRAN DOKUMEN PDF */}
+            <div className="pt-4 border-t border-slate-100 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Paperclip className="w-4 h-4 text-navy-800" />
+                  <div>
+                    <h4 className="text-xs font-semibold text-slate-900">
+                      Lampiran Dokumen PDF (Opsional)
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Maksimal {MAX_ATTACHMENTS_COUNT} berkas PDF, masing-masing maks. 5 MB, total keseluruhan maks. 10 MB.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-xs font-medium text-slate-600 sm:text-right">
+                  <span>Total: </span>
+                  <strong className={totalAttachmentSize > MAX_TOTAL_ATTACHMENT_SIZE_BYTES ? "text-red-600" : "text-navy-900"}>
+                    {(totalAttachmentSize / (1024 * 1024)).toFixed(2)} MB
+                  </strong>
+                  <span> / 10 MB ({attachments.length} dari {MAX_ATTACHMENTS_COUNT} berkas)</span>
+                </div>
+              </div>
+
+              {/* FEEDBACK ERROR LAMPIRAN */}
+              {attachmentError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <span>{attachmentError}</span>
+                </div>
+              )}
+
+              {/* LIST LAMPIRAN YANG SUDAH DIUNGGAH */}
+              {attachments.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {attachments.map((att) => (
+                    <div
+                      key={att.id}
+                      className="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs hover:border-slate-300 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0 pr-2">
+                        <div className="p-1.5 bg-red-100/70 text-red-700 rounded-lg shrink-0">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-slate-900 truncate block" title={att.fileName}>
+                            {att.fileName}
+                          </span>
+                          <span className="text-slate-500 text-xs block">
+                            {(att.sizeBytes / 1024).toFixed(0)} KB ({(att.sizeBytes / (1024 * 1024)).toFixed(2)} MB)
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAttachment(att.id)}
+                        disabled={isSubmitting || isUploadingAttachment}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                        title="Hapus berkas ini"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* TOMBOL / AREA UPLOAD JIKA BELUM 3 BERKAS */}
+              {attachments.length < MAX_ATTACHMENTS_COUNT && (
+                <div>
+                  <label
+                    className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-dashed text-xs font-semibold cursor-pointer transition-colors ${
+                      isUploadingAttachment
+                        ? "border-slate-300 bg-slate-50 text-slate-400 cursor-not-allowed"
+                        : "border-navy-300 bg-navy-50/40 text-navy-900 hover:bg-navy-50 hover:border-navy-500"
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      multiple
+                      disabled={isUploadingAttachment || isSubmitting}
+                      onChange={handleUploadAttachment}
+                      className="hidden"
+                    />
+                    {isUploadingAttachment ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-navy-800" />
+                        <span>Mengunggah Berkas PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-4 h-4 text-navy-800" />
+                        <span>Pilih Berkas PDF untuk Dilampirkan</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1572,6 +1798,26 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     <span className="font-semibold text-amber-700">
                       {excludedEmployeeIds.length} Orang
                     </span>
+                  </div>
+                )}
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-slate-500">Lampiran Dokumen PDF:</span>
+                  <span className="font-semibold text-slate-900 text-right">
+                    {attachments.length > 0
+                      ? `${attachments.length} Berkas (${(totalAttachmentSize / (1024 * 1024)).toFixed(2)} MB)`
+                      : "Tanpa Lampiran"}
+                  </span>
+                </div>
+                {attachments.length > 0 && (
+                  <div className="border-b border-slate-200/60 pb-2">
+                    <span className="text-slate-500 block mb-1">Rincian Berkas PDF:</span>
+                    <ul className="text-slate-800 list-disc list-inside space-y-0.5">
+                      {attachments.map((a) => (
+                        <li key={a.id} className="truncate" title={a.fileName}>
+                          {a.fileName} ({(a.sizeBytes / 1024).toFixed(0)} KB)
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
                 <div className="flex justify-between">

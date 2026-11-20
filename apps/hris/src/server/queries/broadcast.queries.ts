@@ -27,6 +27,7 @@ export interface BroadcastHistoryItem {
   sendInApp: boolean;
   status: BroadcastStatus;
   createdAt: Date;
+  attachmentCount?: number;
 }
 
 export interface BroadcastRecipientDetail {
@@ -159,6 +160,9 @@ export async function getBroadcastHistory(
         targetDepartment: {
           select: { name: true },
         },
+        _count: {
+          select: { attachments: true },
+        },
       },
       orderBy: { createdAt: "desc" },
       skip,
@@ -226,6 +230,7 @@ export async function getBroadcastHistory(
       sendInApp: b.sendInApp,
       status: b.status,
       createdAt: b.createdAt,
+      attachmentCount: b._count?.attachments || 0,
     };
   });
 

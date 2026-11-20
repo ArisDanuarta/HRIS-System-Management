@@ -11,6 +11,10 @@ export interface BroadcastEmailPreviewProps {
   targetScope: string;
   previewSender: ResolvedSenderIdentity;
   recipientCount?: number;
+  attachments?: Array<{
+    fileName: string;
+    sizeBytes: number;
+  }>;
 }
 
 export function BroadcastEmailPreview({
@@ -19,6 +23,7 @@ export function BroadcastEmailPreview({
   targetScope,
   previewSender,
   recipientCount,
+  attachments,
 }: BroadcastEmailPreviewProps) {
   // Absolutize relative image URLs for live preview
   const sanitizedDisplayHtml = useMemo(() => {
@@ -159,6 +164,23 @@ export function BroadcastEmailPreview({
                   "<p class='text-slate-500 italic'>[Isi pesan belum ditulis. Silakan tulis naskah di editor]</p>",
               }}
             />
+
+            {attachments && attachments.length > 0 && (
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
+                <div className="font-bold text-[#102E50] flex items-center gap-1.5">
+                  <span>📎</span>
+                  <span>Lampiran Dokumen ({attachments.length} berkas):</span>
+                </div>
+                <ul className="m-0 pl-5 text-slate-600 space-y-1 list-disc">
+                  {attachments.map((a, idx) => (
+                    <li key={idx}>
+                      <strong className="text-slate-800">{a.fileName}</strong> (
+                      {(a.sizeBytes / 1024).toFixed(0)} KB)
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {previewSender.replyToMode === "NO_REPLY" ? (
               <div className="p-3 bg-slate-100 border border-slate-300 rounded-lg text-xs text-slate-700 leading-relaxed">
