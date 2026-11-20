@@ -717,7 +717,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 </strong>
               </span>
               {lastAutosavedAt && (
-                <span className="text-emerald-700 text-xs hidden md:inline">
+                <span suppressHydrationWarning className="text-emerald-700 text-xs hidden md:inline">
                   • Tersimpan otomatis{" "}
                   {lastAutosavedAt.toLocaleTimeString("id-ID", {
                     hour: "2-digit",

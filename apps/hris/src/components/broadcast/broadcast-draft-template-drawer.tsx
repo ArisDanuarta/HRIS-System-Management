@@ -311,7 +311,7 @@ export function BroadcastDraftTemplateDrawer({
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-                        <span className="flex items-center gap-1">
+                        <span suppressHydrationWarning className="flex items-center gap-1">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
                           {formatDate(draft.updatedAt)}
                         </span>
@@ -406,7 +406,7 @@ export function BroadcastDraftTemplateDrawer({
                       </div>
 
                       <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-                        <span>{formatDate(template.updatedAt)}</span>
+                        <span suppressHydrationWarning>{formatDate(template.updatedAt)}</span>
                         <button
                           type="button"
                           onClick={() => {
