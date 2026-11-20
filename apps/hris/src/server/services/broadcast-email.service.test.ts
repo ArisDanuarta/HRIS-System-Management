@@ -382,6 +382,95 @@ describe("broadcast-email.service.ts", () => {
         }),
       );
     });
+
+    it("harus mendukung pemilihan multi-departemen dengan opsi departmentIds", async () => {
+      const adminCtx = {
+        userId: "user-admin",
+        userEmail: "admin@pspk.id",
+        userName: "Admin HR",
+        employeeId: "emp-admin",
+        employeeTitle: "HR Lead",
+        isSuperAdmin: true,
+        isAdminHr: true,
+        isManager: false,
+        canSendAll: true,
+        canSendTeam: true,
+        allowedScopes: ["ALL_EMPLOYEES" as const, "DEPARTMENT" as const, "TEAM" as const, "CUSTOM" as const],
+        teamMembersCount: 0,
+      };
+
+      vi.mocked(prisma.employee.findMany).mockResolvedValue([
+        {
+          id: "emp-10",
+          fullName: "Faisal",
+          workEmail: "faisal@pspk.id",
+          userId: "user-10",
+          currentDepartment: { name: "Riset" },
+        },
+        {
+          id: "emp-11",
+          fullName: "Gita",
+          workEmail: "gita@pspk.id",
+          userId: "user-11",
+          currentDepartment: { name: "Kebijakan" },
+        },
+      ] as unknown as MockEmployeeMany);
+
+      const recipients = await getBroadcastRecipients(adminCtx, "DEPARTMENT", {
+        departmentIds: ["dept-riset", "dept-kebijakan"],
+      });
+
+      expect(recipients).toHaveLength(2);
+      expect(prisma.employee.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            currentDepartmentId: { in: ["dept-riset", "dept-kebijakan"] },
+            status: "ACTIVE",
+          }),
+        }),
+      );
+    });
+
+    it("harus mengecualikan karyawan yang didaftarkan pada excludedEmployeeIds", async () => {
+      const adminCtx = {
+        userId: "user-admin",
+        userEmail: "admin@pspk.id",
+        userName: "Admin HR",
+        employeeId: "emp-admin",
+        employeeTitle: "HR Lead",
+        isSuperAdmin: true,
+        isAdminHr: true,
+        isManager: false,
+        canSendAll: true,
+        canSendTeam: true,
+        allowedScopes: ["ALL_EMPLOYEES" as const, "DEPARTMENT" as const, "TEAM" as const, "CUSTOM" as const],
+        teamMembersCount: 0,
+      };
+
+      vi.mocked(prisma.employee.findMany).mockResolvedValue([
+        {
+          id: "emp-12",
+          fullName: "Hadi",
+          workEmail: "hadi@pspk.id",
+          userId: "user-12",
+          currentDepartment: { name: "Operasional" },
+        },
+      ] as unknown as MockEmployeeMany);
+
+      const recipients = await getBroadcastRecipients(adminCtx, "ALL_EMPLOYEES", {
+        excludedEmployeeIds: ["emp-cuti-1", "emp-cuti-2"],
+      });
+
+      expect(recipients).toHaveLength(1);
+      expect(prisma.employee.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: { notIn: ["emp-cuti-1", "emp-cuti-2", "emp-admin"] },
+            status: "ACTIVE",
+          }),
+        }),
+      );
+    });
   });
 
   describe("executeSendBroadcast - Otorisasi Persona", () => {

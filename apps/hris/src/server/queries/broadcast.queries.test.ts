@@ -20,6 +20,12 @@ vi.mock("@pspk/db", () => ({
     emailBroadcastRecipient: {
       findFirst: vi.fn(),
     },
+    department: {
+      findMany: vi.fn(),
+    },
+    employee: {
+      findMany: vi.fn(),
+    },
   },
   BroadcastScope: {
     ALL_EMPLOYEES: "ALL_EMPLOYEES",
@@ -368,6 +374,58 @@ describe("broadcast.queries.ts", () => {
       expect(detail?.failedCount).toBe(1);
       expect(detail?.canResend).toBe(true);
       expect(detail?.recipients[0]?.errorMessage).toBe("SMTP Timeout connection error");
+    });
+
+    it("harus menyelesaikan nama multi-departemen dan daftar pegawai yang dikecualikan pada detail broadcast", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr",
+        employeeId: "emp-hr",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.read:all"]),
+      });
+
+      const mockDate = new Date();
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-multi-dept",
+        subject: "Pengumuman Multi Divisi & Pengecualian",
+        contentText: "Isi pengumuman...",
+        contentHtml: "<p>Isi pengumuman...</p>",
+        senderUserId: "user-hr",
+        senderName: "Admin HR",
+        senderEmail: "hr@pspk.id",
+        replyToEmail: "hr@pspk.id",
+        targetScope: "DEPARTMENT",
+        targetDepartmentIds: ["dept-1", "dept-2", "dept-3"],
+        excludedEmployeeIds: ["emp-ex-1", "emp-ex-2"],
+        totalRecipients: 20,
+        sentCount: 20,
+        failedCount: 0,
+        sendInApp: true,
+        status: "SENT",
+        createdAt: mockDate,
+        targetDepartment: null,
+        recipients: [],
+      } as unknown as MockBroadcastUnique);
+
+      vi.mocked(prisma.department.findMany).mockResolvedValue([
+        { id: "dept-1", name: "Riset Kebijakan" },
+        { id: "dept-2", name: "Komunikasi Publik" },
+        { id: "dept-3", name: "Operasional & SDM" },
+      ] as never);
+
+      vi.mocked(prisma.employee.findMany).mockResolvedValue([
+        { id: "emp-ex-1", fullName: "Karyawan Izin" },
+        { id: "emp-ex-2", fullName: "Karyawan Cuti" },
+      ] as never);
+
+      const detail = await getBroadcastDetail("user-hr", "bc-multi-dept");
+
+      expect(detail).not.toBeNull();
+      expect(detail?.targetDepartmentName).toBe("Riset Kebijakan +2 lainnya");
+      expect(detail?.excludedCount).toBe(2);
+      expect(detail?.excludedEmployeeNames).toEqual(["Karyawan Izin", "Karyawan Cuti"]);
+      expect(detail?.targetDepartmentIds).toEqual(["dept-1", "dept-2", "dept-3"]);
+      expect(detail?.excludedEmployeeIds).toEqual(["emp-ex-1", "emp-ex-2"]);
     });
   });
 });
