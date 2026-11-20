@@ -58,11 +58,15 @@ const mockGetBroadcastSenderContext = vi.fn();
 const mockExecuteSendBroadcast = vi.fn();
 const mockEnqueueBroadcast = vi.fn();
 const mockProcessBroadcast = vi.fn();
+const mockSendTestBroadcast = vi.fn();
+const mockResendFailedRecipients = vi.fn();
 vi.mock("../services/broadcast-email.service", () => ({
   getBroadcastSenderContext: (...args: unknown[]) => mockGetBroadcastSenderContext(...args),
   executeSendBroadcast: (...args: unknown[]) => mockExecuteSendBroadcast(...args),
   enqueueBroadcast: (...args: unknown[]) => mockEnqueueBroadcast(...args),
   processBroadcast: (...args: unknown[]) => mockProcessBroadcast(...args),
+  sendTestBroadcast: (...args: unknown[]) => mockSendTestBroadcast(...args),
+  resendFailedRecipients: (...args: unknown[]) => mockResendFailedRecipients(...args),
 }));
 
 // Mock broadcast.queries

@@ -5,6 +5,10 @@ vi.mock("@pspk/auth", () => ({
   getAuthContext: vi.fn(),
 }));
 
+vi.mock("@pspk/rbac", () => ({
+  can: vi.fn(),
+}));
+
 vi.mock("@pspk/db", () => ({
   prisma: {
     emailBroadcast: {
@@ -317,6 +321,53 @@ describe("broadcast.queries.ts", () => {
       expect(detail?.subject).toBe("Rapat Koordinasi Evaluasi Program");
       expect(detail?.recipients).toHaveLength(2);
       expect(detail?.recipients[0]?.recipientName).toBe("Budi Santoso");
+      expect(detail?.canResend).toBe(false); // failedCount is 0
+    });
+
+    it("harus menyetel canResend = true jika terdapat kegagalan pengiriman dan pengguna berhak", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-author",
+        employeeId: "emp-author",
+        roles: ["employee"],
+        permissions: new Set(),
+      });
+
+      const mockDate = new Date();
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-failed",
+        subject: "Pengumuman dengan Kegagalan",
+        contentText: "Harap hadir...",
+        contentHtml: "<p>Harap hadir...</p>",
+        senderUserId: "user-author",
+        senderName: "Budi Author",
+        senderEmail: "budi@pspk.id",
+        replyToEmail: "budi@pspk.id",
+        targetScope: "TEAM",
+        totalRecipients: 3,
+        sentCount: 2,
+        failedCount: 1,
+        sendInApp: true,
+        status: "PARTIALLY_FAILED",
+        createdAt: mockDate,
+        targetDepartment: null,
+        recipients: [
+          {
+            id: "rcpt-failed-1",
+            recipientName: "Dedi",
+            email: "dedi@pspk.id",
+            status: "FAILED",
+            errorMessage: "SMTP Timeout connection error",
+            sentAt: null,
+          },
+        ],
+      } as unknown as MockBroadcastUnique);
+
+      const detail = await getBroadcastDetail("user-author", "bc-failed");
+
+      expect(detail).not.toBeNull();
+      expect(detail?.failedCount).toBe(1);
+      expect(detail?.canResend).toBe(true);
+      expect(detail?.recipients[0]?.errorMessage).toBe("SMTP Timeout connection error");
     });
   });
 });

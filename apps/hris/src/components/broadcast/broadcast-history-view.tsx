@@ -822,13 +822,20 @@ export function BroadcastHistoryView({
                                     <span>Terkirim</span>
                                   </span>
                                 ) : (
-                                  <span
-                                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full"
-                                    title={rcpt.errorMessage || "Gagal mengirim"}
-                                  >
-                                    <AlertCircle className="w-3 h-3" />
-                                    <span>Gagal</span>
-                                  </span>
+                                  <div className="space-y-0.5">
+                                    <span
+                                      className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full"
+                                      title={rcpt.errorMessage || "Gagal mengirim"}
+                                    >
+                                      <AlertCircle className="w-3 h-3" />
+                                      <span>Gagal</span>
+                                    </span>
+                                    {rcpt.errorMessage && (
+                                      <p className="text-[11px] text-red-600 font-normal leading-tight max-w-xs break-words">
+                                        {rcpt.errorMessage}
+                                      </p>
+                                    )}
+                                  </div>
                                 )}
                               </td>
                             </tr>
@@ -842,7 +849,29 @@ export function BroadcastHistoryView({
             </div>
 
             {/* Modal Footer */}
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+              <div>
+                {activeDetail?.canResend && (
+                  <button
+                    type="button"
+                    onClick={() => handleResendFailed(activeDetail.id)}
+                    disabled={isResending}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isResending ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Memproses Ulang...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>Kirim Ulang yang Gagal ({activeDetail.failedCount})</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={handleCloseDetail}
