@@ -154,6 +154,10 @@ export async function getBroadcastRecipients(
   targetScope: "ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM",
   departmentId?: string | null,
   customEmployeeIds?: string[],
+  options?: {
+    departmentIds?: string[];
+    excludedEmployeeIds?: string[];
+  },
 ): Promise<RecipientInfo[]> {
   // Proteksi: yang tidak punya hak "all" hanya boleh ke timnya sendiri
   if (!senderCtx.canSendAll && targetScope !== "TEAM") {
@@ -161,6 +165,17 @@ export async function getBroadcastRecipients(
       "Akses ditolak: Anda hanya diizinkan mengirim pengumuman ke anggota timnya sendiri.",
     );
   }
+
+  const effectiveDeptIds =
+    options?.departmentIds && options.departmentIds.length > 0
+      ? options.departmentIds
+      : departmentId
+        ? [departmentId]
+        : [];
+
+  const rawExcludedIds = options?.excludedEmployeeIds || [];
+  const excludedIds = rawExcludedIds.filter((id) => Boolean(id && id.trim()));
+  const notInExcluded = excludedIds.length > 0 ? { notIn: excludedIds } : undefined;
 
   let recipients: Array<{
     id: string;
@@ -175,11 +190,12 @@ export async function getBroadcastRecipients(
       throw new Error("Akun Anda tidak terhubung dengan profil pegawai manajer.");
     }
 
-    // Ambil bawahan langsung
+    // Ambil bawahan langsung (dengan proteksi pengecualian bila ada)
     recipients = await prisma.employee.findMany({
       where: {
         status: "ACTIVE",
         managerId: senderCtx.employeeId,
+        ...(notInExcluded ? { id: notInExcluded } : {}),
       },
       select: {
         id: true,
@@ -191,14 +207,15 @@ export async function getBroadcastRecipients(
       orderBy: { fullName: "asc" },
     });
   } else if (targetScope === "DEPARTMENT") {
-    if (!departmentId) {
+    if (effectiveDeptIds.length === 0) {
       throw new Error("Departemen tujuan wajib dipilih.");
     }
 
     recipients = await prisma.employee.findMany({
       where: {
         status: "ACTIVE",
-        currentDepartmentId: departmentId,
+        currentDepartmentId: { in: effectiveDeptIds },
+        ...(notInExcluded ? { id: notInExcluded } : {}),
       },
       select: {
         id: true,
@@ -217,7 +234,10 @@ export async function getBroadcastRecipients(
     recipients = await prisma.employee.findMany({
       where: {
         status: "ACTIVE",
-        id: { in: customEmployeeIds },
+        id: {
+          in: customEmployeeIds,
+          ...(notInExcluded ? { notIn: excludedIds } : {}),
+        },
       },
       select: {
         id: true,
@@ -233,6 +253,7 @@ export async function getBroadcastRecipients(
     recipients = await prisma.employee.findMany({
       where: {
         status: "ACTIVE",
+        ...(notInExcluded ? { id: notInExcluded } : {}),
       },
       select: {
         id: true,
@@ -245,10 +266,11 @@ export async function getBroadcastRecipients(
     });
   }
 
-  // Filter email valid dan kecualikan pengirim sendiri dari daftar penerima
+  // Filter email valid dan kecualikan pengirim sendiri serta daftar yang dikecualikan
   return recipients
     .filter((r) => hasDeliverableEmail(r.workEmail))
     .filter((r) => !senderCtx.employeeId || r.id !== senderCtx.employeeId)
+    .filter((r) => !excludedIds.includes(r.id))
     .map((r) => ({
       id: r.id,
       fullName: r.fullName,
@@ -578,13 +600,24 @@ export async function enqueueBroadcast(
     contentHtml: rawContentHtml,
     targetScope = "TEAM",
     targetDepartmentId,
+    targetDepartmentIds = [],
     customEmployeeIds = [],
+    excludedEmployeeIds = [],
     sendInApp = true,
     senderPersona = "ORGANIZATION",
     customSenderName,
     replyToMode = "NO_REPLY",
     customReplyToEmail,
   } = input;
+
+  // Normalisasi departemen tujuan: prioritas targetDepartmentIds jika ada, atau fallback ke targetDepartmentId
+  const effectiveDepartmentIds =
+    targetDepartmentIds && targetDepartmentIds.length > 0
+      ? targetDepartmentIds
+      : targetDepartmentId
+        ? [targetDepartmentId]
+        : [];
+  const primaryDepartmentId = effectiveDepartmentIds[0] || null;
 
   // Otorisasi persona & reply-to: hanya pemegang hak "all" yang boleh
   // memakai identitas lembaga/HR/kustom dan reply-to bebas.
@@ -618,8 +651,12 @@ export async function enqueueBroadcast(
   const recipients = await getBroadcastRecipients(
     senderCtx,
     targetScope,
-    targetDepartmentId,
+    primaryDepartmentId,
     customEmployeeIds,
+    {
+      departmentIds: effectiveDepartmentIds,
+      excludedEmployeeIds,
+    },
   );
 
   if (recipients.length === 0) {
@@ -640,7 +677,10 @@ export async function enqueueBroadcast(
       senderEmail: "no-reply@pspk.id",
       replyToEmail: resolvedSender.replyToEmail,
       targetScope,
-      targetDepartmentId: targetDepartmentId || null,
+      targetDepartmentId: primaryDepartmentId,
+      targetDepartmentIds: effectiveDepartmentIds,
+      customEmployeeIds,
+      excludedEmployeeIds,
       totalRecipients: recipients.length,
       sentCount: 0,
       failedCount: 0,
