@@ -30,6 +30,10 @@ vi.mock("@pspk/db", () => ({
     user: {
       findUnique: vi.fn(),
     },
+    emailBroadcastAttachment: {
+      findMany: vi.fn().mockResolvedValue([]),
+      updateMany: vi.fn(),
+    },
   },
   writeAudit: vi.fn(async () => {}),
 }));

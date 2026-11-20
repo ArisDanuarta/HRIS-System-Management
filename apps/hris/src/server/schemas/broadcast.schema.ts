@@ -132,6 +132,11 @@ export const saveBroadcastDraftSchema = z.object({
     .nullable()
     .or(z.literal("")),
   sendInApp: z.boolean().default(true),
+  attachmentIds: z
+    .array(z.string().trim())
+    .max(3, "Maksimal 3 berkas lampiran PDF.")
+    .optional()
+    .default([]),
 });
 
 export type SaveBroadcastDraftInput = z.input<typeof saveBroadcastDraftSchema>;

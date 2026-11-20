@@ -139,10 +139,12 @@ export async function saveBroadcastDraft(
     });
   }
 
-  const createdAttachments = await prisma.emailBroadcastAttachment.findMany({
-    where: { draftId: created.id },
-    orderBy: { createdAt: "asc" },
-  });
+  const createdAttachments = prisma.emailBroadcastAttachment
+    ? (await prisma.emailBroadcastAttachment.findMany({
+        where: { draftId: created.id },
+        orderBy: { createdAt: "asc" },
+      })) || []
+    : [];
 
   return {
     id: created.id,
@@ -187,34 +189,37 @@ export async function listBroadcastDrafts(
     orderBy: { updatedAt: "desc" },
   });
 
-  return drafts.map((d) => ({
-    id: d.id,
-    ownerUserId: d.ownerUserId,
-    title: d.title,
-    subject: d.subject,
-    contentHtml: d.contentHtml,
-    targetScope: d.targetScope as BroadcastScope,
-    targetDepartmentIds: d.targetDepartmentIds,
-    customEmployeeIds: d.customEmployeeIds,
-    excludedEmployeeIds: d.excludedEmployeeIds,
-    senderPersona: d.senderPersona as SenderPersona,
-    customSenderName: d.customSenderName,
-    replyToMode: d.replyToMode as ReplyToMode,
-    customReplyToEmail: d.customReplyToEmail,
-    sendInApp: d.sendInApp,
-    attachmentIds: d.attachments.map((a) => a.id),
-    attachments: d.attachments.map((a) => ({
-      id: a.id,
-      fileName: a.fileName,
-      mimeType: a.mimeType,
-      sizeBytes: a.sizeBytes,
-      key: a.key,
-      url: `/api/documents/${a.key}`,
-      createdAt: a.createdAt,
-    })),
-    createdAt: d.createdAt,
-    updatedAt: d.updatedAt,
-  }));
+  return drafts.map((d) => {
+    const atts = d.attachments || [];
+    return {
+      id: d.id,
+      ownerUserId: d.ownerUserId,
+      title: d.title,
+      subject: d.subject,
+      contentHtml: d.contentHtml,
+      targetScope: d.targetScope as BroadcastScope,
+      targetDepartmentIds: d.targetDepartmentIds,
+      customEmployeeIds: d.customEmployeeIds,
+      excludedEmployeeIds: d.excludedEmployeeIds,
+      senderPersona: d.senderPersona as SenderPersona,
+      customSenderName: d.customSenderName,
+      replyToMode: d.replyToMode as ReplyToMode,
+      customReplyToEmail: d.customReplyToEmail,
+      sendInApp: d.sendInApp,
+      attachmentIds: atts.map((a) => a.id),
+      attachments: atts.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        mimeType: a.mimeType,
+        sizeBytes: a.sizeBytes,
+        key: a.key,
+        url: `/api/documents/${a.key}`,
+        createdAt: a.createdAt,
+      })),
+      createdAt: d.createdAt,
+      updatedAt: d.updatedAt,
+    };
+  });
 }
 
 export async function getBroadcastDraft(
@@ -236,6 +241,8 @@ export async function getBroadcastDraft(
     );
   }
 
+  const atts = draft.attachments || [];
+
   return {
     id: draft.id,
     ownerUserId: draft.ownerUserId,
@@ -251,8 +258,8 @@ export async function getBroadcastDraft(
     replyToMode: draft.replyToMode as ReplyToMode,
     customReplyToEmail: draft.customReplyToEmail,
     sendInApp: draft.sendInApp,
-    attachmentIds: draft.attachments.map((a) => a.id),
-    attachments: draft.attachments.map((a) => ({
+    attachmentIds: atts.map((a) => a.id),
+    attachments: atts.map((a) => ({
       id: a.id,
       fileName: a.fileName,
       mimeType: a.mimeType,

@@ -66,7 +66,7 @@ vi.mock("@pspk/db", () => ({
       createMany: vi.fn(),
     },
     emailBroadcastAttachment: {
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
       updateMany: vi.fn(),
       findUnique: vi.fn(),
       delete: vi.fn(),
@@ -1129,7 +1129,6 @@ describe("broadcast-email.service.ts", () => {
         sizeBytes: 1000,
         sha256: "hash-1",
         createdAt: new Date(),
-        updatedAt: new Date(),
         draftId: null,
       });
 
@@ -1153,12 +1152,11 @@ describe("broadcast-email.service.ts", () => {
         sizeBytes: 1000,
         sha256: "hash-2",
         createdAt: new Date(),
-        updatedAt: new Date(),
         draftId: null,
       });
 
       await expect(deleteBroadcastAttachment("user-1", "att-2")).rejects.toThrow(
-        "Akses ditolak: Anda bukan pengunggah berkas ini",
+        "Akses ditolak: Anda bukan pemilik berkas lampiran ini.",
       );
 
       // 2. Sudah tertaut broadcast
@@ -1172,12 +1170,11 @@ describe("broadcast-email.service.ts", () => {
         sizeBytes: 1000,
         sha256: "hash-3",
         createdAt: new Date(),
-        updatedAt: new Date(),
         draftId: null,
       });
 
       await expect(deleteBroadcastAttachment("user-1", "att-3")).rejects.toThrow(
-        "Berkas lampiran tidak dapat dihapus karena sudah tertaut",
+        "Berkas lampiran yang sudah terkirim pada pengumuman tidak dapat dihapus.",
       );
     });
   });

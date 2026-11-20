@@ -684,7 +684,6 @@ export async function enqueueBroadcast(
     attachmentIds = [],
   } = input;
 
-  let testAttachments: Array<{ fileName: string; sizeBytes: number; key: string; mimeType: string }> = [];
   if (attachmentIds && attachmentIds.length > 0) {
     if (attachmentIds.length > MAX_ATTACHMENTS_COUNT) {
       throw new Error(`Maksimal ${MAX_ATTACHMENTS_COUNT} berkas lampiran PDF.`);
@@ -717,8 +716,6 @@ export async function enqueueBroadcast(
         `Total ukuran lampiran melebihi batas 10 MB (${(totalAttachmentBytes / (1024 * 1024)).toFixed(1)} MB).`,
       );
     }
-
-    testAttachments = attachments;
   }
 
   // Normalisasi departemen tujuan: prioritas targetDepartmentIds jika ada, atau fallback ke targetDepartmentId
@@ -982,10 +979,11 @@ export async function processBroadcast(
   const isSimulated = !transporter;
 
   // Muat berkas lampiran sekali ke dalam memori (caching buffer) selama proses berlangsung
-  const attachments = await prisma.emailBroadcastAttachment.findMany({
+  const rawAttachments = await prisma.emailBroadcastAttachment.findMany({
     where: { broadcastId },
     orderBy: { createdAt: "asc" },
   });
+  const attachments = rawAttachments || [];
 
   const storage = getStorageProvider();
   const attachmentBuffers: Array<{
@@ -1237,7 +1235,13 @@ export async function sendTestBroadcast(
     attachmentIds = [],
   } = input;
 
-  let testAttachments: Array<{ fileName: string; sizeBytes: number; key: string; mimeType: string }> = [];
+  let testAttachments: Array<{
+    fileName: string;
+    sizeBytes: number;
+    key: string;
+    mimeType: string;
+  }> = [];
+
   if (attachmentIds && attachmentIds.length > 0) {
     if (attachmentIds.length > MAX_ATTACHMENTS_COUNT) {
       throw new Error(`Maksimal ${MAX_ATTACHMENTS_COUNT} berkas lampiran PDF.`);
