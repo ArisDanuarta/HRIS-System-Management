@@ -19,6 +19,7 @@ vi.mock("@pspk/db", () => ({
     },
     emailBroadcastRecipient: {
       findFirst: vi.fn(),
+      groupBy: vi.fn().mockResolvedValue([]),
     },
     department: {
       findMany: vi.fn(),

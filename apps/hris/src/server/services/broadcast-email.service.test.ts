@@ -76,6 +76,10 @@ vi.mock("@pspk/db", () => ({
       findUnique: vi.fn(),
       delete: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn().mockResolvedValue({ id: "user-1", email: "test@pspk.id" }),
+      findFirst: vi.fn(),
+    },
   },
   writeAudit: vi.fn(async () => {}),
 }));

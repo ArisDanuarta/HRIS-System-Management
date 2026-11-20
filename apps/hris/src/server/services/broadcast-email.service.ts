@@ -430,10 +430,10 @@ export function renderBroadcastEmailHtml(params: {
   const {
     subject,
     contentHtml,
-    recipientName,
-    senderName,
-    senderTitle,
-    scopeBadge,
+    recipientName = "Rekan PSPK",
+    senderName = "Tim HR PSPK",
+    senderTitle = "Pengelola SDM",
+    scopeBadge = "Pengumuman Resmi",
     isPersonal = true,
     replyToMode = "NO_REPLY",
     replyToEmail,
@@ -571,7 +571,8 @@ export function renderBroadcastEmailHtml(params: {
   `.trim();
 }
 
-export function escapeHtml(str: string): string {
+export function escapeHtml(str?: string | null): string {
+  if (!str) return "";
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

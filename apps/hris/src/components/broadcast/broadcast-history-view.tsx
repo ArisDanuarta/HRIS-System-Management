@@ -950,6 +950,34 @@ export function BroadcastHistoryView({
                         </p>
                       </div>
                       <div>
+                        <span className="text-slate-600">Kategori &amp; Prioritas:</span>
+                        <p className="font-semibold text-slate-900 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          {activeDetail.priority === "PENTING" ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800">
+                              ⚠️ PENTING
+                            </span>
+                          ) : (
+                            <span className="text-slate-700">Prioritas Normal</span>
+                          )}
+                          <span className="text-slate-400">&bull;</span>
+                          <span className="text-slate-800">
+                            {activeDetail.category && activeDetail.category in BROADCAST_CATEGORY_LABELS
+                              ? BROADCAST_CATEGORY_LABELS[activeDetail.category as BroadcastCategory]
+                              : activeDetail.category || "Umum"}
+                          </span>
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-slate-600">Konfirmasi Membaca:</span>
+                        <p className="font-semibold text-slate-900 mt-0.5">
+                          {readRecipientsCount} dari {activeDetail.totalRecipients} sudah membaca (
+                          {activeDetail.totalRecipients > 0
+                            ? Math.round((readRecipientsCount / activeDetail.totalRecipients) * 100)
+                            : 0}
+                          %)
+                        </p>
+                      </div>
+                      <div>
                         <span className="text-slate-600">
                           {activeDetail.status === "SCHEDULED"
                             ? "Jadwal Pengiriman:"
@@ -1044,7 +1072,7 @@ export function BroadcastHistoryView({
                       </h4>
 
                       {/* Recipient status filter */}
-                      <div className="flex items-center gap-1 text-xs">
+                      <div className="flex flex-wrap items-center gap-1 text-xs">
                         <button
                           type="button"
                           onClick={() => setRecipientFilter("ALL")}
@@ -1080,6 +1108,28 @@ export function BroadcastHistoryView({
                             Gagal ({activeDetail.failedCount})
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => setRecipientFilter("READ")}
+                          className={`px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
+                            recipientFilter === "READ"
+                              ? "bg-emerald-800 text-white font-semibold"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          Sudah Dibaca ({readRecipientsCount})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRecipientFilter("UNREAD")}
+                          className={`px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
+                            recipientFilter === "UNREAD"
+                              ? "bg-amber-800 text-white font-semibold"
+                              : "text-slate-600 hover:bg-slate-100"
+                          }`}
+                        >
+                          Belum Dibaca ({unreadRecipientsCount})
+                        </button>
                       </div>
                     </div>
 
@@ -1103,6 +1153,7 @@ export function BroadcastHistoryView({
                             <th className="py-2 px-3">Nama Pegawai</th>
                             <th className="py-2 px-3">Email Kantor</th>
                             <th className="py-2 px-3">Status</th>
+                            <th className="py-2 px-3">Dibaca Pada</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -1137,6 +1188,16 @@ export function BroadcastHistoryView({
                                   </div>
                                 )}
                               </td>
+                              <td className="py-2 px-3">
+                                {rcpt.readAt ? (
+                                  <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    <span>{formatDateTime(rcpt.readAt)} WIB</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400 italic text-xs">Belum membaca</span>
+                                )}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1150,6 +1211,42 @@ export function BroadcastHistoryView({
             {/* Modal Footer */}
             <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
+                {activeDetail && (
+                  <a
+                    href={`/api/broadcast/${activeDetail.id}/export`}
+                    download
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg shadow-2xs transition-colors cursor-pointer"
+                    title="Unduh seluruh data log pengiriman dalam format berkas CSV"
+                  >
+                    <Download className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Ekspor CSV</span>
+                  </a>
+                )}
+
+                {unreadRecipientsCount > 0 &&
+                  (activeDetail?.status === "SENT" ||
+                    activeDetail?.status === "PARTIALLY_FAILED") && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemindUnread(activeDetail.id)}
+                      disabled={isReminding}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+                      title="Kirimkan notifikasi in-app pengingat ke penerima yang belum membaca"
+                    >
+                      {isReminding ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Mengirim...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Bell className="w-3.5 h-3.5 text-blue-200" />
+                          <span>Ingatkan yang Belum Membaca ({unreadRecipientsCount})</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
                 {activeDetail?.canCancelSchedule && (
                   <button
                     type="button"
