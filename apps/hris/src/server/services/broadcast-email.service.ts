@@ -1866,9 +1866,14 @@ export async function cancelScheduledBroadcast(
     );
   }
 
+  const actorUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  });
+
   await writeAudit({
     actorUserId: userId,
-    actorEmail: authCtx.userEmail || "unknown",
+    actorEmail: actorUser?.email || broadcast.senderEmail || "unknown",
     app: "hris",
     action: "BROADCAST_EMAIL_CANCELED",
     entityType: "EmailBroadcast",

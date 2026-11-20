@@ -60,7 +60,7 @@ vi.mock("@pspk/db", () => ({
     emailBroadcastRecipient: {
       update: vi.fn(),
       updateMany: vi.fn(),
-      findMany: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
       groupBy: vi.fn(),
       createMany: vi.fn(),
     },
@@ -1181,6 +1181,308 @@ describe("broadcast-email.service.ts", () => {
       await expect(deleteBroadcastAttachment("user-1", "att-3")).rejects.toThrow(
         "Berkas lampiran yang sudah terkirim pada pengumuman tidak dapat dihapus.",
       );
+    });
+  });
+
+  describe("Task 8: Jadwal Kirim (Scheduled Broadcast)", () => {
+    describe("sendBroadcastSchema Validation for scheduledAt", () => {
+      it("harus menolak jadwal pengiriman kurang dari 5 menit dari waktu saat ini atau di masa lalu", () => {
+        const pastDate = new Date(Date.now() - 60 * 1000);
+        const resPast = sendBroadcastSchema.safeParse({
+          subject: "Pengumuman Lampau",
+          contentHtml: "<p>Konten</p>",
+          targetScope: "ALL_EMPLOYEES",
+          scheduledAt: pastDate,
+        });
+        expect(resPast.success).toBe(false);
+        if (!resPast.success) {
+          expect(resPast.error.issues[0]?.message).toContain("minimal 5 menit");
+        }
+
+        const twoMinutesFuture = new Date(Date.now() + 2 * 60 * 1000);
+        const resTwoMins = sendBroadcastSchema.safeParse({
+          subject: "Pengumuman Terlalu Cepat",
+          contentHtml: "<p>Konten</p>",
+          targetScope: "ALL_EMPLOYEES",
+          scheduledAt: twoMinutesFuture,
+        });
+        expect(resTwoMins.success).toBe(false);
+      });
+
+      it("harus menolak jadwal pengiriman lebih dari 90 hari di masa depan", () => {
+        const farFuture = new Date(Date.now() + 95 * 24 * 60 * 60 * 1000);
+        const res = sendBroadcastSchema.safeParse({
+          subject: "Pengumuman Terlalu Jauh",
+          contentHtml: "<p>Konten</p>",
+          targetScope: "ALL_EMPLOYEES",
+          scheduledAt: farFuture,
+        });
+        expect(res.success).toBe(false);
+        if (!res.success) {
+          expect(res.error.issues[0]?.message).toContain("maksimal 90 hari");
+        }
+      });
+
+      it("harus meloloskan jadwal pengiriman yang valid dalam rentang 5 menit - 90 hari", () => {
+        const validDate = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 jam dari sekarang
+        const res = sendBroadcastSchema.safeParse({
+          subject: "Pengumuman Sah",
+          contentHtml: "<p>Konten</p>",
+          targetScope: "ALL_EMPLOYEES",
+          scheduledAt: validDate,
+        });
+        expect(res.success).toBe(true);
+      });
+    });
+
+    describe("enqueueBroadcast with scheduledAt", () => {
+      it("harus menyimpan broadcast dengan status SCHEDULED tanpa membuat record penerima secara langsung", async () => {
+        vi.mocked(getAuthContext).mockResolvedValue({
+          userId: "user-hr-1",
+          employeeId: "emp-hr-1",
+          roles: ["admin_hr"],
+          permissions: new Set(["hris.broadcast.send:all"]),
+        });
+
+        vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+          id: "emp-hr-1",
+          fullName: "Admin HR",
+          workEmail: "hr@pspk.id",
+          currentPosition: { title: "HR Specialist", isUnitHead: false },
+          currentDepartment: { id: "dept-1", name: "People & Culture" },
+        } as unknown as MockEmployeeFirst);
+
+        vi.mocked(prisma.employee.findMany).mockResolvedValue([
+          {
+            id: "emp-2",
+            fullName: "Staf 2",
+            workEmail: "staf2@pspk.id",
+            userId: "user-staf-2",
+            currentDepartment: { name: "Riset" },
+          },
+        ] as unknown as MockEmployeeMany);
+
+        vi.mocked(prisma.emailBroadcast.create).mockResolvedValue({
+          id: "bc-scheduled-1",
+          subject: "Pengumuman Terjadwal",
+          status: "SCHEDULED",
+        } as never);
+
+        const scheduledAt = new Date(Date.now() + 3 * 60 * 60 * 1000);
+        const res = await enqueueBroadcast("user-hr-1", {
+          subject: "Pengumuman Terjadwal",
+          contentHtml: "<p>Akan dikirim nanti.</p>",
+          targetScope: "ALL_EMPLOYEES",
+          scheduledAt,
+        });
+
+        expect(res.success).toBe(true);
+        expect(res.scheduled).toBe(true);
+        expect(res.scheduledAt).toEqual(scheduledAt);
+        expect(res.broadcastId).toBe("bc-scheduled-1");
+
+        const createCall = vi.mocked(prisma.emailBroadcast.create).mock.calls[0]?.[0];
+        expect(createCall?.data.status).toBe("SCHEDULED");
+        expect(createCall?.data.scheduledAt).toEqual(scheduledAt);
+        expect(createCall?.data.recipients).toBeUndefined();
+      });
+    });
+
+    describe("cancelScheduledBroadcast", () => {
+      it("harus membatalkan broadcast terjadwal secara atomik jika pengguna adalah pembuat", async () => {
+        vi.mocked(getAuthContext).mockResolvedValue({
+          userId: "user-author",
+          employeeId: "emp-author",
+          roles: ["employee"],
+          permissions: new Set(),
+        });
+
+        vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+          id: "bc-sched-cancel",
+          senderUserId: "user-author",
+          status: "SCHEDULED",
+          subject: "Acara Dibatalkan",
+          scheduledAt: new Date(Date.now() + 3600000),
+        } as never);
+
+        vi.mocked(prisma.emailBroadcast.updateMany).mockResolvedValue({ count: 1 });
+
+        const res = await cancelScheduledBroadcast("user-author", "bc-sched-cancel");
+        expect(res.success).toBe(true);
+        expect(prisma.emailBroadcast.updateMany).toHaveBeenCalledWith({
+          where: { id: "bc-sched-cancel", status: "SCHEDULED" },
+          data: { status: "CANCELED" },
+        });
+      });
+
+      it("harus menolak pembatalan jika pengguna bukan pembuat dan bukan pemegang hak all", async () => {
+        vi.mocked(getAuthContext).mockResolvedValue({
+          userId: "user-other",
+          employeeId: "emp-other",
+          roles: ["employee"],
+          permissions: new Set(),
+        });
+
+        vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+          id: "bc-sched-forbidden",
+          senderUserId: "user-author-orig",
+          status: "SCHEDULED",
+          subject: "Acara Rahasia",
+        } as never);
+
+        await expect(
+          cancelScheduledBroadcast("user-other", "bc-sched-forbidden"),
+        ).rejects.toThrow("Akses ditolak: Anda tidak memiliki izin untuk membatalkan pengumuman ini.");
+      });
+
+      it("harus menolak pembatalan jika broadcast sudah bukan berstatus SCHEDULED", async () => {
+        vi.mocked(getAuthContext).mockResolvedValue({
+          userId: "user-author",
+          employeeId: "emp-author",
+          roles: ["admin_hr"],
+          permissions: new Set(["hris.broadcast.send:all"]),
+        });
+
+        vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+          id: "bc-already-queued",
+          senderUserId: "user-author",
+          status: "QUEUED",
+          subject: "Sedang Berjalan",
+        } as never);
+
+        await expect(
+          cancelScheduledBroadcast("user-author", "bc-already-queued"),
+        ).rejects.toThrow("Hanya pengumuman berstatus terjadwal yang dapat dibatalkan.");
+      });
+    });
+
+    describe("dispatchScheduledBroadcasts", () => {
+      it("harus mengklaim broadcast terjadwal yang telah jatuh tempo ke status QUEUED dan memprosesnya", async () => {
+        const pastSchedule = new Date(Date.now() - 10000);
+        vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([
+          {
+            id: "bc-due-1",
+            subject: "Pengumuman Jatuh Tempo",
+            senderUserId: "user-hr-due",
+            targetScope: "ALL_EMPLOYEES",
+            targetDepartmentId: null,
+            targetDepartmentIds: [],
+            customEmployeeIds: [],
+            excludedEmployeeIds: [],
+            status: "SCHEDULED",
+            scheduledAt: pastSchedule,
+            senderPersona: "ORGANIZATION",
+          },
+        ] as never);
+
+        // Atomic claim
+        vi.mocked(prisma.emailBroadcast.updateMany).mockResolvedValue({ count: 1 });
+
+        // Sender context valid
+        vi.mocked(getAuthContext).mockResolvedValue({
+          userId: "user-hr-due",
+          employeeId: "emp-hr-due",
+          roles: ["admin_hr"],
+          permissions: new Set(["hris.broadcast.send:all"]),
+        });
+
+        vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+          id: "emp-hr-due",
+          fullName: "HR Staff",
+          workEmail: "hr@pspk.id",
+          currentPosition: { title: "HR", isUnitHead: false },
+          currentDepartment: { id: "dept-1", name: "People" },
+        } as unknown as MockEmployeeFirst);
+
+        // Recipients resolution
+        vi.mocked(prisma.employee.findMany).mockResolvedValue([
+          {
+            id: "emp-active-1",
+            fullName: "Staf Aktif",
+            workEmail: "staf@pspk.id",
+            userId: "user-staf-1",
+            currentDepartment: { name: "Riset" },
+          },
+        ] as unknown as MockEmployeeMany);
+
+        vi.mocked(prisma.emailBroadcastRecipient.createMany).mockResolvedValue({ count: 1 });
+        vi.mocked(prisma.emailBroadcast.update).mockResolvedValue({ id: "bc-due-1" } as never);
+
+        // Mock processBroadcast setup
+        vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+          id: "bc-due-1",
+          subject: "Pengumuman Jatuh Tempo",
+          contentHtml: "<p>Isi</p>",
+          contentText: "Isi",
+          status: "QUEUED",
+          lockedAt: null,
+          senderName: "PSPK HR",
+          senderEmail: "hr@pspk.id",
+          replyToEmail: "no-reply@pspk.id",
+          sendInApp: false,
+          recipients: [],
+          attachments: [],
+        } as never);
+
+        const res = await dispatchScheduledBroadcasts();
+        expect(res.dispatchedCount).toBe(1);
+        expect(res.failedCount).toBe(0);
+        expect(prisma.emailBroadcastRecipient.createMany).toHaveBeenCalledWith({
+          data: expect.arrayContaining([
+            expect.objectContaining({
+              broadcastId: "bc-due-1",
+              employeeId: "emp-active-1",
+              email: "staf@pspk.id",
+              status: "PENDING",
+            }),
+          ]),
+        });
+      });
+
+      it("harus menandai FAILED jika pengirim broadcast terjadwal kehilangan izin saat jadwal tiba", async () => {
+        const pastSchedule = new Date(Date.now() - 10000);
+        vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([
+          {
+            id: "bc-due-unauth",
+            subject: "Pengumuman Ilegal",
+            senderUserId: "user-demoted",
+            targetScope: "ALL_EMPLOYEES",
+            targetDepartmentId: null,
+            targetDepartmentIds: [],
+            customEmployeeIds: [],
+            excludedEmployeeIds: [],
+            status: "SCHEDULED",
+            scheduledAt: pastSchedule,
+            senderPersona: "ORGANIZATION",
+          },
+        ] as never);
+
+        vi.mocked(prisma.emailBroadcast.updateMany).mockResolvedValue({ count: 1 });
+
+        // Sender context demoted: staf biasa tanpa hak canSendAll
+        vi.mocked(getAuthContext).mockResolvedValue({
+          userId: "user-demoted",
+          employeeId: "emp-demoted",
+          roles: ["employee"],
+          permissions: new Set(),
+        });
+
+        vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+          id: "emp-demoted",
+          fullName: "Staf Biasa",
+          workEmail: "demoted@pspk.id",
+          currentPosition: { title: "Staff", isUnitHead: false },
+          currentDepartment: { id: "dept-1", name: "People" },
+        } as unknown as MockEmployeeFirst);
+
+        const res = await dispatchScheduledBroadcasts();
+        expect(res.failedCount).toBe(1);
+        expect(res.dispatchedCount).toBe(0);
+        expect(prisma.emailBroadcast.update).toHaveBeenCalledWith({
+          where: { id: "bc-due-unauth" },
+          data: { status: "FAILED" },
+        });
+      });
     });
   });
 });

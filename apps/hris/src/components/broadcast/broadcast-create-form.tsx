@@ -28,7 +28,6 @@ import {
   Trash2,
   UploadCloud,
   Clock,
-  Calendar,
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";
@@ -136,6 +135,8 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
   // Jadwal Pengiriman State
   const [deliveryTimeMode, setDeliveryTimeMode] = useState<"NOW" | "SCHEDULED">("NOW");
   const [scheduledDateString, setScheduledDateString] = useState("");
+  const [minDateString, setMinDateString] = useState("");
+  const [maxDateString, setMaxDateString] = useState("");
 
   // Active view tab for mobile / tablet (< lg): write vs preview
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
@@ -1794,8 +1795,13 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   checked={deliveryTimeMode === "SCHEDULED"}
                   onChange={() => {
                     setDeliveryTimeMode("SCHEDULED");
+                    const now = Date.now();
+                    setMinDateString(toDateTimeLocalString(new Date(now + 5 * 60 * 1000)));
+                    setMaxDateString(
+                      toDateTimeLocalString(new Date(now + 90 * 24 * 60 * 60 * 1000)),
+                    );
                     if (!scheduledDateString) {
-                      const defaultDate = new Date(Date.now() + 60 * 60 * 1000);
+                      const defaultDate = new Date(now + 60 * 60 * 1000);
                       setScheduledDateString(toDateTimeLocalString(defaultDate));
                     }
                   }}
@@ -1829,11 +1835,16 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     <input
                       type="datetime-local"
                       required={deliveryTimeMode === "SCHEDULED"}
-                      min={toDateTimeLocalString(new Date(Date.now() + 5 * 60 * 1000))}
-                      max={toDateTimeLocalString(
-                        new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-                      )}
+                      min={minDateString}
+                      max={maxDateString}
                       value={scheduledDateString}
+                      onFocus={() => {
+                        const now = Date.now();
+                        setMinDateString(toDateTimeLocalString(new Date(now + 5 * 60 * 1000)));
+                        setMaxDateString(
+                          toDateTimeLocalString(new Date(now + 90 * 24 * 60 * 60 * 1000)),
+                        );
+                      }}
                       onChange={(e) => setScheduledDateString(e.target.value)}
                       className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent text-slate-900 font-medium"
                     />
