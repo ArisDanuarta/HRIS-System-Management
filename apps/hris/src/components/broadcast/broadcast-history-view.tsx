@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useTransition } from "react";
 import Link from "next/link";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Mail,
   Send,
@@ -14,6 +15,10 @@ import {
   Calendar,
   TrendingUp,
   Inbox,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  RotateCcw,
 } from "lucide-react";
 import {
   BroadcastHistoryItem,
@@ -24,20 +29,46 @@ import { getBroadcastDetailAction } from "../../server/actions/broadcast.actions
 import { PspkLoader } from "@pspk/ui";
 
 interface BroadcastHistoryViewProps {
-  initialItems: BroadcastHistoryItem[];
+  items?: BroadcastHistoryItem[];
+  initialItems?: BroadcastHistoryItem[];
+  total?: number;
+  page?: number;
+  totalPages?: number;
   stats: BroadcastHistoryStats;
   canCreate: boolean;
+  initialSearch?: string;
+  initialScope?: string;
+  initialStatus?: string;
 }
 
 export function BroadcastHistoryView({
+  items,
   initialItems,
+  total,
+  page,
+  totalPages,
   stats,
   canCreate,
+  initialSearch = "",
+  initialScope = "ALL",
+  initialStatus = "ALL",
 }: BroadcastHistoryViewProps) {
-  const [items] = useState<BroadcastHistoryItem[]>(initialItems);
-  const [search, setSearch] = useState("");
-  const [selectedScope, setSelectedScope] = useState<string>("ALL");
-  const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  const displayItems = items ?? initialItems ?? [];
+  const currentPage = page ?? 1;
+  const maxPages = totalPages ?? 1;
+  const totalCount = total ?? displayItems.length;
+
+  const activeScope = searchParams.get("scope") || initialScope;
+  const activeStatus = searchParams.get("status") || initialStatus;
+
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("q") || searchParams.get("search") || initialSearch,
+  );
 
   // Detail Modal State
   const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);
@@ -47,24 +78,89 @@ export function BroadcastHistoryView({
   const [recipientFilter, setRecipientFilter] = useState<"ALL" | "SENT" | "FAILED">("ALL");
   const [recipientSearch, setRecipientSearch] = useState("");
 
-  // Filtered Items
-  const filteredItems = useMemo(() => {
-    return items.filter((item) => {
-      const matchSearch =
-        search.trim() === "" ||
-        item.subject.toLowerCase().includes(search.toLowerCase()) ||
-        item.senderName.toLowerCase().includes(search.toLowerCase()) ||
-        item.contentSnippet.toLowerCase().includes(search.toLowerCase());
+  // Sinkronkan input pencarian jika query URL berubah via tombol back/forward
+  useEffect(() => {
+    const urlQ = searchParams.get("q") || searchParams.get("search") || "";
+    setSearchQuery(urlQ);
+  }, [searchParams]);
 
-      const matchScope =
-        selectedScope === "ALL" || item.targetScope === selectedScope;
+  const updateUrl = (updates: {
+    q?: string;
+    scope?: string;
+    status?: string;
+    page?: number;
+  }) => {
+    const params = new URLSearchParams(searchParams.toString());
 
-      const matchStatus =
-        selectedStatus === "ALL" || item.status === selectedStatus;
+    if (updates.q !== undefined) {
+      const trimmed = updates.q.trim();
+      if (trimmed) {
+        params.set("q", trimmed);
+      } else {
+        params.delete("q");
+      }
+      params.delete("search"); // normalisasi ke parameter 'q'
+    }
 
-      return matchSearch && matchScope && matchStatus;
+    if (updates.scope !== undefined) {
+      if (updates.scope && updates.scope !== "ALL") {
+        params.set("scope", updates.scope);
+      } else {
+        params.delete("scope");
+      }
+    }
+
+    if (updates.status !== undefined) {
+      if (updates.status && updates.status !== "ALL") {
+        params.set("status", updates.status);
+      } else {
+        params.delete("status");
+      }
+    }
+
+    if (updates.page !== undefined) {
+      if (updates.page > 1) {
+        params.set("page", String(updates.page));
+      } else {
+        params.delete("page");
+      }
+    }
+
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     });
-  }, [items, search, selectedScope, selectedStatus]);
+  };
+
+  // Debounce 400ms untuk pencarian teks
+  useEffect(() => {
+    const currentUrlQ = searchParams.get("q") || searchParams.get("search") || "";
+    if (searchQuery.trim() === currentUrlQ.trim()) return;
+
+    const timer = setTimeout(() => {
+      updateUrl({ q: searchQuery, page: 1 });
+    }, 400);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery]);
+
+  const handleScopeChange = (newScope: string) => {
+    updateUrl({ scope: newScope, page: 1 });
+  };
+
+  const handleStatusChange = (newStatus: string) => {
+    updateUrl({ status: newStatus, page: 1 });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > maxPages || newPage === currentPage) return;
+    updateUrl({ page: newPage });
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    updateUrl({ q: "", scope: "ALL", status: "ALL", page: 1 });
+  };
 
   const handleOpenDetail = async (id: string) => {
     setSelectedBroadcastId(id);
@@ -120,6 +216,10 @@ export function BroadcastHistoryView({
     }).format(d);
   };
 
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() || activeScope !== "ALL" || activeStatus !== "ALL",
+  );
+
   return (
     <div className="space-y-6">
       {/* --- STATS SUMMARY CARDS --- */}
@@ -129,7 +229,7 @@ export function BroadcastHistoryView({
             <Mail className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-medium">Total Pengumuman</p>
+            <p className="text-xs text-slate-600 font-medium">Total Pengumuman</p>
             <h3 className="text-xl font-bold text-slate-900 mt-0.5">
               {stats.totalBroadcasts}
             </h3>
@@ -141,7 +241,7 @@ export function BroadcastHistoryView({
             <CheckCircle2 className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-medium">Email Terkirim</p>
+            <p className="text-xs text-slate-600 font-medium">Email Terkirim</p>
             <h3 className="text-xl font-bold text-slate-900 mt-0.5">
               {stats.totalEmailsSent}
             </h3>
@@ -153,7 +253,7 @@ export function BroadcastHistoryView({
             <AlertCircle className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-medium">Email Gagal</p>
+            <p className="text-xs text-slate-600 font-medium">Email Gagal</p>
             <h3 className="text-xl font-bold text-slate-900 mt-0.5">
               {stats.totalEmailsFailed}
             </h3>
@@ -165,7 +265,7 @@ export function BroadcastHistoryView({
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-medium">Keterkiriman</p>
+            <p className="text-xs text-slate-600 font-medium">Keterkiriman</p>
             <h3 className="text-xl font-bold text-slate-900 mt-0.5">
               {stats.successRate}%
             </h3>
@@ -176,22 +276,26 @@ export function BroadcastHistoryView({
       {/* --- SEARCH & FILTERS BAR --- */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Cari subjek, pengirim, atau isi pengumuman..."
-            className="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent"
+            className="w-full pl-9 pr-9 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent text-slate-900"
           />
+          {isPending && (
+            <Loader2 className="w-4 h-4 text-navy-800 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Scope Filter */}
           <select
-            value={selectedScope}
-            onChange={(e) => setSelectedScope(e.target.value)}
-            className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 font-medium text-slate-700"
+            value={activeScope}
+            onChange={(e) => handleScopeChange(e.target.value)}
+            disabled={isPending}
+            className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 font-medium text-slate-700 cursor-pointer disabled:opacity-60"
           >
             <option value="ALL">Semua Sasaran</option>
             <option value="ALL_EMPLOYEES">Organisasi (Semua Staf)</option>
@@ -202,9 +306,10 @@ export function BroadcastHistoryView({
 
           {/* Status Filter */}
           <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 font-medium text-slate-700"
+            value={activeStatus}
+            onChange={(e) => handleStatusChange(e.target.value)}
+            disabled={isPending}
+            className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 font-medium text-slate-700 cursor-pointer disabled:opacity-60"
           >
             <option value="ALL">Semua Status</option>
             <option value="SENT">100% Terkirim</option>
@@ -225,21 +330,33 @@ export function BroadcastHistoryView({
       </div>
 
       {/* --- BROADCAST ITEMS LIST --- */}
-      {filteredItems.length === 0 ? (
+      {displayItems.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center space-y-3">
-          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-500">
             <Inbox className="w-6 h-6" />
           </div>
-          <h4 className="font-semibold text-sm text-slate-800">
-            Belum Ada Pengumuman Ditemukan
+          <h4 className="font-semibold text-sm text-slate-900">
+            {hasActiveFilters
+              ? "Belum Ada Pengumuman Ditemukan"
+              : "Belum Ada Pengumuman Terkirim"}
           </h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            {search || selectedScope !== "ALL" || selectedStatus !== "ALL"
+          <p className="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+            {hasActiveFilters
               ? "Tidak ada riwayat pengumuman yang sesuai dengan kriteria filter yang Anda tentukan."
               : "Belum ada email broadcast pengumuman resmi yang dikirimkan melalui sistem."}
           </p>
-          {canCreate && (
-            <div className="pt-2">
+          <div className="pt-2 flex items-center justify-center gap-2">
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
+                <span>Reset Filter</span>
+              </button>
+            )}
+            {canCreate && (
               <Link
                 href="/komunikasi/baru"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#102E50] text-white rounded-xl text-xs font-semibold hover:bg-[#0c233d] transition-colors cursor-pointer"
@@ -247,108 +364,149 @@ export function BroadcastHistoryView({
                 <Send className="w-3.5 h-3.5 text-gold-400" />
                 <span>Buat Pengumuman Baru</span>
               </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-xl border border-slate-200 hover:border-navy-300 shadow-xs hover:shadow-sm transition-all p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div className="space-y-2 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  {/* Scope Badge */}
-                  <span
-                    className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                      item.targetScope === "ALL_EMPLOYEES"
-                        ? "bg-purple-50 text-purple-700 border border-purple-200"
+        <div className="space-y-4">
+          <div
+            className={`space-y-3 transition-opacity duration-150 ${
+              isPending ? "opacity-60 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            {displayItems.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white rounded-xl border border-slate-200 hover:border-navy-300 shadow-xs hover:shadow-sm transition-all p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              >
+                <div className="space-y-2 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Scope Badge */}
+                    <span
+                      className={`inline-block text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                        item.targetScope === "ALL_EMPLOYEES"
+                          ? "bg-purple-50 text-purple-700 border border-purple-200"
+                          : item.targetScope === "DEPARTMENT"
+                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            : item.targetScope === "CUSTOM"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                      }`}
+                    >
+                      {item.targetScope === "ALL_EMPLOYEES"
+                        ? "ORGANISASI"
                         : item.targetScope === "DEPARTMENT"
-                          ? "bg-blue-50 text-blue-700 border border-blue-200"
+                          ? `DIVISI: ${item.targetDepartmentName || ""}`
                           : item.targetScope === "CUSTOM"
-                            ? "bg-amber-50 text-amber-700 border border-amber-200"
-                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    }`}
-                  >
-                    {item.targetScope === "ALL_EMPLOYEES"
-                      ? "ORGANISASI"
-                      : item.targetScope === "DEPARTMENT"
-                        ? `DIVISI: ${item.targetDepartmentName || ""}`
-                        : item.targetScope === "CUSTOM"
-                          ? "PEGAWAI TERPILIH"
-                          : "TIM BAWAHAN"}
-                  </span>
-
-                  {/* Status Badge */}
-                  <span
-                    className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md ${
-                      item.status === "SENT"
-                        ? "bg-emerald-50 text-emerald-700"
-                        : item.status === "PARTIALLY_FAILED"
-                          ? "bg-amber-50 text-amber-700"
-                          : "bg-red-50 text-red-700"
-                    }`}
-                  >
-                    {item.status === "SENT" ? (
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    ) : item.status === "PARTIALLY_FAILED" ? (
-                      <AlertCircle className="w-3 h-3 text-amber-600" />
-                    ) : (
-                      <XCircle className="w-3 h-3 text-red-600" />
-                    )}
-                    <span>
-                      {item.sentCount}/{item.totalRecipients} Terkirim
+                            ? "PEGAWAI TERPILIH"
+                            : "TIM BAWAHAN"}
                     </span>
-                  </span>
 
-                  <span className="text-slate-300">•</span>
-                  <span className="text-[11px] text-slate-500 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    {formatDateTime(item.createdAt)}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-sm text-slate-900">
-                    {item.subject}
-                  </h3>
-                  <p className="text-xs text-slate-600 line-clamp-2 mt-1">
-                    {item.contentSnippet}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 pt-1">
-                  <span className="font-medium text-slate-700">
-                    Dari: {item.senderName}
-                  </span>
-                  <span>•</span>
-                  <span className="text-slate-500">
-                    Balasan: {item.replyToEmail || "no-reply@pspk.id"}
-                  </span>
-                  {item.sendInApp && (
-                    <>
-                      <span>•</span>
-                      <span className="text-navy-800 font-medium flex items-center gap-1">
-                        ✓ Notifikasi In-App
+                    {/* Status Badge */}
+                    <span
+                      className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-md ${
+                        item.status === "SENT"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : item.status === "PARTIALLY_FAILED"
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-red-50 text-red-700"
+                      }`}
+                    >
+                      {item.status === "SENT" ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : item.status === "PARTIALLY_FAILED" ? (
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                      ) : (
+                        <XCircle className="w-3.5 h-3.5 text-red-600" />
+                      )}
+                      <span>
+                        {item.sentCount}/{item.totalRecipients} Terkirim
                       </span>
-                    </>
-                  )}
+                    </span>
+
+                    <span className="text-slate-300">•</span>
+                    <span className="text-xs text-slate-600 flex items-center gap-1">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {formatDateTime(item.createdAt)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-900">
+                      {item.subject}
+                    </h3>
+                    <p className="text-xs text-slate-600 line-clamp-2 mt-1 leading-relaxed">
+                      {item.contentSnippet}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 pt-1">
+                    <span className="font-medium text-slate-800">
+                      Dari: {item.senderName}
+                    </span>
+                    <span>•</span>
+                    <span className="text-slate-600">
+                      Balasan: {item.replyToEmail || "no-reply@pspk.id"}
+                    </span>
+                    {item.sendInApp && (
+                      <>
+                        <span>•</span>
+                        <span className="text-navy-800 font-medium flex items-center gap-1">
+                          ✓ Notifikasi In-App
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 md:self-center shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDetail(item.id)}
+                    className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-navy-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-navy-800" />
+                    <span>Lihat Rincian &amp; Log</span>
+                  </button>
                 </div>
               </div>
+            ))}
+          </div>
 
-              <div className="flex items-center gap-2 md:self-center">
-                <button
-                  type="button"
-                  onClick={() => handleOpenDetail(item.id)}
-                  className="w-full md:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-navy-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors"
-                >
-                  <Eye className="w-3.5 h-3.5 text-navy-800" />
-                  <span>Lihat Rincian &amp; Log</span>
-                </button>
-              </div>
+          {/* PAGINATION BAR */}
+          <div className="bg-white rounded-xl border border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <span>
+                Halaman <strong className="text-slate-900">{currentPage}</strong> dari{" "}
+                <strong className="text-slate-900">{maxPages}</strong>
+              </span>
+              <span className="text-slate-300">•</span>
+              <span>
+                Total <strong className="text-slate-900">{totalCount}</strong> pengumuman
+              </span>
             </div>
-          ))}
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage <= 1 || isPending}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Sebelumnya</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= maxPages || isPending}
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+              >
+                <span>Berikutnya</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -359,7 +517,7 @@ export function BroadcastHistoryView({
             {/* Modal Header */}
             <div className="px-5 py-4 bg-[#102E50] text-white flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gold-400">
+                <span className="text-xs font-bold uppercase tracking-wider text-gold-400">
                   Rincian Pengumuman &amp; Log Penerima
                 </span>
                 <h3 className="font-bold text-base line-clamp-1 mt-0.5">
@@ -393,25 +551,25 @@ export function BroadcastHistoryView({
                   <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 text-xs">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <span className="text-slate-500">Atas Nama Pengirim:</span>
+                        <span className="text-slate-600">Atas Nama Pengirim:</span>
                         <p className="font-semibold text-slate-900 mt-0.5">
                           {activeDetail.senderName}
                         </p>
                       </div>
                       <div>
-                        <span className="text-slate-500">Alamat Balasan (Reply-To):</span>
-                        <p className="font-semibold text-slate-900 font-mono text-[11px] mt-0.5">
+                        <span className="text-slate-600">Alamat Balasan (Reply-To):</span>
+                        <p className="font-semibold text-slate-900 font-mono text-xs mt-0.5">
                           {activeDetail.replyToEmail || "no-reply@pspk.id (Satu Arah)"}
                         </p>
                       </div>
                       <div>
-                        <span className="text-slate-500">Waktu Kirim:</span>
+                        <span className="text-slate-600">Waktu Kirim:</span>
                         <p className="font-semibold text-slate-900 mt-0.5">
                           {formatDateTime(activeDetail.createdAt)}
                         </p>
                       </div>
                       <div>
-                        <span className="text-slate-500">Status Keterkiriman:</span>
+                        <span className="text-slate-600">Status Keterkiriman:</span>
                         <p
                           className={`font-semibold mt-0.5 ${
                             activeDetail.failedCount > 0 ? "text-amber-700" : "text-emerald-700"
@@ -426,7 +584,7 @@ export function BroadcastHistoryView({
 
                   {/* Naskah Pesan Asli */}
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                       Naskah Pengumuman Terkirim:
                     </h4>
                     <div
@@ -443,7 +601,7 @@ export function BroadcastHistoryView({
                       </h4>
 
                       {/* Recipient status filter */}
-                      <div className="flex items-center gap-1 text-[11px]">
+                      <div className="flex items-center gap-1 text-xs">
                         <button
                           type="button"
                           onClick={() => setRecipientFilter("ALL")}
@@ -458,7 +616,7 @@ export function BroadcastHistoryView({
                         <button
                           type="button"
                           onClick={() => setRecipientFilter("SENT")}
-                          className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
+                          className={`px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
                             recipientFilter === "SENT"
                               ? "bg-emerald-700 text-white font-semibold"
                               : "text-slate-600 hover:bg-slate-100"
@@ -470,7 +628,7 @@ export function BroadcastHistoryView({
                           <button
                             type="button"
                             onClick={() => setRecipientFilter("FAILED")}
-                            className={`px-2 py-0.5 rounded-md font-medium transition-colors ${
+                            className={`px-2 py-0.5 rounded-md font-medium transition-colors cursor-pointer ${
                               recipientFilter === "FAILED"
                                 ? "bg-red-700 text-white font-semibold"
                                 : "text-slate-600 hover:bg-slate-100"
@@ -484,20 +642,20 @@ export function BroadcastHistoryView({
 
                     {/* Recipient search */}
                     <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         value={recipientSearch}
                         onChange={(e) => setRecipientSearch(e.target.value)}
                         placeholder="Saring nama atau email penerima..."
-                        className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-navy-600"
+                        className="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-navy-600 text-slate-900"
                       />
                     </div>
 
                     {/* Table of recipients */}
                     <div className="border border-slate-200 rounded-lg overflow-hidden max-h-56 overflow-y-auto text-xs">
                       <table className="w-full text-left">
-                        <thead className="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200 sticky top-0">
+                        <thead className="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200 sticky top-0">
                           <tr>
                             <th className="py-2 px-3">Nama Pegawai</th>
                             <th className="py-2 px-3">Email Kantor</th>
@@ -515,13 +673,13 @@ export function BroadcastHistoryView({
                               </td>
                               <td className="py-2 px-3">
                                 {rcpt.status === "SENT" ? (
-                                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
                                     <CheckCircle2 className="w-3 h-3" />
                                     <span>Terkirim</span>
                                   </span>
                                 ) : (
                                   <span
-                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full"
                                     title={rcpt.errorMessage || "Gagal mengirim"}
                                   >
                                     <AlertCircle className="w-3 h-3" />
@@ -544,7 +702,7 @@ export function BroadcastHistoryView({
               <button
                 type="button"
                 onClick={handleCloseDetail}
-                className="px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
               >
                 Tutup
               </button>
