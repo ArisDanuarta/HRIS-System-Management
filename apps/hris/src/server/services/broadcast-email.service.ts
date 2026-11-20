@@ -354,6 +354,42 @@ export function absolutizeImageUrls(html: string): string {
 }
 
 /**
+ * Escape karakter berbahaya HTML untuk pencegahan XSS saat personalisasi variabel.
+ */
+export function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
+ * Mengganti variabel personalisasi seperti {{nama}} dan {{nama_depan}} per penerima.
+ */
+export function replacePersonalizationVariables(
+  text: string,
+  recipient: { recipientName: string },
+): string {
+  const fullName = recipient.recipientName.trim();
+  const firstName = fullName.split(/\s+/)[0] || fullName;
+
+  return text
+    .replace(/\{\{\s*nama\s*\}\}/gi, escapeHtml(fullName))
+    .replace(/\{\{\s*nama_depan\s*\}\}/gi, escapeHtml(firstName));
+}
+
+/**
+ * Mengganti variabel personalisasi dengan contoh ("Budi Santoso" / "Budi") untuk pratinjau.
+ */
+export function interpolatePreviewVariables(text: string): string {
+  return text
+    .replace(/\{\{\s*nama\s*\}\}/gi, "Budi Santoso")
+    .replace(/\{\{\s*nama_depan\s*\}\}/gi, "Budi");
+}
+
+/**
  * Menghasilkan teks polos tanpa tag HTML untuk fallback email klien lama.
  */
 export function htmlToPlainText(html: string): string {
@@ -546,6 +582,10 @@ export function buildEmailForRecipient(
 ) {
   const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
   const emailContentHtml = absolutizeImageUrls(broadcast.contentHtml);
+  const personalizedSubject = replacePersonalizationVariables(broadcast.subject, recipient);
+  const personalizedContentHtml = replacePersonalizationVariables(emailContentHtml, recipient);
+  const personalizedContentText = replacePersonalizationVariables(broadcast.contentText, recipient);
+
   const scopeBadge =
     broadcast.targetScope === "ALL_EMPLOYEES"
       ? "PENGUMUMAN ORGANISASI"
@@ -566,8 +606,8 @@ export function buildEmailForRecipient(
   }
 
   const personalizedHtml = renderBroadcastEmailHtml({
-    subject: broadcast.subject,
-    contentHtml: emailContentHtml,
+    subject: personalizedSubject,
+    contentHtml: personalizedContentHtml,
     recipientName: recipient.recipientName,
     senderName: broadcast.senderName,
     senderTitle: broadcast.senderDisplayTitle || "Staf Lembaga",
@@ -586,8 +626,8 @@ export function buildEmailForRecipient(
     from: smtpFrom,
     to: recipient.email,
     replyTo: replyToHeader,
-    subject: `[PSPK HRIS] ${broadcast.subject}`,
-    text: `Halo ${recipient.recipientName},\n\n${broadcast.contentText}\n\n${plainTextFooter}`,
+    subject: `[PSPK HRIS] ${personalizedSubject}`,
+    text: `Halo ${recipient.recipientName},\n\n${personalizedContentText}\n\n${plainTextFooter}`,
     html: personalizedHtml,
     headers: {
       "X-Mailer": "PSPK-Broadcast-Mailer",
@@ -827,28 +867,31 @@ export async function processBroadcast(
   if (broadcast.sendInApp && !broadcast.inAppDispatchedAt) {
     const recipientsWithUser = await prisma.emailBroadcastRecipient.findMany({
       where: { broadcastId, employee: { userId: { not: null } } },
-      select: { employee: { select: { userId: true } } },
+      select: { recipientName: true, employee: { select: { userId: true } } },
     });
 
-    const userIds = recipientsWithUser
-      .map((r) => r.employee?.userId)
-      .filter((uid): uid is string => Boolean(uid));
+    const validRecipients = recipientsWithUser.filter((r) => Boolean(r.employee?.userId));
 
-    if (userIds.length > 0) {
+    if (validRecipients.length > 0) {
       const snippet =
         broadcast.contentText.length > 120
           ? `${broadcast.contentText.slice(0, 117)}...`
           : broadcast.contentText;
 
       await prisma.notification.createMany({
-        data: userIds.map((userId) => ({
-          userId,
-          title: `Pengumuman: ${broadcast.subject}`,
-          message: `${broadcast.senderName}: "${snippet}"`,
-          type: "INFO",
-          category: "SYSTEM",
-          link: "/notifikasi",
-        })),
+        data: validRecipients.map((r) => {
+          const personalizedSubj = replacePersonalizationVariables(broadcast.subject, {
+            recipientName: r.recipientName,
+          });
+          return {
+            userId: r.employee!.userId!,
+            title: `Pengumuman: ${personalizedSubj}`,
+            message: `${broadcast.senderName}: "${snippet}"`,
+            type: "INFO",
+            category: "SYSTEM",
+            link: "/notifikasi",
+          };
+        }),
       });
     }
 
@@ -1117,6 +1160,11 @@ export async function sendTestBroadcast(
   const plainTextContent = htmlToPlainText(sanitizedContent);
   const absolutizedHtml = absolutizeImageUrls(sanitizedContent);
 
+  const testRecipient = { recipientName: senderCtx.userName };
+  const personalizedSubj = replacePersonalizationVariables(subject, testRecipient);
+  const personalizedPlainText = replacePersonalizationVariables(plainTextContent, testRecipient);
+  const personalizedAbsolutizedHtml = replacePersonalizationVariables(absolutizedHtml, testRecipient);
+
   // Banner penanda email uji
   const testBanner = `
     <div style="background-color: #FEF3C7; border: 1px solid #F59E0B; color: #92400E; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; font-size: 13px; line-height: 1.5; font-family: sans-serif;">
@@ -1125,10 +1173,10 @@ export async function sendTestBroadcast(
     </div>
   `.trim();
 
-  const emailContentHtml = `${testBanner}${absolutizedHtml}`;
+  const emailContentHtml = `${testBanner}${personalizedAbsolutizedHtml}`;
 
   const personalizedHtml = renderBroadcastEmailHtml({
-    subject: `[TES] ${subject}`,
+    subject: `[TES] ${personalizedSubj}`,
     contentHtml: emailContentHtml,
     recipientName: senderCtx.userName,
     senderName: resolvedSender.displayName,
@@ -1148,8 +1196,8 @@ export async function sendTestBroadcast(
       from: smtpFrom,
       to: senderCtx.userEmail,
       replyTo: resolvedSender.replyToHeader,
-      subject: `[TES] [PSPK HRIS] ${subject}`,
-      text: `[EMAIL UJI]\n\nHalo ${senderCtx.userName},\n\nIni adalah email uji pengumuman. Pesan ini hanya dikirimkan ke Anda.\n\n${plainTextContent}\n\nPengumuman dari: ${resolvedSender.displayName}`,
+      subject: `[TES] [PSPK HRIS] ${personalizedSubj}`,
+      text: `[EMAIL UJI]\n\nHalo ${senderCtx.userName},\n\nIni adalah email uji pengumuman. Pesan ini hanya dikirimkan ke Anda.\n\n${personalizedPlainText}\n\nPengumuman dari: ${resolvedSender.displayName}`,
       html: personalizedHtml,
       headers: {
         "X-Mailer": "PSPK-Broadcast-Mailer",

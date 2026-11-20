@@ -91,6 +91,110 @@ export const sendTestBroadcastSchema = z.object({
 export type SendTestBroadcastInput = z.input<typeof sendTestBroadcastSchema>;
 export type SendTestBroadcastOutput = z.output<typeof sendTestBroadcastSchema>;
 
+export const saveBroadcastDraftSchema = z.object({
+  id: z.string().trim().optional(),
+  title: z
+    .string()
+    .trim()
+    .max(150, "Judul draf maksimal 150 karakter.")
+    .optional()
+    .default(""),
+  subject: z
+    .string()
+    .trim()
+    .max(200, "Subjek pengumuman maksimal 200 karakter.")
+    .optional()
+    .default(""),
+  contentHtml: z
+    .string()
+    .max(500 * 1024, "Ukuran naskah draf maksimal 500 KB.")
+    .optional()
+    .default(""),
+  targetScope: broadcastScopeSchema.default("TEAM"),
+  targetDepartmentIds: z.array(z.string().trim()).max(1000).optional().default([]),
+  customEmployeeIds: z.array(z.string().trim()).max(1000).optional().default([]),
+  excludedEmployeeIds: z.array(z.string().trim()).max(1000).optional().default([]),
+  senderPersona: senderPersonaSchema.default("ORGANIZATION"),
+  customSenderName: z
+    .string()
+    .trim()
+    .max(100, "Nama pengirim kustom maksimal 100 karakter.")
+    .optional()
+    .nullable(),
+  replyToMode: replyToModeSchema.default("NO_REPLY"),
+  customReplyToEmail: z
+    .string()
+    .trim()
+    .email("Format alamat email balasan kustom tidak valid.")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+  sendInApp: z.boolean().default(true),
+});
+
+export type SaveBroadcastDraftInput = z.input<typeof saveBroadcastDraftSchema>;
+export type SaveBroadcastDraftOutput = z.output<typeof saveBroadcastDraftSchema>;
+
+export interface BroadcastDraftItem {
+  id: string;
+  ownerUserId: string;
+  title: string;
+  subject: string;
+  contentHtml: string;
+  targetScope: BroadcastScope;
+  targetDepartmentIds: string[];
+  customEmployeeIds: string[];
+  excludedEmployeeIds: string[];
+  senderPersona: SenderPersona;
+  customSenderName: string | null;
+  replyToMode: ReplyToMode;
+  customReplyToEmail: string | null;
+  sendInApp: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export const saveBroadcastTemplateSchema = z.object({
+  id: z.string().trim().optional(),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Nama template minimal 2 karakter.")
+    .max(100, "Nama template maksimal 100 karakter."),
+  category: z
+    .string()
+    .trim()
+    .max(50, "Kategori template maksimal 50 karakter.")
+    .optional()
+    .nullable(),
+  subject: z
+    .string()
+    .trim()
+    .min(3, "Subjek pengumuman minimal 3 karakter.")
+    .max(200, "Subjek pengumuman maksimal 200 karakter."),
+  contentHtml: z
+    .string()
+    .min(1, "Isi naskah template tidak boleh kosong.")
+    .max(500 * 1024, "Ukuran naskah template maksimal 500 KB."),
+  isShared: z.boolean().default(false),
+});
+
+export type SaveBroadcastTemplateInput = z.input<typeof saveBroadcastTemplateSchema>;
+export type SaveBroadcastTemplateOutput = z.output<typeof saveBroadcastTemplateSchema>;
+
+export interface BroadcastTemplateItem {
+  id: string;
+  name: string;
+  category: string | null;
+  subject: string;
+  contentHtml: string;
+  isShared: boolean;
+  createdByUserId: string;
+  isOwner: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ResolvedSenderIdentity {
   displayName: string;
   displayTitle: string;

@@ -1040,6 +1040,46 @@ model EmailBroadcastRecipient {
   @@schema("hris")
 }
 
+model BroadcastDraft {
+  id                  String         @id @default(uuid())
+  ownerUserId         String         @map("owner_user_id")
+  title               String         @default("")
+  subject             String         @default("")
+  contentHtml         String         @default("") @db.Text @map("content_html")
+  targetScope         BroadcastScope @default(TEAM) @map("target_scope")
+  targetDepartmentIds String[]       @default([]) @map("target_department_ids")
+  customEmployeeIds   String[]       @default([]) @map("custom_employee_ids")
+  excludedEmployeeIds String[]       @default([]) @map("excluded_employee_ids")
+  senderPersona       String         @default("ORGANIZATION") @map("sender_persona")
+  customSenderName    String?        @map("custom_sender_name")
+  replyToMode         String         @default("NO_REPLY") @map("reply_to_mode")
+  customReplyToEmail  String?        @map("custom_reply_to_email")
+  sendInApp           Boolean        @default(true) @map("send_in_app")
+  createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([ownerUserId, updatedAt(sort: Desc)])
+  @@map("broadcast_drafts")
+  @@schema("hris")
+}
+
+model BroadcastTemplate {
+  id              String   @id @default(uuid())
+  name            String
+  category        String?
+  subject         String
+  contentHtml     String   @db.Text @map("content_html")
+  isShared        Boolean  @default(false) @map("is_shared")
+  createdByUserId String   @map("created_by_user_id")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([isShared, updatedAt(sort: Desc)])
+  @@index([createdByUserId])
+  @@map("broadcast_templates")
+  @@schema("hris")
+}
+
 model WorkLocation {
   id        String   @id @default(uuid())
   name      String
