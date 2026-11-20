@@ -41,6 +41,10 @@ describe("LocalDiskStorage", () => {
     const retrieved = Buffer.concat(chunks).toString("utf-8");
     expect(retrieved).toBe("Kontrak Kerja PSPK");
 
+    // Test getBuffer
+    const directBuffer = await storage.getBuffer(key);
+    expect(directBuffer.toString("utf-8")).toBe("Kontrak Kerja PSPK");
+
     await storage.delete(key);
     expect(await storage.exists(key)).toBe(false);
   });

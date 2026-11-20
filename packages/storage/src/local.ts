@@ -122,6 +122,11 @@ export class LocalDiskStorage implements StorageProvider {
     };
   }
 
+  async getBuffer(key: string): Promise<Buffer> {
+    const fullPath = this.resolveSafePath(key);
+    return await fs.readFile(fullPath);
+  }
+
   async delete(key: string): Promise<void> {
     const fullPath = this.resolveSafePath(key);
     const metaPath = `${fullPath}.meta.json`;

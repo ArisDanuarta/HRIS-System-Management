@@ -19,6 +19,7 @@ export interface GetResult {
 export interface StorageProvider {
   put(key: string, body: Buffer | Readable, opts: PutOptions): Promise<PutResult>;
   get(key: string): Promise<GetResult>;
+  getBuffer(key: string): Promise<Buffer>;
   delete(key: string): Promise<void>;
   exists(key: string): Promise<boolean>;
 }

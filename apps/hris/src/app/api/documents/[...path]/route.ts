@@ -201,6 +201,51 @@ async function checkDocumentAccess(
     return false;
   }
 
+  // 6. Lampiran PDF Broadcast: broadcast-attachments/...
+  if (key.startsWith("broadcast-attachments/")) {
+    const attachment = await prisma.emailBroadcastAttachment.findFirst({
+      where: { key },
+      include: {
+        broadcast: {
+          select: {
+            id: true,
+            senderUserId: true,
+          },
+        },
+      },
+    });
+
+    if (!attachment) {
+      return false;
+    }
+
+    // Pengunggah berkas lampiran
+    if (attachment.uploadedBy === authCtx.userId) {
+      return true;
+    }
+
+    // Pembuat pengumuman broadcast
+    if (attachment.broadcast?.senderUserId === authCtx.userId) {
+      return true;
+    }
+
+    // Penerima resmi yang tercatat pada broadcast terkait
+    if (attachment.broadcastId) {
+      const recipient = await prisma.emailBroadcastRecipient.findFirst({
+        where: {
+          broadcastId: attachment.broadcastId,
+          employee: { userId: authCtx.userId },
+        },
+        select: { id: true },
+      });
+      if (recipient) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Default fallback: tolak jika bukan pemilik atau Super Admin / Admin HR
   return false;
 }

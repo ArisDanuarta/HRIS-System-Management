@@ -1010,6 +1010,7 @@ model EmailBroadcast {
   senderEmployee     Employee?       @relation("SenderBroadcasts", fields: [senderEmployeeId], references: [id])
   targetDepartment   Department?     @relation(fields: [targetDepartmentId], references: [id])
   recipients         EmailBroadcastRecipient[]
+  attachments        EmailBroadcastAttachment[]
 
   @@index([senderUserId])
   @@index([status])
@@ -1058,8 +1059,32 @@ model BroadcastDraft {
   createdAt           DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt           DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  attachments         EmailBroadcastAttachment[]
+
   @@index([ownerUserId, updatedAt(sort: Desc)])
   @@map("broadcast_drafts")
+  @@schema("hris")
+}
+
+model EmailBroadcastAttachment {
+  id          String   @id @default(uuid())
+  broadcastId String?  @map("broadcast_id")
+  draftId     String?  @map("draft_id")
+  uploadedBy  String   @map("uploaded_by")
+  key         String
+  fileName    String   @map("file_name")
+  mimeType    String   @map("mime_type")
+  sizeBytes   Int      @map("size_bytes")
+  sha256      String
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  broadcast   EmailBroadcast? @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  draft       BroadcastDraft? @relation(fields: [draftId], references: [id], onDelete: SetNull)
+
+  @@index([broadcastId])
+  @@index([draftId])
+  @@index([uploadedBy])
+  @@map("email_broadcast_attachments")
   @@schema("hris")
 }
 
