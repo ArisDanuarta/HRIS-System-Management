@@ -145,7 +145,7 @@ export function RichTextEditor({
 
   if (!editor) {
     return (
-      <div className="w-full min-h-[320px] rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-center text-slate-400 text-sm animate-pulse">
+      <div className="w-full min-h-[320px] rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-center text-slate-500 text-sm animate-pulse">
         Memuat editor naskah pengumuman...
       </div>
     );
@@ -672,7 +672,7 @@ export function RichTextEditor({
                       <p className="text-xs font-semibold text-slate-800">
                         Klik untuk memilih gambar atau seret berkas ke sini
                       </p>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-xs text-slate-500">
                         Format didukung: JPG, PNG, WebP, GIF (Maks. 3 MB)
                       </p>
                     </div>
