@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import sanitizeHtml from "sanitize-html";
 import type { ResolvedSenderIdentity } from "../../server/schemas/broadcast.schema";
+import { interpolatePreviewVariables } from "../../server/services/broadcast-email.service";
 
 export interface BroadcastEmailPreviewProps {
   subject: string;
@@ -84,7 +85,7 @@ export function BroadcastEmailPreview({
       <div className="bg-slate-200/90 border-b border-slate-300 px-4 py-3 space-y-1 text-xs text-slate-700">
         <div className="flex items-center justify-between border-b border-slate-300/60 pb-1.5">
           <span className="font-semibold text-slate-900 line-clamp-1">
-            Subjek: [PSPK HRIS] {subject.trim() || "(Subjek belum diisi)"}
+            Subjek: [PSPK HRIS] {interpolatePreviewVariables(subject.trim()) || "(Subjek belum diisi)"}
           </span>
           {typeof recipientCount === "number" && (
             <span className="text-slate-600 shrink-0 font-medium ml-2">
@@ -154,7 +155,7 @@ export function BroadcastEmailPreview({
               className="prose prose-sm max-w-none text-slate-700 leading-relaxed tiptap-editor break-words"
               dangerouslySetInnerHTML={{
                 __html:
-                  sanitizedDisplayHtml ||
+                  interpolatePreviewVariables(sanitizedDisplayHtml) ||
                   "<p class='text-slate-500 italic'>[Isi pesan belum ditulis. Silakan tulis naskah di editor]</p>",
               }}
             />

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -22,10 +22,18 @@ import {
   User,
   Reply,
   Sparkles,
+  Bookmark,
+  FileText,
+  Clock,
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";
 import { RecipientPicker } from "./recipient-picker";
+import {
+  BroadcastDraftTemplateDrawer,
+  SaveDraftModal,
+  SaveTemplateModal,
+} from "./broadcast-draft-template-drawer";
 import {
   getReplyToDisplayLabel,
   isBulkBroadcast,
@@ -37,10 +45,20 @@ import {
   BroadcastFormData,
 } from "../../server/actions/broadcast.actions";
 import {
+  saveBroadcastDraftAction,
+  listBroadcastDraftsAction,
+  deleteBroadcastDraftAction,
+  saveBroadcastTemplateAction,
+  listBroadcastTemplatesAction,
+  deleteBroadcastTemplateAction,
+} from "../../server/actions/broadcast-draft.actions";
+import {
   SenderPersona,
   ReplyToMode,
   resolveSenderIdentity,
   hasDeliverableEmail,
+  BroadcastDraftItem,
+  BroadcastTemplateItem,
 } from "../../server/schemas/broadcast.schema";
 
 interface BroadcastCreateFormProps {
@@ -91,6 +109,266 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     message: string;
     broadcastId?: string;
   } | null>(null);
+
+  // Draf & Template State
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerLoading, setIsDrawerLoading] = useState(false);
+  const [drafts, setDrafts] = useState<BroadcastDraftItem[]>([]);
+  const [templates, setTemplates] = useState<BroadcastTemplateItem[]>([]);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
+  const [lastAutosavedAt, setLastAutosavedAt] = useState<Date | null>(null);
+  const [isSaveDraftModalOpen, setIsSaveDraftModalOpen] = useState(false);
+  const [isSaveTemplateModalOpen, setIsSaveTemplateModalOpen] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+
+  // Inisialisasi daftar draf dan template saat komponen dimuat
+  useEffect(() => {
+    let isMounted = true;
+    async function loadData() {
+      setIsDrawerLoading(true);
+      try {
+        const [dRes, tRes] = await Promise.all([
+          listBroadcastDraftsAction(),
+          listBroadcastTemplatesAction(),
+        ]);
+        if (isMounted) {
+          if (dRes.success && dRes.data) setDrafts(dRes.data);
+          if (tRes.success && tRes.data) setTemplates(tRes.data);
+        }
+      } catch (err) {
+        console.error("Gagal memuat draf dan template:", err);
+      } finally {
+        if (isMounted) setIsDrawerLoading(false);
+      }
+    }
+    loadData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Autosave 3 detik hanya jika ada activeDraftId
+  useEffect(() => {
+    if (!activeDraftId) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await saveBroadcastDraftAction({
+          id: activeDraftId,
+          subject,
+          contentHtml,
+          targetScope,
+          targetDepartmentIds: selectedDepartmentIds,
+          customEmployeeIds: selectedEmployeeIds,
+          excludedEmployeeIds,
+          senderPersona,
+          customSenderName: customSenderName.trim() || undefined,
+          replyToMode,
+          customReplyToEmail: customReplyToEmail.trim() || undefined,
+          sendInApp,
+        });
+
+        if (res.success && res.data) {
+          setLastAutosavedAt(new Date());
+          setDrafts((prev) =>
+            prev.map((d) => (d.id === activeDraftId ? res.data! : d)),
+          );
+        }
+      } catch (err) {
+        console.error("Gagal melakukan autosave draf:", err);
+      }
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [
+    activeDraftId,
+    subject,
+    contentHtml,
+    targetScope,
+    selectedDepartmentIds,
+    selectedEmployeeIds,
+    excludedEmployeeIds,
+    senderPersona,
+    customSenderName,
+    replyToMode,
+    customReplyToEmail,
+    sendInApp,
+  ]);
+
+  const handleSaveDraft = async (customTitle?: string) => {
+    setIsSavingDraft(true);
+    try {
+      const res = await saveBroadcastDraftAction({
+        id: activeDraftId || undefined,
+        title: customTitle,
+        subject,
+        contentHtml,
+        targetScope,
+        targetDepartmentIds: selectedDepartmentIds,
+        customEmployeeIds: selectedEmployeeIds,
+        excludedEmployeeIds,
+        senderPersona,
+        customSenderName: customSenderName.trim() || undefined,
+        replyToMode,
+        customReplyToEmail: customReplyToEmail.trim() || undefined,
+        sendInApp,
+      });
+
+      if (res.success && res.data) {
+        setActiveDraftId(res.data.id);
+        setDrafts((prev) => {
+          const exists = prev.some((d) => d.id === res.data!.id);
+          return exists
+            ? prev.map((d) => (d.id === res.data!.id ? res.data! : d))
+            : [res.data!, ...prev];
+        });
+        setFeedback({
+          type: "success",
+          message: `Draf "${res.data.title || "Pengumuman"}" berhasil disimpan.`,
+        });
+      } else {
+        setFeedback({
+          type: "error",
+          message: res.error || "Gagal menyimpan draf.",
+        });
+      }
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan saat menyimpan draf.",
+      });
+    } finally {
+      setIsSavingDraft(false);
+    }
+  };
+
+  const handleSaveTemplate = async (data: {
+    name: string;
+    category?: string;
+    isShared: boolean;
+  }) => {
+    setIsSavingTemplate(true);
+    try {
+      const res = await saveBroadcastTemplateAction({
+        name: data.name,
+        category: data.category,
+        subject: subject.trim() || "Pengumuman",
+        contentHtml: contentHtml || "<p></p>",
+        isShared: data.isShared,
+      });
+
+      if (res.success && res.data) {
+        setTemplates((prev) => [res.data!, ...prev]);
+        setFeedback({
+          type: "success",
+          message: `Template "${res.data.name}" berhasil disimpan.`,
+        });
+      } else {
+        setFeedback({
+          type: "error",
+          message: res.error || "Gagal menyimpan template.",
+        });
+      }
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan saat menyimpan template.",
+      });
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  const handleLoadDraft = (draft: BroadcastDraftItem) => {
+    setActiveDraftId(draft.id);
+    setSubject(draft.subject);
+    setContentHtml(draft.contentHtml);
+    setTargetScope(draft.targetScope);
+    setSelectedDepartmentIds(draft.targetDepartmentIds || []);
+    setSenderPersona(draft.senderPersona);
+    setCustomSenderName(draft.customSenderName || "");
+    setReplyToMode(draft.replyToMode);
+    setCustomReplyToEmail(draft.customReplyToEmail || "");
+    setSendInApp(draft.sendInApp);
+
+    // Filter staf yang sudah tidak aktif
+    const activeEmpIds = new Set(employees.map((e) => e.id));
+    const validCustomIds = (draft.customEmployeeIds || []).filter((id) =>
+      activeEmpIds.has(id),
+    );
+    const validExcludedIds = (draft.excludedEmployeeIds || []).filter(
+      (id) => activeEmpIds.has(id) || teamMembers.some((t) => t.id === id),
+    );
+
+    const droppedCustom = (draft.customEmployeeIds || []).length - validCustomIds.length;
+    const droppedExcluded = (draft.excludedEmployeeIds || []).length - validExcludedIds.length;
+
+    setSelectedEmployeeIds(validCustomIds);
+    setExcludedEmployeeIds(validExcludedIds);
+
+    if (droppedCustom > 0 || droppedExcluded > 0) {
+      setFeedback({
+        type: "error",
+        message: `Draf dimuat: ${droppedCustom + droppedExcluded} penerima/pengecualian telah dihapus dari draf karena data karyawan sudah tidak aktif.`,
+      });
+    } else {
+      setFeedback({
+        type: "success",
+        message: `Draf "${draft.title || draft.subject || "Pengumuman"}" berhasil dimuat ke editor.`,
+      });
+    }
+  };
+
+  const handleLoadTemplate = (template: BroadcastTemplateItem) => {
+    if (subject.trim() || (contentHtml.trim() && contentHtml !== "<p></p>")) {
+      if (
+        !confirm(
+          `Ganti subjek dan isi pesan saat ini dengan template "${template.name}"? Naskah yang sedang ditulis akan digantikan.`,
+        )
+      ) {
+        return;
+      }
+    }
+
+    setSubject(template.subject);
+    setContentHtml(template.contentHtml);
+    setFeedback({
+      type: "success",
+      message: `Template "${template.name}" berhasil diterapkan ke formulir.`,
+    });
+  };
+
+  const handleDeleteDraft = async (draftId: string) => {
+    try {
+      const res = await deleteBroadcastDraftAction(draftId);
+      if (res.success) {
+        if (draftId === activeDraftId) {
+          setActiveDraftId(null);
+        }
+        setDrafts((prev) => prev.filter((d) => d.id !== draftId));
+      } else {
+        alert(res.error || "Gagal menghapus draf.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan saat menghapus draf.");
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const res = await deleteBroadcastTemplateAction(templateId);
+      if (res.success) {
+        setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+      } else {
+        alert(res.error || "Gagal menghapus template.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan saat menghapus template.");
+    }
+  };
 
   // Calculate resolved sender identity dynamically for live preview and modal
   const previewSender = resolveSenderIdentity(
@@ -258,6 +536,17 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           message: res.message || "Pengumuman berhasil disebarkan!",
           broadcastId: res.broadcastId,
         });
+
+        if (activeDraftId) {
+          try {
+            await deleteBroadcastDraftAction(activeDraftId);
+            setDrafts((prev) => prev.filter((d) => d.id !== activeDraftId));
+            setActiveDraftId(null);
+          } catch (e) {
+            console.error("Gagal membersihkan draf terkirim:", e);
+          }
+        }
+
         setSubject("");
         setContentHtml("");
       } else {
@@ -401,6 +690,88 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           </div>
         </div>
       )}
+
+      {/* TOOLBAR ATAS: DRAF & TEMPLATE */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-navy-800" />
+            <span>Draf &amp; Template</span>
+            {(drafts.length > 0 || templates.length > 0) && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-[#102E50] text-white">
+                {drafts.length + templates.length}
+              </span>
+            )}
+          </button>
+
+          {activeDraftId && (
+            <div className="flex items-center gap-1.5 text-xs bg-emerald-50 text-emerald-900 border border-emerald-200 px-2.5 py-1 rounded-lg">
+              <Check className="w-3.5 h-3.5 text-emerald-600" />
+              <span className="font-medium">
+                Draf Aktif:{" "}
+                <strong>
+                  {drafts.find((d) => d.id === activeDraftId)?.title || "Draf"}
+                </strong>
+              </span>
+              {lastAutosavedAt && (
+                <span className="text-emerald-700 text-xs hidden md:inline">
+                  • Tersimpan otomatis{" "}
+                  {lastAutosavedAt.toLocaleTimeString("id-ID", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {activeDraftId && (
+            <button
+              type="button"
+              onClick={() => {
+                if (
+                  confirm(
+                    "Tutup draf aktif dan bersihkan formulir untuk memulai pengumuman baru?",
+                  )
+                ) {
+                  setActiveDraftId(null);
+                  setSubject("");
+                  setContentHtml("");
+                  setLastAutosavedAt(null);
+                }
+              }}
+              className="text-xs text-slate-600 hover:text-slate-900 hover:underline font-medium cursor-pointer"
+            >
+              Tutup Draf (Mulai Baru)
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setIsSaveDraftModalOpen(true)}
+            disabled={isSavingDraft}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <FileText className="w-3.5 h-3.5 text-slate-600" />
+            <span>Simpan Draf</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsSaveTemplateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+          >
+            <Bookmark className="w-3.5 h-3.5 text-slate-600" />
+            <span>Jadikan Template</span>
+          </button>
+        </div>
+      </div>
 
       <form onSubmit={handleOpenConfirm} className="space-y-6">
         <fieldset disabled={isManagerEmpty} className="contents disabled:opacity-60">
@@ -1104,6 +1475,16 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
             </Link>
             <button
               type="button"
+              onClick={() => setIsSaveDraftModalOpen(true)}
+              disabled={isSubmitting || isSendingTest}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold transition-all cursor-pointer disabled:opacity-50"
+              title="Simpan sebagai draf"
+            >
+              <FileText className="w-3.5 h-3.5 text-slate-600" />
+              <span>Simpan Draf</span>
+            </button>
+            <button
+              type="button"
               onClick={handleSendTestEmail}
               disabled={isSubmitting || isSendingTest}
               className="inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-xl text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer"
@@ -1293,6 +1674,51 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           </div>
         </div>
       )}
+
+      {/* DRAWER DRAF & TEMPLATE */}
+      <BroadcastDraftTemplateDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        canSendAll={canSendAll}
+        drafts={drafts}
+        templates={templates}
+        activeDraftId={activeDraftId}
+        isLoading={isDrawerLoading}
+        onLoadDraft={handleLoadDraft}
+        onDeleteDraft={handleDeleteDraft}
+        onLoadTemplate={handleLoadTemplate}
+        onDeleteTemplate={handleDeleteTemplate}
+        onOpenSaveDraftModal={() => {
+          setIsDrawerOpen(false);
+          setIsSaveDraftModalOpen(true);
+        }}
+        onOpenSaveTemplateModal={() => {
+          setIsDrawerOpen(false);
+          setIsSaveTemplateModalOpen(true);
+        }}
+      />
+
+      {/* MODAL SIMPAN DRAF */}
+      <SaveDraftModal
+        isOpen={isSaveDraftModalOpen}
+        onClose={() => setIsSaveDraftModalOpen(false)}
+        defaultTitle={
+          drafts.find((d) => d.id === activeDraftId)?.title ||
+          subject.trim() ||
+          "Draf Pengumuman"
+        }
+        isSaving={isSavingDraft}
+        onSave={handleSaveDraft}
+      />
+
+      {/* MODAL SIMPAN TEMPLATE */}
+      <SaveTemplateModal
+        isOpen={isSaveTemplateModalOpen}
+        onClose={() => setIsSaveTemplateModalOpen(false)}
+        canSendAll={canSendAll}
+        isSaving={isSavingTemplate}
+        onSave={handleSaveTemplate}
+      />
     </div>
   );
 }

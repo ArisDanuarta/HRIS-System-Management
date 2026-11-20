@@ -354,18 +354,6 @@ export function absolutizeImageUrls(html: string): string {
 }
 
 /**
- * Escape karakter berbahaya HTML untuk pencegahan XSS saat personalisasi variabel.
- */
-export function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-/**
  * Mengganti variabel personalisasi seperti {{nama}} dan {{nama_depan}} per penerima.
  */
 export function replacePersonalizationVariables(
@@ -523,7 +511,7 @@ export function renderBroadcastEmailHtml(params: {
   `.trim();
 }
 
-function escapeHtml(str: string): string {
+export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
