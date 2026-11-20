@@ -80,6 +80,8 @@ import {
   sendBroadcastAction,
   getBroadcastDetailAction,
   getBroadcastProgressAction,
+  sendTestBroadcastAction,
+  resendFailedBroadcastAction,
 } from "./broadcast.actions";
 import { getSession, getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
@@ -438,6 +440,121 @@ describe("HRIS broadcast.actions.ts", () => {
       expect(result.data?.totalRecipients).toBe(50);
       expect(result.data?.sentCount).toBe(25);
       expect(result.data?.failedCount).toBe(2);
+    });
+  });
+
+  describe("sendTestBroadcastAction", () => {
+    it("harus menolak jika belum login", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(null);
+
+      const result = await sendTestBroadcastAction({
+        subject: "Tes Email",
+        contentHtml: "<p>Konten email uji yang panjang dan valid.</p>",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Sesi tidak valid");
+    });
+
+    it("harus menolak jika subjek terlalu pendek", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+
+      const result = await sendTestBroadcastAction({
+        subject: "Hi",
+        contentHtml: "<p>Konten email uji yang valid.</p>",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Subjek pengumuman minimal 3 karakter");
+    });
+
+    it("berhasil mengirim email uji ke akun sendiri", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+      mockSendTestBroadcast.mockResolvedValueOnce({
+        success: true,
+        message: "Email uji berhasil dikirim ke hr@pspk.id",
+        simulated: false,
+      });
+
+      const result = await sendTestBroadcastAction({
+        subject: "Uji Coba Pengumuman",
+        contentHtml: "<p>Ini adalah konten email uji coba pengumuman.</p>",
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toContain("hr@pspk.id");
+      expect(mockSendTestBroadcast).toHaveBeenCalledWith(
+        "user-hr-1",
+        expect.objectContaining({
+          subject: "Uji Coba Pengumuman",
+        }),
+        expect.objectContaining({
+          ip: "192.168.1.10",
+          userAgent: "Vitest-Browser/1.0",
+        }),
+      );
+    });
+
+    it("harus menangani error dari service saat email uji gagal", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+      mockSendTestBroadcast.mockRejectedValueOnce(
+        new Error("Terlalu sering mengirim email uji. Batas maksimal 5 kali per 10 menit."),
+      );
+
+      const result = await sendTestBroadcastAction({
+        subject: "Uji Coba Pengumuman",
+        contentHtml: "<p>Ini adalah konten email uji coba pengumuman.</p>",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Terlalu sering mengirim email uji");
+    });
+  });
+
+  describe("resendFailedBroadcastAction", () => {
+    it("harus menolak jika belum login", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(null);
+
+      const result = await resendFailedBroadcastAction("bc-1");
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Sesi telah berakhir");
+    });
+
+    it("berhasil memasukkan kembali penerima gagal ke antrean dan memicu processBroadcast", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+      mockResendFailedRecipients.mockResolvedValueOnce({
+        success: true,
+        broadcastId: "bc-1",
+        retriedCount: 3,
+        message: "3 penerima yang gagal berhasil dimasukkan kembali ke antrean pengiriman.",
+      });
+
+      const result = await resendFailedBroadcastAction("bc-1");
+
+      expect(result.success).toBe(true);
+      expect(result.retriedCount).toBe(3);
+      expect(mockResendFailedRecipients).toHaveBeenCalledWith(
+        "user-hr-1",
+        "bc-1",
+        expect.objectContaining({
+          ip: "192.168.1.10",
+        }),
+      );
+      expect(mockAfter).toHaveBeenCalled();
+      expect(mockProcessBroadcast).toHaveBeenCalledWith("bc-1");
+      expect(mockRevalidatePath).toHaveBeenCalledWith("/komunikasi/riwayat");
+    });
+
+    it("harus menangani error saat resend gagal", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+      mockResendFailedRecipients.mockRejectedValueOnce(
+        new Error("Tidak ada penerima berstatus gagal pada pengumuman ini."),
+      );
+
+      const result = await resendFailedBroadcastAction("bc-1");
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Tidak ada penerima berstatus gagal pada pengumuman ini.");
     });
   });
 });

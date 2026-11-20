@@ -7,6 +7,8 @@ import {
   executeSendBroadcast,
   enqueueBroadcast,
   processBroadcast,
+  sendTestBroadcast,
+  resendFailedRecipients,
   getBroadcastSenderContext,
   getBroadcastRecipients,
   absolutizeImageUrls,
@@ -51,6 +53,9 @@ vi.mock("@pspk/db", () => ({
       updateMany: vi.fn(),
       findMany: vi.fn(),
       groupBy: vi.fn(),
+    },
+    auditLog: {
+      count: vi.fn(),
     },
     notification: {
       createMany: vi.fn(),
@@ -585,6 +590,215 @@ describe("broadcast-email.service.ts", () => {
           where: { id: "bc-to-process" },
           data: expect.objectContaining({
             status: "SENT",
+            lockedAt: null,
+          }),
+        }),
+      );
+    });
+  });
+
+  describe("sendTestBroadcast", () => {
+    it("harus melempar error jika akun pengguna belum memiliki email kerja yang valid", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-no-email",
+        employeeId: "emp-no-email",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.send:all"]),
+      });
+
+      vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+        id: "emp-no-email",
+        fullName: "Staf Tanpa Email",
+        workEmail: "",
+        currentPosition: { title: "Staf" },
+      } as unknown as MockEmployeeFirst);
+
+      await expect(
+        sendTestBroadcast("user-no-email", {
+          subject: "Uji Coba",
+          contentHtml: "<p>Konten uji coba yang valid.</p>",
+        }),
+      ).rejects.toThrow("Akun Anda belum memiliki alamat email kerja yang valid");
+    });
+
+    it("harus melempar error jika melebihi batas rate limit 5x dalam 10 menit", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-rate-limited",
+        employeeId: "emp-rl",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.send:all"]),
+      });
+
+      vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+        id: "emp-rl",
+        fullName: "Admin Terbatas",
+        workEmail: "admin@pspk.id",
+        currentPosition: { title: "Admin" },
+      } as unknown as MockEmployeeFirst);
+
+      vi.mocked(prisma.auditLog.count).mockResolvedValue(5);
+
+      await expect(
+        sendTestBroadcast("user-rate-limited", {
+          subject: "Uji Coba",
+          contentHtml: "<p>Konten uji coba yang valid.</p>",
+        }),
+      ).rejects.toThrow("Terlalu sering mengirim email uji. Batas maksimal adalah 5 kali per 10 menit.");
+    });
+
+    it("berhasil mengirim email uji simulasi tanpa membuat record EmailBroadcast dan mencatat audit", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-test-ok",
+        employeeId: "emp-ok",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.send:all"]),
+      });
+
+      vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+        id: "emp-ok",
+        fullName: "Budi Peneliti",
+        workEmail: "budi@pspk.id",
+        currentPosition: { title: "Peneliti Senior" },
+      } as unknown as MockEmployeeFirst);
+
+      vi.mocked(prisma.auditLog.count).mockResolvedValue(1);
+
+      const res = await sendTestBroadcast("user-test-ok", {
+        subject: "Surat Edaran Percobaan",
+        contentHtml: "<p>Ini pesan uji coba pengumuman.</p>",
+        senderPersona: "ORGANIZATION",
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.message).toContain("budi@pspk.id");
+      // Memastikan TIDAK membuat record EmailBroadcast
+      expect(prisma.emailBroadcast.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("resendFailedRecipients", () => {
+    it("harus melempar error jika broadcast tidak ditemukan", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue(null);
+
+      await expect(
+        resendFailedRecipients("user-1", "bc-notfound"),
+      ).rejects.toThrow("Pengumuman tidak ditemukan.");
+    });
+
+    it("harus melempar error jika broadcast masih berstatus QUEUED atau SENDING", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-running",
+        status: "SENDING",
+      } as never);
+
+      await expect(
+        resendFailedRecipients("user-1", "bc-running"),
+      ).rejects.toThrow("Pengumuman masih dalam proses pengiriman antrean.");
+    });
+
+    it("harus melempar error jika pengguna bukan pembuat dan bukan pemegang hak all", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-failed-1",
+        status: "PARTIALLY_FAILED",
+        senderUserId: "author-other",
+        recipients: [
+          { id: "rcpt-1", status: "FAILED", employee: { status: "ACTIVE", workEmail: "a@pspk.id" } },
+        ],
+      } as never);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-unauthorized",
+        employeeId: "emp-unauth",
+        roles: ["employee"],
+        permissions: new Set(),
+      });
+
+      await expect(
+        resendFailedRecipients("user-unauthorized", "bc-failed-1"),
+      ).rejects.toThrow("Akses ditolak: Anda tidak memiliki izin untuk mengirim ulang pengumuman ini.");
+    });
+
+    it("harus melempar error jika tidak ada penerima berstatus FAILED", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-all-sent",
+        status: "SENT",
+        senderUserId: "user-author",
+        recipients: [],
+      } as never);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-author",
+        employeeId: "emp-author",
+        roles: ["employee"],
+        permissions: new Set(),
+      });
+
+      await expect(
+        resendFailedRecipients("user-author", "bc-all-sent"),
+      ).rejects.toThrow("Tidak ada penerima berstatus gagal pada pengumuman ini.");
+    });
+
+    it("berhasil mengubah status recipient FAILED yang valid ke PENDING dan mengembalikan broadcast ke QUEUED", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-to-resend",
+        status: "PARTIALLY_FAILED",
+        senderUserId: "user-author",
+        senderEmail: "author@pspk.id",
+        subject: "Pengumuman Penting",
+        recipients: [
+          {
+            id: "rcpt-failed-active",
+            status: "FAILED",
+            employee: { id: "emp-1", status: "ACTIVE", workEmail: "emp1@pspk.id" },
+          },
+          {
+            id: "rcpt-failed-inactive",
+            status: "FAILED",
+            employee: { id: "emp-2", status: "TERMINATED", workEmail: "emp2@pspk.id" },
+          },
+        ],
+      } as never);
+
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-author",
+        employeeId: "emp-author",
+        roles: ["employee"],
+        permissions: new Set(),
+      });
+
+      vi.mocked(prisma.emailBroadcastRecipient.updateMany).mockResolvedValue({ count: 1 });
+      vi.mocked(prisma.emailBroadcast.update).mockResolvedValue({} as never);
+
+      const res = await resendFailedRecipients("user-author", "bc-to-resend");
+
+      expect(res.success).toBe(true);
+      expect(res.retriedCount).toBe(1);
+      // Memastikan yang inactive ditandai FAILED dengan pesan tidak aktif
+      expect(prisma.emailBroadcastRecipient.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ["rcpt-failed-inactive"] } },
+          data: expect.objectContaining({
+            status: "FAILED",
+            errorMessage: "Karyawan sudah tidak aktif atau email kerja tidak valid.",
+          }),
+        }),
+      );
+      // Memastikan yang active disetel ke PENDING
+      expect(prisma.emailBroadcastRecipient.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ["rcpt-failed-active"] } },
+          data: expect.objectContaining({
+            status: "PENDING",
+            errorMessage: null,
+          }),
+        }),
+      );
+      // Memastikan status broadcast induk disetel kembali ke QUEUED
+      expect(prisma.emailBroadcast.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "bc-to-resend" },
+          data: expect.objectContaining({
+            status: "QUEUED",
             lockedAt: null,
           }),
         }),
