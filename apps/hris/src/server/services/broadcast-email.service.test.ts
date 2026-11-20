@@ -983,7 +983,7 @@ describe("broadcast-email.service.ts", () => {
     it("harus meng-escape karakter HTML khusus dengan aman", () => {
       expect(escapeHtml("Budi & Joko")).toBe("Budi &amp; Joko");
       expect(escapeHtml("<script>alert('xss')</script>")).toBe(
-        "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;",
+        "&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;",
       );
       expect(escapeHtml('"quoted"')).toBe("&quot;quoted&quot;");
     });

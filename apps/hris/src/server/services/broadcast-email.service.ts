@@ -358,9 +358,10 @@ export function absolutizeImageUrls(html: string): string {
  */
 export function replacePersonalizationVariables(
   text: string,
-  recipient: { recipientName: string },
+  recipient: { recipientName?: string | null; fullName?: string | null },
 ): string {
-  const fullName = recipient.recipientName.trim();
+  const rawName = recipient.recipientName || recipient.fullName || "";
+  const fullName = rawName.trim() || "Rekan PSPK";
   const firstName = fullName.split(/\s+/)[0] || fullName;
 
   return text
