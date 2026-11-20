@@ -175,7 +175,7 @@ export async function saveBroadcastTemplateAction(
       session.user.id,
       parsed,
       senderCtx.canSendAll,
-      { ip: clientIp, userAgent },
+      { ip: clientIp, userAgent, userEmail: session.user.email },
     );
 
     return { success: true, data: template };
@@ -241,7 +241,7 @@ export async function deleteBroadcastTemplateAction(
       session.user.id,
       templateId,
       senderCtx.canSendAll,
-      { ip: clientIp, userAgent },
+      { ip: clientIp, userAgent, userEmail: session.user.email },
     );
 
     return { success: true };

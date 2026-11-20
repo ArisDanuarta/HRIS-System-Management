@@ -24,7 +24,6 @@ import {
   Sparkles,
   Bookmark,
   FileText,
-  Clock,
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";

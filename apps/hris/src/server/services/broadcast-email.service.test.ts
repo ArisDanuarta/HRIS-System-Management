@@ -12,6 +12,9 @@ import {
   getBroadcastSenderContext,
   getBroadcastRecipients,
   absolutizeImageUrls,
+  escapeHtml,
+  replacePersonalizationVariables,
+  interpolatePreviewVariables,
 } from "./broadcast-email.service";
 
 vi.mock("@pspk/auth", () => ({
@@ -973,6 +976,56 @@ describe("broadcast-email.service.ts", () => {
           }),
         }),
       );
+    });
+  });
+
+  describe("Personalization Variables & HTML Escaping", () => {
+    it("harus meng-escape karakter HTML khusus dengan aman", () => {
+      expect(escapeHtml("Budi & Joko")).toBe("Budi &amp; Joko");
+      expect(escapeHtml("<script>alert('xss')</script>")).toBe(
+        "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;",
+      );
+      expect(escapeHtml('"quoted"')).toBe("&quot;quoted&quot;");
+    });
+
+    it("harus mengganti variabel {{nama}} dan {{nama_depan}} untuk penerima", () => {
+      const template = "Halo {{nama}}, apakah nama panggilanmu {{nama_depan}}?";
+      const recipient = {
+        fullName: "Siti Rahmawati Putri",
+        workEmail: "siti@pspk.id",
+      };
+
+      const result = replacePersonalizationVariables(template, recipient);
+      expect(result).toBe("Halo Siti Rahmawati Putri, apakah nama panggilanmu Siti?");
+    });
+
+    it("harus meng-escape karakter HTML pada nama penerima saat interpolasi variabel", () => {
+      const template = "<p>Selamat datang, {{nama}} ({{nama_depan}})!</p>";
+      const maliciousRecipient = {
+        fullName: "Budi <img src=x onerror=alert(1)> Santoso",
+        workEmail: "budi@pspk.id",
+      };
+
+      const result = replacePersonalizationVariables(template, maliciousRecipient);
+      expect(result).not.toContain("<img");
+      expect(result).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    });
+
+    it("harus menangani kasus nama kosong atau whitespace saja dengan fallback 'Rekan PSPK'", () => {
+      const template = "Halo {{nama}}, sapaan singkat: {{nama_depan}}.";
+      const emptyRecipient = {
+        fullName: "   ",
+        workEmail: "anon@pspk.id",
+      };
+
+      const result = replacePersonalizationVariables(template, emptyRecipient);
+      expect(result).toBe("Halo Rekan PSPK, sapaan singkat: Rekan.");
+    });
+
+    it("harus menginterpolasi preview dengan nama contoh Budi Santoso", () => {
+      const template = "Yth. {{nama}}, terima kasih atas kerja keras Anda, {{nama_depan}}.";
+      const preview = interpolatePreviewVariables(template);
+      expect(preview).toBe("Yth. Budi Santoso, terima kasih atas kerja keras Anda, Budi.");
     });
   });
 });

@@ -209,7 +209,7 @@ export async function saveBroadcastTemplate(
   userId: string,
   input: SaveBroadcastTemplateInput,
   canSendAll: boolean,
-  reqMeta?: { ip?: string; userAgent?: string },
+  reqMeta?: { ip?: string; userAgent?: string; userEmail?: string },
 ): Promise<BroadcastTemplateItem> {
   if (input.isShared && !canSendAll) {
     throw new Error(
@@ -218,6 +218,15 @@ export async function saveBroadcastTemplate(
   }
 
   const sanitizedContent = sanitizeBroadcastContent(input.contentHtml);
+  const actorEmail =
+    reqMeta?.userEmail ||
+    (
+      await prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true },
+      })
+    )?.email ||
+    "unknown@pspk.id";
 
   if (input.id) {
     const existing = await prisma.broadcastTemplate.findUnique({
@@ -254,6 +263,7 @@ export async function saveBroadcastTemplate(
     if (updated.isShared || existing.isShared) {
       await writeAudit({
         actorUserId: userId,
+        actorEmail,
         app: "hris",
         action: "BROADCAST_TEMPLATE_UPDATE",
         entityType: "BroadcastTemplate",
@@ -307,6 +317,7 @@ export async function saveBroadcastTemplate(
   if (created.isShared) {
     await writeAudit({
       actorUserId: userId,
+      actorEmail,
       app: "hris",
       action: "BROADCAST_TEMPLATE_CREATE",
       entityType: "BroadcastTemplate",
@@ -363,7 +374,7 @@ export async function deleteBroadcastTemplate(
   userId: string,
   templateId: string,
   canSendAll: boolean,
-  reqMeta?: { ip?: string; userAgent?: string },
+  reqMeta?: { ip?: string; userAgent?: string; userEmail?: string },
 ): Promise<{ success: boolean }> {
   const template = await prisma.broadcastTemplate.findUnique({
     where: { id: templateId },
@@ -384,8 +395,19 @@ export async function deleteBroadcastTemplate(
       where: { id: templateId },
     });
 
+    const actorEmail =
+      reqMeta?.userEmail ||
+      (
+        await prisma.user.findUnique({
+          where: { id: userId },
+          select: { email: true },
+        })
+      )?.email ||
+      "unknown@pspk.id";
+
     await writeAudit({
       actorUserId: userId,
+      actorEmail,
       app: "hris",
       action: "BROADCAST_TEMPLATE_DELETE",
       entityType: "BroadcastTemplate",
