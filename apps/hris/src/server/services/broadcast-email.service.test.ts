@@ -17,7 +17,10 @@ import {
   interpolatePreviewVariables,
   buildEmailForRecipient,
   deleteBroadcastAttachment,
+  dispatchScheduledBroadcasts,
+  cancelScheduledBroadcast,
 } from "./broadcast-email.service";
+import { sendBroadcastSchema } from "../schemas/broadcast.schema";
 
 vi.mock("@pspk/auth", () => ({
   getAuthContext: vi.fn(),
@@ -52,12 +55,14 @@ vi.mock("@pspk/db", () => ({
       update: vi.fn(),
       findUnique: vi.fn(),
       updateMany: vi.fn(),
+      findMany: vi.fn(),
     },
     emailBroadcastRecipient: {
       update: vi.fn(),
       updateMany: vi.fn(),
       findMany: vi.fn(),
       groupBy: vi.fn(),
+      createMany: vi.fn(),
     },
     auditLog: {
       count: vi.fn(),

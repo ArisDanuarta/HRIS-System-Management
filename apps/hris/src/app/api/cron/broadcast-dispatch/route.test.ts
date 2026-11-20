@@ -12,10 +12,18 @@ vi.mock("@pspk/db", () => ({
 
 vi.mock("@/server/services/broadcast-email.service", () => ({
   processBroadcast: vi.fn(),
+  dispatchScheduledBroadcasts: vi.fn().mockResolvedValue({
+    dispatchedCount: 0,
+    failedAuthorizationCount: 0,
+    errors: [],
+  }),
 }));
 
 import { prisma } from "@pspk/db";
-import { processBroadcast } from "@/server/services/broadcast-email.service";
+import {
+  processBroadcast,
+  dispatchScheduledBroadcasts,
+} from "@/server/services/broadcast-email.service";
 
 describe("POST /api/cron/broadcast-dispatch", () => {
   const originalEnv = process.env.CRON_SECRET;
@@ -90,6 +98,7 @@ describe("POST /api/cron/broadcast-dispatch", () => {
 
     expect(body.success).toBe(true);
     expect(body.processedCandidates).toBe(2);
+    expect(dispatchScheduledBroadcasts).toHaveBeenCalled();
     expect(processBroadcast).toHaveBeenCalledWith("bc-1");
     expect(processBroadcast).toHaveBeenCalledWith("bc-2");
   });

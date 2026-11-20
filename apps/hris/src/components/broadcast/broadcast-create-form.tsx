@@ -27,6 +27,8 @@ import {
   Paperclip,
   Trash2,
   UploadCloud,
+  Clock,
+  Calendar,
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";
@@ -68,6 +70,34 @@ import {
   MAX_TOTAL_ATTACHMENT_SIZE_BYTES,
 } from "../../server/schemas/broadcast.schema";
 
+function toDateTimeLocalString(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function formatScheduledWib(date: Date): string {
+  try {
+    return (
+      new Intl.DateTimeFormat("id-ID", {
+        timeZone: "Asia/Jakarta",
+        weekday: "long",
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date) + " WIB"
+    );
+  } catch {
+    return date.toLocaleString("id-ID") + " WIB";
+  }
+}
+
 interface BroadcastCreateFormProps {
   initialData: BroadcastFormData;
 }
@@ -102,6 +132,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
   const [subject, setSubject] = useState("");
   const [contentHtml, setContentHtml] = useState("");
   const [sendInApp, setSendInApp] = useState(true);
+
+  // Jadwal Pengiriman State
+  const [deliveryTimeMode, setDeliveryTimeMode] = useState<"NOW" | "SCHEDULED">("NOW");
+  const [scheduledDateString, setScheduledDateString] = useState("");
 
   // Active view tab for mobile / tablet (< lg): write vs preview
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
@@ -184,6 +218,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           replyToMode,
           customReplyToEmail: customReplyToEmail.trim() || undefined,
           sendInApp,
+          scheduledAt:
+            deliveryTimeMode === "SCHEDULED" && scheduledDateString
+              ? new Date(scheduledDateString)
+              : null,
           attachmentIds: attachments.map((a) => a.id),
         });
 
@@ -212,6 +250,8 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     replyToMode,
     customReplyToEmail,
     sendInApp,
+    deliveryTimeMode,
+    scheduledDateString,
     attachments,
   ]);
 
@@ -232,6 +272,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         replyToMode,
         customReplyToEmail: customReplyToEmail.trim() || undefined,
         sendInApp,
+        scheduledAt:
+          deliveryTimeMode === "SCHEDULED" && scheduledDateString
+            ? new Date(scheduledDateString)
+            : null,
         attachmentIds: attachments.map((a) => a.id),
       });
 
@@ -312,6 +356,14 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     setCustomReplyToEmail(draft.customReplyToEmail || "");
     setSendInApp(draft.sendInApp);
     setAttachments(draft.attachments || []);
+
+    if (draft.scheduledAt) {
+      setDeliveryTimeMode("SCHEDULED");
+      setScheduledDateString(toDateTimeLocalString(new Date(draft.scheduledAt)));
+    } else {
+      setDeliveryTimeMode("NOW");
+      setScheduledDateString("");
+    }
 
     // Filter staf yang sudah tidak aktif
     const activeEmpIds = new Set(employees.map((e) => e.id));
@@ -622,6 +674,40 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       return;
     }
 
+    if (deliveryTimeMode === "SCHEDULED") {
+      if (!scheduledDateString) {
+        setFeedback({
+          type: "error",
+          message: "Harap tentukan tanggal dan waktu jadwal pengiriman pengumuman.",
+        });
+        return;
+      }
+      const schedTime = new Date(scheduledDateString).getTime();
+      if (Number.isNaN(schedTime)) {
+        setFeedback({
+          type: "error",
+          message: "Format tanggal jadwal pengiriman tidak valid.",
+        });
+        return;
+      }
+      const minAllowed = Date.now() + 5 * 60 * 1000 - 30000;
+      if (schedTime < minAllowed) {
+        setFeedback({
+          type: "error",
+          message: "Jadwal pengiriman minimal 5 menit dari waktu sekarang.",
+        });
+        return;
+      }
+      const maxAllowed = Date.now() + 90 * 24 * 60 * 60 * 1000;
+      if (schedTime > maxAllowed) {
+        setFeedback({
+          type: "error",
+          message: "Jadwal pengiriman maksimal 90 hari ke depan.",
+        });
+        return;
+      }
+    }
+
     setConfirmAgreed(false);
     setShowConfirmModal(true);
   };
@@ -643,6 +729,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           targetScope === "CUSTOM" ? selectedEmployeeIds : [],
         excludedEmployeeIds,
         sendInApp,
+        scheduledAt:
+          deliveryTimeMode === "SCHEDULED" && scheduledDateString
+            ? new Date(scheduledDateString)
+            : null,
         senderPersona,
         customSenderName: senderPersona === "CUSTOM" ? customSenderName.trim() : undefined,
         replyToMode,
@@ -1649,12 +1739,129 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
             </div>
           </div>
 
-          {/* SECTION 4: OPSI PENGIRIMAN & DUAL NOTIFIKASI */}
+          {/* SECTION 4: WAKTU PENGIRIMAN */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-navy-800" />
+                <h3 className="font-semibold text-sm text-slate-900">
+                  4. Waktu Pengiriman
+                </h3>
+              </div>
+              <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-200">
+                WIB (UTC+7)
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label
+                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                  deliveryTimeMode === "NOW"
+                    ? "border-navy-900 bg-navy-50/50 ring-2 ring-navy-200 shadow-xs"
+                    : "border-slate-200 hover:border-slate-300 bg-white"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="deliveryTimeMode"
+                  value="NOW"
+                  checked={deliveryTimeMode === "NOW"}
+                  onChange={() => setDeliveryTimeMode("NOW")}
+                  className="mt-0.5 text-navy-900 focus:ring-navy-600"
+                />
+                <div>
+                  <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-900">
+                    <Send className="w-3.5 h-3.5 text-navy-800" />
+                    <span>Kirim Sekarang (Langsung)</span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Pengumuman akan langsung diproses dan dikirimkan setelah dikonfirmasi.
+                  </p>
+                </div>
+              </label>
+
+              <label
+                className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                  deliveryTimeMode === "SCHEDULED"
+                    ? "border-navy-900 bg-navy-50/50 ring-2 ring-navy-200 shadow-xs"
+                    : "border-slate-200 hover:border-slate-300 bg-white"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="deliveryTimeMode"
+                  value="SCHEDULED"
+                  checked={deliveryTimeMode === "SCHEDULED"}
+                  onChange={() => {
+                    setDeliveryTimeMode("SCHEDULED");
+                    if (!scheduledDateString) {
+                      const defaultDate = new Date(Date.now() + 60 * 60 * 1000);
+                      setScheduledDateString(toDateTimeLocalString(defaultDate));
+                    }
+                  }}
+                  className="mt-0.5 text-navy-900 focus:ring-navy-600"
+                />
+                <div>
+                  <div className="flex items-center gap-1.5 font-semibold text-xs text-slate-900">
+                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Jadwalkan Pengiriman</span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Tentukan tanggal dan jam pengiriman otomatis di masa mendatang.
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {deliveryTimeMode === "SCHEDULED" && (
+              <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-xl space-y-3 animate-in fade-in duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <label className="block text-xs font-semibold text-slate-800">
+                    Pilih Waktu Pengiriman (WIB): <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-xs text-slate-500">
+                    Minimal 5 menit, maksimal 90 hari ke depan
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <div className="relative flex-1 sm:max-w-xs">
+                    <input
+                      type="datetime-local"
+                      required={deliveryTimeMode === "SCHEDULED"}
+                      min={toDateTimeLocalString(new Date(Date.now() + 5 * 60 * 1000))}
+                      max={toDateTimeLocalString(
+                        new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+                      )}
+                      value={scheduledDateString}
+                      onChange={(e) => setScheduledDateString(e.target.value)}
+                      className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent text-slate-900 font-medium"
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-navy-900 bg-white border border-slate-200 px-3 py-2 rounded-lg shrink-0">
+                    Zona Waktu: WIB (Asia/Jakarta)
+                  </span>
+                </div>
+
+                {scheduledDateString && !Number.isNaN(new Date(scheduledDateString).getTime()) && (
+                  <div className="flex items-center gap-2 text-xs text-emerald-900 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span>
+                      Akan dikirim pada:{" "}
+                      <strong>{formatScheduledWib(new Date(scheduledDateString))}</strong>
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* SECTION 5: OPSI PENGIRIMAN TAMBAHAN */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-4">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <Bell className="w-4 h-4 text-navy-800" />
               <h3 className="font-semibold text-sm text-slate-900">
-                4. Opsi Pengiriman Tambahan
+                5. Opsi Notifikasi Tambahan
               </h3>
             </div>
 
@@ -1732,8 +1939,17 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
               disabled={isSubmitting || isSendingTest || isManagerEmpty}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#102E50] hover:bg-[#0c233d] text-white rounded-xl text-xs font-semibold shadow-xs hover:shadow transition-all disabled:opacity-50 cursor-pointer"
             >
-              <Send className="w-3.5 h-3.5 text-gold-400" />
-              <span>Kirim Pengumuman</span>
+              {deliveryTimeMode === "SCHEDULED" ? (
+                <>
+                  <Clock className="w-3.5 h-3.5 text-gold-400" />
+                  <span>Jadwalkan Pengumuman</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5 text-gold-400" />
+                  <span>Kirim Pengumuman</span>
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -1764,6 +1980,14 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   <span className="text-slate-500">Subjek:</span>
                   <span className="font-semibold text-slate-900 text-right">
                     {subject}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-slate-500">Waktu Pengiriman:</span>
+                  <span className="font-semibold text-slate-900 text-right">
+                    {deliveryTimeMode === "SCHEDULED" && scheduledDateString
+                      ? `Terjadwal (${formatScheduledWib(new Date(scheduledDateString))})`
+                      : "Langsung (Segera setelah dikonfirmasi)"}
                   </span>
                 </div>
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
@@ -1849,8 +2073,37 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 </p>
               </div>
 
-              {/* PERINGATAN UMUM / MASSAL */}
-              {isBulk ? (
+              {/* PERINGATAN UMUM / MASSAL ATAU JADWAL */}
+              {deliveryTimeMode === "SCHEDULED" ? (
+                <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-950 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <Clock className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <strong className="font-semibold text-xs block text-amber-900">
+                        Pengiriman Terjadwal
+                      </strong>
+                      <p className="text-xs leading-relaxed text-amber-800">
+                        Pengumuman ini akan disimpan dengan status <strong>TERJADWAL</strong> dan dikirimkan secara otomatis pada{" "}
+                        <strong>{scheduledDateString ? formatScheduledWib(new Date(scheduledDateString)) : "waktu yang ditentukan"}</strong>.
+                        Daftar penerima aktual akan dievaluasi saat jadwal tiba. Anda dapat membatalkan jadwal ini sewaktu-waktu sebelum waktu pengiriman tiba melalui menu Riwayat Broadcast.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* CHECKBOX PERSETUJUAN */}
+                  <label className="flex items-start gap-2.5 p-2.5 bg-white/80 rounded-lg border border-amber-200 cursor-pointer text-xs text-amber-950 font-medium">
+                    <input
+                      type="checkbox"
+                      checked={confirmAgreed}
+                      onChange={(e) => setConfirmAgreed(e.target.checked)}
+                      className="mt-0.5 rounded border-amber-400 text-navy-900 focus:ring-navy-600 cursor-pointer"
+                    />
+                    <span>
+                      Saya telah memeriksa isi pengumuman dan mengonfirmasi waktu jadwal pengiriman sudah benar.
+                    </span>
+                  </label>
+                </div>
+              ) : isBulk ? (
                 <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-xl text-amber-950 space-y-3">
                   <div className="flex items-start gap-2">
                     <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
@@ -1899,14 +2152,26 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
 
               <button
                 type="button"
-                disabled={isSubmitting || (isBulk && !confirmAgreed)}
+                disabled={
+                  isSubmitting ||
+                  ((deliveryTimeMode === "SCHEDULED" || isBulk) && !confirmAgreed)
+                }
                 onClick={handleExecuteSend}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#102E50] hover:bg-[#0c233d] text-white rounded-xl text-xs font-bold shadow-xs transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin text-gold-400" />
-                    <span>Sedang Mengirim Email...</span>
+                    <span>
+                      {deliveryTimeMode === "SCHEDULED"
+                        ? "Menjadwalkan Pengumuman..."
+                        : "Sedang Mengirim Email..."}
+                    </span>
+                  </>
+                ) : deliveryTimeMode === "SCHEDULED" ? (
+                  <>
+                    <Clock className="w-3.5 h-3.5 text-gold-400" />
+                    <span>Ya, Jadwalkan Pengumuman</span>
                   </>
                 ) : (
                   <>

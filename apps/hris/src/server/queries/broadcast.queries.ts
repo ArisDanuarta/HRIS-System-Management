@@ -313,6 +313,8 @@ export async function getBroadcastDetail(
   }
 
   const canSendAll = isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+  const canCancelSchedule =
+    broadcast.status === "SCHEDULED" && (isAuthor || canSendAll);
   const canResend =
     (isAuthor || canSendAll) &&
     broadcast.failedCount > 0 &&
@@ -366,7 +368,9 @@ export async function getBroadcastDetail(
     sendInApp: broadcast.sendInApp,
     status: broadcast.status,
     createdAt: broadcast.createdAt,
+    scheduledAt: broadcast.scheduledAt,
     canResend,
+    canCancelSchedule,
     attachments: (broadcast.attachments || []).map((a) => ({
       id: a.id,
       fileName: a.fileName,
