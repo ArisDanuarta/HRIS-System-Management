@@ -19,8 +19,10 @@ export const metadata: Metadata = {
 
 interface RiwayatBroadcastPageProps {
   searchParams: Promise<{
+    q?: string;
     search?: string;
     scope?: string;
+    status?: string;
     page?: string;
   }>;
 }
@@ -58,15 +60,18 @@ export default async function KomunikasiRiwayatPage({
   }
 
   const resolvedParams = await searchParams;
-  const page = parseInt(resolvedParams.page || "1", 10);
-  const search = resolvedParams.search || "";
+  const q = (resolvedParams.q || resolvedParams.search || "").trim();
   const scope = resolvedParams.scope || "ALL";
+  const status = resolvedParams.status || "ALL";
+  const parsedPage = parseInt(resolvedParams.page || "1", 10);
+  const page = isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
 
   const historyData = await getBroadcastHistory(session.user.id, {
-    search,
+    search: q || undefined,
     scope: scope !== "ALL" ? scope : undefined,
-    page: isNaN(page) || page < 1 ? 1 : page,
-    pageSize: 25,
+    status: status !== "ALL" ? status : undefined,
+    page,
+    pageSize: 15,
   });
 
   const canCreate = canSendAll || canSendTeam;
@@ -109,9 +114,15 @@ export default async function KomunikasiRiwayatPage({
 
       {/* MAIN HISTORY VIEW */}
       <BroadcastHistoryView
-        initialItems={historyData.items}
+        items={historyData.items}
+        total={historyData.total}
+        page={historyData.page}
+        totalPages={historyData.totalPages}
         stats={historyData.stats}
         canCreate={canCreate}
+        initialSearch={q}
+        initialScope={scope}
+        initialStatus={status}
       />
     </div>
   );

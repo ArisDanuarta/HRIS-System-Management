@@ -45,17 +45,20 @@ export interface BroadcastHistoryStats {
   successRate: number;
 }
 
+export interface GetBroadcastHistoryParams {
+  search?: string;
+  scope?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
 /**
  * Mengambil daftar riwayat pengumuman broadcast dengan penyaringan hak akses RBAC.
  */
 export async function getBroadcastHistory(
   userId: string,
-  params?: {
-    search?: string;
-    scope?: string;
-    page?: number;
-    pageSize?: number;
-  },
+  params?: GetBroadcastHistoryParams,
 ): Promise<{
   items: BroadcastHistoryItem[];
   total: number;
@@ -78,21 +81,31 @@ export async function getBroadcastHistory(
   const pageSize = Math.max(1, Math.min(50, params?.pageSize || 15));
   const skip = (page - 1) * pageSize;
 
-  // Filter pencarian teks
-  const searchFilter = params?.search?.trim()
+  // Filter pencarian teks (maksimal 100 karakter)
+  const rawSearch = (params?.search || "").trim();
+  const search = rawSearch.length > 100 ? rawSearch.slice(0, 100) : rawSearch;
+  const searchFilter = search
     ? {
         OR: [
-          { subject: { contains: params.search.trim(), mode: "insensitive" as const } },
-          { senderName: { contains: params.search.trim(), mode: "insensitive" as const } },
-          { contentText: { contains: params.search.trim(), mode: "insensitive" as const } },
+          { subject: { contains: search, mode: "insensitive" as const } },
+          { senderName: { contains: search, mode: "insensitive" as const } },
+          { contentText: { contains: search, mode: "insensitive" as const } },
         ],
       }
     : {};
 
-  // Filter cakupan
+  // Filter cakupan (hanya terima nilai BroadcastScope yang valid)
+  const validScopes = Object.values(BroadcastScope) as string[];
   const scopeFilter =
-    params?.scope && params.scope !== "ALL"
+    params?.scope && params.scope !== "ALL" && validScopes.includes(params.scope)
       ? { targetScope: params.scope as BroadcastScope }
+      : {};
+
+  // Filter status pengiriman (hanya terima nilai BroadcastStatus yang valid)
+  const validStatuses = Object.values(BroadcastStatus) as string[];
+  const statusFilter =
+    params?.status && params.status !== "ALL" && validStatuses.includes(params.status)
+      ? { status: params.status as BroadcastStatus }
       : {};
 
   // Otorisasi cakupan data:
@@ -119,6 +132,7 @@ export async function getBroadcastHistory(
   const whereClause = {
     ...searchFilter,
     ...scopeFilter,
+    ...statusFilter,
     ...roleWhere,
   };
 
