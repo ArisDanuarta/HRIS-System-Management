@@ -18,6 +18,9 @@ export interface BroadcastHistoryItem {
   replyToEmail: string;
   targetScope: BroadcastScope;
   targetDepartmentName: string | null;
+  targetDepartmentIds?: string[];
+  customEmployeeIds?: string[];
+  excludedEmployeeIds?: string[];
   totalRecipients: number;
   sentCount: number;
   failedCount: number;
@@ -38,6 +41,8 @@ export interface BroadcastRecipientDetail {
 export interface BroadcastDetailItem extends BroadcastHistoryItem {
   recipients: BroadcastRecipientDetail[];
   canResend: boolean;
+  excludedCount?: number;
+  excludedEmployeeNames?: string[];
 }
 
 export interface BroadcastHistoryStats {
@@ -162,27 +167,58 @@ export async function getBroadcastHistory(
     }),
   ]);
 
-  const items: BroadcastHistoryItem[] = rawItems.map((b) => ({
-    id: b.id,
-    subject: b.subject,
-    contentSnippet:
-      b.contentText.length > 140
-        ? `${b.contentText.slice(0, 137)}...`
-        : b.contentText,
-    contentHtml: b.contentHtml,
-    senderUserId: b.senderUserId,
-    senderName: b.senderName,
-    senderEmail: b.senderEmail,
-    replyToEmail: b.replyToEmail,
-    targetScope: b.targetScope,
-    targetDepartmentName: b.targetDepartment?.name || null,
-    totalRecipients: b.totalRecipients,
-    sentCount: b.sentCount,
-    failedCount: b.failedCount,
-    sendInApp: b.sendInApp,
-    status: b.status,
-    createdAt: b.createdAt,
-  }));
+  const allDeptIds = Array.from(
+    new Set(rawItems.flatMap((b) => b.targetDepartmentIds || [])),
+  );
+  const deptMap = new Map<string, string>();
+  if (allDeptIds.length > 0) {
+    const depts = await prisma.department.findMany({
+      where: { id: { in: allDeptIds } },
+      select: { id: true, name: true },
+    });
+    depts.forEach((d) => deptMap.set(d.id, d.name));
+  }
+
+  const items: BroadcastHistoryItem[] = rawItems.map((b) => {
+    let targetDepartmentName = b.targetDepartment?.name || null;
+    if (b.targetDepartmentIds && b.targetDepartmentIds.length > 0) {
+      const names = b.targetDepartmentIds
+        .map((id) => deptMap.get(id))
+        .filter(Boolean) as string[];
+      if (names.length === 1) {
+        targetDepartmentName = names[0] || null;
+      } else if (names.length === 2) {
+        targetDepartmentName = `${names[0]}, ${names[1]}`;
+      } else if (names.length > 2) {
+        targetDepartmentName = `${names[0]} +${names.length - 1} lainnya`;
+      }
+    }
+
+    return {
+      id: b.id,
+      subject: b.subject,
+      contentSnippet:
+        b.contentText.length > 140
+          ? `${b.contentText.slice(0, 137)}...`
+          : b.contentText,
+      contentHtml: b.contentHtml,
+      senderUserId: b.senderUserId,
+      senderName: b.senderName,
+      senderEmail: b.senderEmail,
+      replyToEmail: b.replyToEmail,
+      targetScope: b.targetScope,
+      targetDepartmentName,
+      targetDepartmentIds: b.targetDepartmentIds || [],
+      customEmployeeIds: b.customEmployeeIds || [],
+      excludedEmployeeIds: b.excludedEmployeeIds || [],
+      totalRecipients: b.totalRecipients,
+      sentCount: b.sentCount,
+      failedCount: b.failedCount,
+      sendInApp: b.sendInApp,
+      status: b.status,
+      createdAt: b.createdAt,
+    };
+  });
 
   const totalBroadcasts = allStats._count.id || 0;
   const totalEmailsSent = allStats._sum.sentCount || 0;
@@ -259,6 +295,31 @@ export async function getBroadcastDetail(
     broadcast.status !== "QUEUED" &&
     broadcast.status !== "SENDING";
 
+  let targetDepartmentName = broadcast.targetDepartment?.name || null;
+  if (broadcast.targetDepartmentIds && broadcast.targetDepartmentIds.length > 0) {
+    const depts = await prisma.department.findMany({
+      where: { id: { in: broadcast.targetDepartmentIds } },
+      select: { name: true },
+    });
+    const names = depts.map((d) => d.name);
+    if (names.length === 1) {
+      targetDepartmentName = names[0] || null;
+    } else if (names.length === 2) {
+      targetDepartmentName = `${names[0]}, ${names[1]}`;
+    } else if (names.length > 2) {
+      targetDepartmentName = `${names[0]} +${names.length - 1} lainnya`;
+    }
+  }
+
+  let excludedEmployeeNames: string[] = [];
+  if (broadcast.excludedEmployeeIds && broadcast.excludedEmployeeIds.length > 0) {
+    const excludedEmployees = await prisma.employee.findMany({
+      where: { id: { in: broadcast.excludedEmployeeIds } },
+      select: { fullName: true },
+    });
+    excludedEmployeeNames = excludedEmployees.map((e) => e.fullName);
+  }
+
   return {
     id: broadcast.id,
     subject: broadcast.subject,
@@ -269,7 +330,12 @@ export async function getBroadcastDetail(
     senderEmail: broadcast.senderEmail,
     replyToEmail: broadcast.replyToEmail,
     targetScope: broadcast.targetScope,
-    targetDepartmentName: broadcast.targetDepartment?.name || null,
+    targetDepartmentName,
+    targetDepartmentIds: broadcast.targetDepartmentIds || [],
+    customEmployeeIds: broadcast.customEmployeeIds || [],
+    excludedEmployeeIds: broadcast.excludedEmployeeIds || [],
+    excludedCount: broadcast.excludedEmployeeIds ? broadcast.excludedEmployeeIds.length : 0,
+    excludedEmployeeNames,
     totalRecipients: broadcast.totalRecipients,
     sentCount: broadcast.sentCount,
     failedCount: broadcast.failedCount,

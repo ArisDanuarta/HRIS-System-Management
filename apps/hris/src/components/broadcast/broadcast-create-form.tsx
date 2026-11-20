@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { RichTextEditor } from "./rich-text-editor";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";
+import { RecipientPicker } from "./recipient-picker";
 import {
   getReplyToDisplayLabel,
   isBulkBroadcast,
@@ -58,10 +59,11 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     "ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM"
   >(canSendAll ? "ALL_EMPLOYEES" : "TEAM");
 
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>(
-    departments[0]?.id || "",
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(
+    departments[0]?.id ? [departments[0].id] : [],
   );
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<string[]>([]);
+  const [excludedEmployeeIds, setExcludedEmployeeIds] = useState<string[]>([]);
 
   // Sender Persona & Reply-To State
   const [senderExpanded, setSenderExpanded] = useState(false);
@@ -101,10 +103,13 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
 
   type Person = { id: string; fullName: string; workEmail: string };
 
-  // Aturan identik dengan server: bukan pengirim & email valid
+  // Aturan identik dengan server: bukan pengirim, email valid, & tidak dikecualikan
   const deliverable = (list: Person[]) =>
     list.filter(
-      (p) => p.id !== senderCtx.employeeId && hasDeliverableEmail(p.workEmail),
+      (p) =>
+        p.id !== senderCtx.employeeId &&
+        hasDeliverableEmail(p.workEmail) &&
+        !excludedEmployeeIds.includes(p.id),
     );
 
   const getRecipientSummary = () => {
@@ -115,11 +120,21 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       label = "Anggota Tim Anda";
       source = teamMembers;
     } else if (targetScope === "DEPARTMENT") {
-      const dept = departments.find((d) => d.id === selectedDepartmentId);
-      label = `Divisi / Departemen ${dept?.name || ""}`;
-      source = employees.filter((e) => e.departmentId === selectedDepartmentId);
+      const selectedDepts = departments.filter((d) =>
+        selectedDepartmentIds.includes(d.id),
+      );
+      if (selectedDepts.length === 1) {
+        label = `Divisi ${selectedDepts[0]?.name || ""}`;
+      } else if (selectedDepts.length > 1) {
+        label = `${selectedDepts.length} Divisi Terpilih`;
+      } else {
+        label = "Belum Ada Divisi Dipilih";
+      }
+      source = employees.filter(
+        (e) => e.departmentId && selectedDepartmentIds.includes(e.departmentId),
+      );
     } else if (targetScope === "CUSTOM") {
-      label = "Karyawan Tertentu";
+      label = `${selectedEmployeeIds.length} Karyawan Terpilih`;
       source = employees.filter((e) => selectedEmployeeIds.includes(e.id));
     } else {
       label = "Seluruh Karyawan Aktif";
@@ -177,6 +192,14 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       return;
     }
 
+    if (targetScope === "DEPARTMENT" && selectedDepartmentIds.length === 0) {
+      setFeedback({
+        type: "error",
+        message: "Harap pilih minimal 1 divisi tujuan pengumuman.",
+      });
+      return;
+    }
+
     if (targetScope === "CUSTOM" && selectedEmployeeIds.length === 0) {
       setFeedback({
         type: "error",
@@ -189,6 +212,14 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       setFeedback({
         type: "error",
         message: "Tidak ada anggota tim bawahan aktif yang terdaftar di bawah akun Anda.",
+      });
+      return;
+    }
+
+    if (recipientSummary.count === 0) {
+      setFeedback({
+        type: "error",
+        message: "Tidak ada penerima aktif yang memenuhi syarat setelah memperhitungkan filter dan pengecualian.",
       });
       return;
     }
@@ -207,9 +238,12 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         contentHtml,
         targetScope,
         targetDepartmentId:
-          targetScope === "DEPARTMENT" ? selectedDepartmentId : undefined,
+          targetScope === "DEPARTMENT" ? selectedDepartmentIds[0] || null : undefined,
+        targetDepartmentIds:
+          targetScope === "DEPARTMENT" ? selectedDepartmentIds : [],
         customEmployeeIds:
           targetScope === "CUSTOM" ? selectedEmployeeIds : [],
+        excludedEmployeeIds,
         sendInApp,
         senderPersona,
         customSenderName: senderPersona === "CUSTOM" ? customSenderName.trim() : undefined,
