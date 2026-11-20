@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 import sanitizeHtml from "sanitize-html";
 import { prisma, writeAudit, BroadcastStatus } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
@@ -453,7 +453,7 @@ function escapeHtml(str: string): string {
  * Membuat instance transporter SMTP jika variabel lingkungan SMTP disetel,
  * atau mengembalikan null jika berada dalam mode simulasi.
  */
-export function createTransporter(): nodemailer.Transporter | null {
+export function createTransporter(): Transporter | null {
   const smtpHost = process.env.SMTP_HOST?.trim();
   const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
   const smtpUser = process.env.SMTP_USER?.trim();

@@ -67,7 +67,6 @@ describe("POST /api/cron/broadcast-dispatch", () => {
       .mockResolvedValueOnce({
         processed: true,
         broadcastId: "bc-1",
-        totalRecipients: 10,
         sentCount: 10,
         failedCount: 0,
         finalStatus: "SENT",
@@ -75,7 +74,6 @@ describe("POST /api/cron/broadcast-dispatch", () => {
       .mockResolvedValueOnce({
         processed: true,
         broadcastId: "bc-2",
-        totalRecipients: 5,
         sentCount: 5,
         failedCount: 0,
         finalStatus: "SENT",

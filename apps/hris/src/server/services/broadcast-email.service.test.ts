@@ -5,6 +5,8 @@ import {
   renderBroadcastEmailHtml,
   resolveSenderIdentity,
   executeSendBroadcast,
+  enqueueBroadcast,
+  processBroadcast,
   getBroadcastSenderContext,
   getBroadcastRecipients,
   absolutizeImageUrls,
@@ -41,10 +43,14 @@ vi.mock("@pspk/db", () => ({
     emailBroadcast: {
       create: vi.fn(),
       update: vi.fn(),
+      findUnique: vi.fn(),
+      updateMany: vi.fn(),
     },
     emailBroadcastRecipient: {
       update: vi.fn(),
       updateMany: vi.fn(),
+      findMany: vi.fn(),
+      groupBy: vi.fn(),
     },
     notification: {
       createMany: vi.fn(),
@@ -448,6 +454,141 @@ describe("broadcast-email.service.ts", () => {
       const result = absolutizeImageUrls(inputHtml);
 
       expect(result).toBe(inputHtml);
+    });
+  });
+
+  describe("enqueueBroadcast & processBroadcast", () => {
+    it("enqueueBroadcast harus membuat record berstatus QUEUED dan mendaftarkan recipient PENDING", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr-1",
+        employeeId: "emp-hr-1",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.send:all"]),
+      });
+
+      vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+        id: "emp-hr-1",
+        fullName: "Admin HR",
+        workEmail: "hr@pspk.id",
+        currentPosition: { title: "HR Specialist", isUnitHead: false },
+        currentDepartment: { id: "dept-1", name: "People & Culture" },
+      } as unknown as MockEmployeeFirst);
+
+      vi.mocked(prisma.employee.findMany).mockResolvedValue([
+        {
+          id: "emp-2",
+          fullName: "Staf 2",
+          workEmail: "staf2@pspk.id",
+          userId: "user-staf-2",
+          currentDepartment: { name: "Riset" },
+        },
+      ] as unknown as MockEmployeeMany);
+
+      vi.mocked(prisma.emailBroadcast.create).mockResolvedValue({
+        id: "bc-queued-1",
+        subject: "Surat Edaran Libur",
+      } as never);
+
+      const res = await enqueueBroadcast("user-hr-1", {
+        subject: "Surat Edaran Libur",
+        contentHtml: "<p>Libur bersama dimulai lusa.</p>",
+        targetScope: "ALL_EMPLOYEES",
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.broadcastId).toBe("bc-queued-1");
+      expect(res.totalRecipients).toBe(1);
+      expect(prisma.emailBroadcast.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: "QUEUED",
+            totalRecipients: 1,
+            recipients: expect.objectContaining({
+              create: expect.arrayContaining([
+                expect.objectContaining({
+                  email: "staf2@pspk.id",
+                  status: "PENDING",
+                }),
+              ]),
+            }),
+          }),
+        }),
+      );
+    });
+
+    it("processBroadcast harus mengembalikan reason BROADCAST_NOT_FOUND jika broadcast id tidak ada", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue(null);
+
+      const res = await processBroadcast("bc-none");
+      expect(res.processed).toBe(false);
+      expect(res.reason).toBe("BROADCAST_NOT_FOUND");
+    });
+
+    it("processBroadcast harus mengembalikan reason ALREADY_FINISHED jika status sudah SENT", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-done",
+        status: "SENT",
+        sentCount: 10,
+        failedCount: 0,
+      } as never);
+
+      const res = await processBroadcast("bc-done");
+      expect(res.processed).toBe(false);
+      expect(res.reason).toBe("ALREADY_FINISHED");
+      expect(res.finalStatus).toBe("SENT");
+    });
+
+    it("processBroadcast berhasil memproses antrean QUEUED dan memperbarui status menjadi SENT", async () => {
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValue({
+        id: "bc-to-process",
+        subject: "Pengumuman Rapat",
+        contentHtml: "<p>Konten rapat.</p>",
+        contentText: "Konten rapat.",
+        senderName: "Admin HR",
+        senderEmail: "hr@pspk.id",
+        replyToEmail: "hr@pspk.id",
+        targetScope: "ALL_EMPLOYEES",
+        status: "QUEUED",
+        sendInApp: false,
+        totalRecipients: 1,
+        sentCount: 0,
+        failedCount: 0,
+      } as never);
+
+      vi.mocked(prisma.emailBroadcast.updateMany).mockResolvedValue({ count: 1 });
+      vi.mocked(prisma.emailBroadcastRecipient.updateMany).mockResolvedValue({ count: 1 });
+
+      // Batch loop: 1 item pada iterasi pertama, lalu kosong
+      vi.mocked(prisma.emailBroadcastRecipient.findMany)
+        .mockResolvedValueOnce([
+          {
+            id: "rcpt-1",
+            recipientName: "Staf 1",
+            email: "staf1@pspk.id",
+          },
+        ] as never)
+        .mockResolvedValueOnce([] as never);
+
+      vi.mocked(prisma.emailBroadcastRecipient.groupBy).mockResolvedValue([
+        { status: "SENT", _count: { id: 1 } },
+      ] as never);
+
+      vi.mocked(prisma.emailBroadcast.update).mockResolvedValue({} as never);
+
+      const res = await processBroadcast("bc-to-process");
+      expect(res.processed).toBe(true);
+      expect(res.finalStatus).toBe("SENT");
+      expect(res.sentCount).toBe(1);
+      expect(res.failedCount).toBe(0);
+      expect(prisma.emailBroadcast.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: "bc-to-process" },
+          data: expect.objectContaining({
+            status: "SENT",
+            lockedAt: null,
+          }),
+        }),
+      );
     });
   });
 });
