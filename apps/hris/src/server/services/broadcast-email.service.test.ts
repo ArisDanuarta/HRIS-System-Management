@@ -465,7 +465,7 @@ describe("broadcast-email.service.ts", () => {
       expect(prisma.employee.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            id: { notIn: ["emp-cuti-1", "emp-cuti-2", "emp-admin"] },
+            id: { notIn: ["emp-cuti-1", "emp-cuti-2"] },
             status: "ACTIVE",
           }),
         }),

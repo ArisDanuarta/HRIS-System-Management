@@ -152,7 +152,13 @@ export async function getBroadcastSenderContext(
 export async function getBroadcastRecipients(
   senderCtx: BroadcastSenderContext,
   targetScope: "ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM",
-  departmentId?: string | null,
+  departmentIdOrOptions?:
+    | string
+    | null
+    | {
+        departmentIds?: string[];
+        excludedEmployeeIds?: string[];
+      },
   customEmployeeIds?: string[],
   options?: {
     departmentIds?: string[];
@@ -166,14 +172,19 @@ export async function getBroadcastRecipients(
     );
   }
 
+  const isThirdArgOptions =
+    typeof departmentIdOrOptions === "object" && departmentIdOrOptions !== null;
+  const resolvedOptions = isThirdArgOptions ? departmentIdOrOptions : options;
+  const resolvedDepartmentId = isThirdArgOptions ? null : departmentIdOrOptions;
+
   const effectiveDeptIds =
-    options?.departmentIds && options.departmentIds.length > 0
-      ? options.departmentIds
-      : departmentId
-        ? [departmentId]
+    resolvedOptions?.departmentIds && resolvedOptions.departmentIds.length > 0
+      ? resolvedOptions.departmentIds
+      : resolvedDepartmentId
+        ? [resolvedDepartmentId]
         : [];
 
-  const rawExcludedIds = options?.excludedEmployeeIds || [];
+  const rawExcludedIds = resolvedOptions?.excludedEmployeeIds || [];
   const excludedIds = rawExcludedIds.filter((id) => Boolean(id && id.trim()));
   const notInExcluded = excludedIds.length > 0 ? { notIn: excludedIds } : undefined;
 

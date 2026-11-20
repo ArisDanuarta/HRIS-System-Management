@@ -1,16 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   Search,
   Check,
   X,
-  Users,
-  Building2,
   UserX,
   ChevronDown,
   ChevronUp,
-  Filter,
 } from "lucide-react";
 import { hasDeliverableEmail } from "@/server/schemas/broadcast.schema";
 

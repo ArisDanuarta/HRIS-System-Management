@@ -535,23 +535,6 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
               excludedEmployeeIds={excludedEmployeeIds}
               onChangeExcludedIds={setExcludedEmployeeIds}
             />
-                    {teamMembers.map((member) => (
-                      <span
-                        key={member.id}
-                        className="inline-flex items-center gap-1 text-xs bg-white text-slate-800 border border-slate-200 px-2 py-0.5 rounded-md shadow-2xs"
-                      >
-                        <span className="font-medium">{member.fullName}</span>
-                        {member.positionTitle && (
-                          <span className="text-slate-500">
-                            • {member.positionTitle}
-                          </span>
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* RECIPIENT COUNT BADGE */}
             <div className="space-y-2">
