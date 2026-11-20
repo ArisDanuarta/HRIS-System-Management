@@ -347,12 +347,6 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     }
   };
 
-  const toggleEmployeeSelection = (empId: string) => {
-    setSelectedEmployeeIds((prev) =>
-      prev.includes(empId) ? prev.filter((id) => id !== empId) : [...prev, empId],
-    );
-  };
-
   return (
     <div className="space-y-6 pb-28">
       {/* FEEDBACK BANNER */}
@@ -469,7 +463,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                       )}
                     </div>
                     <p className="text-xs text-slate-600 mt-1">
-                      Spesifik untuk salah satu divisi PSPK
+                      Spesifik untuk divisi PSPK (bisa multi-divisi)
                     </p>
                   </button>
 
@@ -495,77 +489,6 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     </p>
                   </button>
                 </div>
-
-                {/* Sub-selector: Department */}
-                {targetScope === "DEPARTMENT" && (
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2 animate-in fade-in duration-150">
-                    <label className="block text-xs font-semibold text-slate-700">
-                      Pilih Departemen Tujuan:
-                    </label>
-                    <select
-                      value={selectedDepartmentId}
-                      onChange={(e) => setSelectedDepartmentId(e.target.value)}
-                      className="w-full sm:w-80 px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600"
-                    >
-                      {departments.map((dept) => (
-                        <option key={dept.id} value={dept.id}>
-                          {dept.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Sub-selector: Custom Employees Picker */}
-                {targetScope === "CUSTOM" && (
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3 animate-in fade-in duration-150">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold text-slate-800">
-                        Pilih Karyawan Penerima ({selectedEmployeeIds.length} Terpilih):
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedEmployeeIds(
-                            selectedEmployeeIds.length === employees.length
-                              ? []
-                              : employees.map((e) => e.id),
-                          )
-                        }
-                        className="text-xs text-navy-800 hover:underline font-semibold cursor-pointer"
-                      >
-                        {selectedEmployeeIds.length === employees.length
-                          ? "Batal Pilih Semua"
-                          : "Pilih Semua Karyawan"}
-                      </button>
-                    </div>
-
-                    <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 border border-slate-200 rounded-lg p-2 bg-white">
-                      {employees.map((emp) => (
-                        <label
-                          key={emp.id}
-                          className="flex items-center gap-2 p-1.5 hover:bg-slate-50 rounded cursor-pointer text-xs"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedEmployeeIds.includes(emp.id)}
-                            onChange={() => toggleEmployeeSelection(emp.id)}
-                            className="rounded border-slate-300 text-navy-900 focus:ring-navy-600"
-                          />
-                          <span className="font-medium text-slate-900">
-                            {emp.fullName}
-                          </span>
-                          <span className="text-slate-600">({emp.workEmail})</span>
-                          {emp.departmentName && (
-                            <span className="ml-auto text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
-                              {emp.departmentName}
-                            </span>
-                          )}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               /* MANAGER ONLY VIEW: LOCKED TO TEAM */
@@ -579,6 +502,39 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     Sebagai Manajer/Lead, email pengumuman Anda akan ditujukan langsung ke anggota tim yang berada di bawah supervisi Anda.
                   </p>
                   <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    {teamMembers.map((member) => (
+                      <span
+                        key={member.id}
+                        className="inline-flex items-center gap-1 text-xs bg-white text-slate-800 border border-slate-200 px-2 py-0.5 rounded-md shadow-2xs"
+                      >
+                        <span className="font-medium">{member.fullName}</span>
+                        {member.positionTitle && (
+                          <span className="text-slate-500">
+                            • {member.positionTitle}
+                          </span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* RECIPIENT PICKER (Multi-divisi, Custom Search, & Pengecualian) */}
+            <RecipientPicker
+              targetScope={targetScope}
+              canSendAll={canSendAll}
+              departments={departments}
+              employees={employees}
+              teamMembers={teamMembers}
+              senderEmployeeId={senderCtx.employeeId}
+              selectedDepartmentIds={selectedDepartmentIds}
+              onChangeDepartmentIds={setSelectedDepartmentIds}
+              selectedEmployeeIds={selectedEmployeeIds}
+              onChangeEmployeeIds={setSelectedEmployeeIds}
+              excludedEmployeeIds={excludedEmployeeIds}
+              onChangeExcludedIds={setExcludedEmployeeIds}
+            />
                     {teamMembers.map((member) => (
                       <span
                         key={member.id}
@@ -1248,6 +1204,14 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     {recipientSummary.label}
                   </span>
                 </div>
+                {excludedEmployeeIds.length > 0 && (
+                  <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                    <span className="text-slate-500">Dikecualikan:</span>
+                    <span className="font-semibold text-amber-700">
+                      {excludedEmployeeIds.length} Orang
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-slate-500">Total Penerima:</span>
                   <span className="font-bold text-emerald-700 text-sm">

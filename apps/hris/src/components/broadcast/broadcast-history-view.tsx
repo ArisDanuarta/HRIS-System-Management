@@ -723,6 +723,20 @@ export function BroadcastHistoryView({
                           {activeDetail.failedCount > 0 && ` (${activeDetail.failedCount} gagal)`}
                         </p>
                       </div>
+                      {activeDetail.excludedCount !== undefined && activeDetail.excludedCount > 0 && (
+                        <div className="sm:col-span-2 pt-1 border-t border-slate-200/60">
+                          <span className="text-slate-600">Pegawai Dikecualikan:</span>
+                          <p className="font-semibold text-amber-700 mt-0.5">
+                            {activeDetail.excludedCount} Orang
+                            {activeDetail.excludedEmployeeNames &&
+                              activeDetail.excludedEmployeeNames.length > 0 && (
+                                <span className="text-slate-600 font-normal block text-xs mt-0.5">
+                                  ({activeDetail.excludedEmployeeNames.join(", ")})
+                                </span>
+                              )}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 

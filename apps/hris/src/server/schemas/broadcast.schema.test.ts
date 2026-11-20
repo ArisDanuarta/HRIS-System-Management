@@ -90,4 +90,33 @@ describe("broadcast.schema.ts - Validasi Skema Broadcast", () => {
       "Nama pengirim kustom maksimal 100 karakter.",
     );
   });
+
+  it("harus mengisi nilai default untuk targetDepartmentIds dan excludedEmployeeIds", () => {
+    const input = {
+      subject: "Pengumuman Fleksibel",
+      contentHtml: "<p>Konten pengumuman</p>",
+      targetScope: "DEPARTMENT" as const,
+    };
+
+    const parsed = sendBroadcastSchema.parse(input);
+    expect(parsed.targetDepartmentIds).toEqual([]);
+    expect(parsed.customEmployeeIds).toEqual([]);
+    expect(parsed.excludedEmployeeIds).toEqual([]);
+  });
+
+  it("harus menerima targetDepartmentIds, customEmployeeIds, dan excludedEmployeeIds berupa array ID valid", () => {
+    const input = {
+      subject: "Pengumuman Multi-Divisi dan Pengecualian",
+      contentHtml: "<p>Konten pengumuman multi-divisi</p>",
+      targetScope: "DEPARTMENT" as const,
+      targetDepartmentIds: ["dept-1", "dept-2"],
+      customEmployeeIds: ["emp-1", "emp-2"],
+      excludedEmployeeIds: ["emp-3"],
+    };
+
+    const parsed = sendBroadcastSchema.parse(input);
+    expect(parsed.targetDepartmentIds).toEqual(["dept-1", "dept-2"]);
+    expect(parsed.customEmployeeIds).toEqual(["emp-1", "emp-2"]);
+    expect(parsed.excludedEmployeeIds).toEqual(["emp-3"]);
+  });
 });
