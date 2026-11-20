@@ -5,6 +5,7 @@ import { getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
 import {
   SendBroadcastInput,
+  SendTestBroadcastInput,
   ReplyToMode,
   BroadcastSenderContext,
   resolveSenderIdentity,
@@ -45,6 +46,19 @@ export interface SendBroadcastResult {
   sentCount: number;
   failedCount: number;
   simulated: boolean;
+  message: string;
+}
+
+export interface SendTestBroadcastResult {
+  success: boolean;
+  message: string;
+  simulated?: boolean;
+}
+
+export interface ResendFailedBroadcastResult {
+  success: boolean;
+  broadcastId: string;
+  retriedCount: number;
   message: string;
 }
 
@@ -974,5 +988,270 @@ export async function executeSendBroadcast(
     message: processRes.simulated
       ? `Pengumuman berhasil disimulasikan ke ${processRes.sentCount} penerima (SMTP belum dikonfigurasi).`
       : `Pengumuman berhasil dikirimkan ke ${processRes.sentCount} dari ${enqueueRes.totalRecipients} penerima via email.`,
+  };
+}
+
+/**
+ * 3. Send Test Broadcast: Mengirimkan email uji hanya ke alamat email kerja pengirim sendiri.
+ * Tidak membuat record EmailBroadcast dan tidak mendispatch notifikasi in-app.
+ * Dibatasi maksimal 5 kali pengiriman email uji per pengguna per 10 menit.
+ */
+export async function sendTestBroadcast(
+  userId: string,
+  input: SendTestBroadcastInput,
+  reqMeta?: { ip?: string; userAgent?: string },
+): Promise<SendTestBroadcastResult> {
+  const senderCtx = await getBroadcastSenderContext(userId);
+
+  if (!hasDeliverableEmail(senderCtx.userEmail)) {
+    throw new Error(
+      "Akun Anda belum memiliki alamat email kerja yang valid untuk menerima email uji.",
+    );
+  }
+
+  // Rate Limiting: Maksimal 5 email uji per pengguna dalam kurun waktu 10 menit
+  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+  const recentTestCount = await prisma.auditLog.count({
+    where: {
+      action: "BROADCAST_EMAIL_TEST",
+      actorUserId: userId,
+      occurredAt: { gte: tenMinutesAgo },
+    },
+  });
+
+  if (recentTestCount >= 5) {
+    throw new Error(
+      "Terlalu sering mengirim email uji. Batas maksimal adalah 5 kali per 10 menit. Silakan coba lagi beberapa saat lagi.",
+    );
+  }
+
+  const {
+    subject,
+    contentHtml: rawContentHtml,
+    senderPersona = "ORGANIZATION",
+    customSenderName,
+    replyToMode = "NO_REPLY",
+    customReplyToEmail,
+  } = input;
+
+  // Otorisasi persona & reply-to: hanya pemegang hak "all" yang boleh
+  // memakai identitas lembaga/HR/kustom dan reply-to bebas.
+  if (!senderCtx.canSendAll) {
+    if (senderPersona !== "PERSONAL") {
+      throw new Error(
+        "Akses ditolak: Anda hanya dapat menerbitkan pengumuman atas nama pribadi.",
+      );
+    }
+    if (replyToMode === "ORGANIZATION_HR" || replyToMode === "CUSTOM") {
+      throw new Error(
+        "Akses ditolak: Anda hanya dapat memilih balasan satu arah atau email pribadi.",
+      );
+    }
+  }
+
+  // Resolusi identitas persona pengirim & mode balasan
+  const resolvedSender = resolveSenderIdentity(
+    senderCtx,
+    senderPersona,
+    customSenderName,
+    replyToMode,
+    customReplyToEmail,
+  );
+
+  // Sanitasi konten dan konversi plaintext
+  const sanitizedContent = sanitizeBroadcastContent(rawContentHtml);
+  const plainTextContent = htmlToPlainText(sanitizedContent);
+  const absolutizedHtml = absolutizeImageUrls(sanitizedContent);
+
+  // Banner penanda email uji
+  const testBanner = `
+    <div style="background-color: #FEF3C7; border: 1px solid #F59E0B; color: #92400E; padding: 12px 16px; border-radius: 8px; margin-bottom: 24px; font-size: 13px; line-height: 1.5; font-family: sans-serif;">
+      <strong style="color: #B45309;">⚠️ INI ADALAH EMAIL UJI (TEST EMAIL)</strong><br />
+      Pesan ini hanya dikirimkan ke alamat email kerja Anda (<strong>${escapeHtml(senderCtx.userEmail)}</strong>) untuk pengecekan tata letak dan keterbacaan. Pesan ini <em>tidak disebarkan</em> ke karyawan lain.
+    </div>
+  `.trim();
+
+  const emailContentHtml = `${testBanner}${absolutizedHtml}`;
+
+  const personalizedHtml = renderBroadcastEmailHtml({
+    subject: `[TES] ${subject}`,
+    contentHtml: emailContentHtml,
+    recipientName: senderCtx.userName,
+    senderName: resolvedSender.displayName,
+    senderTitle: resolvedSender.displayTitle,
+    scopeBadge: "EMAIL UJI",
+    isPersonal: resolvedSender.isPersonal,
+    replyToMode: resolvedSender.replyToMode,
+    replyToEmail: resolvedSender.replyToEmail,
+  });
+
+  const transporter = createTransporter();
+  const isSimulated = !transporter;
+  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
+
+  if (transporter) {
+    await transporter.sendMail({
+      from: smtpFrom,
+      to: senderCtx.userEmail,
+      replyTo: resolvedSender.replyToHeader,
+      subject: `[TES] [PSPK HRIS] ${subject}`,
+      text: `[EMAIL UJI]\n\nHalo ${senderCtx.userName},\n\nIni adalah email uji pengumuman. Pesan ini hanya dikirimkan ke Anda.\n\n${plainTextContent}\n\nPengumuman dari: ${resolvedSender.displayName}`,
+      html: personalizedHtml,
+      headers: {
+        "X-Mailer": "PSPK-Broadcast-Mailer",
+      },
+    });
+  }
+
+  // Catat Audit Log Email Uji
+  await writeAudit({
+    actorUserId: userId,
+    actorEmail: senderCtx.userEmail,
+    app: "hris",
+    action: "BROADCAST_EMAIL_TEST",
+    entityType: "EmailBroadcast",
+    entityId: "test-broadcast",
+    after: {
+      subject,
+      targetEmail: senderCtx.userEmail,
+      senderPersona,
+      senderDisplayName: resolvedSender.displayName,
+      replyToMode: resolvedSender.replyToMode,
+      isSimulated,
+    },
+    ip: reqMeta?.ip || "127.0.0.1",
+    userAgent: reqMeta?.userAgent || "unknown",
+  });
+
+  return {
+    success: true,
+    simulated: isSimulated,
+    message: isSimulated
+      ? `SMTP belum dikonfigurasi. Pengiriman email uji ke ${senderCtx.userEmail} disimulasikan berhasil.`
+      : `Email uji berhasil dikirim ke alamat email Anda (${senderCtx.userEmail}). Silakan periksa kotak masuk atau spam.`,
+  };
+}
+
+/**
+ * 4. Resend Failed Recipients: Memasukkan kembali penerima yang gagal (FAILED) ke dalam antrean (PENDING).
+ * Hanya memproses penerima yang berstatus FAILED dan memvalidasi keaktifan pegawai terkait.
+ */
+export async function resendFailedRecipients(
+  userId: string,
+  broadcastId: string,
+  reqMeta?: { ip?: string; userAgent?: string },
+): Promise<ResendFailedBroadcastResult> {
+  const broadcast = await prisma.emailBroadcast.findUnique({
+    where: { id: broadcastId },
+    include: {
+      recipients: {
+        where: { status: "FAILED" },
+        include: {
+          employee: {
+            select: { id: true, status: true, workEmail: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!broadcast) {
+    throw new Error("Pengumuman tidak ditemukan.");
+  }
+
+  if (broadcast.status === "QUEUED" || broadcast.status === "SENDING") {
+    throw new Error("Pengumuman masih dalam proses pengiriman antrean.");
+  }
+
+  // Otorisasi: Penulis pengumuman atau pemegang hak canSendAll (Super Admin & Admin HR)
+  const authCtx = await getAuthContext(userId);
+  if (!authCtx) {
+    throw new Error("Konteks otentikasi tidak ditemukan.");
+  }
+
+  const isSuperAdmin = authCtx.roles.includes("super_admin");
+  const isAdminHr = authCtx.roles.includes("admin_hr");
+  const isAuthor = broadcast.senderUserId === userId;
+  const canSendAll = isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+
+  if (!isAuthor && !canSendAll) {
+    throw new Error("Akses ditolak: Anda tidak memiliki izin untuk mengirim ulang pengumuman ini.");
+  }
+
+  const failedRecipients = broadcast.recipients;
+  if (failedRecipients.length === 0) {
+    throw new Error("Tidak ada penerima berstatus gagal pada pengumuman ini.");
+  }
+
+  // Validasi keaktifan pegawai dan ketersediaan email kerja
+  const validToRetryIds: string[] = [];
+  const invalidIds: string[] = [];
+
+  for (const r of failedRecipients) {
+    if (r.employee && r.employee.status === "ACTIVE" && hasDeliverableEmail(r.employee.workEmail)) {
+      validToRetryIds.push(r.id);
+    } else {
+      invalidIds.push(r.id);
+    }
+  }
+
+  // Tandai yang tidak valid tetap FAILED dengan pesan spesifik
+  if (invalidIds.length > 0) {
+    await prisma.emailBroadcastRecipient.updateMany({
+      where: { id: { in: invalidIds } },
+      data: {
+        status: "FAILED",
+        errorMessage: "Karyawan sudah tidak aktif atau email kerja tidak valid.",
+      },
+    });
+  }
+
+  if (validToRetryIds.length === 0) {
+    throw new Error(
+      "Semua penerima yang gagal sudah tidak aktif atau tidak memiliki email kerja yang valid.",
+    );
+  }
+
+  // Setel penerima yang valid kembali ke PENDING dan hapus pesan error sebelumnya
+  await prisma.emailBroadcastRecipient.updateMany({
+    where: { id: { in: validToRetryIds } },
+    data: {
+      status: "PENDING",
+      errorMessage: null,
+    },
+  });
+
+  // Setel status broadcast induk kembali ke QUEUED agar dapat diproses oleh worker
+  await prisma.emailBroadcast.update({
+    where: { id: broadcastId },
+    data: {
+      status: "QUEUED",
+      lockedAt: null,
+    },
+  });
+
+  // Catat Audit Log Pengiriman Ulang
+  await writeAudit({
+    actorUserId: userId,
+    actorEmail: authCtx.employeeId || broadcast.senderEmail,
+    app: "hris",
+    action: "BROADCAST_EMAIL_RESEND",
+    entityType: "EmailBroadcast",
+    entityId: broadcastId,
+    after: {
+      broadcastId,
+      subject: broadcast.subject,
+      retriedCount: validToRetryIds.length,
+      invalidSkippedCount: invalidIds.length,
+    },
+    ip: reqMeta?.ip || "127.0.0.1",
+    userAgent: reqMeta?.userAgent || "unknown",
+  });
+
+  return {
+    success: true,
+    broadcastId,
+    retriedCount: validToRetryIds.length,
+    message: `${validToRetryIds.length} penerima yang gagal berhasil dimasukkan kembali ke antrean pengiriman.`,
   };
 }
