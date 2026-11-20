@@ -23,6 +23,7 @@ interface RiwayatBroadcastPageProps {
     search?: string;
     scope?: string;
     status?: string;
+    category?: string;
     page?: string;
   }>;
 }
@@ -63,6 +64,7 @@ export default async function KomunikasiRiwayatPage({
   const q = (resolvedParams.q || resolvedParams.search || "").trim();
   const scope = resolvedParams.scope || "ALL";
   const status = resolvedParams.status || "ALL";
+  const category = resolvedParams.category || "ALL";
   const parsedPage = parseInt(resolvedParams.page || "1", 10);
   const page = isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
 
@@ -70,6 +72,7 @@ export default async function KomunikasiRiwayatPage({
     search: q || undefined,
     scope: scope !== "ALL" ? scope : undefined,
     status: status !== "ALL" ? status : undefined,
+    category: category !== "ALL" ? category : undefined,
     page,
     pageSize: 15,
   });
@@ -123,6 +126,7 @@ export default async function KomunikasiRiwayatPage({
         initialSearch={q}
         initialScope={scope}
         initialStatus={status}
+        initialCategory={category}
       />
     </div>
   );

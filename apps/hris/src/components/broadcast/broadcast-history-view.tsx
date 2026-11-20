@@ -24,6 +24,9 @@ import {
   Paperclip,
   Clock,
   Ban,
+  Bell,
+  Tag,
+  ShieldAlert,
 } from "lucide-react";
 import {
   BroadcastHistoryItem,
@@ -34,7 +37,13 @@ import {
   getBroadcastDetailAction,
   resendFailedBroadcastAction,
   cancelScheduledBroadcastAction,
+  remindUnreadRecipientsAction,
 } from "../../server/actions/broadcast.actions";
+import {
+  BROADCAST_CATEGORIES,
+  BROADCAST_CATEGORY_LABELS,
+  BroadcastCategory,
+} from "../../server/schemas/broadcast.schema";
 import { PspkLoader } from "@pspk/ui";
 
 interface BroadcastHistoryViewProps {
@@ -48,6 +57,7 @@ interface BroadcastHistoryViewProps {
   initialSearch?: string;
   initialScope?: string;
   initialStatus?: string;
+  initialCategory?: string;
 }
 
 export function BroadcastHistoryView({
@@ -61,6 +71,7 @@ export function BroadcastHistoryView({
   initialSearch = "",
   initialScope = "ALL",
   initialStatus = "ALL",
+  initialCategory = "ALL",
 }: BroadcastHistoryViewProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -74,6 +85,7 @@ export function BroadcastHistoryView({
 
   const activeScope = searchParams.get("scope") || initialScope;
   const activeStatus = searchParams.get("status") || initialStatus;
+  const activeCategory = searchParams.get("category") || initialCategory;
   const urlQ = searchParams.get("q") || searchParams.get("search") || "";
 
   // Pola resmi React untuk menyesuaikan state saat searchParams URL berubah (tanpa useEffect)
@@ -107,10 +119,17 @@ export function BroadcastHistoryView({
   const [activeDetail, setActiveDetail] = useState<BroadcastDetailItem | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
-  const [recipientFilter, setRecipientFilter] = useState<"ALL" | "SENT" | "FAILED">("ALL");
+  const [recipientFilter, setRecipientFilter] = useState<
+    "ALL" | "SENT" | "FAILED" | "READ" | "UNREAD"
+  >("ALL");
   const [recipientSearch, setRecipientSearch] = useState("");
   const [isResending, setIsResending] = useState(false);
   const [resendFeedback, setResendFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [isReminding, setIsReminding] = useState(false);
+  const [remindFeedback, setRemindFeedback] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
@@ -119,6 +138,7 @@ export function BroadcastHistoryView({
     q?: string;
     scope?: string;
     status?: string;
+    category?: string;
     page?: number;
   }) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -146,6 +166,14 @@ export function BroadcastHistoryView({
         params.set("status", updates.status);
       } else {
         params.delete("status");
+      }
+    }
+
+    if (updates.category !== undefined) {
+      if (updates.category && updates.category !== "ALL") {
+        params.set("category", updates.category);
+      } else {
+        params.delete("category");
       }
     }
 
@@ -182,6 +210,10 @@ export function BroadcastHistoryView({
     updateUrl({ status: newStatus, page: 1 });
   };
 
+  const handleCategoryChange = (newCategory: string) => {
+    updateUrl({ category: newCategory, page: 1 });
+  };
+
   const handlePageChange = (newPage: number) => {
     if (newPage < 1 || newPage > maxPages || newPage === currentPage) return;
     updateUrl({ page: newPage });
@@ -189,7 +221,7 @@ export function BroadcastHistoryView({
 
   const handleResetFilters = () => {
     setSearchQuery("");
-    updateUrl({ q: "", scope: "ALL", status: "ALL", page: 1 });
+    updateUrl({ q: "", scope: "ALL", status: "ALL", category: "ALL", page: 1 });
   };
 
   const handleOpenDetail = async (id: string) => {
@@ -197,6 +229,7 @@ export function BroadcastHistoryView({
     setIsLoadingDetail(true);
     setDetailError(null);
     setResendFeedback(null);
+    setRemindFeedback(null);
     setRecipientFilter("ALL");
     setRecipientSearch("");
 
@@ -219,6 +252,7 @@ export function BroadcastHistoryView({
     setActiveDetail(null);
     setDetailError(null);
     setResendFeedback(null);
+    setRemindFeedback(null);
   };
 
   const handleResendFailed = async (broadcastId: string) => {
@@ -288,21 +322,70 @@ export function BroadcastHistoryView({
     }
   };
 
+  const handleRemindUnread = async (broadcastId: string) => {
+    if (
+      !window.confirm(
+        "Kirimkan notifikasi in-app pengingat kepada seluruh penerima yang belum membaca pengumuman ini?",
+      )
+    ) {
+      return;
+    }
+
+    setIsReminding(true);
+    setRemindFeedback(null);
+    try {
+      const res = await remindUnreadRecipientsAction(broadcastId);
+      if (res.success) {
+        setRemindFeedback({
+          type: "success",
+          message: res.message || "Notifikasi pengingat berhasil dikirimkan.",
+        });
+      } else {
+        setRemindFeedback({
+          type: "error",
+          message: res.error || "Gagal mengirimkan notifikasi pengingat.",
+        });
+      }
+    } catch {
+      setRemindFeedback({
+        type: "error",
+        message: "Terjadi kesalahan sistem saat mengirim pengingat.",
+      });
+    } finally {
+      setIsReminding(false);
+    }
+  };
+
   // Filtered recipients in modal
   const filteredRecipients = useMemo(() => {
     if (!activeDetail) return [];
     return activeDetail.recipients.filter((rcpt) => {
-      const matchStatus =
-        recipientFilter === "ALL" || rcpt.status === recipientFilter;
+      let matchFilter = true;
+      if (recipientFilter === "SENT") {
+        matchFilter = rcpt.status === "SENT";
+      } else if (recipientFilter === "FAILED") {
+        matchFilter = rcpt.status === "FAILED";
+      } else if (recipientFilter === "READ") {
+        matchFilter = Boolean(rcpt.readAt);
+      } else if (recipientFilter === "UNREAD") {
+        matchFilter = rcpt.status === "SENT" && !rcpt.readAt;
+      }
 
       const matchSearch =
         recipientSearch.trim() === "" ||
         rcpt.recipientName.toLowerCase().includes(recipientSearch.toLowerCase()) ||
         rcpt.email.toLowerCase().includes(recipientSearch.toLowerCase());
 
-      return matchStatus && matchSearch;
+      return matchFilter && matchSearch;
     });
   }, [activeDetail, recipientFilter, recipientSearch]);
+
+  const readRecipientsCount = activeDetail
+    ? activeDetail.recipients.filter((r) => Boolean(r.readAt)).length
+    : 0;
+  const unreadRecipientsCount = activeDetail
+    ? activeDetail.recipients.filter((r) => r.status === "SENT" && !r.readAt).length
+    : 0;
 
   const formatDateTime = (date: Date | string) => {
     const d = new Date(date);
@@ -401,6 +484,21 @@ export function BroadcastHistoryView({
             <option value="DEPARTMENT">Per Divisi</option>
             <option value="TEAM">Tim Bawahan</option>
             <option value="CUSTOM">Karyawan Kustom</option>
+          </select>
+
+          {/* Category Filter */}
+          <select
+            value={activeCategory}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            disabled={isPending}
+            className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 font-medium text-slate-700 cursor-pointer disabled:opacity-60"
+          >
+            <option value="ALL">Semua Kategori</option>
+            {BROADCAST_CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>
+                {BROADCAST_CATEGORY_LABELS[cat]}
+              </option>
+            ))}
           </select>
 
           {/* Status Filter */}
@@ -504,6 +602,24 @@ export function BroadcastHistoryView({
                             ? "PEGAWAI TERPILIH"
                             : "TIM BAWAHAN"}
                     </span>
+
+                    {/* Priority Badge (PENTING) */}
+                    {item.priority === "PENTING" && (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider">
+                        <ShieldAlert className="w-3 h-3" />
+                        <span>PENTING</span>
+                      </span>
+                    )}
+
+                    {/* Category Badge */}
+                    {item.category && (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                        <Tag className="w-3 h-3 text-slate-500" />
+                        <span>
+                          {BROADCAST_CATEGORY_LABELS[item.category as BroadcastCategory] || item.category}
+                        </span>
+                      </span>
+                    )}
 
                     {/* Status Badge */}
                     <span
@@ -642,6 +758,21 @@ export function BroadcastHistoryView({
                         </span>
                       </>
                     )}
+                    {(item.status === "SENT" || item.status === "PARTIALLY_FAILED") && (
+                      <>
+                        <span>•</span>
+                        <span className="text-emerald-700 font-medium flex items-center gap-1">
+                          <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>
+                            Dibaca: {item.readCount ?? 0}/{item.totalRecipients} (
+                            {item.totalRecipients > 0
+                              ? Math.round(((item.readCount ?? 0) / item.totalRecipients) * 100)
+                              : 0}
+                            %)
+                          </span>
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -763,6 +894,23 @@ export function BroadcastHistoryView({
                         <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
                       )}
                       <span>{resendFeedback.message}</span>
+                    </div>
+                  )}
+
+                  {remindFeedback && (
+                    <div
+                      className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                        remindFeedback.type === "success"
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-red-50 text-red-800 border border-red-200"
+                      }`}
+                    >
+                      {remindFeedback.type === "success" ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      )}
+                      <span>{remindFeedback.message}</span>
                     </div>
                   )}
 

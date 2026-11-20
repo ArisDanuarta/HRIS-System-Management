@@ -3,6 +3,7 @@
 import React, { useMemo } from "react";
 import sanitizeHtml from "sanitize-html";
 import type { ResolvedSenderIdentity } from "../../server/schemas/broadcast.schema";
+import { BROADCAST_CATEGORY_LABELS, BroadcastCategory } from "../../server/schemas/broadcast.schema";
 import { interpolatePreviewVariables } from "./broadcast-form-utils";
 
 export interface BroadcastEmailPreviewProps {
@@ -11,6 +12,10 @@ export interface BroadcastEmailPreviewProps {
   targetScope: string;
   previewSender: ResolvedSenderIdentity;
   recipientCount?: number;
+  category?: string | null;
+  priority?: string;
+  requireReadReceipt?: boolean;
+  sendInApp?: boolean;
   attachments?: Array<{
     fileName: string;
     sizeBytes: number;
@@ -23,6 +28,10 @@ export function BroadcastEmailPreview({
   targetScope,
   previewSender,
   recipientCount,
+  category,
+  priority = "NORMAL",
+  requireReadReceipt = false,
+  sendInApp = false,
   attachments,
 }: BroadcastEmailPreviewProps) {
   // Absolutize relative image URLs for live preview
@@ -84,13 +93,18 @@ export function BroadcastEmailPreview({
           ? "PEGAWAI TERPILIH"
           : "PENGUMUMAN TIM";
 
+  const isPriorityImportant = priority === "PENTING";
+  const categoryLabel = category && category in BROADCAST_CATEGORY_LABELS
+    ? BROADCAST_CATEGORY_LABELS[category as BroadcastCategory]
+    : category || null;
+
   return (
     <div className="rounded-xl border border-slate-300 overflow-hidden shadow-xs bg-slate-100 animate-in fade-in duration-150">
       {/* SIMULATED CLIENT INBOX HEADER */}
       <div className="bg-slate-200/90 border-b border-slate-300 px-4 py-3 space-y-1 text-xs text-slate-700">
         <div className="flex items-center justify-between border-b border-slate-300/60 pb-1.5">
           <span className="font-semibold text-slate-900 line-clamp-1">
-            Subjek: [PSPK HRIS] {interpolatePreviewVariables(subject.trim()) || "(Subjek belum diisi)"}
+            Subjek: {isPriorityImportant ? "[PENTING] " : ""}[PSPK HRIS] {interpolatePreviewVariables(subject.trim()) || "(Subjek belum diisi)"}
           </span>
           {typeof recipientCount === "number" && (
             <span className="text-slate-600 shrink-0 font-medium ml-2">
@@ -130,10 +144,20 @@ export function BroadcastEmailPreview({
 
           {/* Email Body Content */}
           <div className="p-5 sm:p-7 space-y-4">
-            <div>
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="inline-block bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
                 {scopeBadgeLabel}
               </span>
+              {isPriorityImportant && (
+                <span className="inline-block bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
+                  ⚠️ PENTING
+                </span>
+              )}
+              {categoryLabel && (
+                <span className="inline-block bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  {categoryLabel}
+                </span>
+              )}
             </div>
 
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 leading-relaxed">
@@ -179,6 +203,19 @@ export function BroadcastEmailPreview({
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {sendInApp && (
+              <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-lg text-center space-y-2">
+                <p className="m-0 text-xs text-emerald-900 font-medium">
+                  {requireReadReceipt
+                    ? "Pengumuman ini memerlukan konfirmasi pembacaan dari Anda di Portal HRIS."
+                    : "Pengumuman ini juga dapat Anda akses melalui Portal HRIS PSPK."}
+                </p>
+                <span className="inline-block px-3 py-1.5 bg-[#102E50] text-white text-xs font-bold rounded-md shadow-2xs">
+                  {requireReadReceipt ? "Buka & Konfirmasi Dibaca →" : "Baca di Portal HRIS →"}
+                </span>
               </div>
             )}
 

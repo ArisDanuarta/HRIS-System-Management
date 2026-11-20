@@ -59,6 +59,11 @@ import {
 import {
   SenderPersona,
   ReplyToMode,
+  BroadcastCategory,
+  BroadcastPriority,
+  BROADCAST_CATEGORIES,
+  BROADCAST_CATEGORY_LABELS,
+  BROADCAST_PRIORITIES,
   resolveSenderIdentity,
   hasDeliverableEmail,
   BroadcastDraftItem,
@@ -130,6 +135,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
 
   const [subject, setSubject] = useState("");
   const [contentHtml, setContentHtml] = useState("");
+  const [category, setCategory] = useState<BroadcastCategory | "">("");
+  const [priority, setPriority] = useState<BroadcastPriority>("NORMAL");
+  const [requireReadReceipt, setRequireReadReceipt] = useState(false);
   const [sendInApp, setSendInApp] = useState(true);
 
   // Jadwal Pengiriman State
@@ -210,6 +218,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           id: activeDraftId,
           subject,
           contentHtml,
+          category: category || null,
+          priority,
+          requireReadReceipt,
           targetScope,
           targetDepartmentIds: selectedDepartmentIds,
           customEmployeeIds: selectedEmployeeIds,
@@ -242,6 +253,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     activeDraftId,
     subject,
     contentHtml,
+    category,
+    priority,
+    requireReadReceipt,
     targetScope,
     selectedDepartmentIds,
     selectedEmployeeIds,
@@ -264,6 +278,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
         title: customTitle,
         subject,
         contentHtml,
+        category: category || null,
+        priority,
+        requireReadReceipt,
         targetScope,
         targetDepartmentIds: selectedDepartmentIds,
         customEmployeeIds: selectedEmployeeIds,
@@ -349,6 +366,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     setActiveDraftId(draft.id);
     setSubject(draft.subject);
     setContentHtml(draft.contentHtml);
+    setCategory((draft.category as BroadcastCategory) || "");
+    setPriority((draft.priority as BroadcastPriority) || "NORMAL");
+    setRequireReadReceipt(Boolean(draft.requireReadReceipt));
     setTargetScope(draft.targetScope);
     setSelectedDepartmentIds(draft.targetDepartmentIds || []);
     setSenderPersona(draft.senderPersona);
@@ -721,6 +741,9 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       const res = await sendBroadcastAction({
         subject,
         contentHtml,
+        category: category || null,
+        priority,
+        requireReadReceipt,
         targetScope,
         targetDepartmentId:
           targetScope === "DEPARTMENT" ? selectedDepartmentIds[0] || null : undefined,
@@ -822,6 +845,8 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       const res = await sendTestBroadcastAction({
         subject,
         contentHtml,
+        category: category || null,
+        priority,
         senderPersona,
         customSenderName: customSenderName.trim() || undefined,
         replyToMode,
@@ -1544,6 +1569,49 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
               </div>
             </div>
 
+            {/* KATEGORI & PRIORITAS PENGUMUMAN */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 bg-slate-50/80 rounded-xl border border-slate-200">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Kategori Pengumuman
+                </label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as BroadcastCategory | "")}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-navy-600 bg-white text-slate-900 font-medium"
+                >
+                  <option value="">-- Pilih Kategori (Opsional) --</option>
+                  {BROADCAST_CATEGORIES.map((cat) => {
+                    const isDaruratRestricted = cat === "DARURAT" && !canSendAll;
+                    return (
+                      <option
+                        key={cat}
+                        value={cat}
+                        disabled={isDaruratRestricted}
+                      >
+                        {BROADCAST_CATEGORY_LABELS[cat]}
+                        {isDaruratRestricted ? " (Khusus Admin HR / Direksi)" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Prioritas Pengumuman
+                </label>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value as BroadcastPriority)}
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-navy-600 bg-white text-slate-900 font-medium"
+                >
+                  <option value="NORMAL">Normal</option>
+                  <option value="PENTING">⚠️ Penting (Tandai Merah &amp; Header Khusus)</option>
+                </select>
+              </div>
+            </div>
+
             {/* SUBJEK INPUT */}
             <div>
               <div className="flex items-center justify-between mb-1">
@@ -1567,7 +1635,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
               <p className="mt-1 text-xs text-slate-500">
                 Di inbox penerima, subjek tampil sebagai:{" "}
                 <span className="font-medium text-slate-700">
-                  [PSPK HRIS] {subject || "…"}
+                  {priority === "PENTING" ? "[PENTING] " : ""}[PSPK HRIS] {subject || "…"}
                 </span>
               </p>
             </div>
@@ -1633,6 +1701,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   targetScope={targetScope}
                   previewSender={previewSender}
                   recipientCount={recipientSummary.count}
+                  category={category || null}
+                  priority={priority}
+                  requireReadReceipt={requireReadReceipt}
+                  sendInApp={sendInApp}
                   attachments={attachments}
                 />
               </div>
@@ -1881,7 +1953,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 type="checkbox"
                 checked={sendInApp}
                 onChange={(e) => setSendInApp(e.target.checked)}
-                className="mt-0.5 rounded border-slate-300 text-navy-900 focus:ring-navy-600"
+                className="mt-0.5 rounded border-slate-300 text-navy-900 focus:ring-navy-600 cursor-pointer"
               />
               <div>
                 <span className="text-xs font-semibold text-slate-900 block">
@@ -1889,6 +1961,23 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 </span>
                 <span className="text-xs text-slate-600 mt-0.5 block leading-relaxed">
                   Penerima akan melihat badge merah pada lonceng notifikasi di pojok kanan atas aplikasi portal HRIS selain menerima email di inbox masing-masing.
+                </span>
+              </div>
+            </label>
+
+            <label className="flex items-start gap-3 p-3.5 bg-slate-50 hover:bg-slate-100/70 rounded-xl border border-slate-200 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={requireReadReceipt}
+                onChange={(e) => setRequireReadReceipt(e.target.checked)}
+                className="mt-0.5 rounded border-slate-300 text-navy-900 focus:ring-navy-600 cursor-pointer"
+              />
+              <div>
+                <span className="text-xs font-semibold text-slate-900 block">
+                  Minta Konfirmasi Dibaca (*Read Receipt*) di Portal HRIS
+                </span>
+                <span className="text-xs text-slate-600 mt-0.5 block leading-relaxed">
+                  Penerima diwajibkan menekan tombol &ldquo;Saya Sudah Membaca&rdquo; saat membuka halaman pengumuman di portal untuk arsip kepatuhan dan pencatatan resmi.
                 </span>
               </div>
             </label>
@@ -1991,6 +2080,32 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   <span className="text-slate-500">Subjek:</span>
                   <span className="font-semibold text-slate-900 text-right">
                     {subject}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-slate-500">Kategori:</span>
+                  <span className="font-semibold text-slate-900 text-right">
+                    {category && category in BROADCAST_CATEGORY_LABELS
+                      ? BROADCAST_CATEGORY_LABELS[category as BroadcastCategory]
+                      : "Tidak Dikategorikan"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-slate-500">Prioritas:</span>
+                  <span
+                    className={`font-semibold text-right ${
+                      priority === "PENTING" ? "text-red-700" : "text-slate-900"
+                    }`}
+                  >
+                    {priority === "PENTING" ? "⚠️ Penting" : "Normal"}
+                  </span>
+                </div>
+                <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                  <span className="text-slate-500">Konfirmasi Dibaca:</span>
+                  <span className="font-semibold text-slate-900 text-right">
+                    {requireReadReceipt
+                      ? "Wajib Konfirmasi (Tombol di Portal)"
+                      : "Otomatis saat dibuka di Portal"}
                   </span>
                 </div>
                 <div className="flex justify-between border-b border-slate-200/60 pb-2">
