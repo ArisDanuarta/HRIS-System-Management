@@ -3,6 +3,7 @@ import sanitizeHtml from "sanitize-html";
 import { prisma, writeAudit, BroadcastStatus } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
+import { getStorageProvider } from "@pspk/storage";
 import {
   SendBroadcastInput,
   SendTestBroadcastInput,
@@ -10,6 +11,8 @@ import {
   BroadcastSenderContext,
   resolveSenderIdentity,
   hasDeliverableEmail,
+  MAX_ATTACHMENTS_COUNT,
+  MAX_TOTAL_ATTACHMENT_SIZE_BYTES,
 } from "../schemas/broadcast.schema";
 
 export type { BroadcastSenderContext };
@@ -411,6 +414,7 @@ export function renderBroadcastEmailHtml(params: {
   isPersonal?: boolean;
   replyToMode?: ReplyToMode;
   replyToEmail?: string;
+  attachments?: Array<{ fileName: string; sizeBytes: number }>;
   year?: number;
 }): string {
   const {
@@ -423,6 +427,7 @@ export function renderBroadcastEmailHtml(params: {
     isPersonal = true,
     replyToMode = "NO_REPLY",
     replyToEmail,
+    attachments = [],
     year = new Date().getFullYear(),
   } = params;
 
@@ -484,6 +489,22 @@ export function renderBroadcastEmailHtml(params: {
       <div class="content-area">
         ${contentHtml}
       </div>
+
+      ${
+        attachments && attachments.length > 0
+          ? `<div style="margin-top: 24px; padding: 14px 16px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <div style="font-size: 13px; font-weight: 700; color: #102E50; margin-bottom: 8px;">📎 Lampiran Dokumen (${attachments.length} berkas):</div>
+        <ul style="margin: 0; padding-left: 20px; font-size: 12.5px; color: #475569;">
+          ${attachments
+            .map(
+              (a) =>
+                `<li style="margin-bottom: 4px;"><strong>${escapeHtml(a.fileName)}</strong> (${(a.sizeBytes / 1024).toFixed(0)} KB)</li>`,
+            )
+            .join("")}
+        </ul>
+      </div>`
+          : ""
+      }
 
       ${
         isNoReply
@@ -561,6 +582,15 @@ export function buildEmailForRecipient(
     recipientName: string;
     email: string;
   },
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }>,
+  attachmentsMetadata?: Array<{
+    fileName: string;
+    sizeBytes: number;
+  }>,
 ) {
   const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
   const emailContentHtml = absolutizeImageUrls(broadcast.contentHtml);
@@ -587,6 +617,14 @@ export function buildEmailForRecipient(
     replyToHeader = `"${broadcast.senderName}" <${broadcast.replyToEmail || "no-reply@pspk.id"}>`;
   }
 
+  const plainTextAttachments =
+    attachmentsMetadata && attachmentsMetadata.length > 0
+      ? `\n\nLampiran Dokumen (${attachmentsMetadata.length} berkas):\n` +
+        attachmentsMetadata
+          .map((a) => `- ${a.fileName} (${(a.sizeBytes / 1024).toFixed(0)} KB)`)
+          .join("\n")
+      : "";
+
   const personalizedHtml = renderBroadcastEmailHtml({
     subject: personalizedSubject,
     contentHtml: personalizedContentHtml,
@@ -597,6 +635,7 @@ export function buildEmailForRecipient(
     isPersonal,
     replyToMode: mode,
     replyToEmail: broadcast.replyToEmail,
+    attachments: attachmentsMetadata,
   });
 
   const plainTextFooter =
@@ -609,8 +648,9 @@ export function buildEmailForRecipient(
     to: recipient.email,
     replyTo: replyToHeader,
     subject: `[PSPK HRIS] ${personalizedSubject}`,
-    text: `Halo ${recipient.recipientName},\n\n${personalizedContentText}\n\n${plainTextFooter}`,
+    text: `Halo ${recipient.recipientName},\n\n${personalizedContentText}${plainTextAttachments}\n\n${plainTextFooter}`,
     html: personalizedHtml,
+    attachments: attachments && attachments.length > 0 ? attachments : undefined,
     headers: {
       "X-Mailer": "PSPK-Broadcast-Mailer",
     },
@@ -641,7 +681,45 @@ export async function enqueueBroadcast(
     customSenderName,
     replyToMode = "NO_REPLY",
     customReplyToEmail,
+    attachmentIds = [],
   } = input;
+
+  let testAttachments: Array<{ fileName: string; sizeBytes: number; key: string; mimeType: string }> = [];
+  if (attachmentIds && attachmentIds.length > 0) {
+    if (attachmentIds.length > MAX_ATTACHMENTS_COUNT) {
+      throw new Error(`Maksimal ${MAX_ATTACHMENTS_COUNT} berkas lampiran PDF.`);
+    }
+
+    const attachments = await prisma.emailBroadcastAttachment.findMany({
+      where: { id: { in: attachmentIds } },
+    });
+
+    if (attachments.length !== attachmentIds.length) {
+      throw new Error("Satu atau lebih berkas lampiran tidak ditemukan.");
+    }
+
+    for (const att of attachments) {
+      if (att.uploadedBy !== senderCtx.userId) {
+        throw new Error(
+          "Akses ditolak: Anda tidak memiliki izin untuk menggunakan berkas lampiran milik pengguna lain.",
+        );
+      }
+      if (att.broadcastId) {
+        throw new Error(
+          `Berkas lampiran "${att.fileName}" sudah pernah digunakan pada pengumuman lain.`,
+        );
+      }
+    }
+
+    const totalAttachmentBytes = attachments.reduce((sum, a) => sum + a.sizeBytes, 0);
+    if (totalAttachmentBytes > MAX_TOTAL_ATTACHMENT_SIZE_BYTES) {
+      throw new Error(
+        `Total ukuran lampiran melebihi batas 10 MB (${(totalAttachmentBytes / (1024 * 1024)).toFixed(1)} MB).`,
+      );
+    }
+
+    testAttachments = attachments;
+  }
 
   // Normalisasi departemen tujuan: prioritas targetDepartmentIds jika ada, atau fallback ke targetDepartmentId
   const effectiveDepartmentIds =
@@ -734,6 +812,14 @@ export async function enqueueBroadcast(
     },
   });
 
+  // Hubungkan berkas lampiran yang diunggah ke broadcast ini
+  if (attachmentIds && attachmentIds.length > 0) {
+    await prisma.emailBroadcastAttachment.updateMany({
+      where: { id: { in: attachmentIds }, uploadedBy: senderCtx.userId },
+      data: { broadcastId: broadcast.id, draftId: null },
+    });
+  }
+
   // 4. Catat Audit Log Pengantrean
   await writeAudit({
     actorUserId: senderCtx.userId,
@@ -749,6 +835,7 @@ export async function enqueueBroadcast(
       targetDepartmentIds: effectiveDepartmentIds,
       customEmployeeIdsCount: customEmployeeIds.length,
       excludedEmployeeIdsCount: excludedEmployeeIds.length,
+      attachmentCount: attachmentIds.length,
       senderPersona,
       senderDisplayName: resolvedSender.displayName,
       replyToMode: resolvedSender.replyToMode,
@@ -894,6 +981,37 @@ export async function processBroadcast(
   const transporter = createTransporter();
   const isSimulated = !transporter;
 
+  // Muat berkas lampiran sekali ke dalam memori (caching buffer) selama proses berlangsung
+  const attachments = await prisma.emailBroadcastAttachment.findMany({
+    where: { broadcastId },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const storage = getStorageProvider();
+  const attachmentBuffers: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }> = [];
+
+  for (const att of attachments) {
+    try {
+      const content = await storage.getBuffer(att.key);
+      attachmentBuffers.push({
+        filename: att.fileName,
+        content,
+        contentType: att.mimeType || "application/pdf",
+      });
+    } catch (err) {
+      console.error(`Gagal memuat buffer lampiran ${att.fileName} (${att.key}):`, err);
+    }
+  }
+
+  const attachmentsMetadata = attachments.map((a) => ({
+    fileName: a.fileName,
+    sizeBytes: a.sizeBytes,
+  }));
+
   while (true) {
     const pendingRecipients = await prisma.emailBroadcastRecipient.findMany({
       where: { broadcastId, status: "PENDING" },
@@ -931,7 +1049,12 @@ export async function processBroadcast(
       await Promise.all(
         pendingRecipients.map(async (rcpt) => {
           try {
-            const emailOptions = buildEmailForRecipient(broadcast, rcpt);
+            const emailOptions = buildEmailForRecipient(
+              broadcast,
+              rcpt,
+              attachmentBuffers,
+              attachmentsMetadata,
+            );
             await transporter.sendMail(emailOptions);
 
             await prisma.emailBroadcastRecipient.update({
@@ -1111,7 +1234,45 @@ export async function sendTestBroadcast(
     customSenderName,
     replyToMode = "NO_REPLY",
     customReplyToEmail,
+    attachmentIds = [],
   } = input;
+
+  let testAttachments: Array<{ fileName: string; sizeBytes: number; key: string; mimeType: string }> = [];
+  if (attachmentIds && attachmentIds.length > 0) {
+    if (attachmentIds.length > MAX_ATTACHMENTS_COUNT) {
+      throw new Error(`Maksimal ${MAX_ATTACHMENTS_COUNT} berkas lampiran PDF.`);
+    }
+
+    const attachments = await prisma.emailBroadcastAttachment.findMany({
+      where: { id: { in: attachmentIds } },
+    });
+
+    if (attachments.length !== attachmentIds.length) {
+      throw new Error("Satu atau lebih berkas lampiran tidak ditemukan.");
+    }
+
+    for (const att of attachments) {
+      if (att.uploadedBy !== senderCtx.userId) {
+        throw new Error(
+          "Akses ditolak: Anda tidak memiliki izin untuk menggunakan berkas lampiran milik pengguna lain.",
+        );
+      }
+      if (att.broadcastId) {
+        throw new Error(
+          `Berkas lampiran "${att.fileName}" sudah pernah digunakan pada pengumuman lain.`,
+        );
+      }
+    }
+
+    const totalAttachmentBytes = attachments.reduce((sum, a) => sum + a.sizeBytes, 0);
+    if (totalAttachmentBytes > MAX_TOTAL_ATTACHMENT_SIZE_BYTES) {
+      throw new Error(
+        `Total ukuran lampiran melebihi batas 10 MB (${(totalAttachmentBytes / (1024 * 1024)).toFixed(1)} MB).`,
+      );
+    }
+
+    testAttachments = attachments;
+  }
 
   // Otorisasi persona & reply-to: hanya pemegang hak "all" yang boleh
   // memakai identitas lembaga/HR/kustom dan reply-to bebas.
@@ -1157,6 +1318,40 @@ export async function sendTestBroadcast(
 
   const emailContentHtml = `${testBanner}${personalizedAbsolutizedHtml}`;
 
+  // Memuat buffer berkas lampiran jika dilampirkan pada email uji
+  const testAttachmentBuffers: Array<{
+    filename: string;
+    content: Buffer;
+    contentType?: string;
+  }> = [];
+
+  const storage = getStorageProvider();
+  for (const att of testAttachments) {
+    try {
+      const buf = await storage.getBuffer(att.key);
+      testAttachmentBuffers.push({
+        filename: att.fileName,
+        content: buf,
+        contentType: att.mimeType || "application/pdf",
+      });
+    } catch (err) {
+      console.error(`Gagal memuat buffer lampiran test ${att.fileName}:`, err);
+    }
+  }
+
+  const testAttachmentsMetadata = testAttachments.map((a) => ({
+    fileName: a.fileName,
+    sizeBytes: a.sizeBytes,
+  }));
+
+  const plainTextAttachments =
+    testAttachmentsMetadata.length > 0
+      ? `\n\nLampiran Dokumen (${testAttachmentsMetadata.length} berkas):\n` +
+        testAttachmentsMetadata
+          .map((a) => `- ${a.fileName} (${(a.sizeBytes / 1024).toFixed(0)} KB)`)
+          .join("\n")
+      : "";
+
   const personalizedHtml = renderBroadcastEmailHtml({
     subject: `[TES] ${personalizedSubj}`,
     contentHtml: emailContentHtml,
@@ -1167,6 +1362,7 @@ export async function sendTestBroadcast(
     isPersonal: resolvedSender.isPersonal,
     replyToMode: resolvedSender.replyToMode,
     replyToEmail: resolvedSender.replyToEmail,
+    attachments: testAttachmentsMetadata,
   });
 
   const transporter = createTransporter();
@@ -1179,8 +1375,9 @@ export async function sendTestBroadcast(
       to: senderCtx.userEmail,
       replyTo: resolvedSender.replyToHeader,
       subject: `[TES] [PSPK HRIS] ${personalizedSubj}`,
-      text: `[EMAIL UJI]\n\nHalo ${senderCtx.userName},\n\nIni adalah email uji pengumuman. Pesan ini hanya dikirimkan ke Anda.\n\n${personalizedPlainText}\n\nPengumuman dari: ${resolvedSender.displayName}`,
+      text: `[EMAIL UJI]\n\nHalo ${senderCtx.userName},\n\nIni adalah email uji pengumuman. Pesan ini hanya dikirimkan ke Anda.\n\n${personalizedPlainText}${plainTextAttachments}\n\nPengumuman dari: ${resolvedSender.displayName}`,
       html: personalizedHtml,
+      attachments: testAttachmentBuffers.length > 0 ? testAttachmentBuffers : undefined,
       headers: {
         "X-Mailer": "PSPK-Broadcast-Mailer",
       },
@@ -1338,4 +1535,41 @@ export async function resendFailedRecipients(
     retriedCount: validToRetryIds.length,
     message: `${validToRetryIds.length} penerima yang gagal berhasil dimasukkan kembali ke antrean pengiriman.`,
   };
+}
+
+/**
+ * 5. Menghapus berkas lampiran PDF yang belum terhubung dengan broadcast terkirim.
+ */
+export async function deleteBroadcastAttachment(
+  userId: string,
+  attachmentId: string,
+): Promise<{ success: boolean }> {
+  const attachment = await prisma.emailBroadcastAttachment.findUnique({
+    where: { id: attachmentId },
+  });
+
+  if (!attachment) {
+    throw new Error("Berkas lampiran tidak ditemukan.");
+  }
+
+  if (attachment.uploadedBy !== userId) {
+    throw new Error("Akses ditolak: Anda bukan pemilik berkas lampiran ini.");
+  }
+
+  if (attachment.broadcastId) {
+    throw new Error("Berkas lampiran yang sudah terkirim pada pengumuman tidak dapat dihapus.");
+  }
+
+  const storage = getStorageProvider();
+  try {
+    await storage.delete(attachment.key);
+  } catch (err) {
+    console.error("Gagal menghapus file dari storage:", err);
+  }
+
+  await prisma.emailBroadcastAttachment.delete({
+    where: { id: attachmentId },
+  });
+
+  return { success: true };
 }

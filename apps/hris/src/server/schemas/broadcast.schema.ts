@@ -52,6 +52,7 @@ export const sendBroadcastSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal("")),
+  attachmentIds: z.array(z.string().trim()).max(3, "Maksimal 3 berkas lampiran PDF.").optional().default([]),
 });
 
 export type BroadcastScope = z.infer<typeof broadcastScopeSchema>;
@@ -86,6 +87,7 @@ export const sendTestBroadcastSchema = z.object({
     .optional()
     .nullable()
     .or(z.literal("")),
+  attachmentIds: z.array(z.string().trim()).max(3, "Maksimal 3 berkas lampiran PDF.").optional().default([]),
 });
 
 export type SendTestBroadcastInput = z.input<typeof sendTestBroadcastSchema>;
@@ -135,6 +137,20 @@ export const saveBroadcastDraftSchema = z.object({
 export type SaveBroadcastDraftInput = z.input<typeof saveBroadcastDraftSchema>;
 export type SaveBroadcastDraftOutput = z.output<typeof saveBroadcastDraftSchema>;
 
+export const MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB per berkas
+export const MAX_ATTACHMENTS_COUNT = 3;
+export const MAX_TOTAL_ATTACHMENT_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB total
+
+export interface BroadcastAttachmentItem {
+  id: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  key: string;
+  url?: string;
+  createdAt?: Date;
+}
+
 export interface BroadcastDraftItem {
   id: string;
   ownerUserId: string;
@@ -150,6 +166,8 @@ export interface BroadcastDraftItem {
   replyToMode: ReplyToMode;
   customReplyToEmail: string | null;
   sendInApp: boolean;
+  attachmentIds?: string[];
+  attachments?: BroadcastAttachmentItem[];
   createdAt: Date;
   updatedAt: Date;
 }

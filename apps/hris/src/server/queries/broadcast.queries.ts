@@ -43,6 +43,15 @@ export interface BroadcastDetailItem extends BroadcastHistoryItem {
   canResend: boolean;
   excludedCount?: number;
   excludedEmployeeNames?: string[];
+  attachments?: Array<{
+    id: string;
+    fileName: string;
+    mimeType: string;
+    sizeBytes: number;
+    key: string;
+    url: string;
+    createdAt: Date;
+  }>;
 }
 
 export interface BroadcastHistoryStats {
@@ -262,6 +271,9 @@ export async function getBroadcastDetail(
       targetDepartment: {
         select: { name: true },
       },
+      attachments: {
+        orderBy: { createdAt: "asc" },
+      },
       recipients: {
         orderBy: [{ status: "asc" }, { recipientName: "asc" }],
       },
@@ -343,6 +355,15 @@ export async function getBroadcastDetail(
     status: broadcast.status,
     createdAt: broadcast.createdAt,
     canResend,
+    attachments: (broadcast.attachments || []).map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+      key: a.key,
+      url: `/api/documents/${a.key}`,
+      createdAt: a.createdAt,
+    })),
     recipients: broadcast.recipients.map((r) => ({
       id: r.id,
       recipientName: r.recipientName,

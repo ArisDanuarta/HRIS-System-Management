@@ -50,6 +50,27 @@ export async function saveBroadcastDraft(
         customReplyToEmail: input.customReplyToEmail || null,
         sendInApp: input.sendInApp,
       },
+      include: {
+        attachments: true,
+      },
+    });
+
+    if (input.attachmentIds) {
+      await prisma.emailBroadcastAttachment.updateMany({
+        where: { draftId: input.id, id: { notIn: input.attachmentIds } },
+        data: { draftId: null },
+      });
+      if (input.attachmentIds.length > 0) {
+        await prisma.emailBroadcastAttachment.updateMany({
+          where: { id: { in: input.attachmentIds }, uploadedBy: userId },
+          data: { draftId: input.id },
+        });
+      }
+    }
+
+    const currentAttachments = await prisma.emailBroadcastAttachment.findMany({
+      where: { draftId: updated.id },
+      orderBy: { createdAt: "asc" },
     });
 
     return {
@@ -67,6 +88,16 @@ export async function saveBroadcastDraft(
       replyToMode: updated.replyToMode as ReplyToMode,
       customReplyToEmail: updated.customReplyToEmail,
       sendInApp: updated.sendInApp,
+      attachmentIds: currentAttachments.map((a) => a.id),
+      attachments: currentAttachments.map((a) => ({
+        id: a.id,
+        fileName: a.fileName,
+        mimeType: a.mimeType,
+        sizeBytes: a.sizeBytes,
+        key: a.key,
+        url: `/api/documents/${a.key}`,
+        createdAt: a.createdAt,
+      })),
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     };
@@ -101,6 +132,18 @@ export async function saveBroadcastDraft(
     },
   });
 
+  if (input.attachmentIds && input.attachmentIds.length > 0) {
+    await prisma.emailBroadcastAttachment.updateMany({
+      where: { id: { in: input.attachmentIds }, uploadedBy: userId },
+      data: { draftId: created.id },
+    });
+  }
+
+  const createdAttachments = await prisma.emailBroadcastAttachment.findMany({
+    where: { draftId: created.id },
+    orderBy: { createdAt: "asc" },
+  });
+
   return {
     id: created.id,
     ownerUserId: created.ownerUserId,
@@ -116,6 +159,16 @@ export async function saveBroadcastDraft(
     replyToMode: created.replyToMode as ReplyToMode,
     customReplyToEmail: created.customReplyToEmail,
     sendInApp: created.sendInApp,
+    attachmentIds: createdAttachments.map((a) => a.id),
+    attachments: createdAttachments.map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+      key: a.key,
+      url: `/api/documents/${a.key}`,
+      createdAt: a.createdAt,
+    })),
     createdAt: created.createdAt,
     updatedAt: created.updatedAt,
   };
@@ -126,6 +179,11 @@ export async function listBroadcastDrafts(
 ): Promise<BroadcastDraftItem[]> {
   const drafts = await prisma.broadcastDraft.findMany({
     where: { ownerUserId: userId },
+    include: {
+      attachments: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
     orderBy: { updatedAt: "desc" },
   });
 
@@ -144,6 +202,16 @@ export async function listBroadcastDrafts(
     replyToMode: d.replyToMode as ReplyToMode,
     customReplyToEmail: d.customReplyToEmail,
     sendInApp: d.sendInApp,
+    attachmentIds: d.attachments.map((a) => a.id),
+    attachments: d.attachments.map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+      key: a.key,
+      url: `/api/documents/${a.key}`,
+      createdAt: a.createdAt,
+    })),
     createdAt: d.createdAt,
     updatedAt: d.updatedAt,
   }));
@@ -155,6 +223,11 @@ export async function getBroadcastDraft(
 ): Promise<BroadcastDraftItem> {
   const draft = await prisma.broadcastDraft.findUnique({
     where: { id: draftId },
+    include: {
+      attachments: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
 
   if (!draft || draft.ownerUserId !== userId) {
@@ -178,6 +251,16 @@ export async function getBroadcastDraft(
     replyToMode: draft.replyToMode as ReplyToMode,
     customReplyToEmail: draft.customReplyToEmail,
     sendInApp: draft.sendInApp,
+    attachmentIds: draft.attachments.map((a) => a.id),
+    attachments: draft.attachments.map((a) => ({
+      id: a.id,
+      fileName: a.fileName,
+      mimeType: a.mimeType,
+      sizeBytes: a.sizeBytes,
+      key: a.key,
+      url: `/api/documents/${a.key}`,
+      createdAt: a.createdAt,
+    })),
     createdAt: draft.createdAt,
     updatedAt: draft.updatedAt,
   };

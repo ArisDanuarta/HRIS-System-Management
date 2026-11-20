@@ -18,6 +18,7 @@ import {
   processBroadcast,
   sendTestBroadcast,
   resendFailedRecipients,
+  deleteBroadcastAttachment,
   BroadcastSenderContext,
 } from "../services/broadcast-email.service";
 
@@ -366,6 +367,30 @@ export async function resendFailedBroadcastAction(broadcastId: string): Promise<
     };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : "Gagal mengirimkan ulang broadcast.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Server action untuk menghapus berkas lampiran yang diunggah oleh pengguna.
+ */
+export async function deleteBroadcastAttachmentAction(attachmentId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi telah berakhir. Harap login kembali." };
+    }
+
+    await deleteBroadcastAttachment(session.user.id, attachmentId);
+    return { success: true };
+  } catch (err: unknown) {
+    const errorMsg =
+      err instanceof Error ? err.message : "Gagal menghapus berkas lampiran.";
     return { success: false, error: errorMsg };
   }
 }
