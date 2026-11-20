@@ -7,10 +7,28 @@ import {
   executeSendBroadcast,
   getBroadcastSenderContext,
   getBroadcastRecipients,
+  absolutizeImageUrls,
 } from "./broadcast-email.service";
 
 vi.mock("@pspk/auth", () => ({
   getAuthContext: vi.fn(),
+}));
+
+vi.mock("@pspk/rbac", () => ({
+  can: vi.fn((ctx, perm: string) => {
+    if (typeof perm === "string" && perm.endsWith(":all")) {
+      return ctx?.roles?.includes("admin_hr") || ctx?.roles?.includes("super_admin") || false;
+    }
+    if (typeof perm === "string" && perm.endsWith(":team")) {
+      return (
+        ctx?.roles?.includes("manager") ||
+        ctx?.roles?.includes("admin_hr") ||
+        ctx?.roles?.includes("super_admin") ||
+        false
+      );
+    }
+    return false;
+  }),
 }));
 
 vi.mock("@pspk/db", () => ({
@@ -156,6 +174,8 @@ describe("broadcast-email.service.ts", () => {
       isSuperAdmin: true,
       isAdminHr: true,
       isManager: false,
+      canSendAll: true,
+      canSendTeam: true,
       allowedScopes: ["ALL_EMPLOYEES" as const],
       teamMembersCount: 0,
     };
@@ -234,6 +254,8 @@ describe("broadcast-email.service.ts", () => {
       const ctx = await getBroadcastSenderContext("user-hr");
 
       expect(ctx.isAdminHr).toBe(true);
+      expect(ctx.canSendAll).toBe(true);
+      expect(ctx.canSendTeam).toBe(true);
       expect(ctx.userName).toBe("Siti Rahma");
       expect(ctx.allowedScopes).toEqual(["ALL_EMPLOYEES", "DEPARTMENT", "TEAM", "CUSTOM"]);
     });
@@ -260,6 +282,8 @@ describe("broadcast-email.service.ts", () => {
 
       expect(ctx.isManager).toBe(true);
       expect(ctx.isAdminHr).toBe(false);
+      expect(ctx.canSendAll).toBe(false);
+      expect(ctx.canSendTeam).toBe(true);
       expect(ctx.allowedScopes).toEqual(["TEAM"]);
       expect(ctx.teamMembersCount).toBe(8);
     });
@@ -289,13 +313,15 @@ describe("broadcast-email.service.ts", () => {
         isSuperAdmin: false,
         isAdminHr: false,
         isManager: true,
+        canSendAll: false,
+        canSendTeam: true,
         allowedScopes: ["TEAM" as const],
         teamMembersCount: 4,
       };
 
       await expect(
         getBroadcastRecipients(managerCtx, "ALL_EMPLOYEES"),
-      ).rejects.toThrow("Akses ditolak: Manajer / Lead tim hanya diizinkan");
+      ).rejects.toThrow("Akses ditolak: Anda hanya diizinkan mengirim pengumuman ke anggota timnya sendiri.");
     });
 
     it("harus mengambil daftar anggota tim langsung untuk manajer", async () => {
@@ -308,6 +334,8 @@ describe("broadcast-email.service.ts", () => {
         isSuperAdmin: false,
         isAdminHr: false,
         isManager: true,
+        canSendAll: false,
+        canSendTeam: true,
         allowedScopes: ["TEAM" as const],
         teamMembersCount: 2,
       };
@@ -369,7 +397,57 @@ describe("broadcast-email.service.ts", () => {
           targetScope: "TEAM",
           senderPersona: "ORGANIZATION",
         }),
-      ).rejects.toThrow("Akses ditolak: Hanya Administrator HR dan Super Administrator");
+      ).rejects.toThrow("Akses ditolak: Anda hanya dapat menerbitkan pengumuman atas nama pribadi.");
+    });
+
+    it("harus menolak jika Manajer mencoba mengirim dengan persona CUSTOM", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-mgr-2",
+        employeeId: "emp-mgr-2",
+        roles: ["manager"],
+        permissions: new Set(["hris.broadcast.send:team"]),
+      });
+
+      vi.mocked(prisma.employee.findFirst).mockResolvedValue({
+        id: "emp-mgr-2",
+        fullName: "Agus Manajer",
+        workEmail: "agus@pspk.id",
+        currentPosition: { title: "Lead Peneliti", isUnitHead: true },
+        currentDepartment: { id: "dept-2", name: "Riset Kebijakan" },
+      } as unknown as MockEmployeeFirst);
+
+      await expect(
+        executeSendBroadcast("user-mgr-2", {
+          subject: "Pengumuman Palsu Panitia",
+          contentHtml: "<p>Ini tidak boleh lolos.</p>",
+          targetScope: "TEAM",
+          senderPersona: "CUSTOM",
+          customSenderName: "Panitia Kustom",
+        }),
+      ).rejects.toThrow("Akses ditolak: Anda hanya dapat menerbitkan pengumuman atas nama pribadi.");
+    });
+  });
+
+  describe("absolutizeImageUrls", () => {
+    it("harus mengubah URL gambar relatif /api/documents/... menjadi absolut", () => {
+      const originalEnv = process.env.HRIS_URL;
+      process.env.HRIS_URL = "https://hris.pspk.id";
+
+      try {
+        const inputHtml = '<p>Lihat bagan berikut:</p><img src="/api/documents/broadcast-images/test-123.png" alt="Bagan" />';
+        const result = absolutizeImageUrls(inputHtml);
+
+        expect(result).toContain('src="https://hris.pspk.id/api/documents/broadcast-images/test-123.png"');
+      } finally {
+        process.env.HRIS_URL = originalEnv;
+      }
+    });
+
+    it("tidak mengubah gambar yang sudah memiliki URL eksternal http/https", () => {
+      const inputHtml = '<img src="https://images.unsplash.com/photo-123" alt="Foto" />';
+      const result = absolutizeImageUrls(inputHtml);
+
+      expect(result).toBe(inputHtml);
     });
   });
 });
