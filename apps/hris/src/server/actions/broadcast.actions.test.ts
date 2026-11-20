@@ -124,6 +124,8 @@ describe("HRIS broadcast.actions.ts", () => {
         isSuperAdmin: false,
         isAdminHr: true,
         isManager: false,
+        canSendAll: true,
+        canSendTeam: true,
         allowedScopes: ["ALL_EMPLOYEES", "DEPARTMENT", "CUSTOM"],
       });
 
@@ -138,12 +140,14 @@ describe("HRIS broadcast.actions.ts", () => {
             id: "emp-1",
             fullName: "Ani Peneliti",
             workEmail: "ani@pspk.id",
+            currentDepartmentId: "dept-1",
             currentDepartment: { name: "Riset Kebijakan" },
           },
           {
             id: "emp-2",
             fullName: "Budi Staf",
             workEmail: "budi@pspk.id",
+            currentDepartmentId: null,
             currentDepartment: null,
           },
         ] as never)
@@ -153,7 +157,9 @@ describe("HRIS broadcast.actions.ts", () => {
       expect(result.success).toBe(true);
       expect(result.data?.departments).toHaveLength(2);
       expect(result.data?.employees).toHaveLength(2);
+      expect(result.data?.employees[0]?.departmentId).toBe("dept-1");
       expect(result.data?.employees[0]?.departmentName).toBe("Riset Kebijakan");
+      expect(result.data?.employees[1]?.departmentId).toBeNull();
       expect(result.data?.employees[1]?.departmentName).toBeNull();
     });
 
@@ -167,6 +173,8 @@ describe("HRIS broadcast.actions.ts", () => {
         isSuperAdmin: false,
         isAdminHr: false,
         isManager: true,
+        canSendAll: false,
+        canSendTeam: true,
         allowedScopes: ["TEAM"],
       });
 

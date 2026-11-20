@@ -266,14 +266,18 @@ export function BroadcastHistoryView({
                         ? "bg-purple-50 text-purple-700 border border-purple-200"
                         : item.targetScope === "DEPARTMENT"
                           ? "bg-blue-50 text-blue-700 border border-blue-200"
-                          : "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                          : item.targetScope === "CUSTOM"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                     }`}
                   >
                     {item.targetScope === "ALL_EMPLOYEES"
                       ? "ORGANISASI"
                       : item.targetScope === "DEPARTMENT"
                         ? `DIVISI: ${item.targetDepartmentName || ""}`
-                        : "TIM BAWAHAN"}
+                        : item.targetScope === "CUSTOM"
+                          ? "PEGAWAI TERPILIH"
+                          : "TIM BAWAHAN"}
                   </span>
 
                   {/* Status Badge */}
@@ -408,8 +412,13 @@ export function BroadcastHistoryView({
                       </div>
                       <div>
                         <span className="text-slate-500">Status Keterkiriman:</span>
-                        <p className="font-semibold text-emerald-700 mt-0.5">
-                          {activeDetail.sentCount} dari {activeDetail.totalRecipients} Penerima Sukses
+                        <p
+                          className={`font-semibold mt-0.5 ${
+                            activeDetail.failedCount > 0 ? "text-amber-700" : "text-emerald-700"
+                          }`}
+                        >
+                          {activeDetail.sentCount} dari {activeDetail.totalRecipients} penerima terkirim
+                          {activeDetail.failedCount > 0 && ` (${activeDetail.failedCount} gagal)`}
                         </p>
                       </div>
                     </div>

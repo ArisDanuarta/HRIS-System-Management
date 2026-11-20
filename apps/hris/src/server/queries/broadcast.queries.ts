@@ -222,19 +222,17 @@ export async function getBroadcastDetail(
   const isSuperAdmin = authCtx.roles.includes("super_admin");
   const isAdminHr = authCtx.roles.includes("admin_hr");
   const isAuthor = broadcast.senderUserId === userId;
-  const isRecipient = broadcast.recipients.some((r) => r.email === authCtx.userId); // fallback
 
-  if (!isSuperAdmin && !isAdminHr && !isAuthor && !isRecipient) {
-    // Cek apakah user adalah penerima terdaftar
+  if (!isSuperAdmin && !isAdminHr && !isAuthor) {
     const recipientRecord = await prisma.emailBroadcastRecipient.findFirst({
-      where: {
-        broadcastId,
-        employee: { userId },
-      },
+      where: { broadcastId, employee: { userId } },
+      select: { id: true },
     });
 
     if (!recipientRecord) {
-      throw new Error("Akses ditolak: Anda tidak memiliki izin untuk melihat pengumuman ini.");
+      throw new Error(
+        "Akses ditolak: Anda tidak memiliki izin untuk melihat pengumuman ini.",
+      );
     }
   }
 

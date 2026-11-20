@@ -21,6 +21,7 @@ export interface BroadcastFormData {
     id: string;
     fullName: string;
     workEmail: string;
+    departmentId: string | null;
     departmentName: string | null;
   }>;
   teamMembers: Array<{
@@ -56,21 +57,17 @@ export async function getBroadcastFormDataAction(): Promise<{
       orderBy: { name: "asc" },
     });
 
-    // Ambil daftar seluruh pegawai aktif (jika Admin HR/Super Admin)
-    let employees: Array<{
-      id: string;
-      fullName: string;
-      workEmail: string;
-      departmentName: string | null;
-    }> = [];
+    // Ambil daftar seluruh pegawai aktif (jika memiliki hak canSendAll)
+    let employees: BroadcastFormData["employees"] = [];
 
-    if (senderCtx.isSuperAdmin || senderCtx.isAdminHr) {
+    if (senderCtx.canSendAll) {
       const allActive = await prisma.employee.findMany({
         where: { status: "ACTIVE" },
         select: {
           id: true,
           fullName: true,
           workEmail: true,
+          currentDepartmentId: true,
           currentDepartment: { select: { name: true } },
         },
         orderBy: { fullName: "asc" },
@@ -80,6 +77,7 @@ export async function getBroadcastFormDataAction(): Promise<{
         id: e.id,
         fullName: e.fullName,
         workEmail: e.workEmail,
+        departmentId: e.currentDepartmentId ?? null,
         departmentName: e.currentDepartment?.name || null,
       }));
     }

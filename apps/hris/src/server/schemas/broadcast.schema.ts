@@ -77,8 +77,22 @@ export interface BroadcastSenderContext {
   isSuperAdmin: boolean;
   isAdminHr: boolean;
   isManager: boolean;
+  /** Boleh kirim ke semua/divisi/kustom, dan memakai persona lembaga/HR/kustom. */
+  canSendAll: boolean;
+  /** Boleh kirim ke tim bawahan sendiri. */
+  canSendTeam: boolean;
   allowedScopes: Array<"ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM">;
   teamMembersCount: number;
+}
+
+/** Aturan "email bisa dikirimi" yang SAMA dipakai di server dan client. */
+export function hasDeliverableEmail(email?: string | null): boolean {
+  return !!email && email.includes("@");
+}
+
+/** Cegah header injection / tanda kutip merusak header Reply-To. */
+function toHeaderName(value: string): string {
+  return value.replace(/[\r\n"\\<>]/g, "").trim();
 }
 
 /**
@@ -128,12 +142,12 @@ export function resolveSenderIdentity(
       break;
     case "SENDER_PERSONAL":
       replyToEmail = senderCtx.userEmail || "no-reply@pspk.id";
-      replyToHeader = `"${senderCtx.userName}" <${replyToEmail}>`;
+      replyToHeader = `"${toHeaderName(senderCtx.userName)}" <${replyToEmail}>`;
       break;
     case "CUSTOM":
       if (customReplyToEmail?.trim()) {
         replyToEmail = customReplyToEmail.trim();
-        replyToHeader = `"${displayName}" <${replyToEmail}>`;
+        replyToHeader = `"${toHeaderName(displayName)}" <${replyToEmail}>`;
       }
       break;
     case "NO_REPLY":

@@ -22,6 +22,6 @@ export default async function KomunikasiIndexPage() {
   } else if (isManager) {
     redirect("/komunikasi/riwayat");
   } else {
-    redirect("/forbidden");
+    redirect("/notifikasi");
   }
 }

@@ -2,11 +2,16 @@ import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
 import { prisma, writeAudit } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
+import { can } from "@pspk/rbac";
 import {
   SendBroadcastInput,
   ReplyToMode,
+  BroadcastSenderContext,
   resolveSenderIdentity,
+  hasDeliverableEmail,
 } from "../schemas/broadcast.schema";
+
+export type { BroadcastSenderContext };
 
 export interface RecipientInfo {
   id: string;
@@ -14,19 +19,6 @@ export interface RecipientInfo {
   workEmail: string;
   userId: string | null;
   departmentName?: string | null;
-}
-
-export interface BroadcastSenderContext {
-  userId: string;
-  userEmail: string;
-  userName: string;
-  employeeId: string | null;
-  employeeTitle: string;
-  isSuperAdmin: boolean;
-  isAdminHr: boolean;
-  isManager: boolean;
-  allowedScopes: Array<"ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM">;
-  teamMembersCount: number;
 }
 
 export interface SendBroadcastResult {
@@ -54,7 +46,13 @@ export async function getBroadcastSenderContext(
   const isAdminHr = authCtx.roles.includes("admin_hr");
   const isManager = authCtx.roles.includes("manager");
 
-  if (!isSuperAdmin && !isAdminHr && !isManager) {
+  // Berbasis permission; role bawaan tetap jadi fallback selama transisi.
+  const canSendAll =
+    isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+  const canSendTeam =
+    canSendAll || isManager || can(authCtx, "hris.broadcast.send:team");
+
+  if (!canSendTeam) {
     throw new Error(
       "Akses ditolak: Anda tidak memiliki izin untuk mengakses modul broadcast pengumuman.",
     );
@@ -97,12 +95,9 @@ export async function getBroadcastSenderContext(
     });
   }
 
-  const allowedScopes: Array<"ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM"> = [];
-  if (isSuperAdmin || isAdminHr) {
-    allowedScopes.push("ALL_EMPLOYEES", "DEPARTMENT", "TEAM", "CUSTOM");
-  } else if (isManager) {
-    allowedScopes.push("TEAM");
-  }
+  const allowedScopes: BroadcastSenderContext["allowedScopes"] = canSendAll
+    ? ["ALL_EMPLOYEES", "DEPARTMENT", "TEAM", "CUSTOM"]
+    : ["TEAM"];
 
   return {
     userId,
@@ -113,6 +108,8 @@ export async function getBroadcastSenderContext(
     isSuperAdmin,
     isAdminHr,
     isManager,
+    canSendAll,
+    canSendTeam,
     allowedScopes,
     teamMembersCount,
   };
@@ -127,13 +124,11 @@ export async function getBroadcastRecipients(
   departmentId?: string | null,
   customEmployeeIds?: string[],
 ): Promise<RecipientInfo[]> {
-  // Proteksi keamanan: Manajer hanya boleh mengirim ke timnya sendiri
-  if (!senderCtx.isSuperAdmin && !senderCtx.isAdminHr) {
-    if (targetScope !== "TEAM") {
-      throw new Error(
-        "Akses ditolak: Manajer / Lead tim hanya diizinkan mengirim pengumuman ke anggota timnya sendiri.",
-      );
-    }
+  // Proteksi: yang tidak punya hak "all" hanya boleh ke timnya sendiri
+  if (!senderCtx.canSendAll && targetScope !== "TEAM") {
+    throw new Error(
+      "Akses ditolak: Anda hanya diizinkan mengirim pengumuman ke anggota timnya sendiri.",
+    );
   }
 
   let recipients: Array<{
@@ -221,7 +216,7 @@ export async function getBroadcastRecipients(
 
   // Filter email valid dan kecualikan pengirim sendiri dari daftar penerima
   return recipients
-    .filter((r) => r.workEmail && r.workEmail.includes("@"))
+    .filter((r) => hasDeliverableEmail(r.workEmail))
     .filter((r) => !senderCtx.employeeId || r.id !== senderCtx.employeeId)
     .map((r) => ({
       id: r.id,
@@ -266,8 +261,32 @@ export function sanitizeBroadcastContent(html: string): string {
       span: ["class", "style"],
       blockquote: ["class", "style"],
     },
-    allowedSchemes: ["http", "https", "mailto", "data"],
+    allowedSchemes: ["http", "https", "mailto"],
+    allowedSchemesByTag: { img: ["http", "https"] },
+    allowProtocolRelative: false,
   });
+}
+
+/**
+ * Klien email tidak bisa memuat URL relatif. Ubah hanya saat render email,
+ * data di DB tetap relatif supaya halaman in-app tetap jalan.
+ */
+export function absolutizeImageUrls(html: string): string {
+  const base = (
+    process.env.HRIS_URL ||
+    process.env.NEXT_PUBLIC_HRIS_URL ||
+    process.env.APP_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    process.env.BETTER_AUTH_URL ||
+    ""
+  ).replace(/\/+$/, "");
+
+  if (!base) return html;
+
+  return html.replace(
+    /(<img\b[^>]*?\ssrc=")(\/api\/documents\/[^"]+)(")/gi,
+    (_m, pre: string, path: string, post: string) => `${pre}${base}${path}${post}`,
+  );
 }
 
 /**
@@ -436,12 +455,17 @@ export async function executeSendBroadcast(
     customReplyToEmail,
   } = input;
 
-  // Cek otorisasi persona:
-  // Hanya Super Admin & Admin HR yang dapat memilih ORGANIZATION atau HR_TEAM
-  if (!senderCtx.isSuperAdmin && !senderCtx.isAdminHr) {
-    if (senderPersona === "ORGANIZATION" || senderPersona === "HR_TEAM") {
+  // Otorisasi persona & reply-to: hanya pemegang hak "all" yang boleh
+  // memakai identitas lembaga/HR/kustom dan reply-to bebas.
+  if (!senderCtx.canSendAll) {
+    if (senderPersona !== "PERSONAL") {
       throw new Error(
-        "Akses ditolak: Hanya Administrator HR dan Super Administrator yang dapat menerbitkan pengumuman atas nama Lembaga atau Tim HR.",
+        "Akses ditolak: Anda hanya dapat menerbitkan pengumuman atas nama pribadi.",
+      );
+    }
+    if (replyToMode === "ORGANIZATION_HR" || replyToMode === "CUSTOM") {
+      throw new Error(
+        "Akses ditolak: Anda hanya dapat memilih balasan satu arah atau email pribadi.",
       );
     }
   }
@@ -458,6 +482,7 @@ export async function executeSendBroadcast(
   // 1. Sanitasi konten HTML
   const sanitizedContent = sanitizeBroadcastContent(rawContentHtml);
   const plainTextContent = htmlToPlainText(sanitizedContent);
+  const emailContentHtml = absolutizeImageUrls(sanitizedContent);
 
   // 2. Ambil daftar target penerima
   const recipients = await getBroadcastRecipients(
@@ -548,7 +573,7 @@ export async function executeSendBroadcast(
         batch.map(async (rcpt) => {
           const personalizedHtml = renderBroadcastEmailHtml({
             subject,
-            contentHtml: sanitizedContent,
+            contentHtml: emailContentHtml,
             recipientName: rcpt.recipientName,
             senderName: resolvedSender.displayName,
             senderTitle: resolvedSender.displayTitle,

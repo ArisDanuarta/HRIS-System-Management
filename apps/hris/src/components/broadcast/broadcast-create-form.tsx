@@ -32,6 +32,7 @@ import {
   SenderPersona,
   ReplyToMode,
   resolveSenderIdentity,
+  hasDeliverableEmail,
 } from "../../server/schemas/broadcast.schema";
 
 interface BroadcastCreateFormProps {
@@ -42,12 +43,12 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
   const router = useRouter();
   const { senderCtx, departments, employees, teamMembers } = initialData;
 
-  const isSuperOrHrAdmin = senderCtx.isAdminHr || senderCtx.isSuperAdmin;
+  const canSendAll = senderCtx.canSendAll;
 
   // Form State
   const [targetScope, setTargetScope] = useState<
     "ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM"
-  >(isSuperOrHrAdmin ? "ALL_EMPLOYEES" : "TEAM");
+  >(canSendAll ? "ALL_EMPLOYEES" : "TEAM");
 
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>(
     departments[0]?.id || "",
@@ -56,7 +57,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
 
   // Sender Persona & Reply-To State
   const [senderPersona, setSenderPersona] = useState<SenderPersona>(
-    isSuperOrHrAdmin ? "ORGANIZATION" : "PERSONAL",
+    canSendAll ? "ORGANIZATION" : "PERSONAL",
   );
   const [customSenderName, setCustomSenderName] = useState("");
   const [replyToMode, setReplyToMode] = useState<ReplyToMode>("NO_REPLY");
@@ -87,41 +88,39 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
     customReplyToEmail,
   );
 
-  // Calculate effective recipient count for display
+  type Person = { id: string; fullName: string; workEmail: string };
+
+  // Aturan identik dengan server: bukan pengirim & email valid
+  const deliverable = (list: Person[]) =>
+    list.filter(
+      (p) => p.id !== senderCtx.employeeId && hasDeliverableEmail(p.workEmail),
+    );
+
   const getRecipientSummary = () => {
+    let label = "";
+    let source: Person[] = [];
+
     if (targetScope === "TEAM") {
-      return {
-        label: "Anggota Tim Anda",
-        count: teamMembers.length,
-        names: teamMembers.map((t) => t.fullName).join(", "),
-      };
-    }
-    if (targetScope === "DEPARTMENT") {
+      label = "Anggota Tim Anda";
+      source = teamMembers;
+    } else if (targetScope === "DEPARTMENT") {
       const dept = departments.find((d) => d.id === selectedDepartmentId);
-      const inDept = employees.filter(
-        (e) => e.departmentName === dept?.name,
-      );
-      return {
-        label: `Divisi / Departemen ${dept?.name || ""}`,
-        count: inDept.length,
-        names: inDept.map((e) => e.fullName).slice(0, 5).join(", ") + (inDept.length > 5 ? "..." : ""),
-      };
+      label = `Divisi / Departemen ${dept?.name || ""}`;
+      source = employees.filter((e) => e.departmentId === selectedDepartmentId);
+    } else if (targetScope === "CUSTOM") {
+      label = "Karyawan Tertentu";
+      source = employees.filter((e) => selectedEmployeeIds.includes(e.id));
+    } else {
+      label = "Seluruh Karyawan Aktif";
+      source = employees;
     }
-    if (targetScope === "CUSTOM") {
-      const selected = employees.filter((e) =>
-        selectedEmployeeIds.includes(e.id),
-      );
-      return {
-        label: "Karyawan Tertentu",
-        count: selected.length,
-        names: selected.map((s) => s.fullName).join(", "),
-      };
-    }
-    // ALL_EMPLOYEES
+
+    const list = deliverable(source);
     return {
-      label: "Seluruh Karyawan Aktif",
-      count: employees.length,
-      names: `${employees.length} Karyawan Terdaftar`,
+      label,
+      count: list.length,
+      skipped: source.length - list.length,
+      list,
     };
   };
 
@@ -147,10 +146,10 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       return;
     }
 
-    if (!subject.trim()) {
+    if (subject.trim().length < 3) {
       setFeedback({
         type: "error",
-        message: "Subjek pengumuman wajib diisi.",
+        message: "Subjek pengumuman minimal 3 karakter.",
       });
       return;
     }
@@ -292,7 +291,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           </div>
 
           {/* ADMIN HR / SUPER ADMIN CHOICES */}
-          {senderCtx.isAdminHr || senderCtx.isSuperAdmin ? (
+          {canSendAll ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 <button
@@ -313,7 +312,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                     )}
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1">
-                    Kirim ke seluruh {employees.length} staf aktif institusi
+                    Kirim ke seluruh {deliverable(employees).length} staf aktif institusi
                   </p>
                 </button>
 
@@ -464,12 +463,40 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           )}
 
           {/* RECIPIENT COUNT BADGE */}
-          <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200/80">
-            <Info className="w-4 h-4 text-navy-700 shrink-0" />
-            <span>
-              Total penerima yang akan mendapatkan email ini:{" "}
-              <strong>{recipientSummary.count} orang</strong> ({recipientSummary.label})
-            </span>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 px-3 py-2.5 rounded-lg border border-slate-200">
+              <Info className="w-4 h-4 text-navy-700 shrink-0" />
+              <span>
+                Total penerima: <strong>{recipientSummary.count} orang</strong> (
+                {recipientSummary.label})
+              </span>
+            </div>
+
+            {recipientSummary.skipped > 0 && (
+              <div className="flex items-start gap-2 text-xs text-amber-800 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>
+                  {recipientSummary.skipped} orang dilewati (pengirim sendiri atau tidak
+                  punya email valid).
+                </span>
+              </div>
+            )}
+
+            {recipientSummary.count > 0 && (
+              <details className="text-xs text-slate-600 bg-white rounded-lg border border-slate-200 px-3 py-2">
+                <summary className="cursor-pointer font-medium text-navy-800">
+                  Lihat daftar penerima
+                </summary>
+                <ul className="mt-2 max-h-40 overflow-y-auto space-y-0.5 columns-1 sm:columns-2">
+                  {recipientSummary.list.map((p) => (
+                    <li key={p.id}>
+                      {p.fullName}{" "}
+                      <span className="text-slate-400">({p.workEmail})</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </div>
         </div>
 
@@ -494,7 +521,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
               Kirim Pengumuman Sebagai:
             </label>
 
-            {isSuperOrHrAdmin ? (
+            {canSendAll ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* 1. LEMBAGA (ORGANIZATION) */}
                 <button
@@ -675,7 +702,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 </div>
               </label>
 
-              {isSuperOrHrAdmin && (
+              {canSendAll && (
                 <label
                   className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
                     replyToMode === "ORGANIZATION_HR"
@@ -719,26 +746,28 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 </div>
               </label>
 
-              <label
-                className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
-                  replyToMode === "CUSTOM"
-                    ? "border-navy-900 bg-navy-50/40 text-navy-900 font-semibold"
-                    : "border-slate-200 hover:bg-slate-50 text-slate-700"
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="replyToMode"
-                  value="CUSTOM"
-                  checked={replyToMode === "CUSTOM"}
-                  onChange={() => setReplyToMode("CUSTOM")}
-                  className="text-navy-900 focus:ring-navy-600"
-                />
-                <div>
-                  <span className="block text-xs">Email Kustom</span>
-                  <span className="text-[10px] text-slate-500 font-normal">Tentukan alamat spesifik</span>
-                </div>
-              </label>
+              {canSendAll && (
+                <label
+                  className={`p-2.5 rounded-lg border flex items-center gap-2 cursor-pointer text-xs transition-colors ${
+                    replyToMode === "CUSTOM"
+                      ? "border-navy-900 bg-navy-50/40 text-navy-900 font-semibold"
+                      : "border-slate-200 hover:bg-slate-50 text-slate-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="replyToMode"
+                    value="CUSTOM"
+                    checked={replyToMode === "CUSTOM"}
+                    onChange={() => setReplyToMode("CUSTOM")}
+                    className="text-navy-900 focus:ring-navy-600"
+                  />
+                  <div>
+                    <span className="block text-xs">Email Kustom</span>
+                    <span className="text-[10px] text-slate-500 font-normal">Tentukan alamat spesifik</span>
+                  </div>
+                </label>
+              )}
             </div>
 
             {replyToMode === "CUSTOM" && (
@@ -810,11 +839,19 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
             <input
               type="text"
               required
+              minLength={3}
+              maxLength={200}
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               placeholder="Contoh: [Pemberitahuan] Penyesuaian Jadwal Rapat Koordinasi Tim Riset"
               className="w-full px-3.5 py-2.5 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-navy-600 focus:border-transparent font-medium"
             />
+            <p className="mt-1 text-xs text-slate-500">
+              Di inbox penerima, subjek tampil sebagai:{" "}
+              <span className="font-medium text-slate-700">
+                [PSPK HRIS] {subject || "…"}
+              </span>
+            </p>
           </div>
 
           {/* EDITOR / PREVIEW DISPLAY */}
@@ -941,7 +978,7 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 Kirimkan juga sebagai Notifikasi In-App di Portal HRIS
               </span>
               <span className="text-[11px] text-slate-500 mt-0.5 block">
-                Penerima akan melihat badge merah pada lonceng notifikasi di pojok kanan atas aplikasi portal HRIS selain menerima email di inbox Google Mail.
+                Penerima akan melihat badge merah pada lonceng notifikasi di pojok kanan atas aplikasi portal HRIS selain menerima email di inbox masing-masing.
               </span>
             </div>
           </label>
@@ -1024,6 +1061,12 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                   <span className="font-bold text-emerald-700 text-sm">
                     {recipientSummary.count} Orang Karyawan
                   </span>
+                </div>
+                <div className="pt-2 border-t border-slate-200/60">
+                  <span className="text-slate-500 block mb-1">Penerima:</span>
+                  <p className="text-slate-800 leading-relaxed max-h-24 overflow-y-auto">
+                    {recipientSummary.list.map((p) => p.fullName).join(", ")}
+                  </p>
                 </div>
               </div>
 
