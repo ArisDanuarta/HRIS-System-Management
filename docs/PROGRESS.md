@@ -4,6 +4,37 @@ Dokumen ini diperbarui secara berkala pada setiap akhir fase/tugas.
 
 ---
 
+## [Task 9: Kategori/Prioritas, Ekspor CSV, dan Konfirmasi Dibaca (Read Receipts)] — 2026-11-20
+
+- **Status:** Selesai Diimplementasikan & Terverifikasi Penuh (0 Error Typecheck, 0 Warning Lint, Test 57/57 Files 465/465 PASS, Production Build 100% Sukses)
+- **Scope & Filosofi:**
+  - Melengkapi sistem broadcast komunikasi organisasi dengan taksonomi pesan, pencegahan eksploitasi berkas spreadsheet, dan pelacakan pembacaan internal yang aman privasi (tanpa tracking pixel pihak ketiga).
+  - **9.1 Kategori & Prioritas Pesan:**
+    - Penambahan `category` (`UMUM`, `KEPEGAWAIAN`, `PAYROLL`, `ACARA`, `KEBIJAKAN`, `DARURAT`) dan `priority` (`NORMAL`, `PENTING`) pada skema database `EmailBroadcast` dan `BroadcastDraft`.
+    - Validasi ketat sisi server: Kategori `DARURAT` dikhususkan secara eksklusif hanya untuk pengguna dengan hak `canSendAll` (Admin HR / Super Admin).
+    - Prioritas `PENTING` otomatis menyisipkan prefix subjek `[PENTING]`, header email `X-Priority: "1"` dan `Importance: "high"`, badge merah peringatan di email HTML, serta penanda visual di riwayat.
+    - Menampilkan badge kategori pada email penerima dan filter kategori pada riwayat siaran.
+  - **9.2 Ekspor Log Penerima Format CSV:**
+    - Endpoint aman `GET /api/broadcast/[id]/export` dengan proteksi otorisasi ganda (pembuat broadcast atau pemegang hak `canSendAll`).
+    - Kolom ekspor: `Nama`, `Email`, `Departemen`, `Status`, `Waktu Kirim`, `Percobaan`, `Pesan Error`, `Dibaca Pada`.
+    - **Proteksi Formula Injection (CSV Injection):** Seluruh sel yang diawali karakter formula Excel (`=`, `+`, `-`, `@`, `\t`, `\r`) diberi awalan `'` (kutip tunggal) dan di-escape tanda kutipnya per standar RFC 4180.
+    - Disertai UTF-8 Byte Order Mark (BOM) `\uFEFF` biner agar file terbaca sempurna tanpa distorsi karakter di Microsoft Excel.
+    - Tombol "Ekspor CSV" di footer modal rincian riwayat broadcast dan audit log `BROADCAST_EXPORT`.
+  - **9.3 Konfirmasi Dibaca (In-App Read Receipts):**
+    - Skema `EmailBroadcastRecipient.readAt DateTime?` dan opsi `requireReadReceipt Boolean @default(false)`.
+    - Menghindari pelacakan pixel (tracking pixel) yang tidak andal dan melanggar privasi, beralih ke pembacaan portal internal `/pengumuman/[id]`.
+    - Halaman pembaca `/pengumuman/[id]` mencatat `readAt` secara otomatis dan idempoten saat dibuka oleh penerima terdaftar jika `requireReadReceipt === false`.
+    - Komponen `BroadcastReadConfirmation` menyediakan tombol eksplisit *"Saya Sudah Membaca Pengumuman Ini"* jika `requireReadReceipt === true`.
+    - Ringkasan pembacaan real-time *"X dari Y sudah membaca (Z%)"*, filter status penerima (`Semua`, `Sukses`, `Gagal`, `Sudah Dibaca`, `Belum Dibaca`), dan kolom `Dibaca Pada`.
+    - Tombol *"Ingatkan yang Belum Membaca"* untuk mengirimkan notifikasi internal in-app pengingat tanpa mengirim ulang email.
+- **Verifikasi Kualitas:**
+  - `pnpm typecheck`: 9 packages sukses (0 error).
+  - `pnpm lint`: 0 error, 0 warning.
+  - `pnpm test`: 57 test files, 465 tests pass (100%).
+  - `pnpm build`: Build Next.js Turbopack pada `@pspk/hris` dan `@pspk/sysmgmt` sukses 100%.
+
+---
+
 ## [Restrukturisasi Formulir Pegawai & Distribusi Berkas Tematik (Opsi 3)] — 2026-11-19
 
 - **Status:** Selesai Diimplementasikan & Terverifikasi Penuh (0 Error Typecheck, 0 Warning Lint, Test 51/51 Files 352/352 PASS)

@@ -9,7 +9,6 @@ import {
   SendTestBroadcastInput,
   ReplyToMode,
   BroadcastCategory,
-  BroadcastPriority,
   BROADCAST_CATEGORY_LABELS,
   BroadcastSenderContext,
   resolveSenderIdentity,

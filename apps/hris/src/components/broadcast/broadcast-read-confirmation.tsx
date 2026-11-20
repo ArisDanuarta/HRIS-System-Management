@@ -1,4 +1,4 @@
-"useclient";
+"use client";
 
 import React, { useState, useTransition } from "react";
 import { CheckCircle2, Loader2, Check } from "lucide-react";

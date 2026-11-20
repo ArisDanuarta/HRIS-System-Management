@@ -180,18 +180,17 @@ describe("Task 9: Kategori, Prioritas, Ekspor CSV, dan Konfirmasi Dibaca", () =>
           subject: "Perubahan Kebijakan Operasional",
           contentHtml: "<p>Kebijakan baru berlaku besok.</p>",
           contentText: "Kebijakan baru berlaku besok.",
+          targetScope: "ALL_EMPLOYEES",
           priority: "PENTING",
           category: "KEBIJAKAN",
           requireReadReceipt: true,
           sendInApp: true,
           senderName: "PSPK HR",
-          senderEmail: "hr@pspk.id",
           replyToEmail: "no-reply@pspk.id",
-          attachments: [],
         },
         {
           recipientName: "Ahmad Staff",
-          recipientEmail: "ahmad@pspk.id",
+          email: "ahmad@pspk.id",
         },
       );
 
@@ -213,7 +212,8 @@ describe("Task 9: Kategori, Prioritas, Ekspor CSV, dan Konfirmasi Dibaca", () =>
         contentHtml: "<p>Silakan hadir di aula utama.</p>",
         recipientName: "Dewi Lestari",
         senderName: "Tim HR PSPK",
-        senderRoleTitle: "People & Culture",
+        senderTitle: "People & Culture",
+        scopeBadge: "Pengumuman Resmi",
         replyToEmail: "hr@pspk.id",
         category: "ACARA",
         priority: "NORMAL",
@@ -266,7 +266,7 @@ describe("Task 9: Kategori, Prioritas, Ekspor CSV, dan Konfirmasi Dibaca", () =>
 
     it("GET /api/broadcast/[id]/export: harus menolak pengguna non-penulis dan tanpa canSendAll (403)", async () => {
       vi.mocked(getSession).mockResolvedValue({
-        user: { id: "user-other", email: "other@pspk.id", name: "Other User" },
+        user: { id: "user-other", email: "other@pspk.id", name: "Other User" } as never,
         session: {} as never,
       });
 
@@ -297,7 +297,7 @@ describe("Task 9: Kategori, Prioritas, Ekspor CSV, dan Konfirmasi Dibaca", () =>
 
     it("GET /api/broadcast/[id]/export: berhasil menghasilkan berkas CSV dengan UTF-8 BOM dan header attachment untuk pembuat broadcast", async () => {
       vi.mocked(getSession).mockResolvedValue({
-        user: { id: "user-author", email: "author@pspk.id", name: "Author User" },
+        user: { id: "user-author", email: "author@pspk.id", name: "Author User" } as never,
         session: {} as never,
       });
 

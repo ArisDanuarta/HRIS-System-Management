@@ -63,7 +63,6 @@ import {
   BroadcastPriority,
   BROADCAST_CATEGORIES,
   BROADCAST_CATEGORY_LABELS,
-  BROADCAST_PRIORITIES,
   resolveSenderIdentity,
   hasDeliverableEmail,
   BroadcastDraftItem,
