@@ -21,6 +21,31 @@ export const replyToModeSchema = z.enum([
   "CUSTOM",
 ]);
 
+export const BROADCAST_CATEGORIES = [
+  "UMUM",
+  "KEPEGAWAIAN",
+  "PAYROLL",
+  "ACARA",
+  "KEBIJAKAN",
+  "DARURAT",
+] as const;
+
+export const broadcastCategorySchema = z.enum(BROADCAST_CATEGORIES);
+export type BroadcastCategory = z.infer<typeof broadcastCategorySchema>;
+
+export const BROADCAST_CATEGORY_LABELS: Record<BroadcastCategory, string> = {
+  UMUM: "Umum",
+  KEPEGAWAIAN: "Kepegawaian",
+  PAYROLL: "Payroll & Kompensasi",
+  ACARA: "Acara & Kegiatan",
+  KEBIJAKAN: "Kebijakan & Regulasi",
+  DARURAT: "Darurat / Mendesak",
+};
+
+export const BROADCAST_PRIORITIES = ["NORMAL", "PENTING"] as const;
+export const broadcastPrioritySchema = z.enum(BROADCAST_PRIORITIES);
+export type BroadcastPriority = z.infer<typeof broadcastPrioritySchema>;
+
 export const sendBroadcastSchema = z.object({
   subject: z
     .string()
@@ -31,6 +56,9 @@ export const sendBroadcastSchema = z.object({
     .string()
     .trim()
     .min(10, "Isi pesan pengumuman tidak boleh kosong (minimal 10 karakter)."),
+  category: broadcastCategorySchema.optional().nullable(),
+  priority: broadcastPrioritySchema.default("NORMAL"),
+  requireReadReceipt: z.boolean().default(false),
   targetScope: broadcastScopeSchema.default("TEAM"),
   targetDepartmentId: z.string().trim().optional().nullable(),
   targetDepartmentIds: z.array(z.string().trim()).max(1000).optional().default([]),
@@ -92,6 +120,8 @@ export const sendTestBroadcastSchema = z.object({
     .string()
     .trim()
     .min(10, "Isi pesan pengumuman tidak boleh kosong (minimal 10 karakter)."),
+  category: broadcastCategorySchema.optional().nullable(),
+  priority: broadcastPrioritySchema.default("NORMAL"),
   senderPersona: senderPersonaSchema.default("ORGANIZATION"),
   customSenderName: z
     .string()
@@ -132,6 +162,9 @@ export const saveBroadcastDraftSchema = z.object({
     .max(500 * 1024, "Ukuran naskah draf maksimal 500 KB.")
     .optional()
     .default(""),
+  category: broadcastCategorySchema.optional().nullable(),
+  priority: broadcastPrioritySchema.default("NORMAL"),
+  requireReadReceipt: z.boolean().default(false),
   targetScope: broadcastScopeSchema.default("TEAM"),
   targetDepartmentIds: z.array(z.string().trim()).max(1000).optional().default([]),
   customEmployeeIds: z.array(z.string().trim()).max(1000).optional().default([]),
@@ -183,6 +216,9 @@ export interface BroadcastDraftItem {
   title: string;
   subject: string;
   contentHtml: string;
+  category?: BroadcastCategory | null;
+  priority?: BroadcastPriority;
+  requireReadReceipt?: boolean;
   targetScope: BroadcastScope;
   targetDepartmentIds: string[];
   customEmployeeIds: string[];
