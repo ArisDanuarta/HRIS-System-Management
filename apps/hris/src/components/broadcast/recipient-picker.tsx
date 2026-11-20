@@ -279,7 +279,7 @@ export function RecipientPicker({
                     <span className="block text-xs leading-tight line-clamp-1">
                       {dept.name}
                     </span>
-                    <span className="text-[11px] text-slate-500 font-normal">
+                    <span className="text-xs text-slate-500 font-normal">
                       {count} staf aktif
                     </span>
                   </div>
@@ -383,13 +383,13 @@ export function RecipientPicker({
                         <span className="font-semibold text-slate-900 block truncate">
                           {emp.fullName}
                         </span>
-                        <span className="text-slate-500 text-[11px] block truncate">
+                        <span className="text-slate-500 text-xs block truncate">
                           {emp.workEmail}
                         </span>
                       </div>
                     </div>
                     {emp.departmentName && (
-                      <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium shrink-0">
+                      <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium shrink-0">
                         {emp.departmentName}
                       </span>
                     )}
@@ -400,7 +400,7 @@ export function RecipientPicker({
           </div>
 
           {filteredCustomEmployees.length > customRenderLimit && (
-            <p className="text-[11px] text-slate-500 text-center italic">
+            <p className="text-xs text-slate-500 text-center italic">
               Menampilkan {customRenderLimit} hasil teratas dari total{" "}
               {filteredCustomEmployees.length} staf. Persempit kata kunci pencarian jika belum menemukan nama yang dicari.
             </p>
@@ -419,7 +419,7 @@ export function RecipientPicker({
             <UserX className="w-4 h-4 text-slate-500" />
             <span>Kecualikan Orang Tertentu (Opsional)</span>
             {excludedEmployeeIds.length > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+              <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
                 {excludedEmployeeIds.length} Dikecualikan
               </span>
             )}
@@ -434,7 +434,7 @@ export function RecipientPicker({
             <button
               type="button"
               onClick={() => onChangeExcludedIds([])}
-              className="text-[11px] text-red-600 hover:underline font-medium cursor-pointer"
+              className="text-xs text-red-600 hover:underline font-medium cursor-pointer"
             >
               Hapus Semua Pengecualian
             </button>
@@ -447,7 +447,7 @@ export function RecipientPicker({
             {excludedDetails.map((item) => (
               <span
                 key={item.id}
-                className="inline-flex items-center gap-1 text-[11px] font-medium bg-amber-50 text-amber-900 border border-amber-200 rounded-lg px-2.5 py-1 shadow-2xs"
+                className="inline-flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200 rounded-lg px-2.5 py-1 shadow-2xs"
               >
                 <span>{item.fullName}</span>
                 <button
@@ -514,13 +514,13 @@ export function RecipientPicker({
                           <span className="font-semibold text-slate-900 block truncate">
                             {emp.fullName}
                           </span>
-                          <span className="text-slate-500 text-[11px] block truncate">
+                          <span className="text-slate-500 text-xs block truncate">
                             {emp.workEmail}
                           </span>
                         </div>
                       </div>
                       {emp.meta && (
-                        <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium shrink-0">
+                        <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium shrink-0">
                           {emp.meta}
                         </span>
                       )}

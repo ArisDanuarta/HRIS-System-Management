@@ -471,6 +471,87 @@ describe("broadcast-email.service.ts", () => {
         }),
       );
     });
+
+    it("harus mendukung fallback data lama dengan string targetDepartmentId", async () => {
+      const adminCtx = {
+        userId: "user-admin",
+        userEmail: "admin@pspk.id",
+        userName: "Admin HR",
+        employeeId: "emp-admin",
+        employeeTitle: "HR Lead",
+        isSuperAdmin: true,
+        isAdminHr: true,
+        isManager: false,
+        canSendAll: true,
+        canSendTeam: true,
+        allowedScopes: ["ALL_EMPLOYEES" as const, "DEPARTMENT" as const, "TEAM" as const, "CUSTOM" as const],
+        teamMembersCount: 0,
+      };
+
+      vi.mocked(prisma.employee.findMany).mockResolvedValue([
+        {
+          id: "emp-legacy",
+          fullName: "Indra",
+          workEmail: "indra@pspk.id",
+          userId: "user-legacy",
+          currentDepartment: { name: "Riset" },
+        },
+      ] as unknown as MockEmployeeMany);
+
+      const recipients = await getBroadcastRecipients(adminCtx, "DEPARTMENT", "dept-legacy-1");
+
+      expect(recipients).toHaveLength(1);
+      expect(prisma.employee.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            currentDepartmentId: { in: ["dept-legacy-1"] },
+            status: "ACTIVE",
+          }),
+        }),
+      );
+    });
+
+    it("harus mendukung pengecualian anggota tim pada scope TEAM bagi manajer", async () => {
+      const managerCtx = {
+        userId: "user-mgr",
+        userEmail: "agus@pspk.id",
+        userName: "Agus Lead",
+        employeeId: "emp-mgr",
+        employeeTitle: "Lead Peneliti",
+        isSuperAdmin: false,
+        isAdminHr: false,
+        isManager: true,
+        canSendAll: false,
+        canSendTeam: true,
+        allowedScopes: ["TEAM" as const],
+        teamMembersCount: 2,
+      };
+
+      vi.mocked(prisma.employee.findMany).mockResolvedValue([
+        {
+          id: "emp-aktif-team",
+          fullName: "Karyawan Masuk",
+          workEmail: "masuk@pspk.id",
+          userId: "user-masuk",
+          currentDepartment: { name: "Riset" },
+        },
+      ] as unknown as MockEmployeeMany);
+
+      const recipients = await getBroadcastRecipients(managerCtx, "TEAM", null, undefined, {
+        excludedEmployeeIds: ["emp-cuti-team"],
+      });
+
+      expect(recipients).toHaveLength(1);
+      expect(prisma.employee.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            managerId: "emp-mgr",
+            id: { notIn: ["emp-cuti-team"] },
+            status: "ACTIVE",
+          }),
+        }),
+      );
+    });
   });
 
   describe("executeSendBroadcast - Otorisasi Persona", () => {
