@@ -998,6 +998,7 @@ model EmailBroadcast {
   failedCount        Int             @default(0) @map("failed_count")
   sendInApp          Boolean         @default(true) @map("send_in_app")
   status             BroadcastStatus @default(QUEUED)
+  scheduledAt        DateTime?       @map("scheduled_at") @db.Timestamptz(6)
   startedAt          DateTime?       @map("started_at") @db.Timestamptz(6)
   finishedAt         DateTime?       @map("finished_at") @db.Timestamptz(6)
   lockedAt           DateTime?       @map("locked_at") @db.Timestamptz(6)
@@ -1014,6 +1015,7 @@ model EmailBroadcast {
 
   @@index([senderUserId])
   @@index([status])
+  @@index([status, scheduledAt])
   @@index([createdAt(sort: Desc)])
   @@map("email_broadcasts")
   @@schema("hris")

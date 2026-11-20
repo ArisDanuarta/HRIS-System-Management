@@ -30,6 +30,8 @@ export interface EnqueueBroadcastResult {
   broadcastId: string;
   totalRecipients: number;
   message: string;
+  scheduled?: boolean;
+  scheduledAt?: Date | null;
 }
 
 export interface ProcessBroadcastResult {
@@ -682,7 +684,23 @@ export async function enqueueBroadcast(
     replyToMode = "NO_REPLY",
     customReplyToEmail,
     attachmentIds = [],
+    scheduledAt: rawScheduledAt,
   } = input;
+
+  const isScheduled = !!rawScheduledAt;
+  let scheduledDate: Date | null = null;
+
+  if (isScheduled) {
+    scheduledDate = new Date(rawScheduledAt!);
+    const minTime = new Date(Date.now() + 4 * 60 * 1000);
+    const maxTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000);
+    if (scheduledDate < minTime) {
+      throw new Error("Waktu jadwal pengiriman minimal 5 menit dari sekarang.");
+    }
+    if (scheduledDate > maxTime) {
+      throw new Error("Waktu jadwal pengiriman maksimal 90 hari ke depan.");
+    }
+  }
 
   if (attachmentIds && attachmentIds.length > 0) {
     if (attachmentIds.length > MAX_ATTACHMENTS_COUNT) {
@@ -793,19 +811,24 @@ export async function enqueueBroadcast(
       sentCount: 0,
       failedCount: 0,
       sendInApp,
-      status: "QUEUED",
+      status: isScheduled ? "SCHEDULED" : "QUEUED",
+      scheduledAt: scheduledDate,
       senderPersona,
       replyToMode: resolvedSender.replyToMode,
       senderDisplayTitle: resolvedSender.displayTitle,
-      recipients: {
-        create: recipients.map((r) => ({
-          employeeId: r.id,
-          email: r.workEmail,
-          recipientName: r.fullName,
-          status: "PENDING",
-          attempts: 0,
-        })),
-      },
+      ...(!isScheduled
+        ? {
+            recipients: {
+              create: recipients.map((r) => ({
+                employeeId: r.id,
+                email: r.workEmail,
+                recipientName: r.fullName,
+                status: "PENDING",
+                attempts: 0,
+              })),
+            },
+          }
+        : {}),
     },
   });
 
@@ -817,12 +840,12 @@ export async function enqueueBroadcast(
     });
   }
 
-  // 4. Catat Audit Log Pengantrean
+  // 4. Catat Audit Log Pengantrean / Penjadwalan
   await writeAudit({
     actorUserId: senderCtx.userId,
     actorEmail: senderCtx.userEmail,
     app: "hris",
-    action: "BROADCAST_EMAIL_QUEUED",
+    action: isScheduled ? "BROADCAST_EMAIL_SCHEDULED" : "BROADCAST_EMAIL_QUEUED",
     entityType: "EmailBroadcast",
     entityId: broadcast.id,
     after: {
@@ -839,6 +862,7 @@ export async function enqueueBroadcast(
       replyToEmail: resolvedSender.replyToEmail,
       totalRecipients: recipients.length,
       sendInApp,
+      scheduledAt: scheduledDate ? scheduledDate.toISOString() : null,
     },
     ip: reqMeta?.ip || "127.0.0.1",
     userAgent: reqMeta?.userAgent || "unknown",
@@ -848,7 +872,11 @@ export async function enqueueBroadcast(
     success: true,
     broadcastId: broadcast.id,
     totalRecipients: recipients.length,
-    message: `Pengumuman masuk antrean dan sedang diproses ke ${recipients.length} penerima.`,
+    scheduled: isScheduled,
+    scheduledAt: scheduledDate || undefined,
+    message: isScheduled
+      ? `Pengumuman berhasil dijadwalkan untuk dikirim pada ${scheduledDate?.toLocaleString("id-ID")}.`
+      : `Pengumuman masuk antrean dan sedang diproses ke ${recipients.length} penerima.`,
   };
 }
 
@@ -1576,4 +1604,287 @@ export async function deleteBroadcastAttachment(
   });
 
   return { success: true };
+}
+
+export interface DispatchScheduledResult {
+  dispatchedCount: number;
+  failedCount: number;
+  details: Array<{
+    id: string;
+    subject: string;
+    status: "DISPATCHED" | "FAILED" | "SKIPPED";
+    reason?: string;
+  }>;
+}
+
+/**
+ * 6. Memproses pengumuman yang dijadwalkan (SCHEDULED) saat waktu kirimnya tiba.
+ * Diperiksa secara periodik melalui cron endpoint.
+ */
+export async function dispatchScheduledBroadcasts(): Promise<DispatchScheduledResult> {
+  const now = new Date();
+
+  // Cari kandidat yang berstatus SCHEDULED dan scheduledAt <= now
+  const candidates = await prisma.emailBroadcast.findMany({
+    where: {
+      status: "SCHEDULED",
+      scheduledAt: { lte: now },
+    },
+    take: 10,
+    orderBy: { scheduledAt: "asc" },
+  });
+
+  const details: DispatchScheduledResult["details"] = [];
+  let dispatchedCount = 0;
+  let failedCount = 0;
+
+  for (const b of candidates) {
+    // 1. Klaim atomik: ubah SCHEDULED -> QUEUED
+    const claim = await prisma.emailBroadcast.updateMany({
+      where: { id: b.id, status: "SCHEDULED" },
+      data: { status: "QUEUED" },
+    });
+
+    if (claim.count === 0) {
+      // Telah diklaim oleh worker/cron lain secara paralel
+      details.push({
+        id: b.id,
+        subject: b.subject,
+        status: "SKIPPED",
+        reason: "Sudah diklaim oleh worker lain.",
+      });
+      continue;
+    }
+
+    // 2. Evaluasi ulang hak otorisasi pengirim saat jadwal tiba
+    let senderCtx: BroadcastSenderContext;
+    try {
+      senderCtx = await getBroadcastSenderContext(b.senderUserId);
+    } catch {
+      await prisma.emailBroadcast.update({
+        where: { id: b.id },
+        data: { status: "FAILED" },
+      });
+      await writeAudit({
+        actorUserId: b.senderUserId,
+        actorEmail: b.senderEmail,
+        app: "hris",
+        action: "BROADCAST_SCHEDULE_FAILED",
+        entityType: "EmailBroadcast",
+        entityId: b.id,
+        after: {
+          broadcastId: b.id,
+          reason: "Akun pengirim tidak lagi aktif atau tidak ditemukan saat jadwal tiba.",
+        },
+      });
+      failedCount++;
+      details.push({
+        id: b.id,
+        subject: b.subject,
+        status: "FAILED",
+        reason: "Akun pengirim tidak aktif.",
+      });
+      continue;
+    }
+
+    // Cek apakah pengirim masih memiliki izin scope pengumuman
+    const scopeAllowed =
+      (b.targetScope === "TEAM" && senderCtx.canSendTeam) ||
+      (["ALL_EMPLOYEES", "DEPARTMENT", "CUSTOM"].includes(b.targetScope) &&
+        senderCtx.canSendAll);
+
+    // Cek apakah persona masih diizinkan
+    const personaAllowed =
+      senderCtx.canSendAll || b.senderPersona === "PERSONAL";
+
+    if (!scopeAllowed || !personaAllowed) {
+      await prisma.emailBroadcast.update({
+        where: { id: b.id },
+        data: { status: "FAILED" },
+      });
+      await writeAudit({
+        actorUserId: b.senderUserId,
+        actorEmail: b.senderEmail,
+        app: "hris",
+        action: "BROADCAST_SCHEDULE_FAILED",
+        entityType: "EmailBroadcast",
+        entityId: b.id,
+        after: {
+          broadcastId: b.id,
+          reason: "Izin pengirim telah dicabut atau tidak lagi mencakup target pengumuman.",
+        },
+      });
+      failedCount++;
+      details.push({
+        id: b.id,
+        subject: b.subject,
+        status: "FAILED",
+        reason: "Hak otorisasi pengirim tidak lagi valid.",
+      });
+      continue;
+    }
+
+    // 3. Resolve penerima secara dinamis saat jadwal tiba (memperhitungkan karyawan baru / yang resign)
+    const effectiveDepartmentIds =
+      b.targetDepartmentIds && b.targetDepartmentIds.length > 0
+        ? b.targetDepartmentIds
+        : b.targetDepartmentId
+          ? [b.targetDepartmentId]
+          : [];
+
+    const recipients = await getBroadcastRecipients(
+      senderCtx,
+      b.targetScope,
+      effectiveDepartmentIds[0] || null,
+      b.customEmployeeIds,
+      {
+        departmentIds: effectiveDepartmentIds,
+        excludedEmployeeIds: b.excludedEmployeeIds,
+      },
+    );
+
+    if (recipients.length === 0) {
+      await prisma.emailBroadcast.update({
+        where: { id: b.id },
+        data: { status: "FAILED", totalRecipients: 0 },
+      });
+      await writeAudit({
+        actorUserId: b.senderUserId,
+        actorEmail: b.senderEmail,
+        app: "hris",
+        action: "BROADCAST_SCHEDULE_FAILED",
+        entityType: "EmailBroadcast",
+        entityId: b.id,
+        after: {
+          broadcastId: b.id,
+          reason: "Tidak ada penerima aktif yang memenuhi syarat saat jadwal pengiriman tiba.",
+        },
+      });
+      failedCount++;
+      details.push({
+        id: b.id,
+        subject: b.subject,
+        status: "FAILED",
+        reason: "Tidak ada penerima aktif yang valid.",
+      });
+      continue;
+    }
+
+    // 4. Buat record EmailBroadcastRecipient
+    await prisma.emailBroadcastRecipient.createMany({
+      data: recipients.map((r) => ({
+        broadcastId: b.id,
+        employeeId: r.id,
+        email: r.workEmail,
+        recipientName: r.fullName,
+        status: "PENDING",
+        attempts: 0,
+      })),
+    });
+
+    await prisma.emailBroadcast.update({
+      where: { id: b.id },
+      data: { totalRecipients: recipients.length },
+    });
+
+    // 5. Eksekusi pengiriman antrean
+    try {
+      await processBroadcast(b.id);
+      dispatchedCount++;
+      details.push({
+        id: b.id,
+        subject: b.subject,
+        status: "DISPATCHED",
+      });
+    } catch (err: unknown) {
+      console.error(`Gagal memproses broadcast terjadwal ${b.id}:`, err);
+      failedCount++;
+      details.push({
+        id: b.id,
+        subject: b.subject,
+        status: "FAILED",
+        reason:
+          err instanceof Error ? err.message : "Kesalahan pemrosesan email",
+      });
+    }
+  }
+
+  return {
+    dispatchedCount,
+    failedCount,
+    details,
+  };
+}
+
+/**
+ * 7. Membatalkan jadwal pengumuman yang masih berstatus SCHEDULED.
+ */
+export async function cancelScheduledBroadcast(
+  userId: string,
+  broadcastId: string,
+  reqMeta?: { ip?: string; userAgent?: string },
+): Promise<{ success: boolean; message: string }> {
+  const broadcast = await prisma.emailBroadcast.findUnique({
+    where: { id: broadcastId },
+  });
+
+  if (!broadcast) {
+    throw new Error("Pengumuman tidak ditemukan.");
+  }
+
+  const authCtx = await getAuthContext(userId);
+  if (!authCtx) {
+    throw new Error("Sesi pengguna tidak valid.");
+  }
+
+  const isSuperAdmin = authCtx.roles.includes("super_admin");
+  const isAdminHr = authCtx.roles.includes("admin_hr");
+  const canSendAll =
+    isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+  const isAuthor = broadcast.senderUserId === userId;
+
+  if (!isAuthor && !canSendAll) {
+    throw new Error(
+      "Akses ditolak: Anda tidak memiliki izin untuk membatalkan pengumuman ini.",
+    );
+  }
+
+  if (broadcast.status !== "SCHEDULED") {
+    throw new Error(
+      "Hanya pengumuman berstatus terjadwal yang dapat dibatalkan.",
+    );
+  }
+
+  const claim = await prisma.emailBroadcast.updateMany({
+    where: { id: broadcastId, status: "SCHEDULED" },
+    data: { status: "CANCELED" },
+  });
+
+  if (claim.count === 0) {
+    throw new Error(
+      "Pengumuman sudah tidak dalam status terjadwal atau telah dibatalkan oleh pengguna lain.",
+    );
+  }
+
+  await writeAudit({
+    actorUserId: userId,
+    actorEmail: authCtx.userEmail || "unknown",
+    app: "hris",
+    action: "BROADCAST_EMAIL_CANCELED",
+    entityType: "EmailBroadcast",
+    entityId: broadcastId,
+    after: {
+      broadcastId,
+      subject: broadcast.subject,
+      status: "CANCELED",
+      canceledAt: new Date().toISOString(),
+    },
+    ip: reqMeta?.ip || "127.0.0.1",
+    userAgent: reqMeta?.userAgent || "unknown",
+  });
+
+  return {
+    success: true,
+    message: "Jadwal pengiriman pengumuman berhasil dibatalkan.",
+  };
 }

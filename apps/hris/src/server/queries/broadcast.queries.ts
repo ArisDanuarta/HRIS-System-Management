@@ -27,6 +27,8 @@ export interface BroadcastHistoryItem {
   sendInApp: boolean;
   status: BroadcastStatus;
   createdAt: Date;
+  scheduledAt?: Date | null;
+  canCancelSchedule?: boolean;
   attachmentCount?: number;
 }
 
@@ -42,6 +44,7 @@ export interface BroadcastRecipientDetail {
 export interface BroadcastDetailItem extends BroadcastHistoryItem {
   recipients: BroadcastRecipientDetail[];
   canResend: boolean;
+  canCancelSchedule?: boolean;
   excludedCount?: number;
   excludedEmployeeNames?: string[];
   attachments?: Array<{
@@ -230,6 +233,10 @@ export async function getBroadcastHistory(
       sendInApp: b.sendInApp,
       status: b.status,
       createdAt: b.createdAt,
+      scheduledAt: b.scheduledAt,
+      canCancelSchedule:
+        b.status === "SCHEDULED" &&
+        (b.senderUserId === userId || isSuperAdmin || isAdminHr),
       attachmentCount: b._count?.attachments || 0,
     };
   });

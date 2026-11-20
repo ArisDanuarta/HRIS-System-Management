@@ -19,6 +19,7 @@ import {
   sendTestBroadcast,
   resendFailedRecipients,
   deleteBroadcastAttachment,
+  cancelScheduledBroadcast,
   BroadcastSenderContext,
 } from "../services/broadcast-email.service";
 
@@ -172,14 +173,16 @@ export async function sendBroadcastAction(
       userAgent,
     });
 
-    // Jalankan pengiriman di background worker menggunakan after() dari next/server
-    after(async () => {
-      try {
-        await processBroadcast(result.broadcastId);
-      } catch (err: unknown) {
-        console.error("Gagal menjalankan background broadcast processor:", err);
-      }
-    });
+    // Jalankan pengiriman di background worker menggunakan after() dari next/server HANYA jika bukan scheduled
+    if (!result.scheduled) {
+      after(async () => {
+        try {
+          await processBroadcast(result.broadcastId);
+        } catch (err: unknown) {
+          console.error("Gagal menjalankan background broadcast processor:", err);
+        }
+      });
+    }
 
     revalidatePath("/komunikasi/riwayat");
     revalidatePath("/notifikasi");
@@ -391,6 +394,49 @@ export async function deleteBroadcastAttachmentAction(attachmentId: string): Pro
   } catch (err: unknown) {
     const errorMsg =
       err instanceof Error ? err.message : "Gagal menghapus berkas lampiran.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Server action untuk membatalkan pengumuman yang masih berstatus terjadwal (SCHEDULED).
+ */
+export async function cancelScheduledBroadcastAction(broadcastId: string): Promise<{
+  success: boolean;
+  message?: string;
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return {
+        success: false,
+        error: "Sesi telah berakhir. Harap login kembali.",
+      };
+    }
+
+    const ip =
+      reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const res = await cancelScheduledBroadcast(session.user.id, broadcastId, {
+      ip,
+      userAgent,
+    });
+
+    revalidatePath("/komunikasi/riwayat");
+
+    return {
+      success: true,
+      message: res.message,
+    };
+  } catch (err: unknown) {
+    const errorMsg =
+      err instanceof Error
+        ? err.message
+        : "Gagal membatalkan jadwal pengumuman.";
     return { success: false, error: errorMsg };
   }
 }

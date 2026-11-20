@@ -53,6 +53,26 @@ export const sendBroadcastSchema = z.object({
     .nullable()
     .or(z.literal("")),
   attachmentIds: z.array(z.string().trim()).max(3, "Maksimal 3 berkas lampiran PDF.").optional().default([]),
+  scheduledAt: z.coerce.date().optional().nullable(),
+}).superRefine((data, ctx) => {
+  if (data.scheduledAt) {
+    const minTime = new Date(Date.now() + 4 * 60 * 1000); // Toleransi toleran 4-5 menit
+    const maxTime = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 hari ke depan
+    if (data.scheduledAt < minTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scheduledAt"],
+        message: "Waktu jadwal pengiriman minimal 5 menit dari sekarang.",
+      });
+    }
+    if (data.scheduledAt > maxTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scheduledAt"],
+        message: "Waktu jadwal pengiriman maksimal 90 hari ke depan.",
+      });
+    }
+  }
 });
 
 export type BroadcastScope = z.infer<typeof broadcastScopeSchema>;
@@ -137,6 +157,7 @@ export const saveBroadcastDraftSchema = z.object({
     .max(3, "Maksimal 3 berkas lampiran PDF.")
     .optional()
     .default([]),
+  scheduledAt: z.coerce.date().optional().nullable(),
 });
 
 export type SaveBroadcastDraftInput = z.input<typeof saveBroadcastDraftSchema>;
@@ -171,6 +192,7 @@ export interface BroadcastDraftItem {
   replyToMode: ReplyToMode;
   customReplyToEmail: string | null;
   sendInApp: boolean;
+  scheduledAt?: Date | null;
   attachmentIds?: string[];
   attachments?: BroadcastAttachmentItem[];
   createdAt: Date;

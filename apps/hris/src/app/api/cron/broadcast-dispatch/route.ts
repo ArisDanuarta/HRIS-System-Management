@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@pspk/db";
-import { processBroadcast } from "@/server/services/broadcast-email.service";
+import {
+  processBroadcast,
+  dispatchScheduledBroadcasts,
+} from "@/server/services/broadcast-email.service";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +31,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    // 1. Dispatch pengumuman berstatus SCHEDULED yang telah jatuh tempo
+    const scheduledDispatchResult = await dispatchScheduledBroadcasts();
+
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
 
-    // Ambil daftar broadcast yang perlu diproses
+    // 2. Ambil daftar broadcast yang perlu diproses (QUEUED atau hung SENDING)
     const candidateBroadcasts = await prisma.emailBroadcast.findMany({
       where: {
         OR: [
@@ -67,6 +73,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      scheduledDispatch: scheduledDispatchResult,
       processedCandidates: candidateBroadcasts.length,
       details: results,
       timestamp: new Date().toISOString(),
