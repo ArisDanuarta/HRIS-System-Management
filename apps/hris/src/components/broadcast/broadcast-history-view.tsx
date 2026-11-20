@@ -25,7 +25,10 @@ import {
   BroadcastHistoryStats,
   BroadcastDetailItem,
 } from "../../server/queries/broadcast.queries";
-import { getBroadcastDetailAction } from "../../server/actions/broadcast.actions";
+import {
+  getBroadcastDetailAction,
+  resendFailedBroadcastAction,
+} from "../../server/actions/broadcast.actions";
 import { PspkLoader } from "@pspk/ui";
 
 interface BroadcastHistoryViewProps {
@@ -100,6 +103,11 @@ export function BroadcastHistoryView({
   const [detailError, setDetailError] = useState<string | null>(null);
   const [recipientFilter, setRecipientFilter] = useState<"ALL" | "SENT" | "FAILED">("ALL");
   const [recipientSearch, setRecipientSearch] = useState("");
+  const [isResending, setIsResending] = useState(false);
+  const [resendFeedback, setResendFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const updateUrl = (updates: {
     q?: string;
@@ -182,6 +190,7 @@ export function BroadcastHistoryView({
     setSelectedBroadcastId(id);
     setIsLoadingDetail(true);
     setDetailError(null);
+    setResendFeedback(null);
     setRecipientFilter("ALL");
     setRecipientSearch("");
 
@@ -203,6 +212,43 @@ export function BroadcastHistoryView({
     setSelectedBroadcastId(null);
     setActiveDetail(null);
     setDetailError(null);
+    setResendFeedback(null);
+  };
+
+  const handleResendFailed = async (broadcastId: string) => {
+    if (!window.confirm("Kirim ulang pengumuman ini ke seluruh penerima yang sebelumnya gagal?")) {
+      return;
+    }
+
+    setIsResending(true);
+    setResendFeedback(null);
+    try {
+      const res = await resendFailedBroadcastAction(broadcastId);
+      if (res.success) {
+        setResendFeedback({
+          type: "success",
+          message: res.message || "Penerima gagal berhasil dimasukkan kembali ke antrean pengiriman.",
+        });
+        // Muat ulang rincian pengumuman terbaru
+        const refreshed = await getBroadcastDetailAction(broadcastId);
+        if (refreshed.success && refreshed.data) {
+          setActiveDetail(refreshed.data);
+        }
+        router.refresh();
+      } else {
+        setResendFeedback({
+          type: "error",
+          message: res.error || "Gagal mengirim ulang pengumuman.",
+        });
+      }
+    } catch (err: unknown) {
+      setResendFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : "Terjadi kesalahan saat memproses pengiriman ulang.",
+      });
+    } finally {
+      setIsResending(false);
+    }
   };
 
   // Filtered recipients in modal
@@ -628,6 +674,23 @@ export function BroadcastHistoryView({
                 </div>
               ) : activeDetail ? (
                 <>
+                  {resendFeedback && (
+                    <div
+                      className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                        resendFeedback.type === "success"
+                          ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                          : "bg-red-50 text-red-800 border border-red-200"
+                      }`}
+                    >
+                      {resendFeedback.type === "success" ? (
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+                      )}
+                      <span>{resendFeedback.message}</span>
+                    </div>
+                  )}
+
                   {/* Meta Bar */}
                   <div className="bg-slate-50 rounded-xl border border-slate-200 p-4 space-y-2 text-xs">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
