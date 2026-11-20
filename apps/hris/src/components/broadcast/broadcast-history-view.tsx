@@ -65,10 +65,16 @@ export function BroadcastHistoryView({
 
   const activeScope = searchParams.get("scope") || initialScope;
   const activeStatus = searchParams.get("status") || initialStatus;
+  const urlQ = searchParams.get("q") || searchParams.get("search") || "";
 
-  const [searchQuery, setSearchQuery] = useState(
-    searchParams.get("q") || searchParams.get("search") || initialSearch,
-  );
+  // Pola resmi React untuk menyesuaikan state saat searchParams URL berubah (tanpa useEffect)
+  const [prevUrlQ, setPrevUrlQ] = useState(urlQ);
+  const [searchQuery, setSearchQuery] = useState(initialSearch || urlQ);
+
+  if (urlQ !== prevUrlQ) {
+    setPrevUrlQ(urlQ);
+    setSearchQuery(urlQ);
+  }
 
   // Detail Modal State
   const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);
@@ -77,12 +83,6 @@ export function BroadcastHistoryView({
   const [detailError, setDetailError] = useState<string | null>(null);
   const [recipientFilter, setRecipientFilter] = useState<"ALL" | "SENT" | "FAILED">("ALL");
   const [recipientSearch, setRecipientSearch] = useState("");
-
-  // Sinkronkan input pencarian jika query URL berubah via tombol back/forward
-  useEffect(() => {
-    const urlQ = searchParams.get("q") || searchParams.get("search") || "";
-    setSearchQuery(urlQ);
-  }, [searchParams]);
 
   const updateUrl = (updates: {
     q?: string;
@@ -133,8 +133,7 @@ export function BroadcastHistoryView({
 
   // Debounce 400ms untuk pencarian teks
   useEffect(() => {
-    const currentUrlQ = searchParams.get("q") || searchParams.get("search") || "";
-    if (searchQuery.trim() === currentUrlQ.trim()) return;
+    if (searchQuery.trim() === urlQ.trim()) return;
 
     const timer = setTimeout(() => {
       updateUrl({ q: searchQuery, page: 1 });
@@ -142,7 +141,7 @@ export function BroadcastHistoryView({
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, urlQ]);
 
   const handleScopeChange = (newScope: string) => {
     updateUrl({ scope: newScope, page: 1 });

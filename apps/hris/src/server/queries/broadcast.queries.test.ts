@@ -17,6 +17,24 @@ vi.mock("@pspk/db", () => ({
       findFirst: vi.fn(),
     },
   },
+  BroadcastScope: {
+    ALL_EMPLOYEES: "ALL_EMPLOYEES",
+    DEPARTMENT: "DEPARTMENT",
+    TEAM: "TEAM",
+    CUSTOM: "CUSTOM",
+  },
+  BroadcastStatus: {
+    DRAFT: "DRAFT",
+    SENDING: "SENDING",
+    SENT: "SENT",
+    PARTIALLY_FAILED: "PARTIALLY_FAILED",
+    FAILED: "FAILED",
+  },
+  BroadcastDeliveryStatus: {
+    PENDING: "PENDING",
+    SENT: "SENT",
+    FAILED: "FAILED",
+  },
 }));
 
 import { getAuthContext } from "@pspk/auth";
@@ -101,6 +119,130 @@ describe("broadcast.queries.ts", () => {
             OR: [
               { senderUserId: "user-mgr" },
               { recipients: { some: { employee: { userId: "user-mgr" } } } },
+            ],
+          }),
+        }),
+      );
+    });
+
+    it("harus menyaring berdasarkan status pengiriman", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr",
+        employeeId: "emp-hr",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.read:all"]),
+      });
+
+      vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([] as unknown as MockBroadcastMany);
+      vi.mocked(prisma.emailBroadcast.count).mockResolvedValue(0);
+      vi.mocked(prisma.emailBroadcast.aggregate).mockResolvedValue({
+        _count: { id: 0 },
+        _sum: { sentCount: 0, failedCount: 0, totalRecipients: 0 },
+      } as unknown as MockBroadcastAggregate);
+
+      await getBroadcastHistory("user-hr", { status: "SENT" });
+
+      expect(prisma.emailBroadcast.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            status: "SENT",
+          }),
+        }),
+      );
+    });
+
+    it("harus mengabaikan filter status jika bernilai ALL atau invalid", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr",
+        employeeId: "emp-hr",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.read:all"]),
+      });
+
+      vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([] as unknown as MockBroadcastMany);
+      vi.mocked(prisma.emailBroadcast.count).mockResolvedValue(0);
+      vi.mocked(prisma.emailBroadcast.aggregate).mockResolvedValue({
+        _count: { id: 0 },
+        _sum: { sentCount: 0, failedCount: 0, totalRecipients: 0 },
+      } as unknown as MockBroadcastAggregate);
+
+      await getBroadcastHistory("user-hr", { status: "ALL" });
+
+      // Verifikasi bahwa status tidak dimasukkan ke dalam query where
+      const callArgs = vi.mocked(prisma.emailBroadcast.findMany).mock.calls[0]?.[0];
+      expect(callArgs?.where).not.toHaveProperty("status");
+    });
+
+    it("harus menerapkan kombinasi filter search + scope + status secara bersamaan", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr",
+        employeeId: "emp-hr",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.read:all"]),
+      });
+
+      vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([] as unknown as MockBroadcastMany);
+      vi.mocked(prisma.emailBroadcast.count).mockResolvedValue(0);
+      vi.mocked(prisma.emailBroadcast.aggregate).mockResolvedValue({
+        _count: { id: 0 },
+        _sum: { sentCount: 0, failedCount: 0, totalRecipients: 0 },
+      } as unknown as MockBroadcastAggregate);
+
+      await getBroadcastHistory("user-hr", {
+        search: "rapat koordinasi",
+        scope: "DEPARTMENT",
+        status: "PARTIALLY_FAILED",
+      });
+
+      expect(prisma.emailBroadcast.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: [
+              { subject: { contains: "rapat koordinasi", mode: "insensitive" } },
+              { senderName: { contains: "rapat koordinasi", mode: "insensitive" } },
+              { contentText: { contains: "rapat koordinasi", mode: "insensitive" } },
+            ],
+            targetScope: "DEPARTMENT",
+            status: "PARTIALLY_FAILED",
+          }),
+        }),
+      );
+    });
+
+    it("harus membatasi panjang teks search maksimal 100 karakter dan membatasi batas pageSize", async () => {
+      vi.mocked(getAuthContext).mockResolvedValue({
+        userId: "user-hr",
+        employeeId: "emp-hr",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.read:all"]),
+      });
+
+      vi.mocked(prisma.emailBroadcast.findMany).mockResolvedValue([] as unknown as MockBroadcastMany);
+      vi.mocked(prisma.emailBroadcast.count).mockResolvedValue(100);
+      vi.mocked(prisma.emailBroadcast.aggregate).mockResolvedValue({
+        _count: { id: 100 },
+        _sum: { sentCount: 100, failedCount: 0, totalRecipients: 100 },
+      } as unknown as MockBroadcastAggregate);
+
+      const veryLongSearch = "a".repeat(150);
+
+      const res = await getBroadcastHistory("user-hr", {
+        search: veryLongSearch,
+        page: -5, // harus di-clamp ke 1
+        pageSize: 100, // harus di-clamp ke 50
+      });
+
+      expect(res.page).toBe(1);
+      expect(res.totalPages).toBe(2); // 100 total / 50 pageSize = 2 halaman
+      expect(prisma.emailBroadcast.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 50,
+          skip: 0,
+          where: expect.objectContaining({
+            OR: [
+              { subject: { contains: "a".repeat(100), mode: "insensitive" } },
+              { senderName: { contains: "a".repeat(100), mode: "insensitive" } },
+              { contentText: { contains: "a".repeat(100), mode: "insensitive" } },
             ],
           }),
         }),
