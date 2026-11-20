@@ -29,8 +29,20 @@ import {
   UploadCloud,
   Clock,
 } from "lucide-react";
-import { RichTextEditor } from "./rich-text-editor";
+import dynamic from "next/dynamic";
 import { BroadcastEmailPreview } from "./broadcast-email-preview";
+
+const RichTextEditor = dynamic(
+  () => import("./rich-text-editor").then((mod) => mod.RichTextEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full min-h-[320px] rounded-xl border border-slate-200 bg-slate-50/50 flex items-center justify-center text-slate-500 text-sm animate-pulse">
+        Memuat editor naskah pengumuman...
+      </div>
+    ),
+  },
+);
 import { RecipientPicker } from "./recipient-picker";
 import {
   BroadcastDraftTemplateDrawer,
@@ -440,12 +452,22 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
           setActiveDraftId(null);
         }
         setDrafts((prev) => prev.filter((d) => d.id !== draftId));
+        setFeedback({
+          type: "success",
+          message: "Draf pengumuman berhasil dihapus.",
+        });
       } else {
-        alert(res.error || "Gagal menghapus draf.");
+        setFeedback({
+          type: "error",
+          message: res.error || "Gagal menghapus draf.",
+        });
       }
     } catch (e) {
       console.error(e);
-      alert("Terjadi kesalahan saat menghapus draf.");
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan sistem saat menghapus draf.",
+      });
     }
   };
 
@@ -454,12 +476,22 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
       const res = await deleteBroadcastTemplateAction(templateId);
       if (res.success) {
         setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+        setFeedback({
+          type: "success",
+          message: "Template pengumuman berhasil dihapus.",
+        });
       } else {
-        alert(res.error || "Gagal menghapus template.");
+        setFeedback({
+          type: "error",
+          message: res.error || "Gagal menghapus template.",
+        });
       }
     } catch (e) {
       console.error(e);
-      alert("Terjadi kesalahan saat menghapus template.");
+      setFeedback({
+        type: "error",
+        message: "Terjadi kesalahan sistem saat menghapus template.",
+      });
     }
   };
 

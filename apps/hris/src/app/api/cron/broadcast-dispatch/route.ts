@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@pspk/db";
 import {
@@ -23,7 +24,16 @@ export async function POST(req: NextRequest) {
   }
 
   const authHeader = req.headers.get("authorization");
-  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
+  const expectedAuth = `Bearer ${cronSecret}`;
+  const isAuthorized = (() => {
+    if (!authHeader) return false;
+    const authBuf = Buffer.from(authHeader);
+    const expBuf = Buffer.from(expectedAuth);
+    if (authBuf.length !== expBuf.length) return false;
+    return crypto.timingSafeEqual(authBuf, expBuf);
+  })();
+
+  if (!isAuthorized) {
     return NextResponse.json(
       { error: "Akses ditolak: Secret cron tidak valid atau tidak disertakan." },
       { status: 401 },

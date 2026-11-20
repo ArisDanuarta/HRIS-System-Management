@@ -52,6 +52,7 @@ export interface BroadcastRecipientDetail {
 }
 
 export interface BroadcastDetailItem extends BroadcastHistoryItem {
+  contentHtml: string;
   recipients: BroadcastRecipientDetail[];
   canResend: boolean;
   canCancelSchedule?: boolean;

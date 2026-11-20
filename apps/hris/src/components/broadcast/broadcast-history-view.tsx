@@ -1066,7 +1066,7 @@ export function BroadcastHistoryView({
                     </h4>
                     <div
                       className="p-4 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 tiptap-editor overflow-hidden leading-relaxed"
-                      dangerouslySetInnerHTML={{ __html: activeDetail.contentHtml }}
+                      dangerouslySetInnerHTML={{ __html: activeDetail.contentHtml || "" }}
                     />
                   </div>
 
