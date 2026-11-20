@@ -9,11 +9,15 @@ import { prisma, BroadcastStatus } from "@pspk/db";
 import {
   sendBroadcastSchema,
   SendBroadcastInput,
+  sendTestBroadcastSchema,
+  SendTestBroadcastInput,
 } from "../schemas/broadcast.schema";
 import {
   getBroadcastSenderContext,
   enqueueBroadcast,
   processBroadcast,
+  sendTestBroadcast,
+  resendFailedRecipients,
   BroadcastSenderContext,
 } from "../services/broadcast-email.service";
 
@@ -271,6 +275,97 @@ export async function getBroadcastDetailAction(broadcastId: string) {
     return { success: true, data: detail };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : "Gagal memuat rincian pengumuman.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Server action untuk mengirimkan email uji pengumuman ke akun email sendiri.
+ */
+export async function sendTestBroadcastAction(rawInput: SendTestBroadcastInput): Promise<{
+  success: boolean;
+  message?: string;
+  simulated?: boolean;
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi tidak valid. Harap login kembali." };
+    }
+
+    const parseResult = sendTestBroadcastSchema.safeParse(rawInput);
+    if (!parseResult.success) {
+      return {
+        success: false,
+        error: parseResult.error.issues[0]?.message || "Data email uji tidak valid.",
+      };
+    }
+
+    const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const result = await sendTestBroadcast(session.user.id, parseResult.data, {
+      ip,
+      userAgent,
+    });
+
+    return {
+      success: true,
+      message: result.message,
+      simulated: result.simulated,
+    };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Gagal mengirimkan email uji.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Server action untuk mengirimkan ulang broadcast ke penerima yang berstatus gagal (FAILED).
+ */
+export async function resendFailedBroadcastAction(broadcastId: string): Promise<{
+  success: boolean;
+  message?: string;
+  retriedCount?: number;
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi telah berakhir. Harap login kembali." };
+    }
+
+    const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const userAgent = reqHeaders.get("user-agent") || "unknown";
+
+    const result = await resendFailedRecipients(session.user.id, broadcastId, {
+      ip,
+      userAgent,
+    });
+
+    // Jalankan pemrosesan ulang di background worker
+    after(async () => {
+      try {
+        await processBroadcast(broadcastId);
+      } catch (err: unknown) {
+        console.error("Gagal menjalankan background broadcast resend processor:", err);
+      }
+    });
+
+    revalidatePath("/komunikasi/riwayat");
+
+    return {
+      success: true,
+      message: result.message,
+      retriedCount: result.retriedCount,
+    };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Gagal mengirimkan ulang broadcast.";
     return { success: false, error: errorMsg };
   }
 }
