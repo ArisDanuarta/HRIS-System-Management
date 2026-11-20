@@ -33,7 +33,9 @@ export const sendBroadcastSchema = z.object({
     .min(10, "Isi pesan pengumuman tidak boleh kosong (minimal 10 karakter)."),
   targetScope: broadcastScopeSchema.default("TEAM"),
   targetDepartmentId: z.string().trim().optional().nullable(),
-  customEmployeeIds: z.array(z.string().trim()).optional().default([]),
+  targetDepartmentIds: z.array(z.string().trim()).max(1000).optional().default([]),
+  customEmployeeIds: z.array(z.string().trim()).max(1000).optional().default([]),
+  excludedEmployeeIds: z.array(z.string().trim()).max(1000).optional().default([]),
   sendInApp: z.boolean().default(true),
   senderPersona: senderPersonaSchema.default("ORGANIZATION"),
   customSenderName: z
