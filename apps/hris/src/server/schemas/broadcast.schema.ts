@@ -59,6 +59,36 @@ export type ReplyToMode = z.infer<typeof replyToModeSchema>;
 export type SendBroadcastInput = z.input<typeof sendBroadcastSchema>;
 export type SendBroadcastOutput = z.output<typeof sendBroadcastSchema>;
 
+export const sendTestBroadcastSchema = z.object({
+  subject: z
+    .string()
+    .trim()
+    .min(3, "Subjek pengumuman minimal 3 karakter.")
+    .max(200, "Subjek pengumuman maksimal 200 karakter."),
+  contentHtml: z
+    .string()
+    .trim()
+    .min(10, "Isi pesan pengumuman tidak boleh kosong (minimal 10 karakter)."),
+  senderPersona: senderPersonaSchema.default("ORGANIZATION"),
+  customSenderName: z
+    .string()
+    .trim()
+    .max(100, "Nama pengirim kustom maksimal 100 karakter.")
+    .optional()
+    .nullable(),
+  replyToMode: replyToModeSchema.default("NO_REPLY"),
+  customReplyToEmail: z
+    .string()
+    .trim()
+    .email("Format alamat email balasan kustom tidak valid.")
+    .optional()
+    .nullable()
+    .or(z.literal("")),
+});
+
+export type SendTestBroadcastInput = z.input<typeof sendTestBroadcastSchema>;
+export type SendTestBroadcastOutput = z.output<typeof sendTestBroadcastSchema>;
+
 export interface ResolvedSenderIdentity {
   displayName: string;
   displayTitle: string;
