@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import sanitizeHtml from "sanitize-html";
-import { prisma, writeAudit } from "@pspk/db";
+import { prisma, writeAudit, BroadcastStatus } from "@pspk/db";
 import { getAuthContext } from "@pspk/auth";
 import { can } from "@pspk/rbac";
 import {
@@ -19,6 +19,23 @@ export interface RecipientInfo {
   workEmail: string;
   userId: string | null;
   departmentName?: string | null;
+}
+
+export interface EnqueueBroadcastResult {
+  success: boolean;
+  broadcastId: string;
+  totalRecipients: number;
+  message: string;
+}
+
+export interface ProcessBroadcastResult {
+  processed: boolean;
+  broadcastId: string;
+  sentCount: number;
+  failedCount: number;
+  finalStatus?: BroadcastStatus;
+  simulated?: boolean;
+  reason?: string;
 }
 
 export interface SendBroadcastResult {
@@ -433,13 +450,113 @@ function escapeHtml(str: string): string {
 }
 
 /**
- * Eksekusi pengiriman email broadcast individual dengan rate-limiting batching.
+ * Membuat instance transporter SMTP jika variabel lingkungan SMTP disetel,
+ * atau mengembalikan null jika berada dalam mode simulasi.
  */
-export async function executeSendBroadcast(
+export function createTransporter(): nodemailer.Transporter | null {
+  const smtpHost = process.env.SMTP_HOST?.trim();
+  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const rawSmtpPass = process.env.SMTP_PASS?.trim();
+  const smtpPass =
+    smtpHost && smtpHost.includes("gmail") && rawSmtpPass
+      ? rawSmtpPass.replace(/\s+/g, "")
+      : rawSmtpPass;
+
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    return null;
+  }
+
+  return nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpPort === 465,
+    auth: {
+      user: smtpUser,
+      pass: smtpPass,
+    },
+  });
+}
+
+/**
+ * Menyusun data email siap kirim (HTML terpersonalisasi, teks polos, headers) untuk satu penerima.
+ */
+export function buildEmailForRecipient(
+  broadcast: {
+    subject: string;
+    contentHtml: string;
+    contentText: string;
+    senderName: string;
+    senderDisplayTitle?: string | null;
+    replyToEmail: string;
+    replyToMode?: string | null;
+    targetScope: string;
+  },
+  recipient: {
+    recipientName: string;
+    email: string;
+  },
+) {
+  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
+  const emailContentHtml = absolutizeImageUrls(broadcast.contentHtml);
+  const scopeBadge =
+    broadcast.targetScope === "ALL_EMPLOYEES"
+      ? "PENGUMUMAN ORGANISASI"
+      : broadcast.targetScope === "DEPARTMENT"
+        ? "PENGUMUMAN DIVISI"
+        : broadcast.targetScope === "CUSTOM"
+          ? "PEGAWAI TERPILIH"
+          : "PENGUMUMAN TIM";
+
+  const isPersonal = broadcast.replyToMode === "SENDER_PERSONAL";
+  const mode = (broadcast.replyToMode as ReplyToMode) || "NO_REPLY";
+
+  let replyToHeader = `"PSPK HRIS (No Reply)" <no-reply@pspk.id>`;
+  if (mode === "ORGANIZATION_HR") {
+    replyToHeader = `"Tim People & Culture PSPK" <hr@pspk.id>`;
+  } else if (mode === "SENDER_PERSONAL" || mode === "CUSTOM") {
+    replyToHeader = `"${broadcast.senderName}" <${broadcast.replyToEmail || "no-reply@pspk.id"}>`;
+  }
+
+  const personalizedHtml = renderBroadcastEmailHtml({
+    subject: broadcast.subject,
+    contentHtml: emailContentHtml,
+    recipientName: recipient.recipientName,
+    senderName: broadcast.senderName,
+    senderTitle: broadcast.senderDisplayTitle || "Staf Lembaga",
+    scopeBadge,
+    isPersonal,
+    replyToMode: mode,
+    replyToEmail: broadcast.replyToEmail,
+  });
+
+  const plainTextFooter =
+    mode === "NO_REPLY"
+      ? `Pengumuman resmi dari: ${broadcast.senderName}\nEmail ini bersifat satu arah.`
+      : `Pengumuman dari: ${broadcast.senderName} (${broadcast.senderDisplayTitle || "Pengirim"})\nBalas email ini untuk berdiskusi dengan pengirim.`;
+
+  return {
+    from: smtpFrom,
+    to: recipient.email,
+    replyTo: replyToHeader,
+    subject: `[PSPK HRIS] ${broadcast.subject}`,
+    text: `Halo ${recipient.recipientName},\n\n${broadcast.contentText}\n\n${plainTextFooter}`,
+    html: personalizedHtml,
+    headers: {
+      "X-Mailer": "PSPK-Broadcast-Mailer",
+    },
+  };
+}
+
+/**
+ * 1. Enqueue Broadcast: Memvalidasi, membuat record EmailBroadcast berstatus QUEUED,
+ * dan mendaftarkan recipient PENDING. Tidak mengirim email secara sinkron.
+ */
+export async function enqueueBroadcast(
   userId: string,
   input: SendBroadcastInput,
   reqMeta?: { ip?: string; userAgent?: string },
-): Promise<SendBroadcastResult> {
+): Promise<EnqueueBroadcastResult> {
   const senderCtx = await getBroadcastSenderContext(userId);
 
   const {
@@ -479,10 +596,9 @@ export async function executeSendBroadcast(
     customReplyToEmail,
   );
 
-  // 1. Sanitasi konten HTML
+  // 1. Sanitasi konten HTML dan plaintext
   const sanitizedContent = sanitizeBroadcastContent(rawContentHtml);
   const plainTextContent = htmlToPlainText(sanitizedContent);
-  const emailContentHtml = absolutizeImageUrls(sanitizedContent);
 
   // 2. Ambil daftar target penerima
   const recipients = await getBroadcastRecipients(
@@ -498,7 +614,7 @@ export async function executeSendBroadcast(
     );
   }
 
-  // 3. Simpan rekor EmailBroadcast induk ke database
+  // 3. Simpan record EmailBroadcast induk ke database dengan status QUEUED
   const broadcast = await prisma.emailBroadcast.create({
     data: {
       subject,
@@ -515,193 +631,28 @@ export async function executeSendBroadcast(
       sentCount: 0,
       failedCount: 0,
       sendInApp,
-      status: "SENDING",
+      status: "QUEUED",
+      senderPersona,
+      replyToMode: resolvedSender.replyToMode,
+      senderDisplayTitle: resolvedSender.displayTitle,
       recipients: {
         create: recipients.map((r) => ({
           employeeId: r.id,
           email: r.workEmail,
           recipientName: r.fullName,
           status: "PENDING",
+          attempts: 0,
         })),
       },
     },
-    include: {
-      recipients: true,
-    },
   });
 
-  // Tentukan badge cakupan
-  const scopeBadge =
-    targetScope === "ALL_EMPLOYEES"
-      ? "PENGUMUMAN ORGANISASI"
-      : targetScope === "DEPARTMENT"
-        ? "PENGUMUMAN DIVISI"
-        : "PENGUMUMAN TIM";
-
-  // 4. Konfigurasi SMTP
-  const smtpHost = process.env.SMTP_HOST?.trim();
-  const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
-  const smtpUser = process.env.SMTP_USER?.trim();
-  const rawSmtpPass = process.env.SMTP_PASS?.trim();
-  const smtpPass =
-    smtpHost && smtpHost.includes("gmail") && rawSmtpPass
-      ? rawSmtpPass.replace(/\s+/g, "")
-      : rawSmtpPass;
-  const smtpFrom = process.env.SMTP_FROM?.trim() || "PSPK HRIS <no-reply@pspk.id>";
-
-  let sentCount = 0;
-  let failedCount = 0;
-  let isSimulated = false;
-
-  if (smtpHost && smtpUser && smtpPass) {
-    const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-
-    // Kirim secara individual dalam batch ukuran 5 untuk rate-limiting
-    const BATCH_SIZE = 5;
-    for (let i = 0; i < broadcast.recipients.length; i += BATCH_SIZE) {
-      const batch = broadcast.recipients.slice(i, i + BATCH_SIZE);
-
-      await Promise.all(
-        batch.map(async (rcpt) => {
-          const personalizedHtml = renderBroadcastEmailHtml({
-            subject,
-            contentHtml: emailContentHtml,
-            recipientName: rcpt.recipientName,
-            senderName: resolvedSender.displayName,
-            senderTitle: resolvedSender.displayTitle,
-            scopeBadge,
-            isPersonal: resolvedSender.isPersonal,
-            replyToMode: resolvedSender.replyToMode,
-            replyToEmail: resolvedSender.replyToEmail,
-          });
-
-          const plainTextFooter =
-            resolvedSender.replyToMode === "NO_REPLY"
-              ? `Pengumuman resmi dari: ${resolvedSender.displayName}\nEmail ini bersifat satu arah.`
-              : `Pengumuman dari: ${resolvedSender.displayName} (${resolvedSender.displayTitle})\nBalas email ini untuk berdiskusi dengan pengirim.`;
-
-          try {
-            await transporter.sendMail({
-              from: smtpFrom,
-              to: rcpt.email,
-              replyTo: resolvedSender.replyToHeader,
-              subject: `[PSPK HRIS] ${subject}`,
-              text: `Halo ${rcpt.recipientName},\n\n${plainTextContent}\n\n${plainTextFooter}`,
-              html: personalizedHtml,
-              headers: {
-                "X-Mailer": "PSPK-Broadcast-Mailer",
-              },
-            });
-
-            await prisma.emailBroadcastRecipient.update({
-              where: { id: rcpt.id },
-              data: {
-                status: "SENT",
-                sentAt: new Date(),
-              },
-            });
-            sentCount++;
-          } catch (err: unknown) {
-            const errorMsg = err instanceof Error ? err.message : "Kesalahan pengiriman SMTP";
-            console.error(`Gagal mengirim broadcast ke ${rcpt.email}:`, err);
-
-            await prisma.emailBroadcastRecipient.update({
-              where: { id: rcpt.id },
-              data: {
-                status: "FAILED",
-                errorMessage: errorMsg,
-              },
-            });
-            failedCount++;
-          }
-        }),
-      );
-
-      // Jeda 200ms antar batch agar koneksi SMTP tidak diblokir
-      if (i + BATCH_SIZE < broadcast.recipients.length) {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      }
-    }
-  } else {
-    // Mode simulasi jika SMTP belum terkonfigurasi (lingkungan development)
-    isSimulated = true;
-    console.log(`
-================================================================================
-📢 [SIMULASI PENGIRIMAN BROADCAST EMAIL PSPK]
---------------------------------------------------------------------------------
-Dari (From)      : ${smtpFrom}
-Pengirim Resmi   : ${resolvedSender.displayName} (${resolvedSender.displayTitle})
-Balasan (Reply-To): ${resolvedSender.replyToHeader}
-Subjek           : [PSPK HRIS] ${subject}
-Cakupan Target   : ${targetScope} (${recipients.length} Orang Penerima)
-Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).join(", ")}
-================================================================================
-    `);
-
-    await prisma.emailBroadcastRecipient.updateMany({
-      where: { broadcastId: broadcast.id },
-      data: {
-        status: "SENT",
-        sentAt: new Date(),
-      },
-    });
-
-    sentCount = recipients.length;
-  }
-
-  // 5. Kirimkan Notifikasi In-App jika opsi dicentang
-  if (sendInApp) {
-    const validUserRecipients = recipients.filter((r) => r.userId);
-    if (validUserRecipients.length > 0) {
-      const snippet =
-        plainTextContent.length > 120
-          ? `${plainTextContent.slice(0, 117)}...`
-          : plainTextContent;
-
-      await prisma.notification.createMany({
-        data: validUserRecipients.map((r) => ({
-          userId: r.userId!,
-          title: `Pengumuman: ${subject}`,
-          message: `${resolvedSender.displayName}: "${snippet}"`,
-          type: "INFO",
-          category: "SYSTEM",
-          link: "/notifikasi",
-        })),
-      });
-    }
-  }
-
-  // 6. Update status akhir broadcast
-  const finalStatus =
-    failedCount === 0
-      ? "SENT"
-      : sentCount > 0
-        ? "PARTIALLY_FAILED"
-        : "FAILED";
-
-  await prisma.emailBroadcast.update({
-    where: { id: broadcast.id },
-    data: {
-      sentCount,
-      failedCount,
-      status: finalStatus,
-    },
-  });
-
-  // 7. Catat Audit Log
+  // 4. Catat Audit Log Pengantrean
   await writeAudit({
     actorUserId: senderCtx.userId,
     actorEmail: senderCtx.userEmail,
     app: "hris",
-    action: "BROADCAST_EMAIL",
+    action: "BROADCAST_EMAIL_QUEUED",
     entityType: "EmailBroadcast",
     entityId: broadcast.id,
     after: {
@@ -713,9 +664,6 @@ Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).joi
       replyToMode: resolvedSender.replyToMode,
       replyToEmail: resolvedSender.replyToEmail,
       totalRecipients: recipients.length,
-      sentCount,
-      failedCount,
-      isSimulated,
       sendInApp,
     },
     ip: reqMeta?.ip || "127.0.0.1",
@@ -726,11 +674,305 @@ Daftar Penerima  : ${recipients.map((r) => `${r.fullName} <${r.workEmail}>`).joi
     success: true,
     broadcastId: broadcast.id,
     totalRecipients: recipients.length,
-    sentCount,
-    failedCount,
+    message: `Pengumuman masuk antrean dan sedang diproses ke ${recipients.length} penerima.`,
+  };
+}
+
+/**
+ * 2. Process Broadcast: Prosesor antrean idempoten dengan heartbeat lease lock,
+ * batching teratur, recovery crash worker, dan agregasi status akhir.
+ */
+export async function processBroadcast(
+  broadcastId: string,
+): Promise<ProcessBroadcastResult> {
+  const broadcast = await prisma.emailBroadcast.findUnique({
+    where: { id: broadcastId },
+  });
+
+  if (!broadcast) {
+    return {
+      processed: false,
+      broadcastId,
+      sentCount: 0,
+      failedCount: 0,
+      reason: "BROADCAST_NOT_FOUND",
+    };
+  }
+
+  // Jika sudah berstatus terminal (selesai/batal), tidak perlu diproses ulang
+  if (
+    broadcast.status === "SENT" ||
+    broadcast.status === "FAILED" ||
+    broadcast.status === "PARTIALLY_FAILED" ||
+    broadcast.status === "CANCELED"
+  ) {
+    return {
+      processed: false,
+      broadcastId,
+      sentCount: broadcast.sentCount,
+      failedCount: broadcast.failedCount,
+      finalStatus: broadcast.status,
+      reason: "ALREADY_FINISHED",
+    };
+  }
+
+  const now = new Date();
+  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+  // 1. Claim Lease: update atomik status ke SENDING dan perbarui lockedAt
+  const claimResult = await prisma.emailBroadcast.updateMany({
+    where: {
+      id: broadcastId,
+      status: { in: ["QUEUED", "SENDING"] },
+      OR: [{ lockedAt: null }, { lockedAt: { lt: fiveMinutesAgo } }],
+    },
+    data: {
+      status: "SENDING",
+      lockedAt: now,
+      startedAt: broadcast.startedAt || now,
+    },
+  });
+
+  if (claimResult.count === 0) {
+    return {
+      processed: false,
+      broadcastId,
+      sentCount: broadcast.sentCount,
+      failedCount: broadcast.failedCount,
+      reason: "COULD_NOT_CLAIM_LEASE",
+    };
+  }
+
+  // 2. Recovery crash: kembalikan recipient SENDING yang kedaluwarsa ke PENDING
+  await prisma.emailBroadcastRecipient.updateMany({
+    where: {
+      broadcastId,
+      status: "SENDING",
+      lastAttemptAt: { lt: fiveMinutesAgo },
+    },
+    data: {
+      status: "PENDING",
+    },
+  });
+
+  // 3. Notifikasi In-App: buat sekali saja di awal pemrosesan jika belum pernah dikirim
+  if (broadcast.sendInApp && !broadcast.inAppDispatchedAt) {
+    const recipientsWithUser = await prisma.emailBroadcastRecipient.findMany({
+      where: { broadcastId, employee: { userId: { not: null } } },
+      select: { employee: { select: { userId: true } } },
+    });
+
+    const userIds = recipientsWithUser
+      .map((r) => r.employee?.userId)
+      .filter((uid): uid is string => Boolean(uid));
+
+    if (userIds.length > 0) {
+      const snippet =
+        broadcast.contentText.length > 120
+          ? `${broadcast.contentText.slice(0, 117)}...`
+          : broadcast.contentText;
+
+      await prisma.notification.createMany({
+        data: userIds.map((userId) => ({
+          userId,
+          title: `Pengumuman: ${broadcast.subject}`,
+          message: `${broadcast.senderName}: "${snippet}"`,
+          type: "INFO",
+          category: "SYSTEM",
+          link: "/notifikasi",
+        })),
+      });
+    }
+
+    await prisma.emailBroadcast.update({
+      where: { id: broadcastId },
+      data: { inAppDispatchedAt: new Date() },
+    });
+  }
+
+  // 4. Pengiriman batch email
+  const batchSize = process.env.BROADCAST_BATCH_SIZE
+    ? Math.max(1, parseInt(process.env.BROADCAST_BATCH_SIZE, 10))
+    : 5;
+  const batchDelayMs = process.env.BROADCAST_BATCH_DELAY_MS
+    ? Math.max(0, parseInt(process.env.BROADCAST_BATCH_DELAY_MS, 10))
+    : 200;
+
+  const transporter = createTransporter();
+  const isSimulated = !transporter;
+
+  while (true) {
+    const pendingRecipients = await prisma.emailBroadcastRecipient.findMany({
+      where: { broadcastId, status: "PENDING" },
+      take: batchSize,
+      orderBy: { id: "asc" },
+    });
+
+    if (pendingRecipients.length === 0) {
+      break;
+    }
+
+    const pendingIds = pendingRecipients.map((r) => r.id);
+
+    // Tandai recipient chunk ini sebagai SENDING secara atomik
+    await prisma.emailBroadcastRecipient.updateMany({
+      where: { id: { in: pendingIds }, status: "PENDING" },
+      data: {
+        status: "SENDING",
+        lastAttemptAt: new Date(),
+        attempts: { increment: 1 },
+      },
+    });
+
+    if (isSimulated) {
+      // Mode simulasi development
+      await prisma.emailBroadcastRecipient.updateMany({
+        where: { id: { in: pendingIds } },
+        data: {
+          status: "SENT",
+          sentAt: new Date(),
+        },
+      });
+    } else {
+      // Mode SMTP produksi
+      await Promise.all(
+        pendingRecipients.map(async (rcpt) => {
+          try {
+            const emailOptions = buildEmailForRecipient(broadcast, rcpt);
+            await transporter.sendMail(emailOptions);
+
+            await prisma.emailBroadcastRecipient.update({
+              where: { id: rcpt.id },
+              data: {
+                status: "SENT",
+                sentAt: new Date(),
+              },
+            });
+          } catch (err: unknown) {
+            const errorMsg =
+              err instanceof Error ? err.message : "Kesalahan pengiriman SMTP";
+            console.error(`Gagal mengirim broadcast ke ${rcpt.email}:`, err);
+
+            await prisma.emailBroadcastRecipient.update({
+              where: { id: rcpt.id },
+              data: {
+                status: "FAILED",
+                errorMessage: errorMsg,
+              },
+            });
+          }
+        }),
+      );
+    }
+
+    // Perbarui heartbeat lease lockedAt dan hitung progres sementara
+    const countsProgress = await prisma.emailBroadcastRecipient.groupBy({
+      by: ["status"],
+      where: { broadcastId },
+      _count: { id: true },
+    });
+
+    let partialSent = 0;
+    let partialFailed = 0;
+    for (const c of countsProgress) {
+      if (c.status === "SENT") partialSent = c._count.id;
+      if (c.status === "FAILED") partialFailed = c._count.id;
+    }
+
+    await prisma.emailBroadcast.update({
+      where: { id: broadcastId },
+      data: {
+        lockedAt: new Date(),
+        sentCount: partialSent,
+        failedCount: partialFailed,
+      },
+    });
+
+    if (batchDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, batchDelayMs));
+    }
+  }
+
+  // 5. Agregasi status akhir langsung dari tabel recipient
+  const finalCounts = await prisma.emailBroadcastRecipient.groupBy({
+    by: ["status"],
+    where: { broadcastId },
+    _count: { id: true },
+  });
+
+  let totalSent = 0;
+  let totalFailed = 0;
+  for (const c of finalCounts) {
+    if (c.status === "SENT") totalSent = c._count.id;
+    if (c.status === "FAILED") totalFailed = c._count.id;
+  }
+
+  const finalStatus: BroadcastStatus =
+    totalFailed === 0
+      ? "SENT"
+      : totalSent > 0
+        ? "PARTIALLY_FAILED"
+        : "FAILED";
+
+  await prisma.emailBroadcast.update({
+    where: { id: broadcastId },
+    data: {
+      status: finalStatus,
+      sentCount: totalSent,
+      failedCount: totalFailed,
+      finishedAt: new Date(),
+      lockedAt: null,
+    },
+  });
+
+  // 6. Tulis Audit Log Penyelesaian
+  await writeAudit({
+    actorUserId: broadcast.senderUserId,
+    actorEmail: broadcast.senderEmail,
+    app: "hris",
+    action: "BROADCAST_EMAIL_COMPLETED",
+    entityType: "EmailBroadcast",
+    entityId: broadcastId,
+    after: {
+      broadcastId,
+      finalStatus,
+      totalRecipients: broadcast.totalRecipients,
+      sentCount: totalSent,
+      failedCount: totalFailed,
+      isSimulated,
+    },
+  });
+
+  return {
+    processed: true,
+    broadcastId,
+    sentCount: totalSent,
+    failedCount: totalFailed,
+    finalStatus,
     simulated: isSimulated,
-    message: isSimulated
-      ? `Pengumuman berhasil disimulasikan ke ${sentCount} penerima (SMTP belum dikonfigurasi).`
-      : `Pengumuman berhasil dikirimkan ke ${sentCount} dari ${recipients.length} penerima via email.`,
+  };
+}
+
+/**
+ * Eksekusi pengiriman sinkron (wrapper untuk kompatibilitas pengujian lama & CLI).
+ */
+export async function executeSendBroadcast(
+  userId: string,
+  input: SendBroadcastInput,
+  reqMeta?: { ip?: string; userAgent?: string },
+): Promise<SendBroadcastResult> {
+  const enqueueRes = await enqueueBroadcast(userId, input, reqMeta);
+  const processRes = await processBroadcast(enqueueRes.broadcastId);
+
+  return {
+    success: true,
+    broadcastId: enqueueRes.broadcastId,
+    totalRecipients: enqueueRes.totalRecipients,
+    sentCount: processRes.sentCount,
+    failedCount: processRes.failedCount,
+    simulated: processRes.simulated || false,
+    message: processRes.simulated
+      ? `Pengumuman berhasil disimulasikan ke ${processRes.sentCount} penerima (SMTP belum dikonfigurasi).`
+      : `Pengumuman berhasil dikirimkan ke ${processRes.sentCount} dari ${enqueueRes.totalRecipients} penerima via email.`,
   };
 }

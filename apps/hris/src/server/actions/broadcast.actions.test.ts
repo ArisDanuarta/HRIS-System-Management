@@ -19,9 +19,23 @@ vi.mock("next/cache", () => ({
   revalidatePath: (...args: unknown[]) => mockRevalidatePath(...args),
 }));
 
+// Mock next/server
+const mockAfter = vi.fn((cb: () => void | Promise<void>) => {
+  void cb();
+});
+vi.mock("next/server", () => ({
+  after: (cb: () => void | Promise<void>) => mockAfter(cb),
+}));
+
 // Mock @pspk/auth
 vi.mock("@pspk/auth", () => ({
   getSession: vi.fn(),
+  getAuthContext: vi.fn(),
+}));
+
+// Mock @pspk/rbac
+vi.mock("@pspk/rbac", () => ({
+  can: vi.fn(),
 }));
 
 // Mock @pspk/db
@@ -33,15 +47,22 @@ vi.mock("@pspk/db", () => ({
     employee: {
       findMany: vi.fn(),
     },
+    emailBroadcast: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
 // Mock broadcast-email.service
 const mockGetBroadcastSenderContext = vi.fn();
 const mockExecuteSendBroadcast = vi.fn();
+const mockEnqueueBroadcast = vi.fn();
+const mockProcessBroadcast = vi.fn();
 vi.mock("../services/broadcast-email.service", () => ({
   getBroadcastSenderContext: (...args: unknown[]) => mockGetBroadcastSenderContext(...args),
   executeSendBroadcast: (...args: unknown[]) => mockExecuteSendBroadcast(...args),
+  enqueueBroadcast: (...args: unknown[]) => mockEnqueueBroadcast(...args),
+  processBroadcast: (...args: unknown[]) => mockProcessBroadcast(...args),
 }));
 
 // Mock broadcast.queries
@@ -54,8 +75,10 @@ import {
   getBroadcastFormDataAction,
   sendBroadcastAction,
   getBroadcastDetailAction,
+  getBroadcastProgressAction,
 } from "./broadcast.actions";
-import { getSession } from "@pspk/auth";
+import { getSession, getAuthContext } from "@pspk/auth";
+import { can } from "@pspk/rbac";
 import { prisma } from "@pspk/db";
 
 type MockSession = Awaited<ReturnType<typeof getSession>>;
@@ -247,14 +270,13 @@ describe("HRIS broadcast.actions.ts", () => {
       expect(result.error).toContain("minimal 10 karakter");
     });
 
-    it("berhasil mengirim broadcast, memanggil revalidatePath, dan mengembalikan broadcastId", async () => {
+    it("berhasil memasukkan broadcast ke antrean, memanggil revalidatePath, dan mengembalikan broadcastId", async () => {
       vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
-      mockExecuteSendBroadcast.mockResolvedValueOnce({
+      mockEnqueueBroadcast.mockResolvedValueOnce({
+        success: true,
         broadcastId: "broadcast-uuid-123",
-        message: "Pengumuman berhasil disebarkan ke 42 penerima.",
         totalRecipients: 42,
-        sentCount: 42,
-        failedCount: 0,
+        message: "Pengumuman masuk antrean dan sedang diproses ke 42 penerima.",
       });
 
       const result = await sendBroadcastAction({
@@ -267,7 +289,7 @@ describe("HRIS broadcast.actions.ts", () => {
       expect(result.success).toBe(true);
       expect(result.broadcastId).toBe("broadcast-uuid-123");
       expect(result.message).toContain("42 penerima");
-      expect(mockExecuteSendBroadcast).toHaveBeenCalledWith(
+      expect(mockEnqueueBroadcast).toHaveBeenCalledWith(
         "user-hr-1",
         expect.objectContaining({
           subject: "Pengumuman Rapat Bulanan Yayasan",
@@ -278,12 +300,14 @@ describe("HRIS broadcast.actions.ts", () => {
           userAgent: "Vitest-Browser/1.0",
         }),
       );
+      expect(mockAfter).toHaveBeenCalled();
+      expect(mockProcessBroadcast).toHaveBeenCalledWith("broadcast-uuid-123");
       expect(mockRevalidatePath).toHaveBeenCalledWith("/komunikasi/riwayat");
     });
 
     it("harus menangani kegagalan eksekusi pengiriman dari service", async () => {
       vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
-      mockExecuteSendBroadcast.mockRejectedValueOnce(
+      mockEnqueueBroadcast.mockRejectedValueOnce(
         new Error("Tidak ada penerima aktif yang memiliki email kerja valid"),
       );
 
@@ -341,6 +365,75 @@ describe("HRIS broadcast.actions.ts", () => {
       const result = await getBroadcastDetailAction("bc-nonexistent");
       expect(result.success).toBe(false);
       expect(result.error).toBe("Pengumuman tidak ditemukan atau Anda tidak memiliki akses.");
+    });
+  });
+
+  describe("getBroadcastProgressAction", () => {
+    it("harus menolak jika belum login", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(null);
+
+      const result = await getBroadcastProgressAction("bc-1");
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Sesi telah berakhir");
+    });
+
+    it("harus menolak jika broadcast tidak ditemukan", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValueOnce(null as never);
+
+      const result = await getBroadcastProgressAction("bc-notfound");
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Data broadcast tidak ditemukan");
+    });
+
+    it("harus menolak jika pengguna bukan pengirim dan tidak punya izin", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockManagerSession);
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValueOnce({
+        id: "bc-1",
+        senderUserId: "user-other",
+        status: "SENDING",
+        totalRecipients: 50,
+        sentCount: 20,
+        failedCount: 0,
+      } as never);
+
+      vi.mocked(getAuthContext).mockResolvedValueOnce({
+        userId: "user-mgr-1",
+        employeeId: "emp-mgr-1",
+        roles: ["employee"],
+        permissions: new Set(),
+      } as never);
+      vi.mocked(can).mockReturnValue(false);
+
+      const result = await getBroadcastProgressAction("bc-1");
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("Akses ditolak");
+    });
+
+    it("berhasil mengembalikan data progres jika pengguna adalah admin HR", async () => {
+      vi.mocked(getSession).mockResolvedValueOnce(mockHrSession);
+      vi.mocked(prisma.emailBroadcast.findUnique).mockResolvedValueOnce({
+        id: "bc-1",
+        senderUserId: "user-other",
+        status: "SENDING",
+        totalRecipients: 50,
+        sentCount: 25,
+        failedCount: 2,
+      } as never);
+
+      vi.mocked(getAuthContext).mockResolvedValueOnce({
+        userId: "user-hr-1",
+        employeeId: "emp-hr-1",
+        roles: ["admin_hr"],
+        permissions: new Set(["hris.broadcast.read:all"]),
+      } as never);
+
+      const result = await getBroadcastProgressAction("bc-1");
+      expect(result.success).toBe(true);
+      expect(result.data?.status).toBe("SENDING");
+      expect(result.data?.totalRecipients).toBe(50);
+      expect(result.data?.sentCount).toBe(25);
+      expect(result.data?.failedCount).toBe(2);
     });
   });
 });

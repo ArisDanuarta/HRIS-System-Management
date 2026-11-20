@@ -502,6 +502,22 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
                 </span>
               </div>
 
+              {/* Peringatan Kuota Harian SMTP jika penerima melebihi batas */}
+              {recipientSummary.count >
+                (process.env.NEXT_PUBLIC_BROADCAST_DAILY_LIMIT
+                  ? parseInt(process.env.NEXT_PUBLIC_BROADCAST_DAILY_LIMIT, 10)
+                  : 400) && (
+                <div className="flex items-start gap-2 text-xs text-amber-900 bg-amber-50 p-3 rounded-lg border border-amber-300">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Peringatan Kuota SMTP:</strong> Jumlah sasaran penerima (
+                    {recipientSummary.count} orang) mendekati atau melampaui batas harian
+                    server email. Pastikan akun SMTP pengirim memiliki kuota harian yang cukup
+                    untuk menghindari penundaan atau pemblokiran sementara.
+                  </span>
+                </div>
+              )}
+
               {recipientSummary.skipped > 0 && (
                 <div className="flex items-start gap-2 text-xs text-amber-800 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />

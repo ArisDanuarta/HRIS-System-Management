@@ -2,15 +2,18 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { getSession } from "@pspk/auth";
-import { prisma } from "@pspk/db";
+import { after } from "next/server";
+import { getSession, getAuthContext } from "@pspk/auth";
+import { can } from "@pspk/rbac";
+import { prisma, BroadcastStatus } from "@pspk/db";
 import {
   sendBroadcastSchema,
   SendBroadcastInput,
 } from "../schemas/broadcast.schema";
 import {
   getBroadcastSenderContext,
-  executeSendBroadcast,
+  enqueueBroadcast,
+  processBroadcast,
   BroadcastSenderContext,
 } from "../services/broadcast-email.service";
 
@@ -159,9 +162,18 @@ export async function sendBroadcastAction(
     const ip = reqHeaders.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
     const userAgent = reqHeaders.get("user-agent") || "unknown";
 
-    const result = await executeSendBroadcast(session.user.id, parseResult.data, {
+    const result = await enqueueBroadcast(session.user.id, parseResult.data, {
       ip,
       userAgent,
+    });
+
+    // Jalankan pengiriman di background worker menggunakan after() dari next/server
+    after(async () => {
+      try {
+        await processBroadcast(result.broadcastId);
+      } catch (err: unknown) {
+        console.error("Gagal menjalankan background broadcast processor:", err);
+      }
     });
 
     revalidatePath("/komunikasi/riwayat");
@@ -175,6 +187,68 @@ export async function sendBroadcastAction(
   } catch (err: unknown) {
     console.error("Gagal menjalankan sendBroadcastAction:", err);
     const errorMsg = err instanceof Error ? err.message : "Terjadi kesalahan internal saat pengiriman broadcast.";
+    return { success: false, error: errorMsg };
+  }
+}
+
+/**
+ * Server action untuk mengambil status progres pengiriman broadcast terkini.
+ */
+export async function getBroadcastProgressAction(broadcastId: string): Promise<{
+  success: boolean;
+  data?: {
+    status: BroadcastStatus;
+    totalRecipients: number;
+    sentCount: number;
+    failedCount: number;
+  };
+  error?: string;
+}> {
+  try {
+    const reqHeaders = await headers();
+    const session = await getSession(reqHeaders);
+
+    if (!session?.user) {
+      return { success: false, error: "Sesi telah berakhir. Harap login kembali." };
+    }
+
+    const broadcast = await prisma.emailBroadcast.findUnique({
+      where: { id: broadcastId },
+      select: {
+        id: true,
+        senderUserId: true,
+        status: true,
+        totalRecipients: true,
+        sentCount: true,
+        failedCount: true,
+      },
+    });
+
+    if (!broadcast) {
+      return { success: false, error: "Data broadcast tidak ditemukan." };
+    }
+
+    const authCtx = await getAuthContext(session.user.id);
+    const isSuperAdmin = authCtx?.roles.includes("super_admin") || false;
+    const isAdminHr = authCtx?.roles.includes("admin_hr") || false;
+    const isAuthor = broadcast.senderUserId === session.user.id;
+    const hasReadPerm = authCtx ? can(authCtx, "hris.broadcast.read:all") : false;
+
+    if (!isSuperAdmin && !isAdminHr && !isAuthor && !hasReadPerm) {
+      return { success: false, error: "Akses ditolak: Anda tidak memiliki izin untuk melihat progres broadcast ini." };
+    }
+
+    return {
+      success: true,
+      data: {
+        status: broadcast.status,
+        totalRecipients: broadcast.totalRecipients,
+        sentCount: broadcast.sentCount,
+        failedCount: broadcast.failedCount,
+      },
+    };
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Gagal mengambil progres broadcast.";
     return { success: false, error: errorMsg };
   }
 }

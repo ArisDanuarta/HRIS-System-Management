@@ -76,6 +76,23 @@ export function BroadcastHistoryView({
     setSearchQuery(urlQ);
   }
 
+  // Polling aktif tiap 3 detik HANYA jika ada item QUEUED atau SENDING di halaman dan tab browser aktif
+  const hasActiveQueueItems = displayItems.some(
+    (item) => item.status === "QUEUED" || item.status === "SENDING",
+  );
+
+  useEffect(() => {
+    if (!hasActiveQueueItems) return;
+
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        router.refresh();
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [hasActiveQueueItems, router]);
+
   // Detail Modal State
   const [selectedBroadcastId, setSelectedBroadcastId] = useState<string | null>(null);
   const [activeDetail, setActiveDetail] = useState<BroadcastDetailItem | null>(null);
@@ -311,9 +328,12 @@ export function BroadcastHistoryView({
             className="px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy-600 font-medium text-slate-700 cursor-pointer disabled:opacity-60"
           >
             <option value="ALL">Semua Status</option>
+            <option value="QUEUED">Dalam Antrean</option>
+            <option value="SENDING">Sedang Dikirim</option>
             <option value="SENT">100% Terkirim</option>
             <option value="PARTIALLY_FAILED">Sebagian Gagal</option>
             <option value="FAILED">Gagal Total</option>
+            <option value="CANCELED">Dibatalkan</option>
           </select>
 
           {canCreate && (
@@ -404,23 +424,53 @@ export function BroadcastHistoryView({
                     {/* Status Badge */}
                     <span
                       className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-md ${
-                        item.status === "SENT"
-                          ? "bg-emerald-50 text-emerald-700"
-                          : item.status === "PARTIALLY_FAILED"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-red-50 text-red-700"
+                        item.status === "QUEUED"
+                          ? "bg-slate-100 text-slate-700 border border-slate-200"
+                          : item.status === "SENDING"
+                            ? "bg-blue-50 text-blue-700 border border-blue-200"
+                            : item.status === "SENT"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : item.status === "PARTIALLY_FAILED"
+                                ? "bg-amber-50 text-amber-700"
+                                : item.status === "CANCELED"
+                                  ? "bg-slate-100 text-slate-500"
+                                  : "bg-red-50 text-red-700"
                       }`}
                     >
-                      {item.status === "SENT" ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                      {item.status === "QUEUED" ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Dalam Antrean</span>
+                        </>
+                      ) : item.status === "SENDING" ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 text-blue-600 animate-spin" />
+                          <span>
+                            Sedang Dikirim ({item.sentCount + item.failedCount}/{item.totalRecipients})
+                          </span>
+                        </>
+                      ) : item.status === "SENT" ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>
+                            {item.sentCount}/{item.totalRecipients} Terkirim
+                          </span>
+                        </>
                       ) : item.status === "PARTIALLY_FAILED" ? (
-                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        <>
+                          <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                          <span>
+                            {item.sentCount}/{item.totalRecipients} Terkirim
+                          </span>
+                        </>
+                      ) : item.status === "CANCELED" ? (
+                        <span>Dibatalkan</span>
                       ) : (
-                        <XCircle className="w-3.5 h-3.5 text-red-600" />
+                        <>
+                          <XCircle className="w-3.5 h-3.5 text-red-600" />
+                          <span>Gagal Total</span>
+                        </>
                       )}
-                      <span>
-                        {item.sentCount}/{item.totalRecipients} Terkirim
-                      </span>
                     </span>
 
                     <span className="text-slate-300">•</span>
@@ -438,6 +488,38 @@ export function BroadcastHistoryView({
                       {item.contentSnippet}
                     </p>
                   </div>
+
+                  {/* Progress Bar untuk Broadcast yang Sedang Diproses */}
+                  {(item.status === "SENDING" || item.status === "QUEUED") && (
+                    <div className="pt-1.5 space-y-1">
+                      <div className="flex items-center justify-between text-xs text-slate-600">
+                        <span>Progres pengiriman:</span>
+                        <span className="font-semibold text-navy-900">
+                          {item.sentCount + item.failedCount} / {item.totalRecipients} (
+                          {Math.round(
+                            ((item.sentCount + item.failedCount) /
+                              Math.max(1, item.totalRecipients)) *
+                              100,
+                          )}
+                          %)
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            item.status === "QUEUED" ? "bg-slate-400" : "bg-blue-600"
+                          }`}
+                          style={{
+                            width: `${Math.round(
+                              ((item.sentCount + item.failedCount) /
+                                Math.max(1, item.totalRecipients)) *
+                                100,
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap items-center gap-2 text-xs text-slate-600 pt-1">
                     <span className="font-medium text-slate-800">
