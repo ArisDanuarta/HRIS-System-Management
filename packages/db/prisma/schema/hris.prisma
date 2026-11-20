@@ -958,16 +958,20 @@ enum BroadcastScope {
 
 enum BroadcastStatus {
   DRAFT
+  QUEUED
+  SCHEDULED
   SENDING
   SENT
   PARTIALLY_FAILED
   FAILED
+  CANCELED
 
   @@schema("hris")
 }
 
 enum BroadcastDeliveryStatus {
   PENDING
+  SENDING
   SENT
   FAILED
 
@@ -990,7 +994,14 @@ model EmailBroadcast {
   sentCount          Int             @default(0) @map("sent_count")
   failedCount        Int             @default(0) @map("failed_count")
   sendInApp          Boolean         @default(true) @map("send_in_app")
-  status             BroadcastStatus @default(SENT)
+  status             BroadcastStatus @default(QUEUED)
+  startedAt          DateTime?       @map("started_at") @db.Timestamptz(6)
+  finishedAt         DateTime?       @map("finished_at") @db.Timestamptz(6)
+  lockedAt           DateTime?       @map("locked_at") @db.Timestamptz(6)
+  inAppDispatchedAt  DateTime?       @map("in_app_dispatched_at") @db.Timestamptz(6)
+  senderPersona      String?         @map("sender_persona")
+  replyToMode        String?         @map("reply_to_mode")
+  senderDisplayTitle String?         @map("sender_display_title")
   createdAt          DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
 
   senderEmployee     Employee?       @relation("SenderBroadcasts", fields: [senderEmployeeId], references: [id])
@@ -998,6 +1009,7 @@ model EmailBroadcast {
   recipients         EmailBroadcastRecipient[]
 
   @@index([senderUserId])
+  @@index([status])
   @@index([createdAt(sort: Desc)])
   @@map("email_broadcasts")
   @@schema("hris")
@@ -1010,6 +1022,8 @@ model EmailBroadcastRecipient {
   email         String
   recipientName String                  @map("recipient_name")
   status        BroadcastDeliveryStatus @default(PENDING)
+  attempts      Int                     @default(0)
+  lastAttemptAt DateTime?               @map("last_attempt_at") @db.Timestamptz(6)
   errorMessage  String?                 @map("error_message")
   sentAt        DateTime?               @map("sent_at") @db.Timestamptz(6)
 
@@ -1017,6 +1031,7 @@ model EmailBroadcastRecipient {
   employee      Employee?               @relation(fields: [employeeId], references: [id])
 
   @@index([broadcastId])
+  @@index([status])
   @@index([email])
   @@map("email_broadcast_recipients")
   @@schema("hris")
