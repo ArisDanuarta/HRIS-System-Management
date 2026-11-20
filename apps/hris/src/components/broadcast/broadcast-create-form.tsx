@@ -523,7 +523,6 @@ export function BroadcastCreateForm({ initialData }: BroadcastCreateFormProps) {
             {/* RECIPIENT PICKER (Multi-divisi, Custom Search, & Pengecualian) */}
             <RecipientPicker
               targetScope={targetScope}
-              canSendAll={canSendAll}
               departments={departments}
               employees={employees}
               teamMembers={teamMembers}

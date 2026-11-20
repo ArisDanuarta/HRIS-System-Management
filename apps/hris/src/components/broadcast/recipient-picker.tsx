@@ -28,7 +28,6 @@ export interface RecipientPickerTeamMember {
 
 export interface RecipientPickerProps {
   targetScope: "ALL_EMPLOYEES" | "DEPARTMENT" | "TEAM" | "CUSTOM";
-  canSendAll: boolean;
   departments: Array<{ id: string; name: string }>;
   employees: RecipientPickerEmployee[];
   teamMembers: RecipientPickerTeamMember[];
@@ -43,7 +42,6 @@ export interface RecipientPickerProps {
 
 export function RecipientPicker({
   targetScope,
-  canSendAll,
   departments,
   employees,
   teamMembers,
@@ -66,8 +64,11 @@ export function RecipientPicker({
   const [exclusionSearch, setExclusionSearch] = useState("");
 
   // Helper filter pegawai yang dapat dikirimi (bukan pengirim sendiri & punya email valid)
-  const isDeliverable = (emp: { id: string; workEmail: string }) =>
-    emp.id !== senderEmployeeId && hasDeliverableEmail(emp.workEmail);
+  const isDeliverable = useCallback(
+    (emp: { id: string; workEmail: string }) =>
+      emp.id !== senderEmployeeId && hasDeliverableEmail(emp.workEmail),
+    [senderEmployeeId],
+  );
 
   // 1. Departemen Stats (jumlah pegawai deliverable per departemen)
   const departmentCounts = useMemo(() => {
@@ -81,7 +82,7 @@ export function RecipientPicker({
       }
     }
     return counts;
-  }, [departments, employees, senderEmployeeId]);
+  }, [departments, employees, isDeliverable]);
 
   // Toggle pilihan departemen
   const toggleDepartment = (deptId: string) => {
@@ -113,7 +114,7 @@ export function RecipientPicker({
         emp.workEmail.toLowerCase().includes(q);
       return matchDept && matchSearch;
     });
-  }, [employees, customSearch, customDeptFilter, senderEmployeeId]);
+  }, [employees, customSearch, customDeptFilter, isDeliverable]);
 
   const customRenderLimit = 200;
   const displayedCustomEmployees = filteredCustomEmployees.slice(0, customRenderLimit);
@@ -196,7 +197,7 @@ export function RecipientPicker({
     employees,
     selectedDepartmentIds,
     exclusionSearch,
-    senderEmployeeId,
+    isDeliverable,
   ]);
 
   const toggleExcludeEmployee = (empId: string) => {
