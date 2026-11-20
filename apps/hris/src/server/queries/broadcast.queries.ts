@@ -37,6 +37,7 @@ export interface BroadcastRecipientDetail {
 
 export interface BroadcastDetailItem extends BroadcastHistoryItem {
   recipients: BroadcastRecipientDetail[];
+  canResend: boolean;
 }
 
 export interface BroadcastHistoryStats {
@@ -251,6 +252,13 @@ export async function getBroadcastDetail(
     }
   }
 
+  const canSendAll = isSuperAdmin || isAdminHr || can(authCtx, "hris.broadcast.send:all");
+  const canResend =
+    (isAuthor || canSendAll) &&
+    broadcast.failedCount > 0 &&
+    broadcast.status !== "QUEUED" &&
+    broadcast.status !== "SENDING";
+
   return {
     id: broadcast.id,
     subject: broadcast.subject,
@@ -268,6 +276,7 @@ export async function getBroadcastDetail(
     sendInApp: broadcast.sendInApp,
     status: broadcast.status,
     createdAt: broadcast.createdAt,
+    canResend,
     recipients: broadcast.recipients.map((r) => ({
       id: r.id,
       recipientName: r.recipientName,
